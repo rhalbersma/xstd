@@ -175,7 +175,7 @@ constexpr auto count(bitset<N> const& b) noexcept
 // operators
 
 template<int N>
-constexpr auto op_and(bitset<N> const& lhs, bitset<N> const& rhs)
+constexpr auto op_and(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         // arrange
         auto prev = lhs;
@@ -189,7 +189,7 @@ constexpr auto op_and(bitset<N> const& lhs, bitset<N> const& rhs)
 }
 
 template<int N>
-constexpr auto op_or(bitset<N> const& lhs, bitset<N> const& rhs)
+constexpr auto op_or(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         // arrange
         auto prev = lhs;
@@ -203,7 +203,7 @@ constexpr auto op_or(bitset<N> const& lhs, bitset<N> const& rhs)
 }
 
 template<int N>
-constexpr auto op_xor(bitset<N> const& lhs, bitset<N> const& rhs)
+constexpr auto op_xor(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         // arrange
         auto prev = lhs;
@@ -217,7 +217,7 @@ constexpr auto op_xor(bitset<N> const& lhs, bitset<N> const& rhs)
 }
 
 template<int N>
-constexpr auto op_minus(bitset<N> const& lhs, bitset<N> const& rhs)
+constexpr auto op_minus(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         // arrange
         auto prev = lhs;
