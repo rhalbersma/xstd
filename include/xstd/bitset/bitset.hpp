@@ -1,6 +1,5 @@
 #pragma once
 #include <xstd/bitset/detail/base_bitset.hpp>   // base_bitset
-#include <xstd/bitset/detail/sanitize.hpp>
 #include <xstd/bitset/iterator/iterator.hpp>    // ConstIterator
 #include <xstd/bitset/iterator/reference.hpp>   // ConstReference
 #include <xstd/bitset/limits.hpp>               // digits
@@ -8,6 +7,7 @@
 #include <cassert>                              // assert
 #include <initializer_list>                     // initializer_list
 #include <iterator>                             // reverse_iterator
+#include <type_traits>                          // enable_if_t
 
 namespace xstd {
 
@@ -52,7 +52,7 @@ public:
 
         /* implicit */ constexpr bitset(unsigned long long value) noexcept
         :
-                Base{detail::Sanitize<N>{}(value)}
+                Base{sanitized(value)}
         {}
 
         template<class ForwardIterator>
@@ -294,7 +294,7 @@ public:
 
         constexpr bool all() const noexcept
         {
-                return this->do_all();
+                return this->template do_all<N % digits<block_type>>();
         }
 
         constexpr bool any() const noexcept
@@ -313,14 +313,49 @@ public:
         }
 
 private:
-        constexpr auto sanitize() noexcept
-        {
-                detail::SanitizeAssign<N % digits<block_type>>{}(this->block_back());
-        }
-
         constexpr auto mask(int n) const noexcept
         {
                 return masks::one<block_type> << (n % digits<block_type>);
+        }
+
+        constexpr auto sanitized(block_type b) const noexcept
+        {
+                return sanitized<N % digits<block_type>>(b);
+        }
+
+        constexpr auto sanitize() noexcept
+        {
+                sanitize<N % digits<block_type>>(this->block_back());
+        }
+
+        template<int M>
+        constexpr std::enable_if_t<M != 0,
+        block_type> sanitized(block_type b) noexcept
+        {
+                static_assert(0 < M && M < digits<block_type>, "");
+                return b & (masks::all<block_type> >> (digits<block_type> - M));
+        }
+
+        template<int M>
+        constexpr std::enable_if_t<M == 0,
+        block_type> sanitized(block_type b) noexcept
+        {
+                return b;
+        }
+
+        template<int M>
+        constexpr std::enable_if_t<M != 0,
+        void> sanitize(block_type& b) noexcept
+        {
+                static_assert(0 < M && M < digits<block_type>, "");
+                b &= masks::all<block_type> >> (digits<block_type> - M);
+        }
+
+        template<int M>
+        constexpr std::enable_if_t<M == 0,
+        void> sanitize(block_type& /* b */) noexcept
+        {
+                // no-op
         }
 };
 

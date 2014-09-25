@@ -92,20 +92,27 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
 
         // comparators
 
-        BOOST_CHECK(equal<N>());
-        BOOST_CHECK(not_equal<N>());
+        BOOST_CHECK(op_equal_to<N>());
+        BOOST_CHECK(op_not_equal_to<N>());
 
         // modifiers
 
-        BOOST_CHECK(and_assign<N>());
-        BOOST_CHECK(or_assign<N>());
-        BOOST_CHECK(xor_assign<N>());
-        BOOST_CHECK(minus_assign<N>());
-        BOOST_CHECK(shift_left_assign<N>());
-        BOOST_CHECK(shift_right_assign<N>());
+        BOOST_CHECK(set<N>());
+        BOOST_CHECK(reset<N>());
+        BOOST_CHECK(flip<N>());
+
+        BOOST_CHECK(op_and_assign<N>());
+        BOOST_CHECK(op_or_assign<N>());
+        BOOST_CHECK(op_xor_assign<N>());
+        BOOST_CHECK(op_minus_assign<N>());
+        BOOST_CHECK(op_shift_left_assign<N>());
+        BOOST_CHECK(op_shift_right_assign<N>());
 
         // observers
 
+        BOOST_CHECK(all<N>());
+        BOOST_CHECK(any<N>());
+        BOOST_CHECK(none<N>());
         BOOST_CHECK(count<N>());
 
         // operators

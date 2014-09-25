@@ -1,104 +1,162 @@
 #pragma once
 #include <bitset/bitset/primitive.hpp>
+#include <xstd/bitset.hpp>
 
 namespace xstd {
 
 // comparators
 
 template<int N>
-constexpr auto equal() noexcept
+constexpr auto op_equal_to() noexcept
 {
         auto check = true;
         for (auto i = 0; i < N; ++i)
                 for (auto j = 0; j < N; ++j)
-                        check &= equal(bitset<N>{i}, bitset<N>{j});
+                        check &= op_equal_to(bitset<N>{i}, bitset<N>{j});
         return check;
 }
 
 template<int N>
-constexpr auto not_equal() noexcept
+constexpr auto op_not_equal_to() noexcept
 {
         auto check = true;
         for (auto i = 0; i < N; ++i)
                 for (auto j = 0; j < N; ++j)
-                        check &= not_equal(bitset<N>{i}, bitset<N>{j});
+                        check &= op_not_equal_to(bitset<N>{i}, bitset<N>{j});
         return check;
 }
 
 // modifiers
 
 template<int N>
-constexpr auto and_assign() noexcept
+constexpr auto set() noexcept
 {
         auto check = true;
         for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= and_assign(bitset<N>{i}, bitset<N>{j});
+                check &= set(~(~bitset<N>{} << i));
+        check &= set(~bitset<N>{});
         return check;
 }
 
 template<int N>
-constexpr auto or_assign() noexcept
+constexpr auto reset() noexcept
 {
         auto check = true;
         for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= or_assign(bitset<N>{i}, bitset<N>{j});
+                check &= reset(~(~bitset<N>{} << i));
+        check &= reset(~bitset<N>{});
         return check;
 }
 
 template<int N>
-constexpr auto xor_assign() noexcept
+constexpr auto flip() noexcept
 {
         auto check = true;
         for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= xor_assign(bitset<N>{i}, bitset<N>{j});
+                check &= flip(~(~bitset<N>{} << i));
+        check &= flip(~bitset<N>{});
         return check;
 }
 
 template<int N>
-constexpr auto minus_assign() noexcept
+constexpr auto op_and_assign() noexcept
 {
         auto check = true;
         for (auto i = 0; i < N; ++i)
                 for (auto j = 0; j < N; ++j)
-                        check &= minus_assign(bitset<N>{i}, bitset<N>{j});
+                        check &= op_and_assign(bitset<N>{i}, bitset<N>{j});
         return check;
 }
 
 template<int N>
-constexpr auto shift_left_assign() noexcept
+constexpr auto op_or_assign() noexcept
 {
         auto check = true;
         for (auto i = 0; i < N; ++i)
                 for (auto j = 0; j < N; ++j)
-                        check &= shift_left_assign(bitset<N>{i}, j);
+                        check &= op_or_assign(bitset<N>{i}, bitset<N>{j});
         return check;
 }
 
 template<int N>
-constexpr auto shift_right_assign() noexcept
+constexpr auto op_xor_assign() noexcept
 {
         auto check = true;
         for (auto i = 0; i < N; ++i)
                 for (auto j = 0; j < N; ++j)
-                        check &= shift_right_assign(bitset<N>{i}, j);
+                        check &= op_xor_assign(bitset<N>{i}, bitset<N>{j});
+        return check;
+}
+
+template<int N>
+constexpr auto op_minus_assign() noexcept
+{
+        auto check = true;
+        for (auto i = 0; i < N; ++i)
+                for (auto j = 0; j < N; ++j)
+                        check &= op_minus_assign(bitset<N>{i}, bitset<N>{j});
+        return check;
+}
+
+template<int N>
+constexpr auto op_shift_left_assign() noexcept
+{
+        auto check = true;
+        for (auto i = 0; i < N; ++i)
+                for (auto j = 0; j < N; ++j)
+                        check &= op_shift_left_assign(bitset<N>{i}, j);
+        return check;
+}
+
+template<int N>
+constexpr auto op_shift_right_assign() noexcept
+{
+        auto check = true;
+        for (auto i = 0; i < N; ++i)
+                for (auto j = 0; j < N; ++j)
+                        check &= op_shift_right_assign(bitset<N>{i}, j);
         return check;
 }
 
 // observers
 
 template<int N>
+constexpr auto all() noexcept
+{
+        auto check = true;
+        for (auto i = 0; i < N; ++i)
+                check &= all(~(~bitset<N>{} << i));
+        check &= all(~bitset<N>{});
+        return check;
+}
+
+template<int N>
+constexpr auto any() noexcept
+{
+        auto check = true;
+        for (auto i = 0; i < N; ++i)
+                check &= any(~(~bitset<N>{} << i));
+        check &= any(~bitset<N>{});
+        return check;
+}
+
+template<int N>
+constexpr auto none() noexcept
+{
+        auto check = true;
+        for (auto i = 0; i < N; ++i)
+                check &= none(~(~bitset<N>{} << i));
+        check &= none(~bitset<N>{});
+        return check;
+}
+
+template<int N>
 constexpr auto count() noexcept
 {
         auto check = true;
         for (auto i = 0; i < N; ++i)
-                check &= (~(~bitset<N>{} << i)).count() == i;
-        if (N)
-                check &= bitset<N>{}.flip().count() == N;
-        else
-                check &= bitset<N>{}.flip().count() == 0;
+                check &= count(~(~bitset<N>{} << i));
+        check &= count(~bitset<N>{});
         return check;
 }
 
