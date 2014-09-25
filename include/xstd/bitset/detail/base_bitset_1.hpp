@@ -4,6 +4,7 @@
 #include <xstd/bitset/limits.hpp>                       // digits, is_unsigned_integer
 #include <xstd/bitset/masks.hpp>                        // none, one, all
 #include <cassert>                                      // assert
+#include <type_traits>                                  // enable_if_t
 #include <utility>                                      // swap
 
 namespace xstd {
@@ -167,7 +168,17 @@ public:
 
         // observers
 
-        constexpr auto do_all() const noexcept
+        template<int M>
+        constexpr std::enable_if_t<M != 0,
+        bool> do_all() const noexcept
+        {
+                static_assert(0 < M && M < digits<Block>, "");
+                return elems == masks::all<Block> >> (digits<Block> - M);
+        }
+
+        template<int M>
+        constexpr std::enable_if_t<M == 0,
+        bool> do_all() const noexcept
         {
                 return elems == masks::all<Block>;
         }

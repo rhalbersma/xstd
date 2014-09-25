@@ -6,7 +6,7 @@ namespace xstd {
 // comparators
 
 template<int N>
-constexpr auto equal(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
+constexpr auto op_equal_to(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         // arrange
         auto prev = true;
@@ -21,7 +21,7 @@ constexpr auto equal(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 }
 
 template<int N>
-constexpr auto not_equal(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
+constexpr auto op_not_equal_to(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         // arrange
         auto const prev = !(lhs == rhs);
@@ -36,7 +36,58 @@ constexpr auto not_equal(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 // modifiers
 
 template<int N>
-constexpr auto and_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
+constexpr auto set(bitset<N> const& b) noexcept
+{
+        // arrange
+        auto next = b;
+
+        // act
+        next.set();
+
+        // assert
+        auto check = true;
+        for (auto i = 0; i < N; ++i)
+                check &= next.test(i);
+        check &= next.all();
+        return check;
+}
+
+template<int N>
+constexpr auto reset(bitset<N> const& b) noexcept
+{
+        // arrange
+        auto next = b;
+
+        // act
+        next.reset();
+
+        // assert
+        auto check = true;
+        for (auto i = 0; i < N; ++i)
+                check &= !next.test(i);
+        check &= next.none();
+        return check;
+}
+
+template<int N>
+constexpr auto flip(bitset<N> const& b) noexcept
+{
+        // arrange
+        auto next = b;
+        auto const prev = b;
+
+        // act
+        next.flip();
+
+        // assert
+        auto check = true;
+        for (auto i = 0; i < N; ++i)
+                check &= next.test(i) != prev.test(i);
+        return check;
+}
+
+template<int N>
+constexpr auto op_and_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         // arrange
         auto next = lhs;
@@ -56,7 +107,7 @@ constexpr auto and_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 }
 
 template<int N>
-constexpr auto or_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
+constexpr auto op_or_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         // arrange
         auto next = lhs;
@@ -76,7 +127,7 @@ constexpr auto or_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 }
 
 template<int N>
-constexpr auto xor_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
+constexpr auto op_xor_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         // arrange
         auto next = lhs;
@@ -96,7 +147,7 @@ constexpr auto xor_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 }
 
 template<int N>
-constexpr auto minus_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
+constexpr auto op_minus_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         // arrange
         auto next = lhs;
@@ -116,7 +167,7 @@ constexpr auto minus_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 }
 
 template<int N>
-constexpr auto shift_left_assign(bitset<N> const& b, int n)
+constexpr auto op_shift_left_assign(bitset<N> const& b, int n)
 {
         // arrange
         auto next = b;
@@ -136,7 +187,7 @@ constexpr auto shift_left_assign(bitset<N> const& b, int n)
 }
 
 template<int N>
-constexpr auto shift_right_assign(bitset<N> const& b, int n)
+constexpr auto op_shift_right_assign(bitset<N> const& b, int n)
 {
         // arrange
         auto next = b;
@@ -156,6 +207,54 @@ constexpr auto shift_right_assign(bitset<N> const& b, int n)
 }
 
 // observers
+
+template<int N>
+constexpr auto all(bitset<N> const& b) noexcept
+{
+        // arrange
+        auto prev = true;
+        for (auto i = 0; i < N; ++i)
+                prev &= b.test(i);
+        prev &= b.count() == N;
+
+        // act
+        auto const next = b.all();
+
+        // assert
+        return next == prev;
+}
+
+template<int N>
+constexpr auto any(bitset<N> const& b) noexcept
+{
+        // arrange
+        auto prev = false;
+        for (auto i = 0; i < N; ++i)
+                prev |= b.test(i);
+        prev &= b.count() > 0;
+
+        // act
+        auto const next = b.any();
+
+        // assert
+        return next == prev;
+}
+
+template<int N>
+constexpr auto none(bitset<N> const& b) noexcept
+{
+        // arrange
+        auto prev = true;
+        for (auto i = 0; i < N; ++i)
+                prev &= !b.test(i);
+        prev &= b.count() == 0;
+
+        // act
+        auto const next = b.none();
+
+        // assert
+        return next == prev;
+}
 
 template<int N>
 constexpr auto count(bitset<N> const& b) noexcept
