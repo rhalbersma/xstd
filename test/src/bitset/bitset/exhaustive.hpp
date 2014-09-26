@@ -163,6 +163,16 @@ constexpr auto count() noexcept
 // operators
 
 template<int N>
+constexpr auto op_flip() noexcept
+{
+        auto check = true;
+        for (auto i = 0; i < N; ++i)
+                check &= op_flip(~(~bitset<N>{} << i));
+        check &= op_flip(~bitset<N>{});
+        return check;
+}
+
+template<int N>
 constexpr auto op_and() noexcept
 {
         auto check = true;
