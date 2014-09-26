@@ -29,32 +29,62 @@ constexpr auto op_not_equal_to() noexcept
 // modifiers
 
 template<int N>
-constexpr auto set() noexcept
+constexpr auto set_one() noexcept
 {
         auto check = true;
         for (auto i = 0; i < N; ++i)
-                check &= set(~(~bitset<N>{} << i));
-        check &= set(~bitset<N>{});
+                for (auto j = 0; j < N; ++j)
+                        check &= set_one(bitset<N>{i}, j);
         return check;
 }
 
 template<int N>
-constexpr auto reset() noexcept
+constexpr auto reset_one() noexcept
 {
         auto check = true;
         for (auto i = 0; i < N; ++i)
-                check &= reset(~(~bitset<N>{} << i));
-        check &= reset(~bitset<N>{});
+                for (auto j = 0; j < N; ++j)
+                        check &= reset_one(bitset<N>{i}, j);
         return check;
 }
 
 template<int N>
-constexpr auto flip() noexcept
+constexpr auto flip_one() noexcept
 {
         auto check = true;
         for (auto i = 0; i < N; ++i)
-                check &= flip(~(~bitset<N>{} << i));
-        check &= flip(~bitset<N>{});
+                for (auto j = 0; j < N; ++j)
+                        check &= flip_one(bitset<N>{i}, j);
+        return check;
+}
+
+template<int N>
+constexpr auto set_all() noexcept
+{
+        auto check = true;
+        for (auto i = 0; i < N; ++i)
+                check &= set_all(~(~bitset<N>{} << i));
+        check &= set_all(~bitset<N>{});
+        return check;
+}
+
+template<int N>
+constexpr auto reset_all() noexcept
+{
+        auto check = true;
+        for (auto i = 0; i < N; ++i)
+                check &= reset_all(~(~bitset<N>{} << i));
+        check &= reset_all(~bitset<N>{});
+        return check;
+}
+
+template<int N>
+constexpr auto flip_all() noexcept
+{
+        auto check = true;
+        for (auto i = 0; i < N; ++i)
+                check &= flip_all(~(~bitset<N>{} << i));
+        check &= flip_all(~bitset<N>{});
         return check;
 }
 
