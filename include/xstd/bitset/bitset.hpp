@@ -416,59 +416,45 @@ constexpr bool disjoint(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 template<int N>
 constexpr bitset<N> operator~(bitset<N> const& lhs) noexcept
 {
-        auto nrv(lhs);
-        nrv.flip();
-        return nrv;
+        return bitset<N>(lhs).flip();
 }
 
 template<int N>
 constexpr bitset<N> operator&(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
-        auto nrv(lhs);
-        nrv &= rhs;
-        return nrv;
+        return bitset<N>(lhs) &= rhs;
 }
 
 template<int N>
 constexpr bitset<N> operator|(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
-        auto nrv(lhs);
-        nrv |= rhs;
-        return nrv;
+        return bitset<N>(lhs) |= rhs;
 }
 
 template<int N>
 constexpr bitset<N> operator^(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
-        auto nrv(lhs);
-        nrv ^= rhs;
-        return nrv;
+        return bitset<N>(lhs) ^= rhs;
 }
 
 template<int N>
 constexpr bitset<N> operator-(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
-        auto nrv(lhs);
-        nrv -= rhs;
-        return nrv;
+        return bitset<N>(lhs) -= rhs;
 }
 
 template<int N>
 constexpr bitset<N> operator<<(bitset<N> const& lhs, int n)
 {
         assert(0 <= n && n < N);
-        auto nrv(lhs);
-        nrv <<= n;
-        return nrv;
+        return bitset<N>(lhs) <<= n;
 }
 
 template<int N>
 constexpr bitset<N> operator>>(bitset<N> const& lhs, int n)
 {
         assert(0 <= n && n < N);
-        auto nrv(lhs);
-        nrv >>= n;
-        return nrv;
+        return bitset<N>(lhs) >>= n;
 }
 
 template<int N>
