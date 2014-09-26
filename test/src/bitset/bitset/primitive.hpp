@@ -3,6 +3,18 @@
 
 namespace xstd {
 
+// constructors
+
+template<int N>
+constexpr auto constructor_default() noexcept
+{
+        // arrange & act [bitset.cons]/1
+        auto const value = bitset<N>{};
+
+        // assert
+        return value.none();
+}
+
 // comparators
 
 template<int N>
@@ -36,33 +48,93 @@ constexpr auto op_not_equal_to(bitset<N> const& lhs, bitset<N> const& rhs) noexc
 // modifiers
 
 template<int N>
-constexpr auto set(bitset<N> const& b) noexcept
+constexpr auto set_one(bitset<N> const& b, int pos) noexcept
 {
         // arrange
         auto next = b;
+        auto const prev = b;
 
         // act
-        next.set();
+        next.set(pos);
+
+        // assert [bitset.members]/15
+        auto check = true;
+        for (auto i = 0; i < N; ++i)
+                if (i == pos)
+                        check &= next.test(i);
+                else
+                        check &= next.test(i) == prev.test(i);
+        return check;
+}
+
+template<int N>
+constexpr auto reset_one(bitset<N> const& b, int pos) noexcept
+{
+        // arrange
+        auto next = b;
+        auto const prev = b;
+
+        // act
+        next.reset(pos);
+
+        // assert [bitset.members]/21
+        auto check = true;
+        for (auto i = 0; i < N; ++i)
+                if (i == pos)
+                        check &= !next.test(i);
+                else
+                        check &= next.test(i) == prev.test(i);
+        return check;
+}
+
+template<int N>
+constexpr auto flip_one(bitset<N> const& b, int pos) noexcept
+{
+        // arrange
+        auto next = b;
+        auto const prev = b;
+
+        // act
+        next.flip(pos);
+
+        // assert [bitset.members]/29
+        auto check = true;
+        for (auto i = 0; i < N; ++i)
+                if (i == pos)
+                        check &= next.test(i) != prev.test(i);
+                else
+                        check &= next.test(i) == prev.test(i);
+        return check;
+}
+
+template<int N>
+constexpr auto set_all(bitset<N> const& b) noexcept
+{
+        // arrange
+        auto value = b;
+
+        // act
+        value.set();
 
         // assert [bitset.members]/11
-        return next.all();
+        return value.all();
 }
 
 template<int N>
-constexpr auto reset(bitset<N> const& b) noexcept
+constexpr auto reset_all(bitset<N> const& b) noexcept
 {
         // arrange
-        auto next = b;
+        auto value = b;
 
         // act
-        next.reset();
+        value.reset();
 
         // assert [bitset.members]/17
-        return next.none();
+        return value.none();
 }
 
 template<int N>
-constexpr auto flip(bitset<N> const& b) noexcept
+constexpr auto flip_all(bitset<N> const& b) noexcept
 {
         // arrange
         auto next = b;
