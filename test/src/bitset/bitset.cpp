@@ -117,6 +117,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
 
         // operators
 
+        BOOST_CHECK(op_flip<N>());
         BOOST_CHECK(op_and<N>());
         BOOST_CHECK(op_or<N>());
         BOOST_CHECK(op_xor<N>());
