@@ -3,10 +3,11 @@
 #include <xstd/bitset/iterator/reference_fwd.hpp>       // ConstReference
 #include <xstd/bitset/limits.hpp>                       // digits, is_unsigned_integer
 #include <cassert>                                      // assert
+#include <cstddef>                                      // size_t
 
 namespace xstd {
 
-template<class Block, int Nb, int N>
+template<class Block, std::size_t Nb, std::size_t N>
 class ConstReference
 {
         static_assert(is_unsigned_integer<Block>, "");
@@ -18,7 +19,7 @@ public:
         // references cannot be left uninitialized
         ConstReference() = delete;
 
-        constexpr ConstReference(Block const& b, int n) noexcept
+        constexpr ConstReference(Block const& b, std::size_t n) noexcept
         :
                 block_{b},
                 index_{n}
@@ -44,7 +45,7 @@ public:
                 return { &block_, index_ };
         }
 
-        /* implicit */ constexpr operator int() const noexcept
+        /* implicit */ constexpr operator std::size_t() const noexcept
         {
                 return index_;
         }
@@ -53,7 +54,7 @@ private:
         // representation
 
         Block const& block_;
-        int index_;
+        std::size_t index_;
 };
 
 }       // namespace xstd

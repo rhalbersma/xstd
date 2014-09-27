@@ -1,10 +1,11 @@
 #pragma once
+#include <cstddef>      // size_t
 #include <limits>       // digits, is_signed, is_integer
 
 namespace xstd {
 
 template<class T>
-constexpr auto digits = std::numeric_limits<T>::digits;
+constexpr auto digits = static_cast<std::size_t>(std::numeric_limits<T>::digits);
 
 template<class T>
 constexpr auto is_unsigned_integer =

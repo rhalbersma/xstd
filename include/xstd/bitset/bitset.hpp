@@ -12,24 +12,24 @@
 namespace xstd {
 
 template<class Block>
-constexpr auto num_blocks(int N)
+constexpr auto num_blocks(std::size_t N)
 {
         return (N - 1 + digits<Block>) / digits<Block>;
 }
 
-template<int>
+template<std::size_t>
 class bitset;
 
-template<int N>
+template<std::size_t N>
 constexpr bool operator==(bitset<N> const& lhs, bitset<N> const& rhs) noexcept;
 
-template<int N>
+template<std::size_t N>
 constexpr bool operator<(bitset<N> const& lhs, bitset<N> const& rhs) noexcept;
 
-template<int N>
+template<std::size_t N>
 constexpr bool intersect(bitset<N> const& lhs, bitset<N> const& rhs) noexcept;
 
-template<int N>
+template<std::size_t N>
 class bitset
 :
         private detail::base_bitset<unsigned long long, num_blocks<unsigned long long>(N)>
@@ -62,7 +62,7 @@ public:
                         set(*it);
         }
 
-        constexpr bitset(std::initializer_list<int> ilist)
+        constexpr bitset(std::initializer_list<std::size_t> ilist)
         :
                 bitset(ilist.begin(), ilist.end())
         {}
@@ -131,7 +131,7 @@ public:
 
         // capacity
 
-        static constexpr int size() noexcept
+        static constexpr std::size_t size() noexcept
         {
                 return N;
         }
@@ -145,30 +145,30 @@ public:
 
         // element access
 
-        [[deprecated]] constexpr reference operator[](int n)
+        [[deprecated]] constexpr reference operator[](std::size_t n)
         {
                 assert(0 <= n && n < N);
                 return { this->block_ref(n), n };
         }
 
-        [[deprecated]] constexpr bool operator[](int n) const
+        [[deprecated]] constexpr bool operator[](std::size_t n) const
         {
                 assert(0 <= n && n < N);
                 return test(n);
         }
 
-        constexpr bool test(int n) const
+        constexpr bool test(std::size_t n) const
         {
                 assert(0 <= n && n < N);
                 return this->block_ref(n) & mask(n);
         }
 
-        [[deprecated]] constexpr bitset& set(int n, bool value)
+        [[deprecated]] constexpr bitset& set(std::size_t n, bool value)
         {
                 return value ? set(n) : reset(n);
         }
 
-        constexpr bitset& set(int n)
+        constexpr bitset& set(std::size_t n)
         {
                 assert(0 <= n && n < N);
                 this->block_ref(n) |= mask(n);
@@ -176,7 +176,7 @@ public:
                 return *this;
         }
 
-        constexpr bitset& reset(int n)
+        constexpr bitset& reset(std::size_t n)
         {
                 assert(0 <= n && n < N);
                 this->block_ref(n) &= ~mask(n);
@@ -184,7 +184,7 @@ public:
                 return *this;
         }
 
-        constexpr bitset& flip(int n)
+        constexpr bitset& flip(std::size_t n)
         {
                 assert(0 <= n && n < N);
                 this->block_ref(n) ^= mask(n);
@@ -275,7 +275,7 @@ public:
                 return *this;
         }
 
-        constexpr bitset& operator<<=(int n)
+        constexpr bitset& operator<<=(std::size_t n)
         {
                 assert(0 <= n && n < N);
                 this->do_left_shift(n);
@@ -283,7 +283,7 @@ public:
                 return *this;
         }
 
-        constexpr bitset& operator>>=(int n)
+        constexpr bitset& operator>>=(std::size_t n)
         {
                 assert(0 <= n && n < N);
                 this->do_right_shift(n);
@@ -307,13 +307,13 @@ public:
                 return this->do_none();
         }
 
-        constexpr int count() const noexcept
+        constexpr std::size_t count() const noexcept
         {
                 return this->do_count();
         }
 
 private:
-        constexpr auto mask(int n) const noexcept
+        constexpr auto mask(std::size_t n) const noexcept
         {
                 return masks::one<block_type> << (n % digits<block_type>);
         }
@@ -328,7 +328,7 @@ private:
                 sanitize<N % digits<block_type>>(this->block_back());
         }
 
-        template<int M>
+        template<std::size_t M>
         constexpr std::enable_if_t<M != 0,
         block_type> sanitized(block_type b) noexcept
         {
@@ -336,14 +336,14 @@ private:
                 return b & (masks::all<block_type> >> (digits<block_type> - M));
         }
 
-        template<int M>
+        template<std::size_t M>
         constexpr std::enable_if_t<M == 0,
         block_type> sanitized(block_type b) noexcept
         {
                 return b;
         }
 
-        template<int M>
+        template<std::size_t M>
         constexpr std::enable_if_t<M != 0,
         void> sanitize(block_type& b) noexcept
         {
@@ -351,7 +351,7 @@ private:
                 b &= masks::all<block_type> >> (digits<block_type> - M);
         }
 
-        template<int M>
+        template<std::size_t M>
         constexpr std::enable_if_t<M == 0,
         void> sanitize(block_type& /* b */) noexcept
         {
@@ -359,147 +359,147 @@ private:
         }
 };
 
-template<int N>
+template<std::size_t N>
 constexpr bool operator==(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         return lhs.do_equal(rhs);
 }
 
-template<int N>
+template<std::size_t N>
 constexpr bool operator<(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         return lhs.do_colexicographical_compare(rhs);
 }
 
-template<int N>
+template<std::size_t N>
 constexpr bool operator!=(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         return !(lhs == rhs);
 }
 
-template<int N>
+template<std::size_t N>
 constexpr bool operator>(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         return rhs < lhs;
 }
 
-template<int N>
+template<std::size_t N>
 constexpr bool operator>=(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         return !(lhs < rhs);
 }
 
-template<int N>
+template<std::size_t N>
 constexpr bool operator<=(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         return !(rhs < lhs);
 }
 
-template<int N>
+template<std::size_t N>
 /* constexpr */ void swap(bitset<N>& lhs, bitset<N>& rhs) noexcept
 {
         lhs.swap(rhs);
 }
 
-template<int N>
+template<std::size_t N>
 constexpr bool intersect(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         return lhs.do_intersects(rhs);
 }
 
-template<int N>
+template<std::size_t N>
 constexpr bool disjoint(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         return !intersect(lhs, rhs);
 }
 
-template<int N>
+template<std::size_t N>
 constexpr bitset<N> operator~(bitset<N> const& lhs) noexcept
 {
         return bitset<N>(lhs).flip();
 }
 
-template<int N>
+template<std::size_t N>
 constexpr bitset<N> operator&(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         return bitset<N>(lhs) &= rhs;
 }
 
-template<int N>
+template<std::size_t N>
 constexpr bitset<N> operator|(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         return bitset<N>(lhs) |= rhs;
 }
 
-template<int N>
+template<std::size_t N>
 constexpr bitset<N> operator^(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         return bitset<N>(lhs) ^= rhs;
 }
 
-template<int N>
+template<std::size_t N>
 constexpr bitset<N> operator-(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         return bitset<N>(lhs) -= rhs;
 }
 
-template<int N>
-constexpr bitset<N> operator<<(bitset<N> const& lhs, int n)
+template<std::size_t N>
+constexpr bitset<N> operator<<(bitset<N> const& lhs, std::size_t n)
 {
         assert(0 <= n && n < N);
         return bitset<N>(lhs) <<= n;
 }
 
-template<int N>
-constexpr bitset<N> operator>>(bitset<N> const& lhs, int n)
+template<std::size_t N>
+constexpr bitset<N> operator>>(bitset<N> const& lhs, std::size_t n)
 {
         assert(0 <= n && n < N);
         return bitset<N>(lhs) >>= n;
 }
 
-template<int N>
+template<std::size_t N>
 constexpr auto begin(bitset<N> const& s) noexcept
 {
         return s.begin();
 }
 
-template<int N>
+template<std::size_t N>
 constexpr auto end(bitset<N> const& s) noexcept
 {
         return s.end();
 }
 
-template<int N>
+template<std::size_t N>
 constexpr auto cbegin(bitset<N> const& s) noexcept
 {
         return begin(s);
 }
 
-template<int N>
+template<std::size_t N>
 constexpr auto cend(bitset<N> const& s) noexcept
 {
         return end(s);
 }
 
-template<int N>
+template<std::size_t N>
 /* constexpr */ auto rbegin(bitset<N> const& s) noexcept
 {
         return s.rbegin();
 }
 
-template<int N>
+template<std::size_t N>
 /* constexpr */ auto rend(bitset<N> const& s) noexcept
 {
         return s.rend();
 }
 
-template<int N>
+template<std::size_t N>
 /* constexpr */ auto crbegin(bitset<N> const& s) noexcept
 {
         return rbegin(s);
 }
 
-template<int N>
+template<std::size_t N>
 /* constexpr */ auto crend(bitset<N> const& s) noexcept
 {
         return rend(s);

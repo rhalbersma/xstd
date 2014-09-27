@@ -21,7 +21,7 @@ namespace xstd {
 
 BOOST_AUTO_TEST_SUITE(BitSet)
 
-using U = int;
+using U = std::size_t;
 
 using SetTypes = boost::mpl::vector
 <

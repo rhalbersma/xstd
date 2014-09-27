@@ -3,17 +3,18 @@
 #include <xstd/bitset/intrinsic.hpp>            // ctznz
 #include <xstd/bitset/masks.hpp>                // none
 #include <cassert>                              // assert
+#include <cstddef>                              // size_t
 
 namespace xstd {
 
-template<class Block, int Nb>
+template<class Block, std::size_t Nb>
 class InputRange;
 
 template<class Block>
 class InputRange<Block, 1>
 :
         // provides member and non-member begin() / end()
-        public InputRangeFacade<InputRange<Block, 1>, int, int>
+        public InputRangeFacade<InputRange<Block, 1>, std::size_t, std::size_t>
 {
         static_assert(is_unsigned_integer<Block>, "");
 
@@ -39,7 +40,7 @@ private:
 
         // observers
 
-        int front() const
+        std::size_t front() const
         {
                 assert(!empty());
                 return intrinsic::ctznz(range_);
