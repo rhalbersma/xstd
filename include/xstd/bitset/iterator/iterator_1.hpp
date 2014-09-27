@@ -5,18 +5,18 @@
 #include <xstd/bitset/limits.hpp>                       // digits, is_unsigned_integer
 #include <boost/iterator/iterator_facade.hpp>           // iterator_core_access, iterator_facade
 #include <cassert>                                      // assert
-#include <cstddef>                                      // ptrdiff_t
+#include <cstddef>                                      // ptrdiff_t, size_t
 #include <iterator>                                     // bidirectional_iterator_tag
 
 namespace xstd {
 
-template<class Block, int N>
+template<class Block, std::size_t N>
 class ConstIterator<Block, 1, N>
 :
         public boost::iterator_facade
         <
                 ConstIterator<Block, 1, N>,
-                int const,
+                std::size_t const,
                 std::bidirectional_iterator_tag,
                 ConstReference<Block, 1, N>,
                 std::ptrdiff_t
@@ -39,7 +39,7 @@ public:
                 assert(0 <= index_ && index_ <= N);
         }
 
-        constexpr ConstIterator(Block const* b, int n)
+        constexpr ConstIterator(Block const* b, std::size_t n)
         :
                 block_{b},
                 index_{n}
@@ -104,7 +104,7 @@ private:
         // representation
 
         Block const* block_{};
-        int index_{};
+        std::size_t index_{};
 };
 
 }       // namespace xstd

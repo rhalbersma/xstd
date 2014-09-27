@@ -10,13 +10,13 @@
 
 namespace xstd {
 
-template<class Block, int Nb, int N>
+template<class Block, std::size_t Nb, std::size_t N>
 class ConstIterator
 :
         public boost::iterator_facade
         <
                 ConstIterator<Block, Nb, N>,
-                int const,
+                std::size_t const,
                 std::bidirectional_iterator_tag,
                 ConstReference<Block, Nb, N>,
                 std::ptrdiff_t
@@ -40,7 +40,7 @@ public:
                 assert(0 <= index_ && index_ <= N);
         }
 
-        constexpr ConstIterator(Block const* b, int n)
+        constexpr ConstIterator(Block const* b, std::size_t n)
         :
                 block_{b},
                 index_{n}
@@ -56,7 +56,7 @@ private:
         constexpr auto find_first()
         {
                 assert(block_ != nullptr);
-                for (auto i = 0; i < Nb; ++i) {
+                for (std::size_t i = 0; i < Nb; ++i) {
                         if (auto const mask = *block_) {
                                 assert(i * digits<Block> + intrinsic::bsfnz(mask) < N);
                                 return i * digits<Block> + intrinsic::bsfnz(mask);
@@ -146,7 +146,7 @@ private:
         // representation
 
         Block const* block_{};
-        int index_{};
+        std::size_t index_{};
 };
 
 }       // namespace xstd

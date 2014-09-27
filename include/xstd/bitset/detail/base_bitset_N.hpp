@@ -4,13 +4,14 @@
 #include <xstd/bitset/limits.hpp>                       // digits, is_unsigned_integer
 #include <xstd/bitset/masks.hpp>                        // none, one, all
 #include <cassert>                                      // assert
+#include <cstddef>                                      // size_t
 #include <type_traits>                                  // enable_if_t
 #include <utility>                                      // swap
 
 namespace xstd {
 namespace detail {
 
-template<class Block, int Nb>
+template<class Block, std::size_t Nb>
 class base_bitset
 {
 private:
@@ -72,13 +73,13 @@ public:
                 return elems[Nb - 1];
         }
 
-        constexpr auto& block_ref(int n)
+        constexpr auto& block_ref(std::size_t n)
         {
                 assert(0 <= n && n < N);
                 return elems[n / digits<Block>];
         }
 
-        constexpr auto const& block_ref(int n) const
+        constexpr auto const& block_ref(std::size_t n) const
         {
                 assert(0 <= n && n < N);
                 return elems[n / digits<Block>];
@@ -88,7 +89,7 @@ public:
 
         constexpr auto do_equal(base_bitset const& other) const noexcept
         {
-                for (auto i = 0; i < Nb; ++i)
+                for (std::size_t i = 0; i < Nb; ++i)
                         if (elems[i] != other.elems[i])
                                 return false;
                 return true;
@@ -96,7 +97,7 @@ public:
 
         constexpr auto do_colexicographical_compare(base_bitset const& other) const noexcept
         {
-                for (auto i = Nb - 1; i >= 0; --i) {
+                for (auto i = Nb - 1; i < Nb; --i) {
                         if (elems[i] < other.elems[i])
                                 return true;
                         if (elems[i] > other.elems[i])
@@ -107,7 +108,7 @@ public:
 
         constexpr auto do_intersects(base_bitset const& other) const noexcept
         {
-                for (auto i = 0; i < Nb; ++i)
+                for (std::size_t i = 0; i < Nb; ++i)
                         if (elems[i] & other.elems[i])
                                 return true;
                 return false;
@@ -115,7 +116,7 @@ public:
 
         constexpr auto do_is_subset_of(base_bitset const& other) const noexcept
         {
-                for (auto i = 0; i < Nb; ++i)
+                for (std::size_t i = 0; i < Nb; ++i)
                         if (elems[i] & ~other.elems[i])
                                 return false;
                 return true;
@@ -124,7 +125,7 @@ public:
         constexpr auto do_is_proper_subset_of(base_bitset const& other) const noexcept
         {
                 auto proper = false;
-                for (auto i = 0; i < Nb; ++i) {
+                for (std::size_t i = 0; i < Nb; ++i) {
                         if ( elems[i] & ~other.elems[i])
                                 return false;
                         if (~elems[i] &  other.elems[i])
@@ -161,29 +162,29 @@ public:
 
         constexpr auto do_and(base_bitset const& other) noexcept
         {
-                for (auto i = 0; i < Nb; ++i)
+                for (std::size_t i = 0; i < Nb; ++i)
                         elems[i] &= other.elems[i];
         }
 
         constexpr auto do_or(base_bitset const& other) noexcept
         {
-                for (auto i = 0; i < Nb; ++i)
+                for (std::size_t i = 0; i < Nb; ++i)
                         elems[i] |= other.elems[i];
         }
 
         constexpr auto do_xor(base_bitset const& other) noexcept
         {
-                for (auto i = 0; i < Nb; ++i)
+                for (std::size_t i = 0; i < Nb; ++i)
                         elems[i] ^= other.elems[i];
         }
 
         constexpr auto do_minus(base_bitset const& other) noexcept
         {
-                for (auto i = 0; i < Nb; ++i)
+                for (std::size_t i = 0; i < Nb; ++i)
                         elems[i] &= ~other.elems[i];
         }
 
-        constexpr auto do_left_shift(int n)
+        constexpr auto do_left_shift(std::size_t n)
         {
                 assert(0 <= n && n < N);
                 if (n == 0) return;
@@ -204,11 +205,11 @@ public:
                                 ;
                         elems[n_block] = elems[0] << L_shift;
                 }
-                for (auto i = n_block - 1; i >= 0; --i)
+                for (auto i = n_block - 1; i < Nb; --i)
                         elems[i] = masks::none<Block>;
         }
 
-        constexpr auto do_right_shift(int n)
+        constexpr auto do_right_shift(std::size_t n)
         {
                 assert(0 <= n && n < N);
                 if (n == 0) return;
@@ -217,12 +218,12 @@ public:
                 auto const R_shift = n % digits<Block>;
 
                 if (R_shift == 0) {
-                        for (auto i = 0; i <= Nb - 1 - n_block; ++i)
+                        for (std::size_t i = 0; i <= Nb - 1 - n_block; ++i)
                                elems[i] = elems[i + n_block];
                 } else {
                         auto const L_shift = digits<Block> - R_shift;
 
-                        for (auto i = 0; i < Nb - 1 - n_block; ++i)
+                        for (std::size_t i = 0; i < Nb - 1 - n_block; ++i)
                                 elems[i] =
                                         (elems[i + n_block    ] >> R_shift) |
                                         (elems[i + n_block + 1] << L_shift)
@@ -235,18 +236,18 @@ public:
 
         // observers
 
-        template<int M>
+        template<std::size_t M>
         constexpr std::enable_if_t<M != 0,
         bool> do_all() const noexcept
         {
                 static_assert(0 < M && M < digits<Block>, "");
-                for (auto i = 0; i < Nb - 1; ++i)
+                for (std::size_t i = 0; i < Nb - 1; ++i)
                         if (elems[i] != masks::all<Block>)
                                 return false;
                 return elems[Nb - 1] == masks::all<Block> >> (digits<Block> - M);
         }
 
-        template<int M>
+        template<std::size_t M>
         constexpr std::enable_if_t<M == 0,
         bool> do_all() const noexcept
         {
@@ -274,13 +275,13 @@ public:
 
         constexpr auto do_count() const noexcept
         {
-                auto sum = 0;
+                std::size_t sum = 0;
                 for (auto&& block : elems)
                         sum += intrinsic::popcount(block);
                 return sum;
         }
 
- private:
+private:
         // representation
 
         Block elems[Nb]{};

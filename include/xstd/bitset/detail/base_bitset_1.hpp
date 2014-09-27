@@ -4,6 +4,7 @@
 #include <xstd/bitset/limits.hpp>                       // digits, is_unsigned_integer
 #include <xstd/bitset/masks.hpp>                        // none, one, all
 #include <cassert>                                      // assert
+#include <cstddef>                                      // size_t
 #include <type_traits>                                  // enable_if_t
 #include <utility>                                      // swap
 
@@ -70,13 +71,13 @@ public:
                 return elems;
         }
 
-        constexpr auto& block_ref(int /* n */)
+        constexpr auto& block_ref(std::size_t /* n */)
         {
                 //assert(0 <= n && n < N);
                 return elems;
         }
 
-        constexpr auto const& block_ref(int /* n */) const
+        constexpr auto const& block_ref(std::size_t /* n */) const
         {
                 //assert(0 <= n && n < N);
                 return elems;
@@ -154,13 +155,13 @@ public:
                 elems &= ~other.elems;
         }
 
-        constexpr auto do_left_shift(int n)
+        constexpr auto do_left_shift(std::size_t n)
         {
                 assert(0 <= n && n < N);
                 elems <<= n;
         }
 
-        constexpr auto do_right_shift(int n)
+        constexpr auto do_right_shift(std::size_t n)
         {
                 assert(0 <= n && n < N);
                 elems >>= n;
@@ -168,7 +169,7 @@ public:
 
         // observers
 
-        template<int M>
+        template<std::size_t M>
         constexpr std::enable_if_t<M != 0,
         bool> do_all() const noexcept
         {
@@ -176,7 +177,7 @@ public:
                 return elems == masks::all<Block> >> (digits<Block> - M);
         }
 
-        template<int M>
+        template<std::size_t M>
         constexpr std::enable_if_t<M == 0,
         bool> do_all() const noexcept
         {

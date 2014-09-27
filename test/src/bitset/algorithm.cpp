@@ -23,7 +23,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(SetEmpty, T, SetTypes)
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(SetSingle, T, SetTypes)
 {
-        for (auto i = 0; i < T::size(); ++i) {
+        for (std::size_t i = 0; i < T::size(); ++i) {
                 auto const b = T{i};
                 BOOST_CHECK(b.any());
                 BOOST_CHECK(set_single(b));
@@ -32,8 +32,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(SetSingle, T, SetTypes)
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(SetDouble, T, SetTypes)
 {
-        for (auto i = 0; i < T::size(); ++i) {
-                for (auto j = 0; j < T::size(); ++j) {
+        for (std::size_t i = 0; i < T::size(); ++i) {
+                for (std::size_t j = 0; j < T::size(); ++j) {
                         auto const b = T{i, j};
                         if (i == j) {
                                 BOOST_CHECK(set_single(b));
@@ -47,7 +47,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(SetDouble, T, SetTypes)
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(SetMultiple, T, SetTypes)
 {
-        for (auto i = 0; i < T::size(); ++i) {
+        for (std::size_t i = 0; i < T::size(); ++i) {
                 auto const b = ~((~T{} >> i) << i);
                 switch (i) {
                 case 0:

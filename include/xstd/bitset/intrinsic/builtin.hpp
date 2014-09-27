@@ -1,6 +1,7 @@
 #pragma once
 #include <xstd/bitset/limits.hpp>       // digits
 #include <cassert>                      // assert
+#include <cstddef>                      // size_t
 
 namespace xstd {
 namespace builtin {
@@ -18,7 +19,7 @@ struct ctznz<unsigned>
 {
         constexpr auto operator()(unsigned x) const
         {
-                return __builtin_ctz(x);
+                return static_cast<std::size_t>(__builtin_ctz(x));
         }
 };
 
@@ -27,7 +28,7 @@ struct ctznz<unsigned long>
 {
         constexpr auto operator()(unsigned long x) const
         {
-                return __builtin_ctzl(x);
+                return static_cast<std::size_t>(__builtin_ctzl(x));
         }
 };
 
@@ -36,7 +37,7 @@ struct ctznz<unsigned long long>
 {
         constexpr auto operator()(unsigned long long x) const
         {
-                return __builtin_ctzll(x);
+                return static_cast<std::size_t>(__builtin_ctzll(x));
         }
 };
 
@@ -52,7 +53,7 @@ struct clznz<unsigned>
 {
         constexpr auto operator()(unsigned x) const
         {
-                return __builtin_clz(x);
+                return static_cast<std::size_t>(__builtin_clz(x));
         }
 };
 
@@ -61,7 +62,7 @@ struct clznz<unsigned long>
 {
         constexpr auto operator()(unsigned long x) const
         {
-                return __builtin_clzl(x);
+                return static_cast<std::size_t>(__builtin_clzl(x));
         }
 };
 
@@ -70,7 +71,7 @@ struct clznz<unsigned long long>
 {
         constexpr auto operator()(unsigned long long x) const
         {
-                return __builtin_clzll(x);
+                return static_cast<std::size_t>(__builtin_clzll(x));
         }
 };
 
@@ -85,7 +86,7 @@ struct popcount<unsigned>
 {
         constexpr auto operator()(unsigned x) const noexcept
         {
-                return __builtin_popcount(x);
+                return static_cast<std::size_t>(__builtin_popcount(x));
         }
 };
 
@@ -94,7 +95,7 @@ struct popcount<unsigned long>
 {
         constexpr auto operator()(unsigned long x) const noexcept
         {
-                return __builtin_popcountl(x);
+                return static_cast<std::size_t>(__builtin_popcountl(x));
         }
 };
 
@@ -103,7 +104,7 @@ struct popcount<unsigned long long>
 {
         constexpr auto operator()(unsigned long long x) const noexcept
         {
-                return __builtin_popcountll(x);
+                return static_cast<std::size_t>(__builtin_popcountll(x));
         }
 };
 

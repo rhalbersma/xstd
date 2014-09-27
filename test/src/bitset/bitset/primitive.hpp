@@ -1,11 +1,12 @@
 #pragma once
 #include <xstd/bitset.hpp>      // bitset
+#include <cstddef>              // size_t
 
 namespace xstd {
 
 // constructors
 
-template<int N>
+template<std::size_t N>
 constexpr auto constructor_default() noexcept
 {
         // arrange & act [bitset.cons]/1
@@ -17,12 +18,12 @@ constexpr auto constructor_default() noexcept
 
 // comparators
 
-template<int N>
+template<std::size_t N>
 constexpr auto op_equal_to(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         // arrange [bitset.members]/39
         auto expected = true;
-        for (auto i = 0; i < N; ++i)
+        for (std::size_t i = 0; i < N; ++i)
                 expected &= lhs.test(i) == rhs.test(i);
 
         // act
@@ -32,7 +33,7 @@ constexpr auto op_equal_to(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
         return value == expected;
 }
 
-template<int N>
+template<std::size_t N>
 constexpr auto op_not_equal_to(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         // arrange [bitset.members]/40
@@ -47,8 +48,8 @@ constexpr auto op_not_equal_to(bitset<N> const& lhs, bitset<N> const& rhs) noexc
 
 // modifiers
 
-template<int N>
-constexpr auto set_one(bitset<N> const& b, int pos) noexcept
+template<std::size_t N>
+constexpr auto set_one(bitset<N> const& b, std::size_t pos) noexcept
 {
         // arrange
         auto next = b;
@@ -59,7 +60,7 @@ constexpr auto set_one(bitset<N> const& b, int pos) noexcept
 
         // assert [bitset.members]/15
         auto check = true;
-        for (auto i = 0; i < N; ++i)
+        for (std::size_t i = 0; i < N; ++i)
                 if (i == pos)
                         check &= next.test(i);
                 else
@@ -67,8 +68,8 @@ constexpr auto set_one(bitset<N> const& b, int pos) noexcept
         return check;
 }
 
-template<int N>
-constexpr auto reset_one(bitset<N> const& b, int pos) noexcept
+template<std::size_t N>
+constexpr auto reset_one(bitset<N> const& b, std::size_t pos) noexcept
 {
         // arrange
         auto next = b;
@@ -79,7 +80,7 @@ constexpr auto reset_one(bitset<N> const& b, int pos) noexcept
 
         // assert [bitset.members]/21
         auto check = true;
-        for (auto i = 0; i < N; ++i)
+        for (std::size_t i = 0; i < N; ++i)
                 if (i == pos)
                         check &= !next.test(i);
                 else
@@ -87,8 +88,8 @@ constexpr auto reset_one(bitset<N> const& b, int pos) noexcept
         return check;
 }
 
-template<int N>
-constexpr auto flip_one(bitset<N> const& b, int pos) noexcept
+template<std::size_t N>
+constexpr auto flip_one(bitset<N> const& b, std::size_t pos) noexcept
 {
         // arrange
         auto next = b;
@@ -99,7 +100,7 @@ constexpr auto flip_one(bitset<N> const& b, int pos) noexcept
 
         // assert [bitset.members]/29
         auto check = true;
-        for (auto i = 0; i < N; ++i)
+        for (std::size_t i = 0; i < N; ++i)
                 if (i == pos)
                         check &= next.test(i) != prev.test(i);
                 else
@@ -107,7 +108,7 @@ constexpr auto flip_one(bitset<N> const& b, int pos) noexcept
         return check;
 }
 
-template<int N>
+template<std::size_t N>
 constexpr auto set_all(bitset<N> const& b) noexcept
 {
         // arrange
@@ -120,7 +121,7 @@ constexpr auto set_all(bitset<N> const& b) noexcept
         return value.all();
 }
 
-template<int N>
+template<std::size_t N>
 constexpr auto reset_all(bitset<N> const& b) noexcept
 {
         // arrange
@@ -133,7 +134,7 @@ constexpr auto reset_all(bitset<N> const& b) noexcept
         return value.none();
 }
 
-template<int N>
+template<std::size_t N>
 constexpr auto flip_all(bitset<N> const& b) noexcept
 {
         // arrange
@@ -145,12 +146,12 @@ constexpr auto flip_all(bitset<N> const& b) noexcept
 
         // assert [bitset.members]/25
         auto check = true;
-        for (auto i = 0; i < N; ++i)
+        for (std::size_t i = 0; i < N; ++i)
                 check &= next.test(i) != prev.test(i);
         return check;
 }
 
-template<int N>
+template<std::size_t N>
 constexpr auto op_and_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         // arrange
@@ -162,7 +163,7 @@ constexpr auto op_and_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcep
 
         // assert [bitset.members]/1
         auto check = true;
-        for (auto i = 0; i < N; ++i)
+        for (std::size_t i = 0; i < N; ++i)
                 if (!rhs.test(i))
                         check &= !next.test(i);
                 else
@@ -170,7 +171,7 @@ constexpr auto op_and_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcep
         return check;
 }
 
-template<int N>
+template<std::size_t N>
 constexpr auto op_or_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         // arrange
@@ -182,7 +183,7 @@ constexpr auto op_or_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 
         // assert [bitset.members]/3
         auto check = true;
-        for (auto i = 0; i < N; ++i)
+        for (std::size_t i = 0; i < N; ++i)
                 if (rhs.test(i))
                         check &= next.test(i);
                 else
@@ -190,7 +191,7 @@ constexpr auto op_or_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
         return check;
 }
 
-template<int N>
+template<std::size_t N>
 constexpr auto op_xor_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         // arrange
@@ -202,7 +203,7 @@ constexpr auto op_xor_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcep
 
         // assert [bitset.members]/5
         auto check = true;
-        for (auto i = 0; i < N; ++i)
+        for (std::size_t i = 0; i < N; ++i)
                 if (rhs.test(i))
                         check &= next.test(i) == !prev.test(i);
                 else
@@ -210,7 +211,7 @@ constexpr auto op_xor_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcep
         return check;
 }
 
-template<int N>
+template<std::size_t N>
 constexpr auto op_minus_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         // arrange
@@ -222,7 +223,7 @@ constexpr auto op_minus_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexc
 
         // assert
         auto check = true;
-        for (auto i = 0; i < N; ++i)
+        for (std::size_t i = 0; i < N; ++i)
                 if (rhs.test(i))
                         check &= !next.test(i);
                 else
@@ -230,8 +231,8 @@ constexpr auto op_minus_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexc
         return check;
 }
 
-template<int N>
-constexpr auto op_shift_left_assign(bitset<N> const& b, int pos)
+template<std::size_t N>
+constexpr auto op_shift_left_assign(bitset<N> const& b, std::size_t pos)
 {
         // arrange
         auto next = b;
@@ -242,7 +243,7 @@ constexpr auto op_shift_left_assign(bitset<N> const& b, int pos)
 
         // assert [bitset.members]/7
         auto check = true;
-        for (auto I = 0; I < N; ++I)
+        for (std::size_t I = 0; I < N; ++I)
                 if (I < pos)
                         check &= !next.test(I);
                 else
@@ -250,8 +251,8 @@ constexpr auto op_shift_left_assign(bitset<N> const& b, int pos)
         return check;
 }
 
-template<int N>
-constexpr auto op_shift_right_assign(bitset<N> const& b, int pos)
+template<std::size_t N>
+constexpr auto op_shift_right_assign(bitset<N> const& b, std::size_t pos)
 {
         // arrange
         auto next = b;
@@ -262,7 +263,7 @@ constexpr auto op_shift_right_assign(bitset<N> const& b, int pos)
 
         // assert [bitset.members]/9
         auto check = true;
-        for (auto I = 0; I < N; ++I)
+        for (std::size_t I = 0; I < N; ++I)
                 if (pos >= N - I)
                         check &= !next.test(I);
                 else
@@ -272,7 +273,7 @@ constexpr auto op_shift_right_assign(bitset<N> const& b, int pos)
 
 // observers
 
-template<int N>
+template<std::size_t N>
 constexpr auto all(bitset<N> const& b) noexcept
 {
         // arrange [bitset.members]/44
@@ -285,7 +286,7 @@ constexpr auto all(bitset<N> const& b) noexcept
         return value == expected;
 }
 
-template<int N>
+template<std::size_t N>
 constexpr auto any(bitset<N> const& b) noexcept
 {
         // arrange [bitset.members]/45
@@ -298,7 +299,7 @@ constexpr auto any(bitset<N> const& b) noexcept
         return value == expected;
 }
 
-template<int N>
+template<std::size_t N>
 constexpr auto none(bitset<N> const& b) noexcept
 {
         // arrange [bitset.members]/46
@@ -311,12 +312,12 @@ constexpr auto none(bitset<N> const& b) noexcept
         return value == expected;
 }
 
-template<int N>
+template<std::size_t N>
 constexpr auto count(bitset<N> const& b) noexcept
 {
         // arrange [bitset.members]/37
-        auto expected = 0;
-        for (auto i = 0; i < N; ++i)
+        std::size_t expected = 0;
+        for (std::size_t i = 0; i < N; ++i)
                 expected += b.test(i);
 
         // act
@@ -328,7 +329,7 @@ constexpr auto count(bitset<N> const& b) noexcept
 
 // operators
 
-template<int N>
+template<std::size_t N>
 constexpr auto op_flip(bitset<N> const& b) noexcept
 {
         // arrange [bitset.members]/24
@@ -342,7 +343,7 @@ constexpr auto op_flip(bitset<N> const& b) noexcept
         return value == expected;
 }
 
-template<int N>
+template<std::size_t N>
 constexpr auto op_and(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         // arrange [bitset.operators]/1
@@ -356,7 +357,7 @@ constexpr auto op_and(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
         return value == expected;
 }
 
-template<int N>
+template<std::size_t N>
 constexpr auto op_or(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         // arrange [bitset.operators]/2
@@ -370,7 +371,7 @@ constexpr auto op_or(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
         return value == expected;
 }
 
-template<int N>
+template<std::size_t N>
 constexpr auto op_xor(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         // arrange [bitset.operators]/3
@@ -384,7 +385,7 @@ constexpr auto op_xor(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
         return value == expected;
 }
 
-template<int N>
+template<std::size_t N>
 constexpr auto op_minus(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         // arrange
@@ -398,8 +399,8 @@ constexpr auto op_minus(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
         return value == expected;
 }
 
-template<int N>
-constexpr auto op_shift_left(bitset<N> const& b, int n)
+template<std::size_t N>
+constexpr auto op_shift_left(bitset<N> const& b, std::size_t n)
 {
         // arrange [bitset.members]/47
         auto expected = b;
@@ -412,8 +413,8 @@ constexpr auto op_shift_left(bitset<N> const& b, int n)
         return value == expected;
 }
 
-template<int N>
-constexpr auto op_shift_right(bitset<N> const& b, int n)
+template<std::size_t N>
+constexpr auto op_shift_right(bitset<N> const& b, std::size_t n)
 {
         // arrange [bitset.members]/48
         auto expected = b;

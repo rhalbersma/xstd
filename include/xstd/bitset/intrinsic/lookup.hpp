@@ -12,8 +12,8 @@ public:
         template<class T>
         static constexpr auto ctz(T x) noexcept
         {
-                auto n = 0;
-                for (auto i = 0; i < num_blocks<T>; ++i) {
+                std::size_t n = 0;
+                for (std::size_t i = 0; i < num_blocks<T>; ++i) {
                         auto const b = block_mask(x, i);
                         n += ctz_[b];
                         if (b)
@@ -26,8 +26,8 @@ public:
         template<class T>
         static constexpr auto clz(T x) noexcept
         {
-                auto n = 0;
-                for (auto i = num_blocks<T> - 1; i >= 0; --i) {
+                std::size_t n = 0;
+                for (auto i = num_blocks<T> - 1; i < num_blocks<T>; --i) {
                         auto const b = block_mask(x, i);
                         n += clz_[b];
                         if (b)
@@ -40,9 +40,10 @@ public:
         template<class T>
         static constexpr auto popcount(T x) noexcept
         {
-                auto n = 0;
-                for (auto i = 0; i < num_blocks<T>; ++i)
+                std::size_t n = 0;
+                for (std::size_t i = 0; i < num_blocks<T>; ++i)
                         n += popcount_[block_mask(x, i)];
+                assert(0 <= n && n <= digits<T>);
                 return n;
         }
 
@@ -50,17 +51,17 @@ private:
         // implementation
 
         template<class T>
-        static constexpr int num_blocks = sizeof(T) / sizeof(U);
+        static constexpr auto num_blocks = sizeof(T) / sizeof(U);
 
         template<class T>
-        static constexpr auto block_mask(T x, int i)
+        static constexpr auto block_mask(T x, std::size_t i)
         {
                 return static_cast<U>(x >> (i * digits<U>));
         }
 
         // representation
 
-        static constexpr int ctz_[] =
+        static constexpr std::size_t ctz_[] =
         {
                 8,  0,  1,  0,  2,  0,  1,  0,  3,  0,  1,  0,  2,  0,  1,  0,
                 4,  0,  1,  0,  2,  0,  1,  0,  3,  0,  1,  0,  2,  0,  1,  0,
@@ -80,7 +81,7 @@ private:
                 4,  0,  1,  0,  2,  0,  1,  0,  3,  0,  1,  0,  2,  0,  1,  0
         };
 
-        static constexpr int clz_[] =
+        static constexpr std::size_t clz_[] =
         {
                 8,  7,  6,  6,  5,  5,  5,  5,  4,  4,  4,  4,  4,  4,  4,  4,
                 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
@@ -100,7 +101,7 @@ private:
                 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
         };
 
-        static constexpr int popcount_[]  =
+        static constexpr std::size_t popcount_[]  =
         {
                 0,  1,  1,  2,  1,  2,  2,  3,  1,  2,  2,  3,  2,  3,  3,  4,
                 1,  2,  2,  3,  2,  3,  3,  4,  2,  3,  3,  4,  3,  4,  4,  5,
@@ -122,9 +123,9 @@ private:
 
 };
 
-template<class U> constexpr int table<U>::ctz_[];
-template<class U> constexpr int table<U>::clz_[];
-template<class U> constexpr int table<U>::popcount_[];
+template<class U> constexpr std::size_t table<U>::ctz_[];
+template<class U> constexpr std::size_t table<U>::clz_[];
+template<class U> constexpr std::size_t table<U>::popcount_[];
 
 using detail = table<>;
 

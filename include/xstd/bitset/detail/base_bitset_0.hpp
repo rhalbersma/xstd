@@ -1,6 +1,7 @@
 #pragma once
 #include <xstd/bitset/detail/base_bitset_fwd.hpp>       // base_bitset
 #include <xstd/bitset/limits.hpp>                       // is_unsigned_integer
+#include <cstddef>                                      // size_t
 
 namespace xstd {
 namespace detail {
@@ -38,8 +39,8 @@ public:
 
         constexpr auto&       block_back()          noexcept { return const_cast<Block&>(stfu); }
         constexpr auto const& block_back()    const noexcept { return stfu; }
-        constexpr auto&       block_ref (int)       noexcept { return const_cast<Block&>(stfu); }
-        constexpr auto const& block_ref (int) const noexcept { return stfu; }
+        constexpr auto&       block_ref (std::size_t)       noexcept { return const_cast<Block&>(stfu); }
+        constexpr auto const& block_ref (std::size_t) const noexcept { return stfu; }
 
         // comparators
 
@@ -62,17 +63,17 @@ public:
         constexpr auto do_xor  (base_bitset const&) noexcept {}
         constexpr auto do_minus(base_bitset const&) noexcept {}
 
-        constexpr auto do_left_shift (int) {}
-        constexpr auto do_right_shift(int) {}
+        constexpr auto do_left_shift (std::size_t) {}
+        constexpr auto do_right_shift(std::size_t) {}
 
         // observers
 
-        template<int M>
+        template<std::size_t M>
         constexpr auto do_all  () const noexcept { static_assert(M == 0, ""); return true; }
 
         constexpr auto do_any  () const noexcept { return false; }
         constexpr auto do_none () const noexcept { return true;  }
-        constexpr auto do_count() const noexcept { return 0;     }
+        constexpr std::size_t do_count() const noexcept { return 0;     }
 };
 
 }       // namespace detail
