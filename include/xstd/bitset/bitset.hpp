@@ -203,26 +203,26 @@ public:
 
         // comparators
 
-        friend constexpr bool operator== <>(bitset<N> const&, bitset<N> const&) noexcept;
-        friend constexpr bool operator<  <>(bitset<N> const&, bitset<N> const&) noexcept;
-        friend constexpr bool intersect  <>(bitset<N> const&, bitset<N> const&) noexcept;
+        friend constexpr bool operator== <>(const bitset<N>&, const bitset<N>&) noexcept;
+        friend constexpr bool operator<  <>(const bitset<N>&, const bitset<N>&) noexcept;
+        friend constexpr bool intersect  <>(const bitset<N>&, const bitset<N>&) noexcept;
 
-        constexpr bool is_subset_of(bitset<N> const& other) const noexcept
+        constexpr bool is_subset_of(const bitset<N>& other) const noexcept
         {
                 return this->do_is_subset_of(other);
         }
 
-        constexpr bool is_superset_of(bitset<N> const& other) const noexcept
+        constexpr bool is_superset_of(const bitset<N>& other) const noexcept
         {
                 return other.is_subset_of(*this);
         }
 
-        constexpr bool is_proper_subset_of(bitset<N> const& other) const noexcept
+        constexpr bool is_proper_subset_of(const bitset<N>& other) const noexcept
         {
                 return this->do_is_proper_subset_of(other);
         }
 
-        constexpr bool is_proper_superset_of(bitset<N> const& other) const noexcept
+        constexpr bool is_proper_superset_of(const bitset<N>& other) const noexcept
         {
                 return other.is_proper_subset_of(*this);
         }
@@ -251,25 +251,25 @@ public:
                 return *this;
         }
 
-        constexpr bitset<N>& operator&=(bitset<N> const& rhs) noexcept
+        constexpr bitset<N>& operator&=(const bitset<N>& rhs) noexcept
         {
                 this->do_and(rhs);
                 return *this;
         }
 
-        constexpr bitset<N>& operator|=(bitset<N> const& rhs) noexcept
+        constexpr bitset<N>& operator|=(const bitset<N>& rhs) noexcept
         {
                 this->do_or(rhs);
                 return *this;
         }
 
-        constexpr bitset<N>& operator^=(bitset<N> const& rhs) noexcept
+        constexpr bitset<N>& operator^=(const bitset<N>& rhs) noexcept
         {
                 this->do_xor(rhs);
                 return *this;
         }
 
-        constexpr bitset<N>& operator-=(bitset<N> const& rhs) noexcept
+        constexpr bitset<N>& operator-=(const bitset<N>& rhs) noexcept
         {
                 this->do_minus(rhs);
                 return *this;
