@@ -1,8 +1,8 @@
 #pragma once
 #include <xstd/bitset/limits.hpp>       // digits
 #include <xstd/bitset/masks.hpp>        // one
+#include <xstd/cstddef.hpp>             // _z
 #include <cassert>                      // assert
-#include <cstddef>                      // size_t
 
 namespace xstd {
 namespace loop {
@@ -10,7 +10,7 @@ namespace loop {
 template<class T>
 constexpr auto ctz(T x) noexcept
 {
-        for (std::size_t i = 0; i < digits<T>; ++i)
+        for (auto i = 0_z; i < digits<T>; ++i)
                 if (x & (masks::one<T> << i))
                         return i;
         return digits<T>;
@@ -52,7 +52,7 @@ constexpr auto bsrnz(T x) noexcept
 template<class T>
 constexpr auto popcount(T x) noexcept
 {
-        std::size_t n = 0;
+        auto n = 0_z;
         for (; x; x &= x - masks::one<T>)
                 ++n;
         assert(0 <= n && n <= digits<T>);

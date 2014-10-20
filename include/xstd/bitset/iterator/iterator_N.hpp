@@ -3,6 +3,7 @@
 #include <xstd/bitset/iterator/reference_fwd.hpp>       // ConstReference
 #include <xstd/bitset/intrinsic.hpp>                    // bsfnz, bsrnz, clznz, ctznz
 #include <xstd/bitset/limits.hpp>                       // digits, is_unsigned_integer
+#include <xstd/cstddef.hpp>                             // _z
 #include <boost/iterator/iterator_facade.hpp>           // iterator_core_access, iterator_facade
 #include <cassert>                                      // assert
 #include <cstddef>                                      // ptrdiff_t
@@ -56,7 +57,7 @@ private:
         constexpr auto find_first()
         {
                 assert(block_ != nullptr);
-                for (std::size_t i = 0; i < Nb; ++i) {
+                for (auto i = 0_z; i < Nb; ++i) {
                         if (auto const mask = *block_) {
                                 assert(i * digits<Block> + intrinsic::bsfnz(mask) < N);
                                 return i * digits<Block> + intrinsic::bsfnz(mask);

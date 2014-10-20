@@ -24,10 +24,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything")
 # NOT A DEFECT: no C++98 compatibility
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-c++98-compat -Wno-c++98-compat-pedantic")
 
-# NOT A DEFECT: padding is a diagnostic only (useful to turn on during future optimizations)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-padded")
-
-# KNOWN ISSUE: Boost.Test does some macro magic that requires static initialization
+# NOT A DEFECT: Boost.Test does some macro magic that requires static initialization
 # http://hadesmem.googlecode.com/svn-history/r1861/trunk/tests/injector.cpp
 # http://stackoverflow.com/a/15708829/819272 for a rationale for this warning by Howard Hinnant
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-global-constructors")
@@ -93,36 +90,34 @@ endif()
 # Test suite
 ###############################################################
 
-# get the test sources
-file(GLOB_RECURSE MyAwesomeLibraryTestSuite_sources RELATIVE ${PROJECT_SOURCE_DIR} *.cpp)
-
-# except any CMake generated sources under build/
-string(REGEX REPLACE "build/[^;]+;?" "" MyAwesomeLibraryTestSuite_sources "${MyAwesomeLibraryTestSuite_sources}")
+# calls enable_testing()
+include(CTest)
 
 # get the test headers
-file(GLOB_RECURSE MyAwesomeLibraryTestSuite_headers RELATIVE ${PROJECT_SOURCE_DIR} *.hpp)
-
-# except any CMake generated headers under build/
-string(REGEX REPLACE "build/[^;]+;?" "" MyAwesomeLibraryTestSuite_headers "${MyAwesomeLibraryTestSuite_headers}")
+file(GLOB_RECURSE MyAwesomeLibraryTestSuite_headers RELATIVE ${PROJECT_SOURCE_DIR} src/*.hpp)
 
 # compile against the test headers, the parent project, and the Boost libraries
 include_directories(${PROJECT_SOURCE_DIR}/src ${MyAwesomeLibrary_include_dirs} ${Boost_INCLUDE_DIRS})
 
-# calls enable_testing()
-include(CTest)
+# get the test sources
+file(GLOB_RECURSE MyAwesomeLibraryTestSuite_sources RELATIVE ${PROJECT_SOURCE_DIR} src/*.cpp)
 
 foreach(t ${MyAwesomeLibraryTestSuite_sources})
   # get the relative path in the source tree
   get_filename_component(test_path ${t} PATH)
-
+ 
   # strip the leading "src/" part from the test path
-  string(REGEX REPLACE "^src/" "" test_rel_path ${test_path})
-
+  string(REGEX REPLACE "^src[/]?" "" test_rel_path ${test_path})
+  
   # get the source name without extension
   get_filename_component(test_name ${t} NAME_WE)
-
+  
   # concatenate the relative path and name in an underscore separated identifier
-  string(REPLACE "/" "_" test_id "${test_rel_path}/${test_name}")
+  if ("${test_rel_path}" STREQUAL "")
+    string(REPLACE "/" "_" test_id "${test_name}")
+  else() 
+    string(REPLACE "/" "_" test_id "${test_rel_path}/${test_name}")
+  endif()
 
   # depend on the current source file, all the test headers, and the parent project headers
   add_executable(${test_id} ${t} ${MyAwesomeLibraryTestSuite_headers} ${MyAwesomeLibrary_headers})
@@ -130,9 +125,9 @@ foreach(t ${MyAwesomeLibraryTestSuite_sources})
   # link against the Boost libraries
   target_link_libraries(${test_id} ${Boost_LIBRARIES})
 
-  # match the relative path in the build tree with the corresponding one in the source tree 
-  set_target_properties(${test_id} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${test_rel_path})
-
+  # match the relative path in the build tree with the corresponding one in the source tree
+  set_target_properties(${test_id} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${test_path})
+  
   # add a test with executable in the relative path of the build tree
-  add_test(${test_id} ${test_rel_path}/${test_id})
+  add_test(${test_id} ${test_path}/${test_id})  
 endforeach()

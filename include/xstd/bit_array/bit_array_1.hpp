@@ -1,5 +1,5 @@
 #pragma once
-#include <xstd/bitset/detail/base_bitset_fwd.hpp>       // base_bitset
+#include <xstd/bit_array/bit_array_fwd.hpp>             // base_bitset
 #include <xstd/bitset/intrinsic.hpp>                    // popcount
 #include <xstd/bitset/limits.hpp>                       // digits, is_unsigned_integer
 #include <xstd/bitset/masks.hpp>                        // none, one, all
@@ -9,19 +9,18 @@
 #include <utility>                                      // swap
 
 namespace xstd {
-namespace detail {
 
 template<class Block>
-class base_bitset<Block, 1>
+class bit_array<Block, 1>
 {
         static_assert(is_unsigned_integer<Block>, "");
         static constexpr auto N = 1 * digits<Block>;
 public:
         // constructors
 
-        constexpr base_bitset() = default;
+        constexpr bit_array() = default;
 
-        /* implicit */ constexpr base_bitset(Block value) noexcept
+        /* implicit */ constexpr bit_array(Block value) noexcept
         :
                 elems{value}
         {}
@@ -29,15 +28,15 @@ public:
 protected:
         // destructor
 
-        ~base_bitset() = default;
+        ~bit_array() = default;
 
 public:
         // copying, moving and assignment
 
-        base_bitset(base_bitset const&) = default;
-        base_bitset(base_bitset&&) = default;
-        base_bitset& operator=(base_bitset const&) = default;
-        base_bitset& operator=(base_bitset&&) = default;
+        bit_array(bit_array const&) = default;
+        bit_array(bit_array&&) = default;
+        bit_array& operator=(bit_array const&) = default;
+        bit_array& operator=(bit_array&&) = default;
 
         // data access
 
@@ -85,27 +84,27 @@ public:
 
         // comparators
 
-        constexpr auto do_equal(base_bitset const& other) const noexcept
+        constexpr auto do_equal(bit_array const& other) const noexcept
         {
                 return elems == other.elems;
         }
 
-        constexpr auto do_colexicographical_compare(base_bitset const& other) const noexcept
+        constexpr auto do_colexicographical_compare(bit_array const& other) const noexcept
         {
                 return elems < other.elems;
         }
 
-        constexpr auto do_intersects(base_bitset const& other) const noexcept
+        constexpr auto do_intersects(bit_array const& other) const noexcept
         {
                 return (elems & other.elems) != masks::none<Block>;
         }
 
-        constexpr auto do_is_subset_of(base_bitset const& other) const noexcept
+        constexpr auto do_is_subset_of(bit_array const& other) const noexcept
         {
                 return (elems & ~other.elems) == masks::none<Block>;
         }
 
-        constexpr auto do_is_proper_subset_of(base_bitset const& other) const noexcept
+        constexpr auto do_is_proper_subset_of(bit_array const& other) const noexcept
         {
                 if (elems & ~other.elems)
                         return false;
@@ -114,7 +113,7 @@ public:
 
         // modifiers
 
-        /* constexpr */ auto do_swap(base_bitset& other) noexcept
+        /* constexpr */ auto do_swap(bit_array& other) noexcept
         {
                 using std::swap;
                 swap(elems, other.elems);
@@ -135,22 +134,22 @@ public:
                 elems = ~elems;
         }
 
-        constexpr auto do_and(base_bitset const& other) noexcept
+        constexpr auto do_and(bit_array const& other) noexcept
         {
                 elems &= other.elems;
         }
 
-        constexpr auto do_or(base_bitset const& other) noexcept
+        constexpr auto do_or(bit_array const& other) noexcept
         {
                 elems |= other.elems;
         }
 
-        constexpr auto do_xor(base_bitset const& other) noexcept
+        constexpr auto do_xor(bit_array const& other) noexcept
         {
                 elems ^= other.elems;
         }
 
-        constexpr auto do_minus(base_bitset const& other) noexcept
+        constexpr auto do_minus(bit_array const& other) noexcept
         {
                 elems &= ~other.elems;
         }
@@ -202,8 +201,7 @@ public:
 private:
         // representation
 
-        Block elems{};
+        Block elems {};
 };
 
-}       // namespace detail
 }       // namespace xstd

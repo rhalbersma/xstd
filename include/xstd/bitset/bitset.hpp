@@ -1,5 +1,5 @@
 #pragma once
-#include <xstd/bitset/detail/base_bitset.hpp>   // base_bitset
+#include <xstd/bit_array.hpp>                   // bit_array
 #include <xstd/bitset/iterator/iterator.hpp>    // ConstIterator
 #include <xstd/bitset/iterator/reference.hpp>   // ConstReference
 #include <xstd/bitset/limits.hpp>               // digits
@@ -32,11 +32,11 @@ constexpr bool intersect(const bitset<N>& lhs, const bitset<N>& rhs) noexcept;
 template<std::size_t N>
 class bitset
 :
-        private detail::base_bitset<unsigned long long, num_blocks<unsigned long long>(N)>
+        private bit_array<unsigned long long, num_blocks<unsigned long long>(N)>
 {
         using block_type = unsigned long long;
         static constexpr auto Nb = num_blocks<block_type>(N);
-        using Base = detail::base_bitset<unsigned long long, num_blocks<unsigned long long>(N)>;
+        using Base = bit_array<unsigned long long, num_blocks<unsigned long long>(N)>;
 
 public:
         using reference = ConstReference<block_type, Nb, N>;
@@ -145,30 +145,30 @@ public:
 
         // element access
 
-        [[deprecated]] constexpr reference operator[](std::size_t pos)
+        [[deprecated]] constexpr reference operator[](std::size_t pos) /* Throws: Nothing. */
         {
                 assert(0 <= pos && pos < N);
                 return { this->block_ref(pos), pos };
         }
 
-        [[deprecated]] constexpr bool operator[](std::size_t pos) const
+        [[deprecated]] constexpr bool operator[](std::size_t pos) const /* Throws: Nothing. */
         {
                 assert(0 <= pos && pos < N);
                 return test(pos);
         }
 
-        constexpr bool test(std::size_t pos) const
+        constexpr bool test(std::size_t pos) const /* Throws: Nothing. */
         {
                 assert(0 <= pos && pos < N);
                 return this->block_ref(pos) & mask(pos);
         }
 
-        [[deprecated]] constexpr bitset<N>& set(std::size_t pos, bool value)
+        [[deprecated]] constexpr bitset<N>& set(std::size_t pos, bool value) /* Throws: Nothing. */
         {
                 return value ? set(pos) : reset(pos);
         }
 
-        constexpr bitset<N>& set(std::size_t pos)
+        constexpr bitset<N>& set(std::size_t pos) /* Throws: Nothing. */
         {
                 assert(0 <= pos && pos < N);
                 this->block_ref(pos) |= mask(pos);
@@ -176,7 +176,7 @@ public:
                 return *this;
         }
 
-        constexpr bitset<N>& reset(std::size_t pos)
+        constexpr bitset<N>& reset(std::size_t pos) /* Throws: Nothing. */
         {
                 assert(0 <= pos && pos < N);
                 this->block_ref(pos) &= ~mask(pos);
@@ -184,7 +184,7 @@ public:
                 return *this;
         }
 
-        constexpr bitset<N>& flip(std::size_t pos)
+        constexpr bitset<N>& flip(std::size_t pos) /* Throws: Nothing. */
         {
                 assert(0 <= pos && pos < N);
                 this->block_ref(pos) ^= mask(pos);
@@ -275,7 +275,7 @@ public:
                 return *this;
         }
 
-        constexpr bitset<N>& operator<<=(std::size_t pos)
+        constexpr bitset<N>& operator<<=(std::size_t pos) /* Throws: Nothing. */
         {
                 assert(0 <= pos && pos < N);
                 this->do_left_shift(pos);
@@ -283,7 +283,7 @@ public:
                 return *this;
         }
 
-        constexpr bitset<N>& operator>>=(std::size_t pos)
+        constexpr bitset<N>& operator>>=(std::size_t pos) /* Throws: Nothing. */
         {
                 assert(0 <= pos && pos < N);
                 this->do_right_shift(pos);
@@ -444,14 +444,14 @@ constexpr bitset<N> operator-(const bitset<N>& lhs, const bitset<N>& rhs) noexce
 }
 
 template<std::size_t N>
-constexpr bitset<N> operator<<(const bitset<N>& lhs, std::size_t pos)
+constexpr bitset<N> operator<<(const bitset<N>& lhs, std::size_t pos) /* Throws: Nothing. */
 {
         assert(0 <= pos && pos < N);
         return bitset<N>(lhs) <<= pos;
 }
 
 template<std::size_t N>
-constexpr bitset<N> operator>>(const bitset<N>& lhs, std::size_t pos)
+constexpr bitset<N> operator>>(const bitset<N>& lhs, std::size_t pos) /* Throws: Nothing. */
 {
         assert(0 <= pos && pos < N);
         return bitset<N>(lhs) >>= pos;
