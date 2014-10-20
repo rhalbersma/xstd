@@ -1,6 +1,8 @@
 #pragma once
 #include <xstd/bitset/limits.hpp>       // digits
+#include <xstd/cstddef.hpp>             // _z
 #include <cassert>                      // assert
+#include <cstddef>                      // size_t
 
 namespace xstd {
 namespace lookup {
@@ -12,8 +14,8 @@ public:
         template<class T>
         static constexpr auto ctz(T x) noexcept
         {
-                std::size_t n = 0;
-                for (std::size_t i = 0; i < num_blocks<T>; ++i) {
+                auto n = 0_z;
+                for (auto i = 0_z; i < num_blocks<T>; ++i) {
                         auto const b = block_mask(x, i);
                         n += ctz_[b];
                         if (b)
@@ -26,7 +28,7 @@ public:
         template<class T>
         static constexpr auto clz(T x) noexcept
         {
-                std::size_t n = 0;
+                auto n = 0_z;
                 for (auto i = num_blocks<T> - 1; i < num_blocks<T>; --i) {
                         auto const b = block_mask(x, i);
                         n += clz_[b];
@@ -40,8 +42,8 @@ public:
         template<class T>
         static constexpr auto popcount(T x) noexcept
         {
-                std::size_t n = 0;
-                for (std::size_t i = 0; i < num_blocks<T>; ++i)
+                auto n = 0_z;
+                for (auto i = 0_z; i < num_blocks<T>; ++i)
                         n += popcount_[block_mask(x, i)];
                 assert(0 <= n && n <= digits<T>);
                 return n;

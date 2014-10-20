@@ -1,18 +1,19 @@
 #pragma once
-#include <xstd/bitset/detail/base_bitset_fwd.hpp>       // base_bitset
-#include <xstd/bitset/intrinsic.hpp>                    // popcount
-#include <xstd/bitset/limits.hpp>                       // digits, is_unsigned_integer
-#include <xstd/bitset/masks.hpp>                        // none, one, all
-#include <cassert>                                      // assert
-#include <cstddef>                                      // size_t
-#include <type_traits>                                  // enable_if_t
-#include <utility>                                      // swap
+#include <xstd/array.hpp>                       // array
+#include <xstd/bit_array/bit_array_fwd.hpp>     // bit_array
+#include <xstd/bitset/intrinsic.hpp>            // popcount
+#include <xstd/bitset/limits.hpp>               // digits, is_unsigned_integer
+#include <xstd/bitset/masks.hpp>                // none, one, all
+#include <xstd/cstddef.hpp>                     // _z
+#include <cassert>                              // assert
+#include <cstddef>                              // size_t
+#include <type_traits>                          // enable_if_t
+#include <utility>                              // swap
 
 namespace xstd {
-namespace detail {
 
 template<class Block, std::size_t Nb>
-class base_bitset
+class bit_array
 {
 private:
         static_assert(is_unsigned_integer<Block>, "");
@@ -21,9 +22,9 @@ private:
 public:
         // constructors
 
-        constexpr base_bitset() = default;
+        constexpr bit_array() = default;
 
-        /* implicit */ constexpr base_bitset(Block value) noexcept
+        /* implicit */ constexpr bit_array(Block value) noexcept
         :
                 elems{value}
         {}
@@ -31,36 +32,36 @@ public:
 protected:
         // destructor
 
-        ~base_bitset() = default;
+        ~bit_array() = default;
 
 public:
         // copying, moving and assignment
 
-        base_bitset(base_bitset const&) = default;
-        base_bitset(base_bitset&&) = default;
-        base_bitset& operator=(base_bitset const&) = default;
-        base_bitset& operator=(base_bitset&&) = default;
+        bit_array(bit_array const&) = default;
+        bit_array(bit_array&&) = default;
+        bit_array& operator=(bit_array const&) = default;
+        bit_array& operator=(bit_array&&) = default;
 
         // data access
 
         constexpr auto* block_begin() noexcept
         {
-                return elems;
+                return &elems[0];
         }
 
         constexpr auto const* block_begin() const noexcept
         {
-                return elems;
+                return &elems[0];
         }
 
         constexpr auto* block_end() noexcept
         {
-                return elems + Nb;
+                return &elems[0] + Nb;
         }
 
         constexpr auto const* block_end() const noexcept
         {
-                return elems + Nb;
+                return &elems[0] + Nb;
         }
 
         constexpr auto& block_back() noexcept
@@ -87,15 +88,12 @@ public:
 
         // comparators
 
-        constexpr auto do_equal(base_bitset const& other) const noexcept
+        constexpr auto do_equal(bit_array const& other) const noexcept
         {
-                for (std::size_t i = 0; i < Nb; ++i)
-                        if (elems[i] != other.elems[i])
-                                return false;
-                return true;
+                return elems == other.elems;
         }
 
-        constexpr auto do_colexicographical_compare(base_bitset const& other) const noexcept
+        constexpr auto do_colexicographical_compare(bit_array const& other) const noexcept
         {
                 for (auto i = Nb - 1; i < Nb; --i) {
                         if (elems[i] < other.elems[i])
@@ -106,26 +104,26 @@ public:
                 return false;
         }
 
-        constexpr auto do_intersects(base_bitset const& other) const noexcept
+        constexpr auto do_intersects(bit_array const& other) const noexcept
         {
-                for (std::size_t i = 0; i < Nb; ++i)
+                for (auto i = 0_z; i < Nb; ++i)
                         if (elems[i] & other.elems[i])
                                 return true;
                 return false;
         }
 
-        constexpr auto do_is_subset_of(base_bitset const& other) const noexcept
+        constexpr auto do_is_subset_of(bit_array const& other) const noexcept
         {
-                for (std::size_t i = 0; i < Nb; ++i)
+                for (auto i = 0_z; i < Nb; ++i)
                         if (elems[i] & ~other.elems[i])
                                 return false;
                 return true;
         }
 
-        constexpr auto do_is_proper_subset_of(base_bitset const& other) const noexcept
+        constexpr auto do_is_proper_subset_of(bit_array const& other) const noexcept
         {
                 auto proper = false;
-                for (std::size_t i = 0; i < Nb; ++i) {
+                for (auto i = 0_z; i < Nb; ++i) {
                         if ( elems[i] & ~other.elems[i])
                                 return false;
                         if (~elems[i] &  other.elems[i])
@@ -136,22 +134,19 @@ public:
 
         // modifiers
 
-        /* constexpr */ auto do_swap(base_bitset& other) noexcept
+        constexpr auto do_swap(bit_array& other) noexcept
         {
-                using std::swap;
-                swap(elems, other.elems);
+                elems.swap(other.elems);
         }
 
         constexpr auto do_set() noexcept
         {
-                for (auto&& block : elems)
-                        block = masks::all<Block>;
+                elems.fill(masks::all<Block>);
         }
 
         constexpr auto do_reset() noexcept
         {
-                for (auto&& block : elems)
-                        block = masks::none<Block>;
+                elems.fill(masks::none<Block>);
         }
 
         constexpr auto do_flip() noexcept
@@ -160,27 +155,27 @@ public:
                         block = ~block;
         }
 
-        constexpr auto do_and(base_bitset const& other) noexcept
+        constexpr auto do_and(bit_array const& other) noexcept
         {
-                for (std::size_t i = 0; i < Nb; ++i)
+                for (auto i = 0_z; i < Nb; ++i)
                         elems[i] &= other.elems[i];
         }
 
-        constexpr auto do_or(base_bitset const& other) noexcept
+        constexpr auto do_or(bit_array const& other) noexcept
         {
-                for (std::size_t i = 0; i < Nb; ++i)
+                for (auto i = 0_z; i < Nb; ++i)
                         elems[i] |= other.elems[i];
         }
 
-        constexpr auto do_xor(base_bitset const& other) noexcept
+        constexpr auto do_xor(bit_array const& other) noexcept
         {
-                for (std::size_t i = 0; i < Nb; ++i)
+                for (auto i = 0_z; i < Nb; ++i)
                         elems[i] ^= other.elems[i];
         }
 
-        constexpr auto do_minus(base_bitset const& other) noexcept
+        constexpr auto do_minus(bit_array const& other) noexcept
         {
-                for (std::size_t i = 0; i < Nb; ++i)
+                for (auto i = 0_z; i < Nb; ++i)
                         elems[i] &= ~other.elems[i];
         }
 
@@ -218,12 +213,12 @@ public:
                 auto const R_shift = n % digits<Block>;
 
                 if (R_shift == 0) {
-                        for (std::size_t i = 0; i <= Nb - 1 - n_block; ++i)
+                        for (auto i = 0_z; i <= Nb - 1 - n_block; ++i)
                                elems[i] = elems[i + n_block];
                 } else {
                         auto const L_shift = digits<Block> - R_shift;
 
-                        for (std::size_t i = 0; i < Nb - 1 - n_block; ++i)
+                        for (auto i = 0_z; i < Nb - 1 - n_block; ++i)
                                 elems[i] =
                                         (elems[i + n_block    ] >> R_shift) |
                                         (elems[i + n_block + 1] << L_shift)
@@ -241,7 +236,7 @@ public:
         bool> do_all() const noexcept
         {
                 static_assert(0 < M && M < digits<Block>, "");
-                for (std::size_t i = 0; i < Nb - 1; ++i)
+                for (auto i = 0_z; i < Nb - 1; ++i)
                         if (elems[i] != masks::all<Block>)
                                 return false;
                 return elems[Nb - 1] == masks::all<Block> >> (digits<Block> - M);
@@ -275,7 +270,7 @@ public:
 
         constexpr auto do_count() const noexcept
         {
-                std::size_t sum = 0;
+                auto sum = 0_z;
                 for (auto&& block : elems)
                         sum += intrinsic::popcount(block);
                 return sum;
@@ -284,8 +279,7 @@ public:
 private:
         // representation
 
-        Block elems[Nb]{};
+        array<Block, Nb> elems {};
 };
 
-}       // namespace detail
 }       // namespace xstd
