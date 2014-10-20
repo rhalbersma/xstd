@@ -1,3 +1,8 @@
+        Document number: Dxxxx=14-xxxx
+        Date:            2014-10-20
+        Project:         Programming Language C++, Library Working Group
+        Reply-to:        Rein Halbersma <rhalbersma@gmail.com>
+
 Suffixes For `ptrdiff_t` And `size_t` Literals 
 ==============================================
 
