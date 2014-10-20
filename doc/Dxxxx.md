@@ -1,6 +1,6 @@
     Document number: Dxxxx=14-xxxx
     Date:            2014-10-20
-    Project:         Programming Language C++, Library Working Group
+    Project:         Programming Language C++, Library Evolution Working Group
     Reply-to:        Rein Halbersma <rhalbersma@gmail.com>
 
 User-Defined Literals for `ptrdiff_t` and `size_t`
@@ -30,23 +30,27 @@ Motivation and Scope
     int main()
     {
       auto const a = std::array<int, 2> {{ 1, 2 }}; 
-      for (auto i = 0; i < a.size(); ++i)               // -Wsign-compare 
-        std::cout << i << ": " << a[i] << "\n";         // -Wsign-conversion
+      for (auto i = 0; i < a.size(); ++i)          // -Wsign-compare 
+        std::cout << i << ": " << a[i] << "\n";    // -Wsign-conversion
     }
 
 The program uses an [Almost Always Auto style](http://herbsutter.com/2013/08/12/gotw-94-solution-aaa-style-almost-always-auto/) with a `for (auto i = 0; ...)` loop initialization. From its initializer `0`, the type of the variable `i` is deduced to be `int`. However, the subsequent comparison against `a.size()` of type `size_t` and the accessing of `std::array::operator[]` that takes a `size_t` argument, produces two warnings (using either the `gcc` or `clang` compiler at the highest warning levels) against mixed sign comparisons and sign conversions. One might consider these warning overly pedantic, but many codebases have mandatory warning levels.
 
 It is straightforward to rewrite the above code to eliminate the sign comparison and conversion warnings. One can explicitly type either the variable `i` or its initializer `0`: 
 
-      for (std::size_t i = 0; i < a.size(); ++i)        // OK, explicitly typed variable
+    for (std::size_t i = 0; i < a.size(); ++i)              // OK, explicitly typed variable
     
-      for (auto i = std::size_t{0}; i < a.size(); ++i)  // OK, explicitly typed initializer
+    for (decltype(a.size()) i = 0; i < a.size(); ++i)       // OK, for fully generic code
 
-The former approach forces users to abandon the convenient left-to-right declaration of the `auto` initialization. The latter approach is rather verbose. Using a `z` literal would preserve the left-to-right declaration of the `auto` initialization with minimal verbosity:
+    for (auto i = std::size_t{0}; i < a.size(); ++i)        // OK, explicitly typed initializer
 
-      for (auto i = 0z; i < a.size(); ++i)              // OK, literal suffix explicitly types the initializer
+    for (auto i = decltype(a.size()){0}; i < a.size(); ++i) // OK, for fully generic code
 
-One might argue that the above code does not apply to the Standard Containers because the type of `c.size()` is `c::size_type` which is not guaranteed to be equal to `size_t`.  Fully generic code would indeed need a `for (decltype(c.size()) i = 0; ...)` loop initialization. In non-generic code, however, `c.size()` can usually be relied on to be of type `size_t`, unless one is using a container with exotic iterators, pointers or a user-defined allocator. 
+These alternatives either force users to abandon the convenient left-to-right declaration of `auto` variable initialization, or significantly increase code verbosity. Using a `z` literal would preserve the left-to-right declaration of the `auto` initialization with minimal verbosity:
+
+    for (auto i = 0z; i < a.size(); ++i)                    // OK, literal suffix explicitly types the initializer
+
+One might argue that the above code does not apply to the Standard Containers because the type of `c.size()` is `c::size_type` which is not guaranteed to be equal to `size_t`.  Fully generic code would indeed need `decltype(c.size())` as a type specifier. In non-generic code, however, `c.size()` can usually be relied on to be of type `size_t`, unless one is either using a container with exotic iterators or pointers, or using a user-defined allocator. 
 
 **Example 2** Another example comes from the fact that the return type of `std::accumulate` is given by the type of its initializer argument:
 
@@ -134,7 +138,7 @@ This proposal follows the existing practice established in [WG21/N3642](http://w
 
 The consequences of adopting the proposed literal suffixes into the Standard are:
 
-  - both novices and occasional programmers, as well as expericence library implementors, can use left-to-right `auto` variable initializations with `ptrdiff_t` and `size_t` literals, without having to define their own literal suffixes with leading underscores `_t` and `_z` (or any of the mentioned alternatives) in order to do so;
+  - both novices and occasional programmers, as well as expericenced library implementors, can use left-to-right `auto` variable initializations with `ptrdiff_t` and `size_t` literals, without having to define their own literal suffixes with leading underscores `_t` and `_z` (or any of the mentioned alternatives) in order to do so;
   - other existing or future Standard Library types are prevented from adopting the same literal suffixes, unless they use overloads of the corresponding `operator""` that take arguments other than `unsigned long long`. 
 
 There are no decisions left up to implementers, because the suggested wording below fully specifies the proposed functionality. We are not aware of similar libraries in use.
