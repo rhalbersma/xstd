@@ -3,13 +3,13 @@
     Project:         Programming Language C++, Library Working Group
     Reply-to:        Rein Halbersma <rhalbersma@gmail.com>
 
-Suffixes For `ptrdiff_t` And `size_t` Literals 
-==============================================
+User-Defined Literals for `ptrdiff_t` and `size_t`
+==================================================
 
 Introduction
 ------------
 
-We propose the suffixes `t` and `z` for `ptrdiff_t` and `size_t` literals, respectively.
+We propose the user-defined suffixes `t` and `z` for `ptrdiff_t` and `size_t` literals, respectively.
 
 Motivation and Scope
 --------------------
@@ -103,12 +103,12 @@ instead of requiering one of the more verbose alternatives
             
     std::accumulate(a.begin(), a.end(), decltype(*a.begin()){0})
 
-**Existing practice** There is a [reference implementation](https://bitbucket.org/rhalbersma/xstd/src/78bbe4276f98c404575f35e82e8e9532fd985eb2/include/xstd/cstddef.hpp?at=default#cl-8) and small [test suite](https://bitbucket.org/rhalbersma/xstd/src/78bbe4276f98c404575f35e82e8e9532fd985eb2/test/src/cstddef.cpp?at=default) available for inspection. Note that the reference implementation uses `namespace xstd` and underscored suffixes `_t` and `_z` because the tested compiler `clang` will enforce the restriction from `[lex.ext]/10` that a program containing a user-defined suffix without an underscore is ill-formed, no diagnostic required.   
+**Existing practice** We are not aware of similar functionality being in use. There is a [reference implementation](https://bitbucket.org/rhalbersma/xstd/src/78bbe4276f98c404575f35e82e8e9532fd985eb2/include/xstd/cstddef.hpp?at=default#cl-8) and small [test suite](https://bitbucket.org/rhalbersma/xstd/src/78bbe4276f98c404575f35e82e8e9532fd985eb2/test/src/cstddef.cpp?at=default) available for inspection. Note that the reference implementation uses `namespace xstd` and underscored suffixes `_t` and `_z` because the tested compiler `clang` will enforce the restriction from `[lex.ext]/10` that a program containing a user-defined suffix without an underscore is ill-formed, no diagnostic required.   
 
 Impact On the Standard
 ----------------------
 
-This proposal does not depend on other library components, and nothing depends on it. It is a pure extension, and does not require changes to standard components. It can be implemented using C++11 compilers and libraries, and it does not require language or library features that are not part of C++11. 
+This proposal does not depend on other library components, and nothing depends on it. It is a pure extension, but does require additions (though no modifications) to standard header `<cstddef>`, as outlined in the section **Proposed Wording** below. It can be implemented using C++11 compilers and libraries, and it does not require language or library features that are not part of C++11. 
 
 Design Decisions
 ----------------
@@ -128,29 +128,27 @@ The chosen naming of the literal suffixes `t` and `z` was motivated by the corre
 
 Alternative literal suffixes could be `td` and `zu`, combining the length modifiers `t` and `z` with the corresponding conversion specifiers `d` and `u`. This has the advantage of not monopolizing single-letter suffixes for future use, while still keeping the correspondence with formatted input/output in the C standard library, at the cost of slightly longer typing.
 
-Yet another set of literal suffixes would be `pd` and `sz`, or even `pdt` and `szt`. The tradeoffs are that although such names are perhaps more recognizable to casual users, they are slightly longer to type and, more importantly, inconsistent with existing naming conventions for formatted input/output in the C standard library. 
+Yet another set of literal suffixes would be `pd` and `sz`, or even `pdt` and `szt`. The tradeoffs are that although such names are perhaps more recognizable to novices and occasional programmers, they are slightly longer to type and, more importantly, inconsistent with existing naming conventions for formatted input/output in the C standard library. 
 
-We follow the same choices as [WG21/N3642](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3642.pdf) with respect to the `constexpr` (present) and `noexcept` (absent) specifiers, as well as the usage of an appropriately named `inline namespace std::literals::support_literals`. 
+This proposal follows the existing practice established in [WG21/N3642](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3642.pdf) with respect to the `constexpr` (present) and `noexcept` (absent) specifiers, as well as the usage of an appropriately named `inline namespace std::literals::support_literals`. 
 
 The consequences of adopting the proposed literal suffixes into the Standard are:
 
-  - both users and implementors alike can use left-to-right `auto` variable initializations with `ptrdiff_t` and `size_t` literals, without having to define their own literal suffixes with leading underscores `_t` and `_z` (or any of the mentioned alternatives) in order to do so;
+  - both novices and occasional programmers, as well as expericence library implementors, can use left-to-right `auto` variable initializations with `ptrdiff_t` and `size_t` literals, without having to define their own literal suffixes with leading underscores `_t` and `_z` (or any of the mentioned alternatives) in order to do so;
   - other existing or future Standard Library types are prevented from adopting the same literal suffixes, unless they use overloads of the corresponding `operator""` that take arguments other than `unsigned long long`. 
 
 There are no decisions left up to implementers, because the suggested wording below fully specifies the proposed functionality. We are not aware of similar libraries in use.
 
-Technical Specifications
-------------------------
-
-We propose the following wording for inclusion into the Standard.
+Proposed Wording
+----------------
 
 Insert in subclause `[support.types]/1` in the synopsis of header `<cstddef>` at the appropriate place the namespace `std::literals::support_literals`: 
 
 >     namespace std {
       inline namespace literals {
         inline namespace support_literals {
-          constexpr ptrdiff_t operator""t(unsigned long long);        
-          constexpr size_t operator""z(unsigned long long);       
+          constexpr ptrdiff_t operator "" t(unsigned long long);        
+          constexpr size_t operator "" z(unsigned long long);       
         }
       }
     }
@@ -161,10 +159,10 @@ Insert a new subclause `[support.literals]` between `[support.types]` and `[supp
 >
 > 1 This section describes literal suffixes for constructing `ptrdiff_t` and `size_t` literals. The suffixes `t` and `z` create numbers of the types `ptrdiff_t` and `size_t`, respectively. 
 >
->     constexpr ptrdiff_t operator""t(unsigned long long u);        
+>     constexpr ptrdiff_t operator "" t(unsigned long long u);        
 >2 Returns: `static_cast<ptrdiff_t>(u)`.
 >
->     constexpr size_t operator""z(unsigned long long u);
+>     constexpr size_t operator "" z(unsigned long long u);
 >3 Returns: `static_cast<size_t>(u)`.
 
 Acknowledgments
