@@ -103,7 +103,7 @@ instead of requiering one of the more verbose alternatives
             
     std::accumulate(a.begin(), a.end(), decltype(*a.begin()){0})
 
-**Existing practice** There is a reference implementation and test suite available for inspection at https://bitbucket.org/rhalbersma/bitset 
+**Existing practice** There is a [reference implementation](https://bitbucket.org/rhalbersma/xstd/src/78bbe4276f98c404575f35e82e8e9532fd985eb2/include/xstd/cstddef.hpp?at=default#cl-8) and small [test suite](https://bitbucket.org/rhalbersma/xstd/src/78bbe4276f98c404575f35e82e8e9532fd985eb2/test/src/cstddef.cpp?at=default) available for inspection. Note that the reference implementation uses `namespace xstd` and underscored suffixes `_t` and `_z` because the tested compiler `clang` will enforce the restriction from `[lex.ext]/10` that a program containing a user-defined suffix without an underscore is ill-formed, no diagnostic required.   
 
 Impact On the Standard
 ----------------------
