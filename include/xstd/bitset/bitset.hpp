@@ -4,9 +4,9 @@
 #include <xstd/bitset/iterator/reference.hpp>   // ConstReference
 #include <xstd/bitset/limits.hpp>               // digits
 #include <xstd/bitset/masks.hpp>                // one
+#include <xstd/iterator.hpp>                    // reverse_iterator, begin, end, rbegin, rend, cbegin, cend, crbegin, crend
 #include <cassert>                              // assert
 #include <initializer_list>                     // initializer_list
-#include <iterator>                             // reverse_iterator
 #include <type_traits>                          // enable_if_t
 
 namespace xstd {
@@ -43,8 +43,8 @@ public:
         using const_reference = reference;
         using iterator = ConstIterator<block_type, Nb, N>;
         using const_iterator = iterator;
-        using reverse_iterator = std::reverse_iterator<iterator>;
-        using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+        using reverse_iterator = xstd::reverse_iterator<iterator>;
+        using const_reverse_iterator = xstd::reverse_iterator<const_iterator>;
 
         // constructors
 
@@ -89,22 +89,22 @@ public:
                 return { this->block_end(), N };
         }
 
-        /* constexpr */ auto rbegin() noexcept
+        constexpr auto rbegin() noexcept
         {
                 return reverse_iterator{end()};
         }
 
-        /* constexpr */ auto rbegin() const noexcept
+        constexpr auto rbegin() const noexcept
         {
                 return const_reverse_iterator{end()};
         }
 
-        /* constexpr */ auto rend() noexcept
+        constexpr auto rend() noexcept
         {
                 return reverse_iterator{begin()};
         }
 
-        /* constexpr */ auto rend() const noexcept
+        constexpr auto rend() const noexcept
         {
                 return const_reverse_iterator{begin()};
         }
@@ -119,12 +119,12 @@ public:
                 return end();
         }
 
-        /* constexpr */ auto crbegin() const noexcept
+        constexpr auto crbegin() const noexcept
         {
                 return rbegin();
         }
 
-        /* constexpr */ auto crend() const noexcept
+        constexpr auto crend() const noexcept
         {
                 return rend();
         }
@@ -138,7 +138,7 @@ public:
 
         // modifiers
 
-        /* constexpr */ void swap(bitset<N>& other) noexcept
+        constexpr void swap(bitset<N>& other) noexcept
         {
                 this->do_swap(other);
         }
@@ -455,54 +455,6 @@ constexpr bitset<N> operator>>(const bitset<N>& lhs, std::size_t pos) /* Throws:
 {
         assert(0 <= pos && pos < N);
         return bitset<N>(lhs) >>= pos;
-}
-
-template<std::size_t N>
-constexpr auto begin(const bitset<N>& s) noexcept
-{
-        return s.begin();
-}
-
-template<std::size_t N>
-constexpr auto end(const bitset<N>& s) noexcept
-{
-        return s.end();
-}
-
-template<std::size_t N>
-constexpr auto cbegin(const bitset<N>& s) noexcept
-{
-        return begin(s);
-}
-
-template<std::size_t N>
-constexpr auto cend(const bitset<N>& s) noexcept
-{
-        return end(s);
-}
-
-template<std::size_t N>
-/* constexpr */ auto rbegin(const bitset<N>& s) noexcept
-{
-        return s.rbegin();
-}
-
-template<std::size_t N>
-/* constexpr */ auto rend(const bitset<N>& s) noexcept
-{
-        return s.rend();
-}
-
-template<std::size_t N>
-/* constexpr */ auto crbegin(const bitset<N>& s) noexcept
-{
-        return rbegin(s);
-}
-
-template<std::size_t N>
-/* constexpr */ auto crend(const bitset<N>& s) noexcept
-{
-        return rend(s);
 }
 
 }       // namespace xstd

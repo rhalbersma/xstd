@@ -5,7 +5,8 @@
 namespace xstd {
 
 template<class T>
-constexpr void swap(T& a, T& b) noexcept(
+constexpr void
+swap(T& a, T& b) noexcept(
         std::is_nothrow_move_constructible<T>::value &&
         std::is_nothrow_move_assignable<T>::value)
 {
