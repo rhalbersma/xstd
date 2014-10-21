@@ -9,8 +9,8 @@ BOOST_AUTO_TEST_CASE(AutoInitializedTypeIsDeducedFromLiteral)
         using namespace xstd::literals::support_literals;
         auto i = 0_z;
         auto j = 0_t;
-        static_assert(std::is_same<decltype(j), std::size_t>::value, "");
-        static_assert(std::is_same<decltype(i), std::ptrdiff_t>::value, "");
+        static_assert(std::is_same<decltype(i), std::size_t>::value, "");
+        static_assert(std::is_same<decltype(j), std::ptrdiff_t>::value, "");
 }
 
 BOOST_AUTO_TEST_CASE(AccumulateReturnTypeIsDeducedFromLiteral)
@@ -19,8 +19,8 @@ BOOST_AUTO_TEST_CASE(AccumulateReturnTypeIsDeducedFromLiteral)
         int const a[] = { 1, 2 };
         auto i = std::accumulate(std::begin(a), std::end(a), 0_z);
         auto j = std::accumulate(std::begin(a), std::end(a), 0_t);
-        static_assert(std::is_same<decltype(j), std::size_t>::value, "");
-        static_assert(std::is_same<decltype(i), std::ptrdiff_t>::value, "");
+        static_assert(std::is_same<decltype(i), std::size_t>::value, "");
+        static_assert(std::is_same<decltype(j), std::ptrdiff_t>::value, "");
 }
 
 BOOST_AUTO_TEST_SUITE_END()
