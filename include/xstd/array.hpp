@@ -23,8 +23,8 @@ struct array
         typedef T                                       value_type;
         typedef value_type*                             pointer;
         typedef const value_type*                       const_pointer;
-        typedef std::reverse_iterator<iterator>         reverse_iterator;
-        typedef std::reverse_iterator<const_iterator>   const_reverse_iterator;
+        typedef xstd::reverse_iterator<iterator>        reverse_iterator;
+        typedef xstd::reverse_iterator<const_iterator>  const_reverse_iterator;
 
         value_type elems[N ? N : 1];    // exposition only
 
