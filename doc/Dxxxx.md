@@ -9,7 +9,7 @@ User-Defined Literals for `size_t` (and `ptrdiff_t`)
 Introduction
 ------------
 
-We propose the user-defined suffix `z` for `size_t` literals. This allows writing code like
+We propose the user-defined suffix `z` for `size_t` literals. This allows writing code in [Almost Always Auto style](http://herbsutter.com/2013/08/12/gotw-94-solution-aaa-style-almost-always-auto/)
 
     for (auto i = 0z; i < a.size(); ++i) { /* use i and a[i] */ }
 
@@ -43,6 +43,8 @@ The consequences of adopting the proposed literal suffixes into the Standard are
 
   - both novices and occasional programmers, as well as experienced library implementors, can use left-to-right `auto` variable initializations with `size_t` and `ptrdiff_t` literals, without having to define their own literal suffixes with leading underscores `_z` and `_t` in order to do so;
   - other existing or future Standard Library types are prevented from adopting the same literal suffixes, unless they use overloads of the corresponding `operator""` that take arguments other than `unsigned long long`. 
+
+This proposal follows the existing practice established in [WG21/N3642](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3642.pdf) with respect to the `constexpr` (present) and `noexcept` (absent) specifiers, as well as the usage of an appropriately named `inline namespace std::literals::support_literals`.
 
 There are no decisions left up to implementers, because the suggested wording below fully specifies the proposed functionality. We are not aware of similar libraries in use. There is a [reference implementation](https://bitbucket.org/rhalbersma/xstd/src/42782b8056160340ae9710b993a407fdf6136cc2/include/xstd/cstddef.hpp?at=default) and small [test suite](https://bitbucket.org/rhalbersma/xstd/src/42782b8056160340ae9710b993a407fdf6136cc2/test/src/cstddef.cpp?at=default) available for inspection. Note that the reference implementation uses `namespace xstd` and underscored suffixes `_t` and `_z` because the tested compiler `clang` will enforce the restriction from `[lex.ext]/10` that a program containing a user-defined suffix without an underscore is ill-formed, no diagnostic required.   
 
