@@ -11,7 +11,7 @@ Introduction
 
 We propose the user-defined suffix `z` for `size_t` literals. This allows writing code like
 
-    for (auto i = 0z; i < my_array.size(); ++i) { /* use both i and my_array[i] */ }
+    for (auto i = 0z; i < a.size(); ++i) { /* use i and a[i] */ }
 
 that will let the loop variable `i` be of type `size_t`. Similarly, we propose the suffix `t` for `ptrdiff_t` literals. 
 
@@ -156,7 +156,7 @@ The consequences of adopting the proposed literal suffixes into the Standard are
   - both novices and occasional programmers, as well as expericenced library implementors, can use left-to-right `auto` variable initializations with `size_t` and `ptrdiff_t` literals, without having to define their own literal suffixes with leading underscores `_z` and `_t` (or any of the mentioned alternatives) in order to do so;
   - other existing or future Standard Library types are prevented from adopting the same literal suffixes, unless they use overloads of the corresponding `operator""` that take arguments other than `unsigned long long`. 
 
-There are no decisions left up to implementers, because the suggested wording below fully specifies the proposed functionality. We are not aware of similar libraries in use. There is a [reference implementation](https://bitbucket.org/rhalbersma/xstd/src/78bbe4276f98c404575f35e82e8e9532fd985eb2/include/xstd/cstddef.hpp?at=default#cl-8) and small [test suite](https://bitbucket.org/rhalbersma/xstd/src/78bbe4276f98c404575f35e82e8e9532fd985eb2/test/src/cstddef.cpp?at=default) available for inspection. Note that the reference implementation uses `namespace xstd` and underscored suffixes `_t` and `_z` because the tested compiler `clang` will enforce the restriction from `[lex.ext]/10` that a program containing a user-defined suffix without an underscore is ill-formed, no diagnostic required.   
+There are no decisions left up to implementers, because the suggested wording below fully specifies the proposed functionality. We are not aware of similar libraries in use. There is a [reference implementation](https://bitbucket.org/rhalbersma/xstd/src/42782b8056160340ae9710b993a407fdf6136cc2/include/xstd/cstddef.hpp?at=default) and small [test suite](https://bitbucket.org/rhalbersma/xstd/src/42782b8056160340ae9710b993a407fdf6136cc2/test/src/cstddef.cpp?at=default) available for inspection. Note that the reference implementation uses `namespace xstd` and underscored suffixes `_t` and `_z` because the tested compiler `clang` will enforce the restriction from `[lex.ext]/10` that a program containing a user-defined suffix without an underscore is ill-formed, no diagnostic required.   
 
 Proposed Wording
 ----------------
