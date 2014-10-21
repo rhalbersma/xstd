@@ -1,6 +1,7 @@
 #pragma once
-#include <iterator>     // iterator, iterator_traits, input_iterator_tag, random_access_iterator_tag
-#include <memory>       // addressof
+#include <initializer_list>     // initializer_list
+#include <iterator>             // iterator, iterator_traits, input_iterator_tag, random_access_iterator_tag
+#include <memory>               // addressof
 
 namespace xstd {
 
@@ -142,6 +143,130 @@ constexpr reverse_iterator<Iterator>
 make_reverse_iterator(Iterator i)
 {
         return reverse_iterator<Iterator>(i);
+}
+
+template <class C>
+constexpr auto
+begin(C& c) -> decltype(c.begin())
+{
+        return c.begin();
+}
+
+template <class C>
+constexpr auto
+begin(const C& c) -> decltype(c.begin())
+{
+        return c.begin();
+}
+
+template <class C>
+constexpr auto
+end(C& c) -> decltype(c.end())
+{
+        return c.end();
+}
+
+template <class C>
+constexpr auto
+end(const C& c) -> decltype(c.end())
+{
+        return c.end();
+}
+
+template <class T, size_t N>
+constexpr T*
+begin(T (&array)[N]) noexcept
+{
+        return array;
+}
+
+template <class T, size_t N>
+constexpr T*
+end(T (&array)[N]) noexcept
+{
+        return array + N;
+}
+
+template <class C>
+constexpr auto
+cbegin(const C& c) noexcept(noexcept(std::begin(c))) -> decltype(xstd::begin(c))
+{
+        return xstd::begin(c);
+}
+
+template <class C> constexpr auto
+cend(const C& c) noexcept(noexcept(std::end(c)))-> decltype(xstd::end(c))
+{
+        return xstd::end(c);
+}
+
+template <class C>
+constexpr auto
+rbegin(C& c) -> decltype(c.rbegin())
+{
+        return c.rbegin();
+}
+
+template <class C>
+constexpr auto
+rbegin(const C& c) -> decltype(c.rbegin())
+{
+        return c.rbegin();
+}
+
+template <class C>
+constexpr auto
+rend(C& c) -> decltype(c.rend())
+{
+        return c.rend();
+}
+
+template <class C>
+constexpr auto
+rend(const C& c) -> decltype(c.rend())
+{
+        return c.rend();
+}
+
+template <class T, size_t N>
+constexpr reverse_iterator<T*>
+rbegin(T (&array)[N])
+{
+        return reverse_iterator<T*>(array + N);
+}
+
+template <class T, size_t N>
+constexpr reverse_iterator<T*>
+rend(T (&array)[N])
+{
+        return reverse_iterator<T*>(array);
+}
+
+template <class E>
+constexpr reverse_iterator<const E*>
+rbegin(std::initializer_list<E> il)
+{
+        return reverse_iterator<const E*>(il.end());
+}
+template <class E>
+constexpr reverse_iterator<const E*>
+rend(std::initializer_list<E> il)
+{
+        return reverse_iterator<const E*>(il.begin());
+}
+
+template <class C>
+constexpr auto
+crbegin(const C& c) -> decltype(xstd::rbegin(c))
+{
+        return xstd::rbegin(c);
+}
+
+template <class C>
+constexpr auto
+crend(const C& c) -> decltype(xstd::rend(c))
+{
+        return xstd::rend(c);
 }
 
 }       // namespace xstd
