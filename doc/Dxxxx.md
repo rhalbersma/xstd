@@ -24,8 +24,8 @@ The main motivations for this proposal are:
   - `size_t` is almost unavoidable when using the Standard Library;
   - `ptrdiff_t` is significantly less ubiquitous, but still hard to avoid when doing iterator related manipulations;
   - comparisons and arithmetic with integer types of mixed signs or different conversion ranks can lead to surprises;
-  - suprises range from (pedantic) compiler warnings, value conversions, or even undefined behavior;
-  - eliminating these surprises by explicitly typing `size_t` and `ptrdiff_t` literals is currently overly verbose;
+  - surprises range from (pedantic) compiler warnings, value conversions, or even undefined behavior;
+  - eliminating these surprises by explicitly typing `size_t` and `ptrdiff_t` literals is rather verbose;
   - user-defined literals are a type-safe and succinct way to express coding intent;
   - the suffixes `z` and `t` are consisent with the length modifiers for formatted I/O in the C standard library.  
 
@@ -56,8 +56,6 @@ It is straightforward to rewrite the above code to eliminate the sign comparison
 These alternatives either force users to abandon the convenient left-to-right declaration of `auto` variable initialization, or significantly increase code verbosity. Using a `z` literal would preserve the left-to-right declaration of the `auto` initialization with minimal verbosity:
 
     for (auto i = 0z; i < a.size(); ++i)                    // OK, literal suffix explicitly types the initializer
-
-One might argue that the above code does not apply to the Standard Containers because the type of `c.size()` is `c::size_type` which is not guaranteed to be equal to `size_t`.  Fully generic code would indeed need `decltype(c.size())` as a type specifier. In non-generic code, however, `c.size()` can usually be relied on to be of type `size_t`, unless one is either using a container with exotic iterators or pointers, or using a user-defined allocator. 
 
 **[Example 2]** Another example comes from the fact that the return type of `std::accumulate` is given by the type of its initializer argument:
 
@@ -141,19 +139,21 @@ Yet another set of literal suffixes would be `sz` and `pd`, or even `szt` and `p
 
 This proposal follows the existing practice established in [WG21/N3642](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3642.pdf) with respect to the `constexpr` (present) and `noexcept` (absent) specifiers, as well as the usage of an appropriately named `inline namespace std::literals::support_literals`.
 
+One might argue that the Example 1 does not apply to the Standard Containers because the type of `c.size()` is `c::size_type` which is not guaranteed to be equal to `size_t`.  Fully generic code would indeed need `decltype(c.size())` as a type specifier. In non-generic code, however, `c.size()` can usually be relied on to be of type `size_t`, unless one is either using a container with exotic iterators or pointers, or using a user-defined allocator. 
+
 An alternative resolution to the indexed-based `for` statement discussed in Example 1 might be a range-based `for` statement with a library function `sequence` that performs type deduction on its upper-bound:
 
     for (auto i : sequence(0, a.size())) { ... } // i initialized with decltype(a.size()){0}
 
 An alternative resolution for the deduced return type for `std::accumulate` discussed in Examples 2 and 3 might be an overloaded function template that has return type `std::iterator_traits<InputIterator>::value_type`, and that value-initializes its return value: 
 
-    auto sum = accumulate(a.begin(), a.end());  // summation initialized with decltype(*a.begin()){}
+    auto sum = accumulate(a.begin(), a.end());   // summation initialized with decltype(*a.begin()){}
 
-Regardless of the merits of such alternative library proposals (and the latter one only works with `0` as the initializer), we consider these outside the scope of the current proposal and deem the proposed user-defined literals useful in their own rights.    
+Regardless of the merits of such alternative library proposals (and the latter only works with `0` as the initializer), we consider these outside the scope of the current proposal and deem the proposed user-defined literals useful in their own right.    
 
 The consequences of adopting the proposed literal suffixes into the Standard are:
 
-  - both novices and occasional programmers, as well as expericenced library implementors, can use left-to-right `auto` variable initializations with `size_t` and `ptrdiff_t` literals, without having to define their own literal suffixes with leading underscores `_z` and `_t` (or any of the mentioned alternatives) in order to do so;
+  - both novices and occasional programmers, as well as experienced library implementors, can use left-to-right `auto` variable initializations with `size_t` and `ptrdiff_t` literals, without having to define their own literal suffixes with leading underscores `_z` and `_t` (or any of the mentioned alternatives) in order to do so;
   - other existing or future Standard Library types are prevented from adopting the same literal suffixes, unless they use overloads of the corresponding `operator""` that take arguments other than `unsigned long long`. 
 
 There are no decisions left up to implementers, because the suggested wording below fully specifies the proposed functionality. We are not aware of similar libraries in use. There is a [reference implementation](https://bitbucket.org/rhalbersma/xstd/src/42782b8056160340ae9710b993a407fdf6136cc2/include/xstd/cstddef.hpp?at=default) and small [test suite](https://bitbucket.org/rhalbersma/xstd/src/42782b8056160340ae9710b993a407fdf6136cc2/test/src/cstddef.cpp?at=default) available for inspection. Note that the reference implementation uses `namespace xstd` and underscored suffixes `_t` and `_z` because the tested compiler `clang` will enforce the restriction from `[lex.ext]/10` that a program containing a user-defined suffix without an underscore is ill-formed, no diagnostic required.   
@@ -187,7 +187,7 @@ Insert a new subclause `[support.literals]` between `[support.types]` and `[supp
 Acknowledgments
 ----------------
 
-We greatfully acknowledge feedback from Jerry Coffin and Andy Prowl.
+We gratefully acknowledge feedback from Jerry Coffin and Andy Prowl.
 
 References
 ----------
