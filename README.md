@@ -1,8 +1,8 @@
 Extensions to the C++ Standard Library
 ======================================
 
-Suffixes for `ptrdiff_t` and `size_t` literals
+Suffixes for `size_t` (and `ptrdiff_t`) literals
 
-`constexpr`-ified versions of `std::swap`, `std::reverse_iterator` and `std::array`
+`constexpr`-ified `std::array`
 
 A reboot of the `std::bitset` franchise 
