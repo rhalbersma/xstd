@@ -95,13 +95,7 @@ public:
 
         constexpr auto do_colexicographical_compare(bit_array const& other) const noexcept
         {
-                for (auto i = Nb - 1; i < Nb; --i) {
-                        if (elems[i] < other.elems[i])
-                                return true;
-                        if (elems[i] > other.elems[i])
-                                return false;
-                }
-                return false;
+                return xstd::lexicographical_compare(elems.rbegin(), elems.rend(), other.elems.rbegin(), other.elems.rend());
         }
 
         constexpr auto do_intersects(bit_array const& other) const noexcept
@@ -200,8 +194,7 @@ public:
                                 ;
                         elems[n_block] = elems[0] << L_shift;
                 }
-                for (auto i = n_block - 1; i < Nb; --i)
-                        elems[i] = masks::none<Block>;
+                xstd::fill_n(&elems[0], n_block, masks::none<Block>);
         }
 
         constexpr auto do_right_shift(std::size_t n)
@@ -225,8 +218,7 @@ public:
                                 ;
                         elems[Nb - 1 - n_block] = elems[Nb - 1] >> R_shift;
                 }
-                for (auto i = Nb - n_block; i < Nb; ++i)
-                        elems[i] = masks::none<Block>;
+                xstd::fill_n(&elems[Nb - n_block], n_block, masks::none<Block>);
         }
 
         // observers

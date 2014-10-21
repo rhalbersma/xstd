@@ -1,7 +1,7 @@
 #pragma once
+#include <xstd/algorithm.hpp>   // equal, swap_ranges, fill_n, lexicographical_compare
 #include <xstd/cstddef.hpp>     // _z
 #include <xstd/iterator.hpp>    // reverse_iterator
-#include <xstd/utility.hpp>     // swap
 #include <cstddef>              // size_t
 #include <initializer_list>     // initializer_list
 #include <stdexcept>            // out_of_range
@@ -32,15 +32,13 @@ struct array
 
         constexpr void fill(const value_type& u) noexcept
         {
-                for (auto&& block : elems)
-                        block = u;
+                xstd::fill_n(begin(), N, u);
         }
 
-        constexpr void swap(const array<T, N>& other) noexcept(
+        constexpr void swap(const array<T, N>& y) noexcept(
                 noexcept(swap(std::declval<T&>(), std::declval<T&>())))
         {
-                for (auto i = 0_z; i < N; ++i)
-                        swap(elems[i], other.elems[i]);
+                xstd::swap_ranges(begin(), end(), y.begin());
         }
 
         // iterators:
@@ -92,10 +90,7 @@ template<class T, std::size_t N>
 constexpr bool
 operator==(const array<T, N>& x, const array<T, N>& y)
 {
-        for (auto i = 0_z; i < N; ++i)
-                if (x[i] != y[i])
-                        return false;
-        return true;
+        return xstd::equal(x.begin(), x.end(), y.begin(), y.end());
 }
 
 template<class T, std::size_t N>
@@ -109,13 +104,7 @@ template<class T, std::size_t N>
 constexpr bool
 operator<(const array<T, N>& x, const array<T, N>& y)
 {
-        for (auto i = 0_z; i < N; ++i) {
-                if (x[i] < y[i])
-                        return true;
-                if (y[i] < x[i])
-                        return false;
-        }
-        return false;
+        return xstd::lexicographical_compare(x.begin(), x.end(), y.begin(), y.end());
 }
 
 template<class T, std::size_t N>

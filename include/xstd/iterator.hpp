@@ -1,8 +1,33 @@
 #pragma once
-#include <iterator>     // iterator, iterator_traits
+#include <iterator>     // iterator, iterator_traits, input_iterator_tag, random_access_iterator_tag
 #include <memory>       // addressof
 
 namespace xstd {
+
+template<class InputIterator>
+constexpr typename std::iterator_traits<InputIterator>::difference_type
+distance(InputIterator first, InputIterator last, std::input_iterator_tag)
+{
+        typename std::iterator_traits<InputIterator>::difference_type r(0);
+        for (; first != last; ++first)
+                ++r;
+        return r;
+}
+
+template<class RandomAccessIterator>
+constexpr typename std::iterator_traits<RandomAccessIterator>::difference_type
+distance(RandomAccessIterator first, RandomAccessIterator last, std::random_access_iterator_tag)
+{
+        return last - first;
+}
+
+template<class InputIterator>
+constexpr typename std::iterator_traits<InputIterator>::difference_type
+distance(InputIterator first, InputIterator last)
+{
+        typedef typename std::iterator_traits<InputIterator>::iterator_category cat;
+        return xstd::distance(first, last, cat());
+}
 
 template<class Iterator>
 class reverse_iterator
