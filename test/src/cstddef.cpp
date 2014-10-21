@@ -1,26 +1,26 @@
 #include <xstd/cstddef.hpp>             // _t, _z, ptrdiff_t, size_t
-#include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_CASE BOOST_AUTO_TEST_SUITE_END
-#include <numeric>                      // accumulate
+#include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_CASE BOOST_CHECK_EQUAL BOOST_AUTO_TEST_SUITE_END
 
 BOOST_AUTO_TEST_SUITE(Suffixes)
 
-BOOST_AUTO_TEST_CASE(AutoInitializedTypeIsDeducedFromLiteral)
+using namespace xstd::literals::support_literals;
+
+BOOST_AUTO_TEST_CASE(SizeT)
 {
-        using namespace xstd::literals::support_literals;
-        auto i = 0_z;
-        auto j = 0_t;
-        static_assert(std::is_same<decltype(i), std::size_t>::value, "");
-        static_assert(std::is_same<decltype(j), std::ptrdiff_t>::value, "");
+        static_assert(std::is_same<decltype(0_z), std::size_t>::value, "");
+        std::size_t a = 0_z;
+        auto b = 0_z;
+        BOOST_CHECK_EQUAL(a, static_cast<std::size_t>(0));
+        BOOST_CHECK_EQUAL(b, static_cast<std::size_t>(0));
 }
 
-BOOST_AUTO_TEST_CASE(AccumulateReturnTypeIsDeducedFromLiteral)
+BOOST_AUTO_TEST_CASE(PtrDiffT)
 {
-        using namespace xstd::literals::support_literals;
-        int const a[] = { 1, 2 };
-        auto i = std::accumulate(std::begin(a), std::end(a), 0_z);
-        auto j = std::accumulate(std::begin(a), std::end(a), 0_t);
-        static_assert(std::is_same<decltype(i), std::size_t>::value, "");
-        static_assert(std::is_same<decltype(j), std::ptrdiff_t>::value, "");
+        static_assert(std::is_same<decltype(0_t), ptrdiff_t>::value, "");
+        std::size_t a = 0_t;
+        auto b = 0_t;
+        BOOST_CHECK_EQUAL(a, static_cast<ptrdiff_t>(0));
+        BOOST_CHECK_EQUAL(b, static_cast<ptrdiff_t>(0));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
