@@ -11,7 +11,7 @@ BOOST_AUTO_TEST_CASE(SizeT)
         std::size_t a = 0_z;
         auto b = 0_z;
         BOOST_CHECK_EQUAL(a, static_cast<std::size_t>(0));
-        BOOST_CHECK_EQUAL(b, static_cast<std::size_t>(0));
+        BOOST_CHECK_EQUAL(a, b);
 }
 
 BOOST_AUTO_TEST_CASE(PtrDiffT)
@@ -20,7 +20,7 @@ BOOST_AUTO_TEST_CASE(PtrDiffT)
         std::size_t a = 0_t;
         auto b = 0_t;
         BOOST_CHECK_EQUAL(a, static_cast<ptrdiff_t>(0));
-        BOOST_CHECK_EQUAL(b, static_cast<ptrdiff_t>(0));
+        BOOST_CHECK_EQUAL(a, b);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
