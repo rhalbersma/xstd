@@ -1,5 +1,5 @@
     Document number: Dxxxx=14-xxxx
-    Date:            2014-10-21
+    Date:            2014-10-22
     Project:         Programming Language C++, Library Evolution Working Group
     Reply-to:        Rein Halbersma <rhalbersma@gmail.com>
 
@@ -9,7 +9,7 @@ User-Defined Literals for `size_t` (and `ptrdiff_t`)
 Introduction
 ------------
 
-We propose the user-defined suffix `z` for `size_t` literals. This allows writing code in [Almost Always Auto style](http://herbsutter.com/2013/08/12/gotw-94-solution-aaa-style-almost-always-auto/)
+Following earlier [discussion](https://groups.google.com/a/isocpp.org/forum/#!topic/std-proposals/tGoPjUeHlKo) on `std-proposals`, we propose the user-defined suffix `z` for `size_t` literals. This allows writing code in [Almost Always Auto style](http://herbsutter.com/2013/08/12/gotw-94-solution-aaa-style-almost-always-auto/)
 
     for (auto i = 0z; i < a.size(); ++i) { /* use i and a[i] */ }
 
@@ -32,7 +32,9 @@ The main motivations for this proposal are:
 Impact On the Standard
 ----------------------
 
-This proposal does not depend on other library components, and nothing depends on it. It is a pure extension, but does require additions (though no modifications) to the standard header `<cstddef>`, as outlined in the section **Proposed Wording** below. It can be implemented using C++11 compilers and libraries, and it does not require language or library features that are not part of C++11. 
+This proposal does not depend on other library components, and nothing depends on it. It is a pure extension, but does require additions (though no modifications) to the standard header `<cstddef>`, as outlined in the section **Proposed Wording** below. It can be implemented using C++11 compilers and libraries, and it does not require language or library features that are not part of C++11.
+
+There are, however, three active CWG issues ([cwg#1266](http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_active.html#1266), [cwg#1620](http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_active.html#1620) and [cwg#1735](http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_active.html#1735)) that could impact this proposal. All three issues note that in implementations with extended integer types, the decimal-literal in a user-defined-integer-literal might be too large for an `unsigned long long` to represent. Suggestions (but no formal proposals) were made to either fall back to a raw literal operator or a literal operator template, or to allow a parameter of an extended integer type. The latter suggestion would be easiest to incorporate into this proposal.
 
 Design Decisions
 ----------------
@@ -46,21 +48,21 @@ The consequences of adopting the proposed literal suffixes into the Standard are
 
 This proposal follows the existing practice established in [WG21/N3642](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3642.pdf) with respect to the `constexpr` (present) and `noexcept` (absent) specifiers, as well as the usage of an appropriately named `inline namespace std::literals::support_literals`.
 
-There are no decisions left up to implementers, because the suggested wording below fully specifies the proposed functionality. We are not aware of similar libraries in use. There is a [reference implementation](https://bitbucket.org/rhalbersma/xstd/src/42782b8056160340ae9710b993a407fdf6136cc2/include/xstd/cstddef.hpp?at=default) and small [test suite](https://bitbucket.org/rhalbersma/xstd/src/42782b8056160340ae9710b993a407fdf6136cc2/test/src/cstddef.cpp?at=default) available for inspection. Note that the reference implementation uses `namespace xstd` and underscored suffixes `_t` and `_z` because the tested compiler `clang` will enforce the restriction from `[lex.ext]/10` that a program containing a user-defined suffix without an underscore is ill-formed, no diagnostic required.   
+There are no decisions left up to implementers, because the suggested wording below fully specifies the proposed functionality. We are not aware of similar libraries in use. There is a [reference implementation](https://bitbucket.org/rhalbersma/xstd/src/e4c83761b9a4f0b0a5028d948ac2c17025d9fb69/include/xstd/cstddef.hpp?at=default) and small [test suite](https://bitbucket.org/rhalbersma/xstd/src/e4c83761b9a4f0b0a5028d948ac2c17025d9fb69/test/src/cstddef.cpp?at=default) available for inspection. Note that the reference implementation uses `namespace xstd` and underscored suffixes `_t` and `_z` because the tested compiler `clang` will enforce the restriction from `[lex.ext]/10` that a program containing a user-defined suffix without an underscore is ill-formed, no diagnostic required.   
 
 Proposed Wording
 ----------------
 
 Insert in subclause `[support.types]/1` in the synopsis of header `<cstddef>` at the appropriate place the namespace `std::literals::support_literals`: 
-
->     namespace std {
-      inline namespace literals {
-        inline namespace support_literals {
-          constexpr size_t operator "" z(unsigned long long);       
-          constexpr ptrdiff_t operator "" t(unsigned long long);        
-        }
-      }
-    }
+      
+            namespace std {
+              inline namespace literals {
+                inline namespace support_literals {
+                  constexpr size_t operator "" z(unsigned long long);       
+                  constexpr ptrdiff_t operator "" t(unsigned long long);        
+                }
+              }
+            }
 
 Insert a new subclause `[support.literals]` between `[support.types]` and `[support.limits]` as follows (numered relative to [WG21/N4140](https://github.com/cplusplus/draft/blob/master/papers/n4140.pdf)):
 
@@ -77,11 +79,13 @@ Insert a new subclause `[support.literals]` between `[support.types]` and `[supp
 Acknowledgments
 ----------------
 
-We gratefully acknowledge feedback from Jerry Coffin and Andy Prowl.
+We gratefully acknowledge feedback from Jerry Coffin and Andy Prowl on `<Lounge C++>` and from Daniel Krügler and Melissa Myriachan on `std-proposals`.
 
 References
 ----------
 
-N3642. Peter Sommerlad, *User-defined Literals for Standard Library Types (part 1 - version 4)* [http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3642.pdf](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3642.pdf)
+`[std-proposals]`: Morwenn Edrahir, *User defined literal for size_t* [https://groups.google.com/a/isocpp.org/forum/#!topic/std-proposals/tGoPjUeHlKo](https://groups.google.com/a/isocpp.org/forum/#!topic/std-proposals/tGoPjUeHlKo) 
 
-GotW #94. Herb Sutter, *AAA Style (Almost Always Auto)* [http://herbsutter.com/2013/08/12/gotw-94-solution-aaa-style-almost-always-auto/](http://herbsutter.com/2013/08/12/gotw-94-solution-aaa-style-almost-always-auto/) 
+`[N3642]`: Peter Sommerlad, *User-defined Literals for Standard Library Types (part 1 - version 4)* [http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3642.pdf](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3642.pdf)
+
+`[GotW #94]`: Herb Sutter, *AAA Style (Almost Always Auto)* [http://herbsutter.com/2013/08/12/gotw-94-solution-aaa-style-almost-always-auto/](http://herbsutter.com/2013/08/12/gotw-94-solution-aaa-style-almost-always-auto/)
