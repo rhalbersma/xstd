@@ -1,6 +1,5 @@
 #pragma once
 #include <xstd/algorithm.hpp>   // equal, swap_ranges, fill_n, lexicographical_compare
-#include <xstd/cstddef.hpp>     // _z
 #include <xstd/iterator.hpp>    // reverse_iterator
 #include <cstddef>              // size_t
 #include <initializer_list>     // initializer_list

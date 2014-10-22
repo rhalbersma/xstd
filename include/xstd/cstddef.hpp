@@ -1,7 +1,5 @@
-#ifndef XSTD_CSTDDEF_H
-#define XSTD_CSTDDEF_H
-
-#include <cstddef>      // ptrdiff_t, size_t
+#pragma once
+#include <cstddef>      // size_t, ptrdiff_t
 
 namespace xstd {
 inline namespace literals {
@@ -20,5 +18,3 @@ constexpr std::ptrdiff_t operator "" _t(unsigned long long u)
 }       // inline namespace support_literals
 }       // inline namespace literals
 }       // namespace xstd
-
-#endif  /* XSTD_CSTDDEF_H */
