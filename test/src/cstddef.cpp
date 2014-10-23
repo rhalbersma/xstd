@@ -3,7 +3,7 @@
 
 int main()
 {
-        using namespace xstd::literals::support_literals;
+        using namespace xstd::support_literals;
 
         {
                 static_assert(std::is_same<decltype(0_z), std::size_t>::value, "");
