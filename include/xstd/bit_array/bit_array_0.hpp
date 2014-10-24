@@ -66,10 +66,10 @@ public:
         // observers
 
         template<std::size_t M>
-        constexpr auto do_all  () const noexcept { static_assert(M == 0, ""); return true; }
+        constexpr auto        do_all  () const noexcept { static_assert(M == 0, ""); return true; }
 
-        constexpr auto do_any  () const noexcept { return false; }
-        constexpr auto do_none () const noexcept { return true;  }
+        constexpr auto        do_any  () const noexcept { return false; }
+        constexpr auto        do_none () const noexcept { return true;  }
         constexpr std::size_t do_count() const noexcept { return 0;     }
 };
 

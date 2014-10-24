@@ -46,43 +46,43 @@ public:
 
         constexpr auto* block_begin() noexcept
         {
-                return &elems[0];
+                return elems.begin();
         }
 
         constexpr auto const* block_begin() const noexcept
         {
-                return &elems[0];
+                return elems.begin();
         }
 
         constexpr auto* block_end() noexcept
         {
-                return &elems[0] + Nb;
+                return elems.end();
         }
 
         constexpr auto const* block_end() const noexcept
         {
-                return &elems[0] + Nb;
+                return elems.end();
         }
 
         constexpr auto& block_back() noexcept
         {
-                return elems[Nb - 1];
+                return elems.back();
         }
 
         constexpr auto const& block_back() const noexcept
         {
-                return elems[Nb - 1];
+                return elems.back();
         }
 
         constexpr auto& block_ref(std::size_t n)
         {
-                assert(0 <= n && n < N);
+                assert(n < N);
                 return elems[n / digits<Block>];
         }
 
         constexpr auto const& block_ref(std::size_t n) const
         {
-                assert(0 <= n && n < N);
+                assert(n < N);
                 return elems[n / digits<Block>];
         }
 
@@ -175,7 +175,7 @@ public:
 
         constexpr auto do_left_shift(std::size_t n)
         {
-                assert(0 <= n && n < N);
+                assert(n < N);
                 if (n == 0) return;
 
                 auto const n_block = n / digits<Block>;
@@ -199,7 +199,7 @@ public:
 
         constexpr auto do_right_shift(std::size_t n)
         {
-                assert(0 <= n && n < N);
+                assert(n < N);
                 if (n == 0) return;
 
                 auto const n_block = n / digits<Block>;
