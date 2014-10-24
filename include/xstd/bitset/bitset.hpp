@@ -1,13 +1,13 @@
 #pragma once
-#include <xstd/bit_array.hpp>                   // bit_array
-#include <xstd/bitset/iterator/iterator.hpp>    // ConstIterator
-#include <xstd/bitset/iterator/reference.hpp>   // ConstReference
-#include <xstd/bitset/limits.hpp>               // digits
-#include <xstd/bitset/masks.hpp>                // one
-#include <xstd/iterator.hpp>                    // reverse_iterator, begin, end, rbegin, rend, cbegin, cend, crbegin, crend
-#include <cassert>                              // assert
-#include <initializer_list>                     // initializer_list
-#include <type_traits>                          // enable_if_t
+#include <xstd/bit_array.hpp>           // bit_array
+#include <xstd/bitset/iterator.hpp>     // ConstIterator
+#include <xstd/bitset/reference.hpp>    // ConstReference
+#include <xstd/bitset/limits.hpp>       // digits
+#include <xstd/bitset/masks.hpp>        // one
+#include <xstd/iterator.hpp>            // reverse_iterator, begin, end, rbegin, rend, cbegin, cend, crbegin, crend
+#include <cassert>                      // assert
+#include <initializer_list>             // initializer_list
+#include <type_traits>                  // enable_if_t
 
 namespace xstd {
 
@@ -147,19 +147,19 @@ public:
 
         [[deprecated]] constexpr reference operator[](std::size_t pos) /* Throws: Nothing. */
         {
-                assert(0 <= pos && pos < N);
+                assert(pos < N);
                 return { this->block_ref(pos), pos };
         }
 
         [[deprecated]] constexpr bool operator[](std::size_t pos) const /* Throws: Nothing. */
         {
-                assert(0 <= pos && pos < N);
+                assert(pos < N);
                 return test(pos);
         }
 
         constexpr bool test(std::size_t pos) const /* Throws: Nothing. */
         {
-                assert(0 <= pos && pos < N);
+                assert(pos < N);
                 return this->block_ref(pos) & mask(pos);
         }
 
@@ -170,7 +170,7 @@ public:
 
         constexpr bitset<N>& set(std::size_t pos) /* Throws: Nothing. */
         {
-                assert(0 <= pos && pos < N);
+                assert(pos < N);
                 this->block_ref(pos) |= mask(pos);
                 assert(test(pos));
                 return *this;
@@ -178,7 +178,7 @@ public:
 
         constexpr bitset<N>& reset(std::size_t pos) /* Throws: Nothing. */
         {
-                assert(0 <= pos && pos < N);
+                assert(pos < N);
                 this->block_ref(pos) &= ~mask(pos);
                 assert(!test(pos));
                 return *this;
@@ -186,7 +186,7 @@ public:
 
         constexpr bitset<N>& flip(std::size_t pos) /* Throws: Nothing. */
         {
-                assert(0 <= pos && pos < N);
+                assert(pos < N);
                 this->block_ref(pos) ^= mask(pos);
                 return *this;
         }
@@ -277,7 +277,7 @@ public:
 
         constexpr bitset<N>& operator<<=(std::size_t pos) /* Throws: Nothing. */
         {
-                assert(0 <= pos && pos < N);
+                assert(pos < N);
                 this->do_left_shift(pos);
                 sanitize();
                 return *this;
@@ -285,7 +285,7 @@ public:
 
         constexpr bitset<N>& operator>>=(std::size_t pos) /* Throws: Nothing. */
         {
-                assert(0 <= pos && pos < N);
+                assert(pos < N);
                 this->do_right_shift(pos);
                 return *this;
         }
@@ -446,14 +446,14 @@ constexpr bitset<N> operator-(const bitset<N>& lhs, const bitset<N>& rhs) noexce
 template<std::size_t N>
 constexpr bitset<N> operator<<(const bitset<N>& lhs, std::size_t pos) /* Throws: Nothing. */
 {
-        assert(0 <= pos && pos < N);
+        assert(pos < N);
         return bitset<N>(lhs) <<= pos;
 }
 
 template<std::size_t N>
 constexpr bitset<N> operator>>(const bitset<N>& lhs, std::size_t pos) /* Throws: Nothing. */
 {
-        assert(0 <= pos && pos < N);
+        assert(pos < N);
         return bitset<N>(lhs) >>= pos;
 }
 

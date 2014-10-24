@@ -1,10 +1,12 @@
 #pragma once
-#include <xstd/algorithm.hpp>   // equal, swap_ranges, fill_n, lexicographical_compare
+#include <xstd/algorithm.hpp>   // fill_n, swap_ranges, equal, lexicographical_compare
 #include <xstd/iterator.hpp>    // reverse_iterator
+#include <xstd/utility.hpp>     // swap
+#include <cassert>              // assert
 #include <cstddef>              // size_t
 #include <initializer_list>     // initializer_list
 #include <stdexcept>            // out_of_range
-#include <type_traits>          // integral_constant, is_nothrow_swappable
+#include <type_traits>          // integral_constant
 #include <utility>              // declval
 
 namespace xstd {
@@ -17,8 +19,8 @@ struct array
         typedef const T&                                const_reference;
         typedef T*                                      iterator;
         typedef const T*                                const_iterator;
-        typedef size_t                                  size_type;
-        typedef ptrdiff_t                               difference_type;
+        typedef std::size_t                             size_type;
+        typedef std::ptrdiff_t                          difference_type;
         typedef T                                       value_type;
         typedef value_type*                             pointer;
         typedef const value_type*                       const_pointer;
@@ -29,16 +31,9 @@ struct array
 
         // no explicit construct/copy/destroy for aggregate type
 
-        constexpr void fill(const value_type& u) noexcept
-        {
-                xstd::fill_n(begin(), N, u);
-        }
-
+        constexpr void fill(const value_type& u);
         constexpr void swap(const array<T, N>& y) noexcept(
-                noexcept(swap(std::declval<T&>(), std::declval<T&>())))
-        {
-                xstd::swap_ranges(begin(), end(), y.begin());
-        }
+                noexcept(swap(std::declval<T&>(), std::declval<T&>())));
 
         // iterators:
         constexpr       iterator begin()       noexcept { return       iterator(elems); }
@@ -62,28 +57,48 @@ struct array
         constexpr size_type empty()    const noexcept { return N == 0; }
 
         // element access:
-        constexpr       reference operator[](size_type n)       { return elems[n]; }
-        constexpr const_reference operator[](size_type n) const { return elems[n]; }
-
-        constexpr reference at(size_type n)
-        {
-                if (n >= N)
-                        throw std::out_of_range("array::at");
-                return elems[n];
-        }
-
-        constexpr const_reference at(size_type n) const
-        {
-                if (n >= N)
-                        throw std::out_of_range("array::at");
-                return elems[n];
-        }
-
+        constexpr       reference operator[](size_type n)       { assert(n < N); return elems[n]; }
+        constexpr const_reference operator[](size_type n) const { assert(n < N); return elems[n]; }
+        constexpr       reference at(size_type n);
+        constexpr const_reference at(size_type n)         const;
         constexpr       reference front()       { return elems[0]; }
         constexpr const_reference front() const { return elems[0]; }
         constexpr       reference back()        { return elems[N ? N - 1 : 0]; }
         constexpr const_reference back()  const { return elems[N ? N - 1 : 0]; }
 };
+
+template<class T, std::size_t N>
+constexpr void
+array<T, N>::fill(const value_type& u)
+{
+        xstd::fill_n(begin(), N, u);
+}
+
+template<class T, std::size_t N>
+constexpr void
+array<T, N>::swap(const array<T, N>& y) noexcept(
+        noexcept(swap(std::declval<T&>(), std::declval<T&>())))
+{
+        xstd::swap_ranges(begin(), end(), y.begin());
+}
+
+template<class T, std::size_t N>
+constexpr typename array<T, N>::reference
+array<T, N>::at(size_type n)
+{
+        if (n >= N)
+                throw std::out_of_range("array::at");
+        return elems[n];
+}
+
+template<class T, std::size_t N>
+constexpr typename array<T, N>::const_reference
+array<T, N>::at(size_type n) const
+{
+        if (n >= N)
+                throw std::out_of_range("array::at");
+        return elems[n];
+}
 
 template<class T, std::size_t N>
 constexpr bool
