@@ -1,5 +1,5 @@
     Document number: Dxxxx=14-xxxx
-    Date:            2014-10-22
+    Date:            2014-10-24
     Project:         Programming Language C++, Library Evolution Working Group
     Reply-to:        Rein Halbersma <rhalbersma@gmail.com>
 
@@ -48,7 +48,7 @@ The consequences of adopting the proposed literal suffixes into the Standard are
 
 This proposal follows the existing practice established in [WG21/N3642](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3642.pdf) with respect to the `constexpr` (present) and `noexcept` (absent) specifiers, as well as the usage of an appropriately named `inline namespace std::literals::support_literals`.
 
-There are no decisions left up to implementers, because the suggested wording below fully specifies the proposed functionality. We are not aware of similar libraries in use. There is a [reference implementation](https://bitbucket.org/rhalbersma/xstd/src/e4c83761b9a4f0b0a5028d948ac2c17025d9fb69/include/xstd/cstddef.hpp?at=default) and small [test suite](https://bitbucket.org/rhalbersma/xstd/src/e4c83761b9a4f0b0a5028d948ac2c17025d9fb69/test/src/cstddef.cpp?at=default) available for inspection. Note that the reference implementation uses `namespace xstd` and underscored suffixes `_t` and `_z` because the tested compiler `clang` will enforce the restriction from `[lex.ext]/10` that a program containing a user-defined suffix without an underscore is ill-formed, no diagnostic required.   
+There are no decisions left up to implementers, because the suggested wording below fully specifies the proposed functionality. We are not aware of similar libraries in use. There is a [reference implementation](https://bitbucket.org/rhalbersma/xstd/src/bd4212118116a8b28d97b69d30472e2f1e80f322/include/xstd/cstddef.hpp?at=default) and small [test suite](https://bitbucket.org/rhalbersma/xstd/src/608b4257b4ec980272edd0876be45a9391d83274/test/src/cstddef.cpp?at=default) available for inspection. Note that the reference implementation uses `namespace xstd` and underscored suffixes `_t` and `_z` because the tested compiler `clang` will enforce the restriction from `[lex.ext]/10` that a program containing a user-defined suffix without an underscore is ill-formed, no diagnostic required.   
 
 Proposed Wording
 ----------------
@@ -79,7 +79,7 @@ Insert a new subclause `[support.literals]` between `[support.types]` and `[supp
 Acknowledgments
 ----------------
 
-We gratefully acknowledge feedback from Jerry Coffin and Andy Prowl on `<Lounge C++>` and from Daniel Krügler and Melissa Myriachan on `std-proposals`.
+We gratefully acknowledge feedback from Jerry Coffin and Andy Prowl on `<Lounge C++>` and from Daniel Krügler and Melissa Mears on `std-proposals`.
 
 References
 ----------
