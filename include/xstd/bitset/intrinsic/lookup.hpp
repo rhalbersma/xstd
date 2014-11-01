@@ -15,7 +15,7 @@ public:
         static constexpr auto ctz(U x) noexcept
         {
                 auto n = 0_z;
-                for (auto i = 0_z; i < digits_ratio<T, U>; ++i) {
+                for (auto i = 0_z; i < digits_ratio<U, T>; ++i) {
                         auto const b = block_mask<T>(x, i);
                         n += ctz_[b];
                         if (b)
@@ -29,7 +29,7 @@ public:
         static constexpr auto clz(U x) noexcept
         {
                 auto n = 0_z;
-                for (auto i = digits_ratio<T, U> - 1; i < digits_ratio<T, U>; --i) {
+                for (auto i = digits_ratio<U, T> - 1; i < digits_ratio<U, T>; --i) {
                         auto const b = block_mask<T>(x, i);
                         n += clz_[b];
                         if (b)
@@ -43,7 +43,7 @@ public:
         static constexpr auto popcount(U x) noexcept
         {
                 auto n = 0_z;
-                for (auto i = 0_z; i < digits_ratio<T, U>; ++i)
+                for (auto i = 0_z; i < digits_ratio<U, T>; ++i)
                         n += popcount_[block_mask<T>(x, i)];
                 assert(0 <= n && n <= digits<U>);
                 return n;
