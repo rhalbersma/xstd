@@ -2,6 +2,7 @@
 #include <xstd/bitset/limits.hpp>       // digits
 #include <cassert>                      // assert
 #include <cstddef>                      // size_t
+#include <cstdint>                      // uint64_t
 
 namespace xstd {
 namespace builtin {
@@ -117,11 +118,31 @@ constexpr auto ctznz(T x)
         return detail::ctznz<T>{}(x);
 }
 
+constexpr auto ctznz(__uint128_t x)
+{
+        assert(x != 0);
+        using T = uint64_t;
+
+        if (auto const b = block_mask<T>(x, 0))
+                return ctznz(b);
+        return digits<T> + ctznz(block_mask<T>(x, 1));
+}
+
 template<class T>
 constexpr auto clznz(T x)
 {
         assert(x != 0);
         return detail::clznz<T>{}(x);
+}
+
+constexpr auto clznz(__uint128_t x)
+{
+        assert(x != 0);
+        using T = uint64_t;
+
+        if (auto const b = block_mask<T>(x, 1))
+                return clznz(b);
+        return digits<T> + clznz(block_mask<T>(x, 0));
 }
 
 template<class T>
@@ -154,6 +175,13 @@ template<class T>
 constexpr auto popcount(T x) noexcept
 {
         return detail::popcount<T>{}(x);
+}
+
+constexpr auto popcount(__uint128_t x) noexcept
+{
+        using T = uint64_t;
+
+        return popcount(block_mask<T>(x, 0)) + popcount(block_mask<T>(x, 1));
 }
 
 }       // namespace builtin
