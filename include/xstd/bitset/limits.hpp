@@ -13,4 +13,13 @@ constexpr auto is_unsigned_integer =
          std::numeric_limits<T>::is_integer
 ;
 
+template<class T, class U>
+constexpr auto digits_ratio = digits<U> / digits<T>;
+
+template<class T, class U>
+constexpr auto block_mask(U x, std::size_t i)
+{
+        return static_cast<T>(x >> (i * digits<U>));
+}
+
 }       // namespace xstd
