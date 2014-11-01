@@ -218,7 +218,7 @@ public:
                                 ;
                         elems[Nb - 1 - n_block] = elems[Nb - 1] >> R_shift;
                 }
-                xstd::fill_n(&elems[Nb - n_block], n_block, masks::none<Block>);
+                xstd::fill_n(&elems[0] + Nb - n_block, n_block, masks::none<Block>);
         }
 
         // observers
