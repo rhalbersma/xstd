@@ -115,7 +115,47 @@ fill(ForwardIterator first, ForwardIterator last, const T& value)
         xstd::fill(first, last, value, cat());
 }
 
-template<class Compare, class InputIterator1, class InputIterator2>
+template<class ForwardIterator, class Compare>
+constexpr ForwardIterator
+min_element(ForwardIterator first, ForwardIterator last, Compare comp)
+{
+        if (first != last) {
+                ForwardIterator i = first;
+                while (++i != last)
+                        if (comp(*i, *first))
+                                first = i;
+        }
+        return first;
+}
+
+template<class ForwardIterator>
+constexpr ForwardIterator
+min_element(ForwardIterator first, ForwardIterator last)
+{
+        return xstd::min_element(first, last, std::less<>());
+}
+
+template<class ForwardIterator, class Compare>
+constexpr ForwardIterator
+max_element(ForwardIterator first, ForwardIterator last, Compare comp)
+{
+        if (first != last) {
+                ForwardIterator i = first;
+                while (++i != last)
+                        if (comp(*first, *i))
+                                first = i;
+        }
+        return first;
+}
+
+template<class ForwardIterator>
+constexpr ForwardIterator
+max_element(ForwardIterator first, ForwardIterator last)
+{
+        return xstd::max_element(first, last, std::less<>());
+}
+
+template<class InputIterator1, class InputIterator2, class Compare>
 constexpr bool
 lexicographical_compare(InputIterator1 first1, InputIterator1 last1,
                         InputIterator2 first2, InputIterator2 last2, Compare comp)
