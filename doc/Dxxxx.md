@@ -1,7 +1,7 @@
-    Document number: Dxxxx=14-xxxx
-    Date:            2014-10-24
+    Document number: D4254
+    Date:            2014-11-03
     Project:         Programming Language C++, Library Evolution Working Group
-    Reply-to:        Rein Halbersma <rhalbersma@gmail.com>
+    Reply-to:        Rein Halbersma <rhalbersma at gmail dot com>
 
 User-Defined Literals for `size_t` (and `ptrdiff_t`)
 ====================================================
