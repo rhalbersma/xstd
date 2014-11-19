@@ -17,7 +17,7 @@ int main()
                 static_assert(std::is_same<decltype(0_t), std::ptrdiff_t>::value, "");
                 constexpr std::size_t a = 0_t;
                 constexpr auto b = 0_t;
-                static_assert(a == static_cast<ptrdiff_t>(0), "");
+                static_assert(a == static_cast<std::ptrdiff_t>(0), "");
                 static_assert(a == b, "");
         }
 }
