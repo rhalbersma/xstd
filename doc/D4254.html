@@ -1,5 +1,5 @@
 <pre><code>Document number: D4254
-Date:            2014-11-20
+Date:            2014-11-21
 Project:         Programming Language C++, Library Evolution Working Group
 Reply-to:        Rein Halbersma &lt;rhalbersma at gmail dot com&gt;
 </code></pre>
@@ -24,20 +24,22 @@ Reply-to:        Rein Halbersma &lt;rhalbersma at gmail dot com&gt;
 
 <ul>
 <li><code>int</code> is the default type deduced from integer literals without suffix;</li>
-<li><code>size_t</code> is almost unavoidable when using the Standard Library;</li>
-<li><code>ptrdiff_t</code> is significantly less ubiquitous, but still hard to avoid when doing iterator related manipulations;</li>
+<li><code>size_t</code> is almost unavoidable when using the standard containers element access or <code>size()</code> member functions;</li>
+<li><code>ptrdiff_t</code> is significantly less ubiquitous, but still hard to avoid when doing iterator related manipulations or using standard algorithms such as <code>count()</code>;</li>
 <li>comparisons and arithmetic with integer types of mixed signs or different conversion ranks can lead to surprises;</li>
 <li>surprises range from (pedantic) compiler warnings, value conversions, or even undefined behavior;</li>
-<li>eliminating these surprises by explicitly typing <code>size_t</code> and <code>ptrdiff_t</code> literals is rather verbose;</li>
+<li>eliminating these surprises by explicitly typing or casting <code>size_t</code> and <code>ptrdiff_t</code> literals is rather verbose;</li>
 <li>user-defined literals are a succinct and type-safe way to express coding intent;</li>
 <li>the suffixes <code>z</code> and <code>t</code> are consistent with the length modifiers for formatted I/O in the C standard library.</li>
 </ul>
 
-<p>Note that a technically similar proposal could be made for literal suffixes for all the integer types from the Standard Library header <code>&lt;cstdint&gt;</code>, such as <code>uX</code> for types <code>uintX_t</code> for <code>X</code> running over <code>{ 8, 16, 32, 64 }</code>. However, this would require a more thorough analysis of a good naming scheme that is both brief, intuitive, and without name clashes with other user-defined literals in the Standard Library. The scope of this proposal is therefore limited to literal suffixes for the support types <code>size_t</code> and <code>ptrdiff_t</code> from the Standard Library header <code>&lt;cstddef&gt;</code>.  </p>
+<p>The scope of this proposal is limited to literal suffixes for the support types <code>size_t</code> and <code>ptrdiff_t</code> from the Standard Library header <code>&lt;cstddef&gt;</code>.</p>
+
+<p>Note that a technically similar proposal could be made for literal suffixes for all the integer types from the Standard Library header <code>&lt;cstdint&gt;</code>, such as <code>uX</code> for types <code>uintX_t</code>, with <code>X</code> running over <code>{ 8, 16, 32, 64 }</code>. However, this would require a more thorough analysis of a good naming scheme that is both brief, intuitive, and without name clashes with other user-defined literals in the Standard Library. Furthermore, these fixed-size integers arise much less frequently when using the standard containers or algorithms. We therefore do not propose to add literal suffixes for the integer types from <code>&lt;cstdint&gt;</code>.   </p>
 
 <h2>Extended Example</h2>
 
-<p><strong>1</strong>. As an illustrative example, consider looping over a <code>vector</code> and having to acccess both the loop index <code>i</code> as well as the vector elements <code>v[i]</code></p>
+<p><strong>1</strong>. As an illustrative example, consider looping over a <code>vector</code> and accessing both the loop index <code>i</code> as well as the vector elements <code>v[i]</code></p>
 
 <pre><code>#include &lt;cstddef&gt;
 #include &lt;vector&gt;
@@ -52,7 +54,7 @@ int main()
 }
 </code></pre>
 
-<p>This coding style succinctly and safely caches the vector's size, similar to  the <code>end()</code> iterator's caching in a range-based <code>for</code> statement. This also fits nicely with the earlier mention of a left-to-right <code>auto</code> variable initialization, as is strongly recommeded in <a href="http://herbsutter.com/2013/08/12/gotw-94-solution-aaa-style-almost-always-auto/">GotW #94</a> and <a href="http://shop.oreilly.com/product/0636920033707.do">Effective Modern C++, Item 5</a>.</p>
+<p>This coding style succinctly and safely caches the vector's size, similar to  the <code>end()</code> iterator's caching in a range-based <code>for</code> statement. This also fits nicely with the earlier mention of a left-to-right <code>auto</code> variable initialization, as recommended in <a href="http://herbsutter.com/2013/08/12/gotw-94-solution-aaa-style-almost-always-auto/">GotW #94</a> and <a href="http://shop.oreilly.com/product/0636920033707.do">Effective Modern C++, Item 5</a>.</p>
 
 <p><strong>2</strong>. Note that the above example is not meant as the definitive style for all index-based <code>for</code> loops. E.g., this particular example might also be improved by a modified range-based <code>for</code> statement that emits a <code>size_t</code> index deduced from a zero-based integer range object initialized from <code>v.size()</code></p>
 
@@ -102,7 +104,7 @@ for (auto i : std::integral_range(v.size()) { /* ... */ }
 
 <p>This proposal does not depend on other library components, and nothing depends on it. It is a pure extension, but does require additions (though no modifications) to the standard header <code>&lt;cstddef&gt;</code>, as outlined in the section Proposed Wording below. It can be implemented using C++14 compilers and libraries, and it does not require language or library features that are not part of C++14. In fact, this proposal is entirely implementable using only C++11 language features.</p>
 
-<p>There are, however, three active CWG issues (<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_active.html#1266">cwg#1266</a>, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_active.html#1620">cwg#1620</a> and <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_active.html#1735">cwg#1735</a>) that could impact this proposal. All three issues note that in implementations with extended integer types, the decimal-literal in a user-defined-integer-literal might be too large for an <code>unsigned long long</code> to represent. Suggestions (but no formal proposals) were made to either fall back to a raw literal operator or a literal operator template, or to allow a parameter of an extended integer type. The latter suggestion would be easiest to incorporate into this proposal.</p>
+<p>There are, however, three active CWG issues (<a href="http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_active.html#1266">cwg#1266</a>, <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_active.html#1620">cwg#1620</a> and <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/cwg_active.html#1735">cwg#1735</a>) that could impact this proposal. All three issues note that in implementations with extended integer types, the decimal-literal in a user-defined integer literal might be too large for an <code>unsigned long long</code> to represent. Suggestions (but no formal proposals) were made to either fall back to a raw literal operator or a literal operator template, or to allow a parameter of an extended integer type. The latter suggestion would be easiest to incorporate into this proposal.</p>
 
 <h2>Design Decisions</h2>
 
@@ -133,7 +135,7 @@ for (auto i : std::integral_range(v.size()) { /* ... */ }
         }
 </code></pre>
 
-<p>Insert a new subclause <code>[support.literals]</code> between <code>[support.types]</code> and <code>[support.limits]</code> as follows (numered relative to <a href="https://github.com/cplusplus/draft/blob/master/papers/n4140.pdf">WG21/N4140</a>):</p>
+<p>Insert a new subclause <code>[support.literals]</code> between <code>[support.types]</code> and <code>[support.limits]</code> as follows (numbered relative to <a href="https://github.com/cplusplus/draft/blob/master/papers/n4140.pdf">WG21/N4140</a>):</p>
 
 <blockquote>
   <p><strong>18.3 Suffixes for support types [support.literals]</strong></p>
