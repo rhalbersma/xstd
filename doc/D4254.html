@@ -8,12 +8,12 @@ Reply-to:        Rein Halbersma &lt;rhalbersma at gmail dot com&gt;
 
 <h2>Introduction</h2>
 
-<p>Following earlier <a href="https://groups.google.com/a/isocpp.org/forum/#!topic/std-proposals/tGoPjUeHlKo">discussion</a> on <code>std-proposals</code>, we propose the user-defined suffix <code>z</code> for <code>size_t</code> literals. This allows the convenient left-to-right <code>auto</code> variable initialization:</p>
+<p>Following an earlier <a href="https://groups.google.com/a/isocpp.org/forum/#!topic/std-proposals/tGoPjUeHlKo">discussion</a> on <code>std-proposals</code>, we propose the user-defined suffix <code>z</code> for <code>size_t</code> literals. This allows the convenient left-to-right <code>auto</code> variable initialization:</p>
 
 <pre><code>auto s = 0z; // s has type size_t
 </code></pre>
 
-<p>Mostly for reasons of completeness, we also propose the suffix <code>t</code> for <code>ptrdiff_t</code> literals</p>
+<p>We also propose the suffix <code>t</code> for <code>ptrdiff_t</code> literals</p>
 
 <pre><code>auto p = 0t; // p has type ptrdiff_t
 </code></pre>
@@ -30,16 +30,16 @@ Reply-to:        Rein Halbersma &lt;rhalbersma at gmail dot com&gt;
 <li>surprises range from (pedantic) compiler warnings, value conversions, or even undefined behavior;</li>
 <li>eliminating these surprises by explicitly typing or casting <code>size_t</code> and <code>ptrdiff_t</code> literals is rather verbose;</li>
 <li>user-defined literals are a succinct and type-safe way to express coding intent;</li>
-<li>the suffixes <code>z</code> and <code>t</code> are consistent with the length modifiers for formatted I/O in the C standard library.</li>
+<li>the suffixes <code>z</code> and <code>t</code> are consistent with the <code>size_t</code> and <code>ptrdiff_t</code> length modifiers for formatted I/O in the C standard library (see also the section Design Decisions).</li>
 </ul>
 
-<p>The scope of this proposal is limited to literal suffixes for the support types <code>size_t</code> and <code>ptrdiff_t</code> from the Standard Library header <code>&lt;cstddef&gt;</code>.</p>
+<p>The scope of this proposal is limited to literal suffixes for the support types <code>size_t</code> and <code>ptrdiff_t</code> in the Standard Library header <code>&lt;cstddef&gt;</code>.</p>
 
-<p>Note that a technically similar proposal could be made for literal suffixes for all the integer types from the Standard Library header <code>&lt;cstdint&gt;</code>, such as <code>uX</code> for types <code>uintX_t</code>, with <code>X</code> running over <code>{ 8, 16, 32, 64 }</code>. However, this would require a more thorough analysis of a good naming scheme that is both brief, intuitive, and without name clashes with other user-defined literals in the Standard Library. Furthermore, these fixed-size integers arise much less frequently when using the standard containers or algorithms. We therefore do not propose to add literal suffixes for the integer types from <code>&lt;cstdint&gt;</code>.   </p>
+<p>Note that a technically similar proposal could be made for literal suffixes for the integer types in the Standard Library header <code>&lt;cstdint&gt;</code>, such as literal suffixes <code>uX</code> for the integer types <code>uintX_t</code>, with <code>X</code> running over <code>{ 8, 16, 32, 64 }</code>. However, this would require a more thorough analysis of a good naming scheme that is both brief, intuitive, and without name clashes with other user-defined literals in the Standard Library. Furthermore, these fixed-size integers do not arise naturally when using the standard containers or algorithms. We therefore do not propose to add literal suffixes for the integer types in <code>&lt;cstdint&gt;</code>.   </p>
 
 <h2>Extended Example</h2>
 
-<p><strong>1</strong>. As an illustrative example, consider looping over a <code>vector</code> and accessing both the loop index <code>i</code> as well as the vector elements <code>v[i]</code></p>
+<p><strong>a)</strong> As an illustrative example, consider looping over a <code>vector</code> and accessing both the loop index <code>i</code> as well as the vector elements <code>v[i]</code></p>
 
 <pre><code>#include &lt;cstddef&gt;
 #include &lt;vector&gt;
@@ -56,49 +56,49 @@ int main()
 
 <p>This coding style succinctly and safely caches the vector's size, similar to  the <code>end()</code> iterator's caching in a range-based <code>for</code> statement. This also fits nicely with the earlier mention of a left-to-right <code>auto</code> variable initialization, as recommended in <a href="http://herbsutter.com/2013/08/12/gotw-94-solution-aaa-style-almost-always-auto/">GotW #94</a> and <a href="http://shop.oreilly.com/product/0636920033707.do">Effective Modern C++, Item 5</a>.</p>
 
-<p><strong>2</strong>. Note that the above example is not meant as the definitive style for all index-based <code>for</code> loops. E.g., this particular example might also be improved by a modified range-based <code>for</code> statement that emits a <code>size_t</code> index deduced from a zero-based integer range object initialized from <code>v.size()</code></p>
+<p><strong>b)</strong> As an aside, note that the above code example is not meant to imply a definitive style for all index-based <code>for</code> loops. E.g., this particular example might be improved by a range-based <code>for</code> statement that emits a <code>size_t</code> index deduced from a zero-based integer range object initialized from <code>v.size()</code></p>
 
 <pre><code>// not actually proposed here
 for (auto i : std::integral_range(v.size()) { /* ... */ }
 </code></pre>
 
-<p>However, non-zero-based integer ranges (e.g. skipping the first element), the same type deduction issues would reappear and it would become convenient to be able to write</p>
+<p>However, for non-zero-based integer ranges (e.g. when skipping the first element), the same type deduction issues would reappear, and it would become convenient to write</p>
 
 <pre><code> // not actually proposed here
  for (auto i : std::integral_range(1z, v.size()) { /* ... */ }
 </code></pre>
 
-<p>Regardless of the benefits of such a range-based approach for indexed <code>for</code> loops, we therefore argue that user-defined literal suffixes for <code>size_t</code> and <code>ptrdiff_t</code> have merits on their own. </p>
+<p>Regardless of the benefits of such a range-based approach for indexed <code>for</code> loops, we therefore argue that user-defined literal suffixes for <code>size_t</code> and <code>ptrdiff_t</code> have their own merits. </p>
 
-<p><strong>3</strong>. Back to the code example. In the unlikely event that the vector's <code>size_type</code> is not equal to <code>size_t</code> (e.g. because of a user-defined allocator), compilation will simply fail. Under these circumstances (as well as in fully generic code), one has to rely on the rather verbose</p>
+<p><strong>c)</strong> Back to the code example. In the event that the vector's <code>size_type</code> is not equal to <code>size_t</code> (e.g. because of an exotic user-defined allocator), compilation will simply fail, so that no code will break <em>silently</em>. Under these circumstances (as well as in fully generic code), one has to rely on the rather verbose</p>
 
 <pre><code>for (decltype(v.size()) i = 0, s = v.size(); i &lt; s; ++i) { /* ... */ }
 </code></pre>
 
-<p><strong>4</strong>. Note that an <code>auto</code> version without any literal suffix comes with a lot of thorny issues (except for non-standard containers such as <code>QVector</code> for which the <code>size()</code> member function returns <code>int</code>)</p>
+<p><strong>d)</strong> Note that an <code>auto</code> version without any literal suffix comes with a lot of thorny issues (except for non-standard containers such as <code>QVector</code> for which the <code>size()</code> member function returns <code>int</code>)</p>
 
 <pre><code>for (auto i = 0; i &lt; v.size(); ++i) {     // -Wsign-compare
   std::cout &lt;&lt; i &lt;&lt; ": " &lt;&lt; v[i] &lt;&lt; '\n'; // -Wsign-conversion
 }
 </code></pre>
 
-<p>First, the above code deduces <code>i</code> to be of type <code>int</code>, which means we cannot cache the vector's size (which is guaranteed of unsigned integer type) inside the loop's init-statement. Second, the above triggers common compilers warnings (shown for Clang and g++). Admittedly, those warnings are rather stringent, but they are not in general harmless. Furthermore, in many places, developers are not free to adjust project-wide mandatory warning levels.</p>
+<p>First, the above code deduces <code>i</code> to be of type <code>int</code>, which means we cannot cache the vector's size (which is guaranteed of unsigned integer type) inside the loop's init-statement. Second, the above code triggers compiler warnings (shown for Clang and g++). Admittedly, those warnings are rather stringent. But they are not, in general, harmless. Furthermore, in many places, developers are not free to adjust project-wide mandatory warning levels.</p>
 
-<p><strong>5</strong>. It is tempting to assume that an <code>unsigned</code> literal is a safe alternative </p>
+<p><strong>e)</strong> It is tempting to assume that an <code>unsigned</code> literal is a safe alternative </p>
 
 <pre><code>for (auto i = 0u; i &lt; v.size(); ++i) { /* ... */ }
 </code></pre>
 
-<p>Here, the suffixed literal <code>0u</code> will silence any sign-related warnings. However, the above might entail undefined behavior (with no diagnostic required!) whenever <code>v.size()</code> is beyond the range of an <code>unsigned</code> (e.g. more than <code>2^32</code> elements on most 64-bit systems) since then the loop variable <code>i</code> will wrap-around, never actually reaching the bound. </p>
+<p>Here, the literal <code>0u</code> will silence any sign-related warnings. However, the above might entail undefined behavior (with no diagnostic required!) whenever <code>v.size()</code> is beyond the range of an <code>unsigned</code> (e.g. more than <code>2^32</code> elements on most 64-bit systems) since then the loop variable <code>i</code> will wrap-around, never actually reaching the bound. </p>
 
 <p>Preliminary tests with Clang and g++ indicate that in practice no diagnostics will be given, unless the loop's bound comes from a <code>constexpr size()</code> member function of a <code>constexpr</code> container object. Note that this can only be satisfied by the stack-based <code>std::array</code>, which is not likely to have more than <code>2^32</code> elements in the first place.</p>
 
-<p><strong>6</strong>. A close and currently viable alternative to this proposal is to write</p>
+<p><strong>f)</strong> A close and viable alternative to this proposal is to explicitly type the loop index</p>
 
 <pre><code>for (std::size_t i = 0, s = v.size(); i &lt; s; ++i) { /* ... */ }
 </code></pre>
 
-<p>This works under the same circumstances as this proposal (with a fallback to <code>decltype(v.size())</code> for exotic containers or fully generic code). Its drawback is that it is more verbose, and that it forms an exception on the convenient left-to-right <code>auto</code> variable initialization that is available for both signed and unsigned integers. Admittedly, this is a matter of coding style, but this proposal does not <em>enforce</em> the use of <code>size_t</code> literals, it merely <em>enables</em> (as well as encourages) them.</p>
+<p>This works under the same circumstances as this proposal (with a fallback to <code>decltype(v.size())</code> for exotic containers or fully generic code). Its drawback is that it is more verbose, and that it forms an exception to the convenient left-to-right <code>auto</code> variable initialization that is available for both signed and unsigned integers. Admittedly, this is a matter of coding style, but this proposal does not <em>enforce</em> the use of <code>size_t</code> or <code>ptrdiff_t</code> literals, it merely <em>enables</em> (as well as encourages) them.</p>
 
 <h2>Impact On the Standard</h2>
 
@@ -108,7 +108,7 @@ for (auto i : std::integral_range(v.size()) { /* ... */ }
 
 <h2>Design Decisions</h2>
 
-<p>The chosen naming of the literal suffixes <code>z</code> and <code>t</code> was motivated by the corresponding length modifiers for formatted I/O in the C standard library header <code>&lt;stdio.h&gt;</code>. See 7.21.6.1/7 for <code>fprintf</code> and 7.21.6.2/11 <code>fscanf</code>, numbered relative to <a href="http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1539.pdf">WG14/N1539</a>.</p>
+<p>The chosen naming of the literal suffixes <code>z</code> and <code>t</code> was motivated by the <code>size_t</code> and <code>ptrdiff_t</code> length modifiers for formatted I/O in the C standard library header <code>&lt;stdio.h&gt;</code>. See 7.21.6.1/7 for <code>fprintf</code> and 7.21.6.2/11 <code>fscanf</code>, numbered relative to <a href="http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1539.pdf">WG14/N1539</a>.</p>
 
 <p>The consequences of adopting the proposed literal suffixes into the Standard are:</p>
 
@@ -119,7 +119,7 @@ for (auto i : std::integral_range(v.size()) { /* ... */ }
 
 <p>This proposal follows the existing practice established in <a href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3642.pdf">WG21/N3642</a> with respect to the <code>constexpr</code> (present) and <code>noexcept</code> (absent) specifiers, as well as the usage of an appropriately named <code>inline namespace std::literals::support_literals</code>.</p>
 
-<p>There are no decisions left up to implementers, because the suggested wording below fully specifies the proposed functionality. We are not aware of similar libraries in use. There is a <a href="https://bitbucket.org/rhalbersma/xstd/src/3ddfa8e9d24a0349b875709e7b609568d7684d9d/include/xstd/cstddef.hpp?at=default">reference implementation</a> and small <a href="https://bitbucket.org/rhalbersma/xstd/src/3ddfa8e9d24a0349b875709e7b609568d7684d9d/test/src/cstddef.cpp?at=default">test suite</a> available for inspection. Note that the reference implementation uses <code>namespace xstd</code> and underscored suffixes <code>_z</code> and <code>_t</code> because the tested compiler <code>Clang</code> will enforce the restriction from <code>[lex.ext]/10</code> that a program containing a user-defined suffix without an underscore is ill-formed, no diagnostic required.   </p>
+<p>There are no decisions left up to implementers, because the proposed wording forms a full specification. We are not aware of similar libraries in use. There is a <a href="https://bitbucket.org/rhalbersma/xstd/src/3ddfa8e9d24a0349b875709e7b609568d7684d9d/include/xstd/cstddef.hpp?at=default">reference implementation</a> and small <a href="https://bitbucket.org/rhalbersma/xstd/src/3ddfa8e9d24a0349b875709e7b609568d7684d9d/test/src/cstddef.cpp?at=default">test suite</a> available for inspection. Note that the reference implementation uses <code>namespace xstd</code> and underscored suffixes <code>_z</code> and <code>_t</code> because the tested compiler <code>Clang</code> will enforce the restriction from <code>[lex.ext]/10</code> that a program containing a user-defined suffix without an underscore is ill-formed, no diagnostic required.   </p>
 
 <h2>Proposed Wording</h2>
 
