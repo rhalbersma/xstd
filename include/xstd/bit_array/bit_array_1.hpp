@@ -156,13 +156,13 @@ public:
 
         constexpr auto do_left_shift(std::size_t n)
         {
-                assert(0 <= n && n < N);
+                assert(n < N);
                 elems <<= n;
         }
 
         constexpr auto do_right_shift(std::size_t n)
         {
-                assert(0 <= n && n < N);
+                assert(n < N);
                 elems >>= n;
         }
 
