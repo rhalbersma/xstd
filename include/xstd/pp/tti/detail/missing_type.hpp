@@ -7,7 +7,7 @@ template<class T>                                       \
 struct missing_type_ ## NAME                            \
 {                                                       \
         static_assert(                                  \
-                xstd::always_false_v<T>                 \
+                xstd::always_false_v<T>,                \
                 "Error: missing type '" #NAME "'."      \
         );                                              \
 };                                                      \
