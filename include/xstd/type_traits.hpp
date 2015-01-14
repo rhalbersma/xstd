@@ -23,4 +23,10 @@ struct always_false
 template<class T>
 constexpr auto always_false_v = always_false<T>::value;
 
+template<class E>
+constexpr auto to_underlying_type(E e) noexcept
+{
+        return static_cast<std::underlying_type_t<E>>(e);
+}
+
 }       // namespace xstd
