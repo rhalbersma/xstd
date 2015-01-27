@@ -18,9 +18,9 @@ class InputRange<Block, 1>
 {
         static_assert(is_unsigned_integer<Block>, "");
 
-public:
-        // constructors
+        Block& range_;
 
+public:
         explicit InputRange(Block& range) noexcept
         :
                 range_{range}
@@ -30,15 +30,11 @@ private:
         // gateway for InputRangeFacade to access private implementation
         friend class InputRangeCoreAccess;
 
-        // modifiers
-
         void pop_front()
         {
                 assert(!empty());
                 range_ &= range_ - 1;
         }
-
-        // observers
 
         std::size_t front() const
         {
@@ -46,17 +42,10 @@ private:
                 return intrinsic::ctznz(range_);
         }
 
-        // predicates
-
         bool empty() const noexcept
         {
                 return range_ == masks::none<Block>;
         }
-
-private:
-        // representation
-
-        Block& range_;
 };
 
 }       // namespace xstd

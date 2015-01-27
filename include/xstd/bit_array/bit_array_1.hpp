@@ -15,27 +15,22 @@ class bit_array<Block, 1>
 {
         static_assert(is_unsigned_integer<Block>, "");
         static constexpr auto N = 1 * digits<Block>;
+
+        Block elems {};
+
+protected:
+        ~bit_array() = default;
+
 public:
-        // constructors
-
-        constexpr bit_array() = default;
-
         /* implicit */ constexpr bit_array(Block value) noexcept
         :
                 elems{value}
         {}
 
-protected:
-        // destructor
-
-        ~bit_array() = default;
-
-public:
-        // copying, moving and assignment
-
+        constexpr bit_array() = default;
         bit_array(bit_array const&) = default;
-        bit_array(bit_array&&) = default;
         bit_array& operator=(bit_array const&) = default;
+        bit_array(bit_array&&) = default;
         bit_array& operator=(bit_array&&) = default;
 
         // data access
@@ -197,11 +192,6 @@ public:
         {
                 return intrinsic::popcount(elems);
         }
-
-private:
-        // representation
-
-        Block elems {};
 };
 
 }       // namespace xstd

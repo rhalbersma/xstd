@@ -13,48 +13,39 @@ class ConstReference
         static_assert(is_unsigned_integer<Block>, "");
         static_assert(N <= Nb * digits<Block>, "");
 
+        Block const& block;
+        std::size_t index;
+
 public:
-        // constructors
-
-        // references cannot be left uninitialized
-        ConstReference() = delete;
-
         constexpr ConstReference(Block const& b, std::size_t n) noexcept
         :
-                block_{b},
-                index_{n}
+                block{b},
+                index{n}
         {
-                assert(0 <= n & n < N);
+                assert(n < N);
         }
 
-        // copying and assignment
+        /* implicit */ constexpr operator std::size_t() const noexcept
+        {
+                return index;
+        }
+
+        // references cannot be left uninitialized
+        constexpr ConstReference() = delete;
 
         // references can be copied
         constexpr ConstReference(ConstReference const&) = default;
 
         // references cannot be assigned to
-        ConstReference& operator=(ConstReference const&) = delete;
+        constexpr ConstReference& operator=(ConstReference const&) = delete;
 
         // const references cannot be assigned through
-        ConstReference& operator=(int) = delete;
-
-        // observers
+        constexpr ConstReference& operator=(std::size_t) = delete;
 
         constexpr ConstIterator<Block, Nb, N> operator&() const noexcept
         {
-                return { &block_, index_ };
+                return { &block, index };
         }
-
-        /* implicit */ constexpr operator std::size_t() const noexcept
-        {
-                return index_;
-        }
-
-private:
-        // representation
-
-        Block const& block_;
-        std::size_t index_;
 };
 
 }       // namespace xstd
