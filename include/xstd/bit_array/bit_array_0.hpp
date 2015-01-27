@@ -9,10 +9,6 @@ template<class Block>
 class bit_array<Block, 0>
 {
         static_assert(is_unsigned_integer<Block>, "");
-public:
-        // constructors
-
-        constexpr bit_array() = default;
 
 protected:
         // destructor
@@ -20,11 +16,10 @@ protected:
         ~bit_array() = default;
 
 public:
-        // copying, moving and assignment
-
+        constexpr bit_array() = default;
         bit_array(bit_array const&) = default;
-        bit_array(bit_array&&) = default;
         bit_array& operator=(bit_array const&) = default;
+        bit_array(bit_array&&) = default;
         bit_array& operator=(bit_array&&) = default;
 
         // data access

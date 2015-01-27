@@ -50,15 +50,15 @@ public:
                         Difference
                 >
         {
+                Derived* range_{};
+
         public:
-                // constructors
-
-                iterator() = default;
-
                 explicit iterator(Derived* b) noexcept
                 :
                         range_{b}
                 {}
+
+                iterator() = default;
 
         private:
                 friend class boost::iterator_core_access;
@@ -84,11 +84,6 @@ public:
                                 (!other.range_ || InputRangeCoreAccess::empty(other.range_))
                         ;
                 }
-
-        private:
-                // representation
-
-                Derived* range_{};
         };
 
         auto begin() noexcept

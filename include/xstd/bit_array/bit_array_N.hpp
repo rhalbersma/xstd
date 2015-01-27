@@ -15,31 +15,24 @@ namespace xstd {
 template<class Block, std::size_t Nb>
 class bit_array
 {
-private:
         static_assert(is_unsigned_integer<Block>, "");
         static constexpr auto N = Nb * digits<Block>;
 
+        array<Block, Nb> elems {};
+
+protected:
+        ~bit_array() = default;
+
 public:
-        // constructors
-
-        constexpr bit_array() = default;
-
         /* implicit */ constexpr bit_array(Block value) noexcept
         :
                 elems{value}
         {}
 
-protected:
-        // destructor
-
-        ~bit_array() = default;
-
-public:
-        // copying, moving and assignment
-
+        constexpr bit_array() = default;
         bit_array(bit_array const&) = default;
-        bit_array(bit_array&&) = default;
         bit_array& operator=(bit_array const&) = default;
+        bit_array(bit_array&&) = default;
         bit_array& operator=(bit_array&&) = default;
 
         // data access
@@ -267,11 +260,6 @@ public:
                         sum += intrinsic::popcount(block);
                 return sum;
         }
-
-private:
-        // representation
-
-        array<Block, Nb> elems {};
 };
 
 }       // namespace xstd

@@ -48,8 +48,6 @@ public:
 
         // constructors
 
-        constexpr bitset() = default;
-
         /* implicit */ constexpr bitset(unsigned long long value) noexcept
         :
                 Base{sanitized(value)}
@@ -66,6 +64,8 @@ public:
         :
                 bitset(ilist.begin(), ilist.end())
         {}
+
+        constexpr bitset() = default;
 
         // iterators
 
