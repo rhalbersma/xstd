@@ -16,10 +16,4 @@ constexpr auto digits = static_cast<std::size_t>(std::numeric_limits<T>::digits)
 template<class Numerator, class Denominator>
 constexpr auto digits_ratio = digits<Numerator> / digits<Denominator>;
 
-template<class T, class U>
-constexpr auto block_mask(U x, std::size_t i)
-{
-        return static_cast<T>(x >> (i * digits<T>));
-}
-
 }       // namespace xstd

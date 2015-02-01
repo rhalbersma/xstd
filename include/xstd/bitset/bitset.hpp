@@ -2,9 +2,9 @@
 #include <xstd/bit_array.hpp>           // bit_array
 #include <xstd/bitset/iterator.hpp>     // ConstIterator
 #include <xstd/bitset/reference.hpp>    // ConstReference
-#include <xstd/bitset/limits.hpp>       // digits
 #include <xstd/bitset/masks.hpp>        // one
 #include <xstd/iterator.hpp>            // reverse_iterator, begin, end, rbegin, rend, cbegin, cend, crbegin, crend
+#include <xstd/limits.hpp>              // digits
 #include <cassert>                      // assert
 #include <initializer_list>             // initializer_list
 #include <type_traits>                  // enable_if_t

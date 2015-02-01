@@ -2,6 +2,7 @@
 #include <xstd/bitset/input_range_facade.hpp>   // InputRangeCoreAcces, InputRangeFacade
 #include <xstd/bitset/intrinsic.hpp>            // ctznz
 #include <xstd/bitset/masks.hpp>                // none
+#include <xstd/limits.hpp>                      // is_unsigned_integer
 #include <cassert>                              // assert
 #include <cstddef>                              // size_t
 
@@ -18,12 +19,12 @@ class InputRange<Block, 1>
 {
         static_assert(is_unsigned_integer<Block>, "");
 
-        Block& range_;
+        Block& range;
 
 public:
-        explicit InputRange(Block& range) noexcept
+        explicit InputRange(Block& r) noexcept
         :
-                range_{range}
+                range{r}
         {}
 
 private:
@@ -33,18 +34,18 @@ private:
         void pop_front()
         {
                 assert(!empty());
-                range_ &= range_ - 1;
+                range &= range - 1;
         }
 
         std::size_t front() const
         {
                 assert(!empty());
-                return intrinsic::ctznz(range_);
+                return intrinsic::ctznz(range);
         }
 
         bool empty() const noexcept
         {
-                return range_ == masks::none<Block>;
+                return range == masks::none<Block>;
         }
 };
 
