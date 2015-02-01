@@ -1,12 +1,13 @@
 #pragma once
-#include <xstd/bitset/input_range_facade.hpp>   // InputRangeCoreAcces, InputRangeFacade
-#include <xstd/bitset/intrinsic.hpp>            // ctznz
-#include <xstd/bitset/masks.hpp>                // none
+#include <xstd/bit/input_range_facade.hpp>      // InputRangeCoreAcces, InputRangeFacade
+#include <xstd/bit/mask.hpp>                    // none
+#include <xstd/bit/primitive.hpp>               // ctznz
 #include <xstd/limits.hpp>                      // is_unsigned_integer
 #include <cassert>                              // assert
 #include <cstddef>                              // size_t
 
 namespace xstd {
+namespace bit {
 
 template<class Block, std::size_t Nb>
 class InputRange;
@@ -40,13 +41,14 @@ private:
         std::size_t front() const
         {
                 assert(!empty());
-                return intrinsic::ctznz(range);
+                return ctznz(range);
         }
 
         bool empty() const noexcept
         {
-                return range == masks::none<Block>;
+                return range == mask::none<Block>;
         }
 };
 
+}       // namespace bit
 }       // namespace xstd

@@ -1,8 +1,8 @@
 #pragma once
 #include <xstd/array.hpp>                       // array
 #include <xstd/bit_array/bit_array_fwd.hpp>     // bit_array
-#include <xstd/bitset/intrinsic.hpp>            // popcount
-#include <xstd/bitset/masks.hpp>                // none, one, all
+#include <xstd/bit/mask.hpp>                    // none, one, all
+#include <xstd/bit/primitive.hpp>               // popcount
 #include <xstd/cstddef.hpp>                     // _z
 #include <xstd/limits.hpp>                      // digits, is_unsigned_integer
 #include <cassert>                              // assert
@@ -11,29 +11,22 @@
 #include <utility>                              // swap
 
 namespace xstd {
+namespace bit {
 
 template<class Block, std::size_t Nb>
-class bit_array
+struct bit_array
 {
         static_assert(is_unsigned_integer<Block>, "");
         static constexpr auto N = Nb * digits<Block>;
 
         array<Block, Nb> elems {};
 
-protected:
-        ~bit_array() = default;
-
-public:
         /* implicit */ constexpr bit_array(Block value) noexcept
         :
                 elems{value}
         {}
 
         constexpr bit_array() = default;
-        bit_array(bit_array const&) = default;
-        bit_array& operator=(bit_array const&) = default;
-        bit_array(bit_array&&) = default;
-        bit_array& operator=(bit_array&&) = default;
 
         // data access
 
@@ -128,12 +121,12 @@ public:
 
         constexpr auto do_set() noexcept
         {
-                elems.fill(masks::all<Block>);
+                elems.fill(mask::all<Block>);
         }
 
         constexpr auto do_reset() noexcept
         {
-                elems.fill(masks::none<Block>);
+                elems.fill(mask::none<Block>);
         }
 
         constexpr auto do_flip() noexcept
@@ -187,7 +180,7 @@ public:
                                 ;
                         elems[n_block] = elems[0] << L_shift;
                 }
-                xstd::fill_n(&elems[0], n_block, masks::none<Block>);
+                xstd::fill_n(&elems[0], n_block, mask::none<Block>);
         }
 
         constexpr auto do_right_shift(std::size_t n)
@@ -211,7 +204,7 @@ public:
                                 ;
                         elems[Nb - 1 - n_block] = elems[Nb - 1] >> R_shift;
                 }
-                xstd::fill_n(&elems[0] + Nb - n_block, n_block, masks::none<Block>);
+                xstd::fill_n(&elems[0] + Nb - n_block, n_block, mask::none<Block>);
         }
 
         // observers
@@ -222,9 +215,9 @@ public:
         {
                 static_assert(0 < M && M < digits<Block>, "");
                 for (auto i = 0_z; i < Nb - 1; ++i)
-                        if (elems[i] != masks::all<Block>)
+                        if (elems[i] != mask::all<Block>)
                                 return false;
-                return elems[Nb - 1] == masks::all<Block> >> (digits<Block> - M);
+                return elems[Nb - 1] == mask::all<Block> >> (digits<Block> - M);
         }
 
         template<std::size_t M>
@@ -232,7 +225,7 @@ public:
         bool> do_all() const noexcept
         {
                 for (auto&& block : elems)
-                        if (block != masks::all<Block>)
+                        if (block != mask::all<Block>)
                                 return false;
                 return true;
         }
@@ -240,7 +233,7 @@ public:
         constexpr auto do_any() const noexcept
         {
                 for (auto&& block : elems)
-                        if (block != masks::none<Block>)
+                        if (block != mask::none<Block>)
                                 return true;
                 return false;
         }
@@ -248,7 +241,7 @@ public:
         constexpr auto do_none() const noexcept
         {
                 for (auto&& block : elems)
-                        if (block != masks::none<Block>)
+                        if (block != mask::none<Block>)
                                 return false;
                 return true;
         }
@@ -257,9 +250,10 @@ public:
         {
                 auto sum = 0_z;
                 for (auto&& block : elems)
-                        sum += intrinsic::popcount(block);
+                        sum += popcount(block);
                 return sum;
         }
 };
 
+}       // namespace bit
 }       // namespace xstd

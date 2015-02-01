@@ -2,14 +2,16 @@
 #include <cstddef>      // size_t
 
 namespace xstd {
+namespace bit {
 
 template<class Block, std::size_t Nb>
-class bit_array;
+struct bit_array;
 
 template<class Block>
-class bit_array<Block, 1>;
+struct bit_array<Block, 1>;
 
 template<class Block>
-class bit_array<Block, 0>;
+struct bit_array<Block, 0>;
 
+}       // namespace bit
 }       // namespace xstd

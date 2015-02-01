@@ -5,6 +5,7 @@
 #include <cstddef>              // size_t
 
 namespace xstd {
+namespace bit {
 namespace lookup {
 
 template<class T = unsigned char>
@@ -167,4 +168,5 @@ constexpr auto popcount(T x) noexcept
 }
 
 }       // namespace lookup
+}       // namespace bit
 }       // namespace xstd

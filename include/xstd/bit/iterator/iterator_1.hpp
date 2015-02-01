@@ -1,14 +1,15 @@
 #pragma once
-#include <xstd/bitset/iterator/iterator_fwd.hpp>        // ConstIterator
-#include <xstd/bitset/iterator/reference_fwd.hpp>       // ConstReference
-#include <xstd/bitset/intrinsic.hpp>                    // clznz, ctznz
-#include <xstd/limits.hpp>                              // digits, is_unsigned_integer
-#include <boost/iterator/iterator_facade.hpp>           // iterator_core_access, iterator_facade
-#include <cassert>                                      // assert
-#include <cstddef>                                      // ptrdiff_t, size_t
-#include <iterator>                                     // bidirectional_iterator_tag
+#include <xstd/bit/iterator/iterator_fwd.hpp>   // ConstIterator
+#include <xstd/bit/iterator/reference_fwd.hpp>  // ConstReference
+#include <xstd/bit/primitive.hpp>               // clznz, ctznz
+#include <xstd/limits.hpp>                      // digits, is_unsigned_integer
+#include <boost/iterator/iterator_facade.hpp>   // iterator_core_access, iterator_facade
+#include <cassert>                              // assert
+#include <cstddef>                              // ptrdiff_t, size_t
+#include <iterator>                             // bidirectional_iterator_tag
 
 namespace xstd {
+namespace bit {
 
 template<class Block, std::size_t N>
 class ConstIterator<Block, 1, N>
@@ -56,7 +57,7 @@ private:
         constexpr auto find_first()
         {
                 assert(block != nullptr);
-                return *block ? intrinsic::ctznz(*block) : N;
+                return *block ? ctznz(*block) : N;
         }
 
         // operator++() and operator++(int) provided by boost::iterator_facade
@@ -67,7 +68,7 @@ private:
                 if (++index == N)
                         return;
                 if (auto const mask = *block >> index)
-                        index += intrinsic::ctznz(mask);
+                        index += ctznz(mask);
                 else
                         index = N;
                 assert(0 < index && index <= N);
@@ -81,7 +82,7 @@ private:
                 if (--index == 0)
                         return;
                 if (auto const mask = *block << (digits<Block> - 1 - index))
-                        index -= intrinsic::clznz(mask);
+                        index -= clznz(mask);
                 else
                         index = 0;
                 assert(index < N);
@@ -102,4 +103,5 @@ private:
         }
 };
 
+}       // namespace bit
 }       // namespace xstd

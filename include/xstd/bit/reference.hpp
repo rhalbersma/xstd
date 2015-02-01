@@ -1,11 +1,12 @@
 #pragma once
-#include <xstd/bitset/iterator/iterator_fwd.hpp>        // ConstIterator
-#include <xstd/bitset/iterator/reference_fwd.hpp>       // ConstReference
-#include <xstd/limits.hpp>                              // digits, is_unsigned_integer
-#include <cassert>                                      // assert
-#include <cstddef>                                      // size_t
+#include <xstd/bit/iterator/iterator_fwd.hpp>   // ConstIterator
+#include <xstd/bit/iterator/reference_fwd.hpp>  // ConstReference
+#include <xstd/limits.hpp>                      // digits, is_unsigned_integer
+#include <cassert>                              // assert
+#include <cstddef>                              // size_t
 
 namespace xstd {
+namespace bit {
 
 template<class Block, std::size_t Nb, std::size_t N>
 class ConstReference
@@ -41,4 +42,5 @@ public:
         }
 };
 
+}       // namespace bit
 }       // namespace xstd

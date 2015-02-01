@@ -4,23 +4,14 @@
 #include <cstddef>                              // size_t
 
 namespace xstd {
+namespace bit {
 
 template<class Block>
-class bit_array<Block, 0>
+struct bit_array<Block, 0>
 {
         static_assert(is_unsigned_integer<Block>, "");
 
-protected:
-        // destructor
-
-        ~bit_array() = default;
-
-public:
         constexpr bit_array() = default;
-        bit_array(bit_array const&) = default;
-        bit_array& operator=(bit_array const&) = default;
-        bit_array(bit_array&&) = default;
-        bit_array& operator=(bit_array&&) = default;
 
         // data access
 
@@ -68,4 +59,5 @@ public:
         constexpr std::size_t do_count() const noexcept { return 0;     }
 };
 
+}       // namespace bit
 }       // namespace xstd
