@@ -1,15 +1,16 @@
 #pragma once
-#include <xstd/bitset/iterator/iterator_fwd.hpp>        // ConstIterator
-#include <xstd/bitset/iterator/reference_fwd.hpp>       // ConstReference
-#include <xstd/bitset/intrinsic.hpp>                    // bsfnz, bsrnz, clznz, ctznz
-#include <xstd/cstddef.hpp>                             // _z
-#include <xstd/limits.hpp>                              // digits, is_unsigned_integer
-#include <boost/iterator/iterator_facade.hpp>           // iterator_core_access, iterator_facade
-#include <cassert>                                      // assert
-#include <cstddef>                                      // ptrdiff_t
-#include <iterator>                                     // bidirectional_iterator_tag
+#include <xstd/bit/iterator/iterator_fwd.hpp>   // ConstIterator
+#include <xstd/bit/iterator/reference_fwd.hpp>  // ConstReference
+#include <xstd/bit/primitive.hpp>               // bsfnz, bsrnz, clznz, ctznz
+#include <xstd/cstddef.hpp>                     // _z
+#include <xstd/limits.hpp>                      // digits, is_unsigned_integer
+#include <boost/iterator/iterator_facade.hpp>   // iterator_core_access, iterator_facade
+#include <cassert>                              // assert
+#include <cstddef>                              // ptrdiff_t
+#include <iterator>                             // bidirectional_iterator_tag
 
 namespace xstd {
+namespace bit {
 
 template<class Block, std::size_t Nb, std::size_t N>
 class ConstIterator
@@ -59,8 +60,8 @@ private:
                 assert(block != nullptr);
                 for (auto i = 0_z; i < Nb; ++i) {
                         if (auto const mask = *block) {
-                                assert(i * digits<Block> + intrinsic::bsfnz(mask) < N);
-                                return i * digits<Block> + intrinsic::bsfnz(mask);
+                                assert(i * digits<Block> + bsfnz(mask) < N);
+                                return i * digits<Block> + bsfnz(mask);
                         }
                         ++block;
                 }
@@ -81,7 +82,7 @@ private:
                 if (idx == 0)
                         ++block;
                 if (auto const mask = *block >> idx) {
-                        index += intrinsic::ctznz(mask);
+                        index += ctznz(mask);
                         assert(index < N);
                         return;
                 }
@@ -89,7 +90,7 @@ private:
 
                 for (auto i = index / digits<Block> + 1; i < Nb; ++i) {
                         if (auto const mask = *block) {
-                                index = i * digits<Block> + intrinsic::bsfnz(mask);
+                                index = i * digits<Block> + bsfnz(mask);
                                 assert(index < N);
                                 return;
                         }
@@ -111,7 +112,7 @@ private:
                 if (idx == digits<Block> - 1 || index == N - 1)
                         --block;
                 if (auto const mask = *block << (digits<Block> - 1 - idx)) {
-                        index -= intrinsic::clznz(mask);
+                        index -= clznz(mask);
                         assert(index < N);
                         return;
                 }
@@ -119,7 +120,7 @@ private:
 
                 for (auto i = index / digits<Block> - 1; i >= 0; --i) {
                         if (auto const mask = *block) {
-                                index = i * digits<Block> + intrinsic::bsrnz(mask);
+                                index = i * digits<Block> + bsrnz(mask);
                                 assert(index < N);
                                 return;
                         }
@@ -144,4 +145,5 @@ private:
         }
 };
 
+}       // namespace bit
 }       // namespace xstd

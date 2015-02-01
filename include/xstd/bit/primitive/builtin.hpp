@@ -5,6 +5,7 @@
 #include <cstdint>              // uint64_t
 
 namespace xstd {
+namespace bit {
 namespace builtin {
 namespace detail {
 
@@ -158,4 +159,5 @@ constexpr auto popcount(T x) noexcept
 }
 
 }       // namespace builtin
+}       // namespace bit
 }       // namespace xstd

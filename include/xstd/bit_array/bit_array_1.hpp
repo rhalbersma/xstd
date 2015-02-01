@@ -1,7 +1,7 @@
 #pragma once
 #include <xstd/bit_array/bit_array_fwd.hpp>     // base_bitset
-#include <xstd/bitset/intrinsic.hpp>            // popcount
-#include <xstd/bitset/masks.hpp>                // none, one, all
+#include <xstd/bit/mask.hpp>                    // none, one, all
+#include <xstd/bit/primitive.hpp>               // popcount
 #include <xstd/limits.hpp>                      // digits, is_unsigned_integer
 #include <cassert>                              // assert
 #include <cstddef>                              // size_t
@@ -9,29 +9,22 @@
 #include <utility>                              // swap
 
 namespace xstd {
+namespace bit {
 
 template<class Block>
-class bit_array<Block, 1>
+struct bit_array<Block, 1>
 {
         static_assert(is_unsigned_integer<Block>, "");
         static constexpr auto N = 1 * digits<Block>;
 
         Block elems {};
 
-protected:
-        ~bit_array() = default;
-
-public:
         /* implicit */ constexpr bit_array(Block value) noexcept
         :
                 elems{value}
         {}
 
         constexpr bit_array() = default;
-        bit_array(bit_array const&) = default;
-        bit_array& operator=(bit_array const&) = default;
-        bit_array(bit_array&&) = default;
-        bit_array& operator=(bit_array&&) = default;
 
         // data access
 
@@ -91,19 +84,19 @@ public:
 
         constexpr auto do_intersects(bit_array const& other) const noexcept
         {
-                return (elems & other.elems) != masks::none<Block>;
+                return (elems & other.elems) != mask::none<Block>;
         }
 
         constexpr auto do_is_subset_of(bit_array const& other) const noexcept
         {
-                return (elems & ~other.elems) == masks::none<Block>;
+                return (elems & ~other.elems) == mask::none<Block>;
         }
 
         constexpr auto do_is_proper_subset_of(bit_array const& other) const noexcept
         {
                 if (elems & ~other.elems)
                         return false;
-                return (~elems & other.elems) != masks::none<Block>;
+                return (~elems & other.elems) != mask::none<Block>;
         }
 
         // modifiers
@@ -116,12 +109,12 @@ public:
 
         constexpr auto do_set() noexcept
         {
-                elems = masks::all<Block>;
+                elems = mask::all<Block>;
         }
 
         constexpr auto do_reset() noexcept
         {
-                elems = masks::none<Block>;
+                elems = mask::none<Block>;
         }
 
         constexpr auto do_flip() noexcept
@@ -168,30 +161,31 @@ public:
         bool> do_all() const noexcept
         {
                 static_assert(0 < M && M < digits<Block>, "");
-                return elems == masks::all<Block> >> (digits<Block> - M);
+                return elems == mask::all<Block> >> (digits<Block> - M);
         }
 
         template<std::size_t M>
         constexpr std::enable_if_t<M == 0,
         bool> do_all() const noexcept
         {
-                return elems == masks::all<Block>;
+                return elems == mask::all<Block>;
         }
 
         constexpr auto do_any() const noexcept
         {
-                return elems != masks::none<Block>;
+                return elems != mask::none<Block>;
         }
 
         constexpr auto do_none() const noexcept
         {
-                return elems == masks::none<Block>;
+                return elems == mask::none<Block>;
         }
 
         constexpr auto do_count() const noexcept
         {
-                return intrinsic::popcount(elems);
+                return popcount(elems);
         }
 };
 
+}       // namespace bit
 }       // namespace xstd

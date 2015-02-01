@@ -1,5 +1,5 @@
 #pragma once
-#include <xstd/bitset/bitset.hpp>       // bitset
+#include <xstd/bit/bitset.hpp>  // bitset
 
 namespace xstd {
 

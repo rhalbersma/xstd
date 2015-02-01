@@ -1,8 +1,8 @@
 #pragma once
 #include <xstd/bit_array.hpp>           // bit_array
-#include <xstd/bitset/iterator.hpp>     // ConstIterator
-#include <xstd/bitset/reference.hpp>    // ConstReference
-#include <xstd/bitset/masks.hpp>        // one
+#include <xstd/bit/iterator.hpp>        // ConstIterator
+#include <xstd/bit/mask.hpp>            // one
+#include <xstd/bit/reference.hpp>       // ConstReference
 #include <xstd/iterator.hpp>            // reverse_iterator, begin, end, rbegin, rend, cbegin, cend, crbegin, crend
 #include <xstd/limits.hpp>              // digits
 #include <cassert>                      // assert
@@ -32,26 +32,21 @@ constexpr bool intersect(const bitset<N>& lhs, const bitset<N>& rhs) noexcept;
 template<std::size_t N>
 class bitset
 :
-        private bit_array<unsigned long long, num_blocks<unsigned long long>(N)>
+        private bit::bit_array<unsigned long long, num_blocks<unsigned long long>(N)>
 {
         using block_type = unsigned long long;
         static constexpr auto Nb = num_blocks<block_type>(N);
-        using Base = bit_array<block_type, num_blocks<block_type>(N)>;
+        using Base = bit::bit_array<block_type, num_blocks<block_type>(N)>;
 
 public:
-        using reference = ConstReference<block_type, Nb, N>;
+        using reference = bit::ConstReference<block_type, Nb, N>;
         using const_reference = reference;
-        using iterator = ConstIterator<block_type, Nb, N>;
+        using iterator = bit::ConstIterator<block_type, Nb, N>;
         using const_iterator = iterator;
         using reverse_iterator = xstd::reverse_iterator<iterator>;
         using const_reverse_iterator = xstd::reverse_iterator<const_iterator>;
 
         // constructors
-
-        /* implicit */ constexpr bitset(unsigned long long value) noexcept
-        :
-                Base{sanitized(value)}
-        {}
 
         template<class ForwardIterator>
         constexpr bitset(ForwardIterator first, ForwardIterator last)
@@ -63,6 +58,11 @@ public:
         constexpr bitset(std::initializer_list<std::size_t> ilist)
         :
                 bitset(ilist.begin(), ilist.end())
+        {}
+
+        [[deprecated]] /* implicit */ constexpr bitset(unsigned long long value) noexcept
+        :
+                Base{sanitized(value)}
         {}
 
         constexpr bitset() = default;
@@ -79,14 +79,14 @@ public:
                 return const_iterator{this->block_begin()};
         }
 
-        constexpr iterator end() noexcept
+        constexpr auto end() noexcept
         {
-                return { this->block_end(), N };
+                return iterator{this->block_end(), N};
         }
 
-        constexpr const_iterator end() const noexcept
+        constexpr auto end() const noexcept
         {
-                return { this->block_end(), N };
+                return const_iterator{this->block_end(), N};
         }
 
         constexpr auto rbegin() noexcept
@@ -315,7 +315,7 @@ public:
 private:
         constexpr auto mask(std::size_t pos) const noexcept
         {
-                return masks::one<block_type> << (pos % digits<block_type>);
+                return bit::mask::one<block_type> << (pos % digits<block_type>);
         }
 
         constexpr auto sanitized(block_type b) const noexcept
@@ -333,7 +333,7 @@ private:
         block_type> sanitized(block_type b) noexcept
         {
                 static_assert(0 < M && M < digits<block_type>, "");
-                return b & (masks::all<block_type> >> (digits<block_type> - M));
+                return b & (bit::mask::all<block_type> >> (digits<block_type> - M));
         }
 
         template<std::size_t M>
@@ -348,7 +348,7 @@ private:
         void> sanitize(block_type& b) noexcept
         {
                 static_assert(0 < M && M < digits<block_type>, "");
-                b &= masks::all<block_type> >> (digits<block_type> - M);
+                b &= bit::mask::all<block_type> >> (digits<block_type> - M);
         }
 
         template<std::size_t M>
