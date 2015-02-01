@@ -1,7 +1,7 @@
 #pragma once
-#include <xstd/bitset/limits.hpp>       // digits
 #include <xstd/bitset/masks.hpp>        // one
 #include <xstd/cstddef.hpp>             // _z
+#include <xstd/limits.hpp>              // digits
 #include <cassert>                      // assert
 
 namespace xstd {
@@ -55,7 +55,7 @@ constexpr auto popcount(T x) noexcept
         auto n = 0_z;
         for (; x; x &= x - masks::one<T>)
                 ++n;
-        assert(0 <= n && n <= digits<T>);
+        assert(n <= digits<T>);
         return n;
 }
 

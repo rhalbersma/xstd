@@ -2,9 +2,9 @@
 #include <xstd/array.hpp>                       // array
 #include <xstd/bit_array/bit_array_fwd.hpp>     // bit_array
 #include <xstd/bitset/intrinsic.hpp>            // popcount
-#include <xstd/bitset/limits.hpp>               // digits, is_unsigned_integer
 #include <xstd/bitset/masks.hpp>                // none, one, all
 #include <xstd/cstddef.hpp>                     // _z
+#include <xstd/limits.hpp>                      // digits, is_unsigned_integer
 #include <cassert>                              // assert
 #include <cstddef>                              // size_t
 #include <type_traits>                          // enable_if_t

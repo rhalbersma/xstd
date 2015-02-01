@@ -1,12 +1,12 @@
 #pragma once
-#include <xstd/bit_array/bit_array_fwd.hpp>             // base_bitset
-#include <xstd/bitset/intrinsic.hpp>                    // popcount
-#include <xstd/bitset/limits.hpp>                       // digits, is_unsigned_integer
-#include <xstd/bitset/masks.hpp>                        // none, one, all
-#include <cassert>                                      // assert
-#include <cstddef>                                      // size_t
-#include <type_traits>                                  // enable_if_t
-#include <utility>                                      // swap
+#include <xstd/bit_array/bit_array_fwd.hpp>     // base_bitset
+#include <xstd/bitset/intrinsic.hpp>            // popcount
+#include <xstd/bitset/masks.hpp>                // none, one, all
+#include <xstd/limits.hpp>                      // digits, is_unsigned_integer
+#include <cassert>                              // assert
+#include <cstddef>                              // size_t
+#include <type_traits>                          // enable_if_t
+#include <utility>                              // swap
 
 namespace xstd {
 
@@ -67,13 +67,13 @@ public:
 
         constexpr auto& block_ref(std::size_t /* n */)
         {
-                //assert(0 <= n && n < N);
+                //assert(n < N);
                 return elems;
         }
 
         constexpr auto const& block_ref(std::size_t /* n */) const
         {
-                //assert(0 <= n && n < N);
+                //assert(n < N);
                 return elems;
         }
 

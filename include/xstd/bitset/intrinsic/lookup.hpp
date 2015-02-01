@@ -1,8 +1,8 @@
 #pragma once
-#include <xstd/bitset/limits.hpp>       // digits, digits_ratio, block_mask
-#include <xstd/cstddef.hpp>             // _z
-#include <cassert>                      // assert
-#include <cstddef>                      // size_t
+#include <xstd/cstddef.hpp>     // _z
+#include <xstd/limits.hpp>      // digits, digits_ratio
+#include <cassert>              // assert
+#include <cstddef>              // size_t
 
 namespace xstd {
 namespace lookup {
@@ -16,7 +16,7 @@ public:
         {
                 auto n = 0_z;
                 for (auto i = 0_z; i < digits_ratio<U, T>; ++i) {
-                        auto const b = block_mask<T>(x, i);
+                        auto const b = block_mask(x, i);
                         n += ctz_[b];
                         if (b)
                                 return n;
@@ -30,7 +30,7 @@ public:
         {
                 auto n = 0_z;
                 for (auto i = digits_ratio<U, T> - 1; i < digits_ratio<U, T>; --i) {
-                        auto const b = block_mask<T>(x, i);
+                        auto const b = block_mask(x, i);
                         n += clz_[b];
                         if (b)
                                 return n;
@@ -44,12 +44,19 @@ public:
         {
                 auto n = 0_z;
                 for (auto i = 0_z; i < digits_ratio<U, T>; ++i)
-                        n += popcount_[block_mask<T>(x, i)];
-                assert(0 <= n && n <= digits<U>);
+                        n += popcount_[block_mask(x, i)];
+                assert(n <= digits<U>);
                 return n;
         }
 
 private:
+        template<class U>
+        static constexpr auto block_mask(U x, std::size_t i)
+        {
+                assert(i < (digits_ratio<U, T>));
+                return static_cast<T>(x >> (i * digits<T>));
+        }
+
         static constexpr std::size_t ctz_[] =
         {
                 8,  0,  1,  0,  2,  0,  1,  0,  3,  0,  1,  0,  2,  0,  1,  0,
@@ -111,9 +118,9 @@ private:
         };
 };
 
-template<class U> constexpr std::size_t table<U>::ctz_[];
-template<class U> constexpr std::size_t table<U>::clz_[];
-template<class U> constexpr std::size_t table<U>::popcount_[];
+template<class T> constexpr std::size_t table<T>::ctz_[];
+template<class T> constexpr std::size_t table<T>::clz_[];
+template<class T> constexpr std::size_t table<T>::popcount_[];
 
 using detail = table<>;
 

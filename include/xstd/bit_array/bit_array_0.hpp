@@ -1,6 +1,6 @@
 #pragma once
 #include <xstd/bit_array/bit_array_fwd.hpp>     // bit_array (primary template)
-#include <xstd/bitset/limits.hpp>               // is_unsigned_integer
+#include <xstd/limits.hpp>                      // is_unsigned_integer
 #include <cstddef>                              // size_t
 
 namespace xstd {

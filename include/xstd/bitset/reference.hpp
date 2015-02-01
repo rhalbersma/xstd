@@ -1,7 +1,7 @@
 #pragma once
 #include <xstd/bitset/iterator/iterator_fwd.hpp>        // ConstIterator
 #include <xstd/bitset/iterator/reference_fwd.hpp>       // ConstReference
-#include <xstd/bitset/limits.hpp>                       // digits, is_unsigned_integer
+#include <xstd/limits.hpp>                              // digits, is_unsigned_integer
 #include <cassert>                                      // assert
 #include <cstddef>                                      // size_t
 
@@ -30,17 +30,10 @@ public:
                 return index;
         }
 
-        // references cannot be left uninitialized
-        constexpr ConstReference() = delete;
-
-        // references can be copied
-        constexpr ConstReference(ConstReference const&) = default;
-
-        // references cannot be assigned to
-        constexpr ConstReference& operator=(ConstReference const&) = delete;
-
-        // const references cannot be assigned through
-        constexpr ConstReference& operator=(std::size_t) = delete;
+        ConstReference() = delete;
+        ConstReference(ConstReference const&) = default;
+        ConstReference& operator=(ConstReference const&) = delete;
+        ConstReference& operator=(std::size_t) = delete;
 
         constexpr ConstIterator<Block, Nb, N> operator&() const noexcept
         {

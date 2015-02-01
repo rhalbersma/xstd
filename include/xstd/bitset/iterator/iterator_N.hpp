@@ -2,8 +2,8 @@
 #include <xstd/bitset/iterator/iterator_fwd.hpp>        // ConstIterator
 #include <xstd/bitset/iterator/reference_fwd.hpp>       // ConstReference
 #include <xstd/bitset/intrinsic.hpp>                    // bsfnz, bsrnz, clznz, ctznz
-#include <xstd/bitset/limits.hpp>                       // digits, is_unsigned_integer
 #include <xstd/cstddef.hpp>                             // _z
+#include <xstd/limits.hpp>                              // digits, is_unsigned_integer
 #include <boost/iterator/iterator_facade.hpp>           // iterator_core_access, iterator_facade
 #include <cassert>                                      // assert
 #include <cstddef>                                      // ptrdiff_t
@@ -30,8 +30,6 @@ class ConstIterator
         std::size_t index{};
 
 public:
-        constexpr ConstIterator() = default;
-
         explicit constexpr ConstIterator(Block const* b)
         :
                 block{b},
@@ -49,6 +47,8 @@ public:
                 assert(block != nullptr);
                 assert(index == N);
         }
+
+        ConstIterator() = default;
 
 private:
         // gateway for boost::iterator_facade to access private implementation
@@ -82,7 +82,7 @@ private:
                         ++block;
                 if (auto const mask = *block >> idx) {
                         index += intrinsic::ctznz(mask);
-                        assert(0 <= index && index < N);
+                        assert(index < N);
                         return;
                 }
                 ++block;
@@ -90,7 +90,7 @@ private:
                 for (auto i = index / digits<Block> + 1; i < Nb; ++i) {
                         if (auto const mask = *block) {
                                 index = i * digits<Block> + intrinsic::bsfnz(mask);
-                                assert(0 <= index && index < N);
+                                assert(index < N);
                                 return;
                         }
                         ++block;

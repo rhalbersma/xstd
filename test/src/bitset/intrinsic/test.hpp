@@ -1,6 +1,6 @@
 #pragma once
-#include <xstd/bitset/limits.hpp>               // digits
 #include <xstd/bitset/masks.hpp>                // all, any, none
+#include <xstd/limits.hpp>                      // digits
 #include <boost/mpl/vector.hpp>                 // vector
 #include <boost/test/test_case_template.hpp>    // BOOST_AUTO_TEST_CASE_TEMPLATE
 #include <boost/test/unit_test.hpp>             // BOOST_AUTO_TEST_SUITE, BOOST_CHECK, BOOST_CHECK_EQUAL, BOOST_AUTO_TEST_SUITE_END
