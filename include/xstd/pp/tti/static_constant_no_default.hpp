@@ -2,7 +2,7 @@
 #include <xstd/pp/tti/detail/box_static_constant.hpp>           // XSTD_PP_TTI_BOX_STATIC_CONSTANT
 #include <xstd/pp/tti/detail/has_static_constant.hpp>           // XSTD_PP_TTI_HAS_STATIC_CONSTANT
 #include <xstd/pp/tti/detail/missing_static_constant.hpp>       // XSTD_PP_TTI_MISSING_STATIC_CONSTANT
-#include <type_traits>                                          // conditional_t
+#include <type_traits>                                          // conditional
 
 #define XSTD_PP_TTI_STATIC_CONSTANT_NO_DEFAULT(NAME)    \
                                                         \
