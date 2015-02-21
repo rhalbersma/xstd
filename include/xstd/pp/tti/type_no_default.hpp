@@ -2,7 +2,7 @@
 #include <xstd/pp/tti/detail/box_type.hpp>      // XSTD_PP_TTI_BOX_TYPE
 #include <xstd/pp/tti/detail/has_type.hpp>      // XSTD_PP_TTI_HAS_TYPE
 #include <xstd/pp/tti/detail/missing_type.hpp>  // XSTD_PP_TTI_MISSING_TYPE
-#include <type_traits>                          // conditional_t
+#include <type_traits>                          // conditional
 
 #define XSTD_PP_TTI_TYPE_NO_DEFAULT(NAME)               \
                                                         \

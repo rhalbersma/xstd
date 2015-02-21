@@ -1,7 +1,7 @@
 #pragma once
 #include <xstd/pp/tti/detail/box_static_constant.hpp>   // XSTD_PP_TTI_BOX_STATIC_CONSTANT
 #include <xstd/pp/tti/detail/has_static_constant.hpp>   // XSTD_PP_TTI_HAS_STATIC_CONSTANT
-#include <type_traits>	                                // conditional_t, integral_constant
+#include <type_traits>	                                // conditional, integral_constant
 
 #define XSTD_PP_TTI_STATIC_CONSTANT(NAME, DEFAULT)              \
                                                                 \
