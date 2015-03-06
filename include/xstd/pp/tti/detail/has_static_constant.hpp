@@ -5,10 +5,10 @@
 #define XSTD_PP_TTI_HAS_STATIC_CONSTANT(NAME)                                                           \
                                                                                                         \
 template<class, class = void>                                                                           \
-struct has_static_constant_ ## NAME: std::false_type {};                                                \
+struct has_static_constant_ ## NAME : std::false_type {};                                               \
                                                                                                         \
 template<class T>                                                                                       \
-struct has_static_constant_ ## NAME<T, xstd::void_t<decltype(T::NAME)>>: std::true_type {};             \
+struct has_static_constant_ ## NAME<T, xstd::void_t<decltype(T::NAME)>> : std::true_type {};            \
                                                                                                         \
 template<class T>                                                                                       \
 using has_static_constant_ ## NAME ## _t = typename has_static_constant_ ## NAME <T>::type;             \
