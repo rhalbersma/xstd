@@ -21,6 +21,9 @@ struct always_false
 {};
 
 template<class T>
+using always_false_t = typename always_false<T>::type;
+
+template<class T>
 constexpr auto always_false_v = always_false<T>::value;
 
 template<class E>

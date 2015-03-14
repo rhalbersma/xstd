@@ -1,5 +1,5 @@
 #pragma once
-#include <cstddef>      // size_t, ptrdiff_t
+#include <cstddef>      // ptrdiff_t, size_t
 
 namespace xstd {
 inline namespace literals {

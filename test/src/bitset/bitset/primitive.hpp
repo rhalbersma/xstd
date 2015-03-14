@@ -1,5 +1,6 @@
 #pragma once
 #include <xstd/bitset.hpp>      // bitset
+#include <xstd/cstddef.hpp>     // 0_z
 #include <cstddef>              // size_t
 
 namespace xstd {
@@ -23,7 +24,7 @@ constexpr auto op_equal_to(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 {
         // arrange [bitset.members]/39
         auto expected = true;
-        for (std::size_t i = 0; i < N; ++i)
+        for (auto i = 0_z; i < N; ++i)
                 expected &= lhs.test(i) == rhs.test(i);
 
         // act
@@ -60,7 +61,7 @@ constexpr auto set_one(bitset<N> const& b, std::size_t pos) noexcept
 
         // assert [bitset.members]/15
         auto check = true;
-        for (std::size_t i = 0; i < N; ++i)
+        for (auto i = 0_z; i < N; ++i)
                 if (i == pos)
                         check &= next.test(i);
                 else
@@ -80,7 +81,7 @@ constexpr auto reset_one(bitset<N> const& b, std::size_t pos) noexcept
 
         // assert [bitset.members]/21
         auto check = true;
-        for (std::size_t i = 0; i < N; ++i)
+        for (auto i = 0_z; i < N; ++i)
                 if (i == pos)
                         check &= !next.test(i);
                 else
@@ -100,7 +101,7 @@ constexpr auto flip_one(bitset<N> const& b, std::size_t pos) noexcept
 
         // assert [bitset.members]/29
         auto check = true;
-        for (std::size_t i = 0; i < N; ++i)
+        for (auto i = 0_z; i < N; ++i)
                 if (i == pos)
                         check &= next.test(i) != prev.test(i);
                 else
@@ -146,7 +147,7 @@ constexpr auto flip_all(bitset<N> const& b) noexcept
 
         // assert [bitset.members]/25
         auto check = true;
-        for (std::size_t i = 0; i < N; ++i)
+        for (auto i = 0_z; i < N; ++i)
                 check &= next.test(i) != prev.test(i);
         return check;
 }
@@ -163,7 +164,7 @@ constexpr auto op_and_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcep
 
         // assert [bitset.members]/1
         auto check = true;
-        for (std::size_t i = 0; i < N; ++i)
+        for (auto i = 0_z; i < N; ++i)
                 if (!rhs.test(i))
                         check &= !next.test(i);
                 else
@@ -183,7 +184,7 @@ constexpr auto op_or_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
 
         // assert [bitset.members]/3
         auto check = true;
-        for (std::size_t i = 0; i < N; ++i)
+        for (auto i = 0_z; i < N; ++i)
                 if (rhs.test(i))
                         check &= next.test(i);
                 else
@@ -203,7 +204,7 @@ constexpr auto op_xor_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexcep
 
         // assert [bitset.members]/5
         auto check = true;
-        for (std::size_t i = 0; i < N; ++i)
+        for (auto i = 0_z; i < N; ++i)
                 if (rhs.test(i))
                         check &= next.test(i) == !prev.test(i);
                 else
@@ -223,7 +224,7 @@ constexpr auto op_minus_assign(bitset<N> const& lhs, bitset<N> const& rhs) noexc
 
         // assert
         auto check = true;
-        for (std::size_t i = 0; i < N; ++i)
+        for (auto i = 0_z; i < N; ++i)
                 if (rhs.test(i))
                         check &= !next.test(i);
                 else
@@ -243,7 +244,7 @@ constexpr auto op_shift_left_assign(bitset<N> const& b, std::size_t pos)
 
         // assert [bitset.members]/7
         auto check = true;
-        for (std::size_t I = 0; I < N; ++I)
+        for (auto I = 0_z; I < N; ++I)
                 if (I < pos)
                         check &= !next.test(I);
                 else
@@ -263,7 +264,7 @@ constexpr auto op_shift_right_assign(bitset<N> const& b, std::size_t pos)
 
         // assert [bitset.members]/9
         auto check = true;
-        for (std::size_t I = 0; I < N; ++I)
+        for (auto I = 0_z; I < N; ++I)
                 if (pos >= N - I)
                         check &= !next.test(I);
                 else
@@ -317,7 +318,7 @@ constexpr auto count(bitset<N> const& b) noexcept
 {
         // arrange [bitset.members]/37
         std::size_t expected = 0;
-        for (std::size_t i = 0; i < N; ++i)
+        for (auto i = 0_z; i < N; ++i)
                 expected += b.test(i);
 
         // act
