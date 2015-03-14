@@ -3,11 +3,11 @@
 #include <xstd/iterator.hpp>    // reverse_iterator
 #include <xstd/utility.hpp>     // swap
 #include <cassert>              // assert
-#include <cstddef>              // size_t
+#include <cstddef>              // ptrdiff_t, size_t
 #include <initializer_list>     // initializer_list
 #include <stdexcept>            // out_of_range
 #include <type_traits>          // integral_constant
-#include <utility>              // declval
+#include <utility>              // declval, move
 
 namespace xstd {
 
