@@ -1,19 +1,14 @@
 #pragma once
-#include <xstd/pp/tti/detail/box_static_constant.hpp>   // XSTD_PP_TTI_BOX_STATIC_CONSTANT
-#include <xstd/pp/tti/detail/has_static_constant.hpp>   // XSTD_PP_TTI_HAS_STATIC_CONSTANT
-#include <type_traits>	                                // conditional, integral_constant
+#include <xstd/type_traits.hpp> // detected_or_t
+#include <type_traits>          // integral_constant, remove_const
 
-#define XSTD_PP_TTI_STATIC_CONSTANT(NAME, DEFAULT)              \
-                                                                \
-XSTD_PP_TTI_HAS_STATIC_CONSTANT(NAME)                           \
-XSTD_PP_TTI_BOX_STATIC_CONSTANT(NAME)                           \
-                                                                \
-template<class T>                                               \
-using NAME ## _t = typename std::conditional_t<                 \
-        has_static_constant_ ## NAME ## _v<T>,                  \
-        box_static_constant_ ## NAME <T>,                       \
-        std::integral_constant<decltype(DEFAULT), DEFAULT>      \
->::type;                                                        \
-                                                                \
-template<class T>                                               \
-constexpr auto NAME ## _v = NAME ## _t<T>::value;               \
+#define XSTD_PP_TTI_STATIC_CONSTANT(NAME, DEFAULT)                                                                              \
+                                                                                                                                \
+template<class T>                                                                                                               \
+using static_constant_ ## NAME ## _t = std::integral_constant<std::remove_const_t<decltype(T::NAME)>, T::NAME>;                 \
+                                                                                                                                \
+template<class T>                                                                                                               \
+using NAME ## _t = xstd::detected_or_t<std::integral_constant<decltype(DEFAULT), DEFAULT>, static_constant_ ## NAME ## _t, T>;  \
+                                                                                                                                \
+template<class T>                                                                                                               \
+constexpr auto NAME ## _v = NAME ## _t<T>::value;                                                                               \
