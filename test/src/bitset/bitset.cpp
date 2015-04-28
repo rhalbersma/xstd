@@ -1,21 +1,19 @@
+#include <bitset/bitset/exhaustive.hpp>
+#include <xstd/bitset.hpp>                      // bitset
+#include <boost/mpl/vector.hpp>                 // vector
+#include <boost/test/unit_test.hpp>             // BOOST_AUTO_TEST_SUITE, BOOST_CHECK, BOOST_CHECK_EQUAL, BOOST_CHECK_EQUAL_COLLECTIONS, BOOST_AUTO_TEST_SUITE_END
+#include <boost/test/test_case_template.hpp>    // BOOST_AUTO_TEST_CASE_TEMPLATE
 #include <algorithm>                            // adjacent_find, is_sorted, minmax_element
 #include <cstdint>                              // uint64_t
 #include <functional>                           // greater, greater_equal, less, less_equal
 #include <initializer_list>                     // initializer_list
 #include <iterator>                             // begin, end, cbegin, cend, distance
 #include <tuple>                                // tie
-#include <boost/mpl/vector.hpp>                 // vector
-#include <boost/test/unit_test.hpp>             // BOOST_AUTO_TEST_SUITE, BOOST_CHECK, BOOST_CHECK_EQUAL, BOOST_CHECK_EQUAL_COLLECTIONS, BOOST_AUTO_TEST_SUITE_END
-#include <boost/test/test_case_template.hpp>    // BOOST_AUTO_TEST_CASE_TEMPLATE
-#include <xstd/bitset.hpp>                      // bitset
-#include <iostream>
 
 #include <boost/range/adaptor/reversed.hpp>
 #include <boost/range/algorithm/adjacent_find.hpp>
 #include <boost/range/algorithm_ext/is_sorted.hpp>
 #include <boost/range/end.hpp>
-
-#include <bitset/bitset/exhaustive.hpp>
 
 namespace xstd {
 
