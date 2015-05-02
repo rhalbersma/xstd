@@ -14,3 +14,4 @@ constexpr auto is_ ## NAME ## _v = xstd::is_detected_v<typename_ ## NAME, T>;   
                                                                                 \
 template<class T>                                                               \
 using NAME ## _t = xstd::detected_or_t<DEFAULT, typename_ ## NAME, T>;          \
+
