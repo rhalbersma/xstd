@@ -18,3 +18,4 @@ using NAME ## _t = xstd::detected_or_t<std::integral_constant<decltype(DEFAULT),
                                                                                                                         \
 template<class T>                                                                                                       \
 constexpr auto NAME ## _v = NAME ## _t<T>::value;                                                                       \
+
