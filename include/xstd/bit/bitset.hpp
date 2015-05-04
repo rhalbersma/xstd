@@ -60,7 +60,9 @@ public:
                 bitset(ilist.begin(), ilist.end())
         {}
 
-        [[deprecated]] /* implicit */ constexpr bitset(unsigned long long value) noexcept
+        [[deprecated]]
+        // implicit
+        constexpr bitset(unsigned long long value) noexcept
         :
                 Base{sanitized(value)}
         {}

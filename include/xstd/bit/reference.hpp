@@ -26,7 +26,8 @@ public:
                 assert(n < N);
         }
 
-        /* implicit */ constexpr operator std::size_t() const noexcept
+        // implicit
+        constexpr operator std::size_t() const noexcept
         {
                 return index;
         }

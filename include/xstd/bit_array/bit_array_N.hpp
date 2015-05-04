@@ -7,7 +7,7 @@
 #include <xstd/limits.hpp>                      // digits, is_unsigned_integer
 #include <cassert>                              // assert
 #include <cstddef>                              // size_t
-#include <type_traits>                          // enable_if_t
+#include <type_traits>                          // enable_if
 #include <utility>                              // swap
 
 namespace xstd {
@@ -21,7 +21,8 @@ struct bit_array
 
         array<Block, Nb> elems {};
 
-        /* implicit */ constexpr bit_array(Block value) noexcept
+        // implicit
+        constexpr bit_array(Block value) noexcept
         :
                 elems{value}
         {}
