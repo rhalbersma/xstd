@@ -194,12 +194,12 @@ constexpr auto count() noexcept
 // operators
 
 template<std::size_t N>
-constexpr auto op_flip() noexcept
+constexpr auto op_complement() noexcept
 {
         auto check = true;
         for (auto i = 0_z; i < N; ++i)
-                check &= op_flip(~(~bitset<N>{} << i));
-        check &= op_flip(~bitset<N>{});
+                check &= op_complement(~(~bitset<N>{} << i));
+        check &= op_complement(~bitset<N>{});
         return check;
 }
 

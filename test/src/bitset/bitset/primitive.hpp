@@ -331,7 +331,7 @@ constexpr auto count(bitset<N> const& b) noexcept
 // operators
 
 template<std::size_t N>
-constexpr auto op_flip(bitset<N> const& b) noexcept
+constexpr auto op_complement(bitset<N> const& b) noexcept
 {
         // arrange [bitset.members]/24
         auto expected = b;
