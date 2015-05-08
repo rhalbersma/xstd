@@ -132,7 +132,7 @@ struct bit_array
 
         constexpr auto do_flip() noexcept
         {
-                for (auto&& block : elems)
+                for (auto& block : elems)
                         block = ~block;
         }
 
@@ -225,7 +225,7 @@ struct bit_array
         constexpr std::enable_if_t<M == 0,
         bool> do_all() const noexcept
         {
-                for (auto&& block : elems)
+                for (auto const& block : elems)
                         if (block != mask::all<Block>)
                                 return false;
                 return true;
@@ -233,7 +233,7 @@ struct bit_array
 
         constexpr auto do_any() const noexcept
         {
-                for (auto&& block : elems)
+                for (auto const& block : elems)
                         if (block != mask::none<Block>)
                                 return true;
                 return false;
@@ -241,7 +241,7 @@ struct bit_array
 
         constexpr auto do_none() const noexcept
         {
-                for (auto&& block : elems)
+                for (auto const& block : elems)
                         if (block != mask::none<Block>)
                                 return false;
                 return true;
@@ -250,7 +250,7 @@ struct bit_array
         constexpr auto do_count() const noexcept
         {
                 auto sum = 0_z;
-                for (auto&& block : elems)
+                for (auto const& block : elems)
                         sum += popcount(block);
                 return sum;
         }
