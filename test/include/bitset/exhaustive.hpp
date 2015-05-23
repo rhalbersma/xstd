@@ -1,5 +1,5 @@
 #pragma once
-#include <bitset/bitset/primitive.hpp>
+#include <bitset/primitive.hpp>
 #include <xstd/bitset.hpp>              // bitset
 #include <xstd/cstddef.hpp>             // 0_z
 

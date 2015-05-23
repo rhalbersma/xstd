@@ -1,3 +1,3 @@
 #include <xstd/bit/primitive/builtin.hpp>       // ctznz, clznz, ctz, clz, bsfnz, bsrnz, popcount
 namespace lib = xstd::bit::builtin;
-#include <bitset/primitive/test.hpp>
+#include <bitset/test.hpp>
