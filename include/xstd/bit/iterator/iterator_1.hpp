@@ -30,6 +30,8 @@ class ConstIterator<Block, 1, N>
         std::size_t index{};
 
 public:
+        ConstIterator() = default;
+
         explicit constexpr ConstIterator(Block const* b)
         :
                 block{b},
@@ -47,8 +49,6 @@ public:
                 assert(block != nullptr);
                 assert(index == N);
         }
-
-        ConstIterator() = default;
 
 private:
         // gateway for boost::iterator_facade to access private implementation

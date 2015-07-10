@@ -54,12 +54,12 @@ public:
                 Derived* range_{};
 
         public:
+                iterator() = default;
+
                 explicit iterator(Derived* b) noexcept
                 :
                         range_{b}
                 {}
-
-                iterator() = default;
 
         private:
                 friend class boost::iterator_core_access;
