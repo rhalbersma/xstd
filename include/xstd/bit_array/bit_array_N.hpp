@@ -21,13 +21,12 @@ struct bit_array
 
         array<Block, Nb> elems {};
 
-        // implicit
-        constexpr bit_array(Block value) noexcept
+        bit_array() = default;
+
+        /* implicit */ constexpr bit_array(Block value) noexcept
         :
                 elems{value}
         {}
-
-        constexpr bit_array() = default;
 
         // data access
 

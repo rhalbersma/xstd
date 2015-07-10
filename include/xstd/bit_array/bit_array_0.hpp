@@ -11,7 +11,7 @@ struct bit_array<Block, 0>
 {
         static_assert(is_unsigned_integer<Block>, "");
 
-        constexpr bit_array() = default;
+        bit_array() = default;
 
         // data access
 

@@ -48,6 +48,8 @@ public:
 
         // constructors
 
+        constexpr bitset() = default;
+
         template<class ForwardIterator>
         constexpr bitset(ForwardIterator first, ForwardIterator last)
         {
@@ -61,13 +63,10 @@ public:
         {}
 
         [[deprecated]]
-        // implicit
-        constexpr bitset(unsigned long long value) noexcept
+        /* implicit */ constexpr bitset(unsigned long long value) noexcept
         :
                 Base{sanitized(value)}
         {}
-
-        constexpr bitset() = default;
 
         // iterators
 

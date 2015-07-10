@@ -18,6 +18,11 @@ class ConstReference
         std::size_t index;
 
 public:
+        ConstReference() = delete;
+        ConstReference(ConstReference const&) = default;
+        ConstReference& operator=(ConstReference const&) = delete;
+        ConstReference& operator=(std::size_t) = delete;
+
         constexpr ConstReference(Block const& b, std::size_t n) noexcept
         :
                 block{b},
@@ -26,16 +31,10 @@ public:
                 assert(n < N);
         }
 
-        // implicit
-        constexpr operator std::size_t() const noexcept
+        /* implicit */ constexpr operator std::size_t() const noexcept
         {
                 return index;
         }
-
-        ConstReference() = delete;
-        ConstReference(ConstReference const&) = default;
-        ConstReference& operator=(ConstReference const&) = delete;
-        ConstReference& operator=(std::size_t) = delete;
 
         constexpr ConstIterator<Block, Nb, N> operator&() const noexcept
         {
