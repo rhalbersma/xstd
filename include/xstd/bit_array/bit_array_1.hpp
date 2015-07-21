@@ -17,7 +17,7 @@ struct bit_array<Block, 1>
         static_assert(is_unsigned_integer<Block>, "");
         static constexpr auto N = 1 * digits<Block>;
 
-        Block elems {};
+        Block elems;
 
         bit_array() = default;
 
