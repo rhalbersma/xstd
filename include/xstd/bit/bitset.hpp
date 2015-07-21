@@ -52,6 +52,8 @@ public:
 
         template<class ForwardIterator>
         constexpr bitset(ForwardIterator first, ForwardIterator last)
+        :
+                Base{}
         {
                 for (auto it = first; it != last; ++it)
                         set(*it);
@@ -62,8 +64,7 @@ public:
                 bitset(ilist.begin(), ilist.end())
         {}
 
-        [[deprecated]]
-        /* implicit */ constexpr bitset(unsigned long long value) noexcept
+        [[deprecated]] /* implicit */ constexpr bitset(unsigned long long value) noexcept
         :
                 Base{sanitized(value)}
         {}
