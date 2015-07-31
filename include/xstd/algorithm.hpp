@@ -78,6 +78,7 @@ template<class ForwardIterator1, class ForwardIterator2>
 constexpr void
 iter_swap(ForwardIterator1 a, ForwardIterator2 b)
 {
+        using xstd::swap;
         swap(*a, *b);
 }
 

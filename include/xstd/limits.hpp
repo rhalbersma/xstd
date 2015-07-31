@@ -1,6 +1,7 @@
 #pragma once
+#include <cassert>      // assert
 #include <cstddef>      // size_t
-#include <limits>       // digits, is_signed, is_integer
+#include <limits>       // digits, is_signed, is_integer, max
 
 namespace xstd {
 
@@ -17,10 +18,23 @@ template<class Numerator, class Denominator>
 constexpr auto digits_ratio = digits<Numerator> / digits<Denominator>;
 
 template<class T>
+constexpr auto is_representable(std::size_t N) noexcept
+{
+        static_assert(is_unsigned_integer<T>, "");
+        return N <= std::numeric_limits<T>::max();
+}
+
+template<class T>
 constexpr auto is_power_of_2(T x) noexcept
 {
         static_assert(is_unsigned_integer<T>, "");
         return (x & - x) > (x - 1);
+}
+
+constexpr auto align_on(std::size_t offset, std::size_t align) noexcept
+{
+        assert(is_power_of_2(align));
+        return (offset + align - 1) & ~(align - 1);
 }
 
 }       // namespace xstd
