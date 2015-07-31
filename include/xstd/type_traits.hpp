@@ -97,7 +97,7 @@ constexpr auto to_underlying_type(E e) noexcept
         return static_cast<std::underlying_type_t<E>>(e);
 }
 
-namespace adl_blocker {
+namespace block_adl {
 
 template<class>
 struct empty_base
@@ -111,8 +111,11 @@ struct empty_base
 template<bool Condition, class T>
 using optional_base = std::conditional_t<Condition, T, empty_base<T>>;
 
-}       // namespace adl_blocker
+}       // namespace block_adl
 
-using namespace adl_blocker;
+// deriving from empty_base or optional_base will not make xstd an associated namespace
+// this prevents ADL from finding overloads for e.g. begin/end/swap from namespace xstd
+using block_adl::empty_base;
+using block_adl::optional_base;
 
 }       // namespace xstd
