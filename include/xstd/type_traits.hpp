@@ -97,4 +97,22 @@ constexpr auto to_underlying_type(E e) noexcept
         return static_cast<std::underlying_type_t<E>>(e);
 }
 
+namespace adl_blocker {
+
+template<class>
+struct empty_base
+{
+        empty_base() = default;
+
+        template<class... Args>
+        constexpr empty_base(Args&&...) {}
+};
+
+template<bool Condition, class T>
+using optional_base = std::conditional_t<Condition, T, empty_base<T>>;
+
+}       // namespace adl_blocker
+
+using namespace adl_blocker;
+
 }       // namespace xstd
