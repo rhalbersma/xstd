@@ -19,6 +19,7 @@ template<class ForwardIterator1, class ForwardIterator2>
 constexpr ForwardIterator2
 swap_ranges(ForwardIterator1 first1, ForwardIterator1 last1, ForwardIterator2 first2)
 {
+        using xstd::swap;
         for (; first1 != last1; ++first1, ++first2)
                 swap(*first1, *first2);
         return first2;
