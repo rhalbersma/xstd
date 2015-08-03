@@ -30,21 +30,21 @@ public:
 
 private:
         // gateway for InputRangeFacade to access private implementation
-        friend class InputRangeCoreAccess;
+        friend class xstd::InputRangeCoreAccess;
 
-        void pop_front()
+        auto pop_front()
         {
                 assert(!empty());
                 range &= range - 1;
         }
 
-        std::size_t front() const
+        auto front() const
         {
                 assert(!empty());
                 return ctznz(range);
         }
 
-        bool empty() const noexcept
+        auto empty() const noexcept
         {
                 return range == mask::none<Block>;
         }

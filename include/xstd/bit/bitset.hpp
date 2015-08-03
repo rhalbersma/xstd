@@ -32,7 +32,7 @@ constexpr bool intersect(const bitset<N>& lhs, const bitset<N>& rhs) noexcept;
 template<std::size_t N>
 class bitset
 :
-        private bit::bit_array<unsigned long long, num_blocks<unsigned long long>(N)>
+        public bit::bit_array<unsigned long long, num_blocks<unsigned long long>(N)>
 {
         using block_type = unsigned long long;
         static constexpr auto Nb = num_blocks<block_type>(N);
