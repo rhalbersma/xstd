@@ -1,14 +1,16 @@
 #pragma once
-#include <xstd/array.hpp>                       // array
-#include <xstd/bit_array/bit_array_fwd.hpp>     // bit_array
+#include <xstd/bit/bit_array/bit_array_fwd.hpp>     // bit_array
 #include <xstd/bit/mask.hpp>                    // none, one, all
 #include <xstd/bit/primitive.hpp>               // popcount
 #include <xstd/cstddef.hpp>                     // _z
 #include <xstd/limits.hpp>                      // digits, is_unsigned_integer
+#include <algorithm>                            // all_of, any_of, none_of, equal, lexicographical_compare,
+                                                // copy, copy_backward, fill_n, swap_ranges
 #include <cassert>                              // assert
 #include <cstddef>                              // size_t
+#include <iterator>                             // begin, end, cbegin, cend, crbegin, crend
+#include <numeric>                              // accumulate
 #include <type_traits>                          // enable_if
-#include <utility>                              // swap
 
 namespace xstd {
 namespace bit {
@@ -19,7 +21,7 @@ struct bit_array
         static_assert(is_unsigned_integer<Block>, "");
         static constexpr auto N = Nb * digits<Block>;
 
-        array<Block, Nb> elems;
+        Block elems[Nb];
 
         bit_array() = default;
 
@@ -32,32 +34,36 @@ struct bit_array
 
         constexpr auto* block_begin() noexcept
         {
-                return elems.begin();
+                using std::begin;
+                return begin(elems);
         }
 
         constexpr auto const* block_begin() const noexcept
         {
-                return elems.begin();
+                using std::begin;
+                return begin(elems);
         }
 
         constexpr auto* block_end() noexcept
         {
-                return elems.end();
+                using std::end;
+                return end(elems);
         }
 
         constexpr auto const* block_end() const noexcept
         {
-                return elems.end();
+                using std::end;
+                return end(elems);
         }
 
         constexpr auto& block_back() noexcept
         {
-                return elems.back();
+                return elems[Nb - 1];
         }
 
         constexpr auto const& block_back() const noexcept
         {
-                return elems.back();
+                return elems[Nb - 1];
         }
 
         constexpr auto& block_ref(std::size_t n)
@@ -74,28 +80,31 @@ struct bit_array
 
         // comparators
 
-        constexpr auto do_equal(bit_array const& other) const noexcept
+        auto do_equal(bit_array const& other) const noexcept
         {
-                return elems == other.elems;
+                using std::cbegin; using std::cend;
+                return std::equal(cbegin(elems), cend(elems), cbegin(other.elems), cend(other.elems));
         }
 
-        constexpr auto do_colexicographical_compare(bit_array const& other) const noexcept
+        auto do_less(bit_array const& other) const noexcept
         {
-                return xstd::lexicographical_compare(elems.rbegin(), elems.rend(), other.elems.rbegin(), other.elems.rend());
+                using std::crbegin; using std::crend;
+                return std::lexicographical_compare(crbegin(elems), crend(elems), crbegin(other.elems), crend(other.elems));
         }
 
-        constexpr auto do_intersects(bit_array const& other) const noexcept
+        auto do_intersects(bit_array const& other) const noexcept
+        {
+                using std::cbegin; using std::cend;
+                return !std::equal(cbegin(elems), cend(elems), cbegin(other.elems), cend(other.elems),
+                        [](auto const& lhs, auto const& rhs){
+                        return !(lhs & rhs);
+                });
+        }
+
+        auto do_is_subset_of(bit_array const& other) const noexcept
         {
                 for (auto i = 0_z; i < Nb; ++i)
-                        if (elems[i] & other.elems[i])
-                                return true;
-                return false;
-        }
-
-        constexpr auto do_is_subset_of(bit_array const& other) const noexcept
-        {
-                for (auto i = 0_z; i < Nb; ++i)
-                        if (elems[i] & ~other.elems[i])
+                       if (elems[i] & ~other.elems[i])
                                 return false;
                 return true;
         }
@@ -114,19 +123,22 @@ struct bit_array
 
         // modifiers
 
-        constexpr auto do_swap(bit_array& other) noexcept
+        auto do_swap(bit_array& other) noexcept
         {
-                elems.swap(other.elems);
+                using std::begin; using std::end;
+                std::swap_ranges(begin(elems), end(elems), begin(other.elems));
         }
 
-        constexpr auto do_set() noexcept
+        auto do_set() noexcept
         {
-                elems.fill(mask::all<Block>);
+                using std::begin;
+                std::fill_n(begin(elems), Nb, mask::all<Block>);
         }
 
-        constexpr auto do_reset() noexcept
+        auto do_reset() noexcept
         {
-                elems.fill(mask::none<Block>);
+                using std::begin;
+                std::fill_n(begin(elems), Nb, mask::none<Block>);
         }
 
         constexpr auto do_flip() noexcept
@@ -159,17 +171,17 @@ struct bit_array
                         elems[i] &= ~other.elems[i];
         }
 
-        constexpr auto do_left_shift(std::size_t n)
+        auto do_left_shift(std::size_t n)
         {
                 assert(n < N);
+                using std::begin; using std::end;
                 if (n == 0) return;
 
                 auto const n_block = n / digits<Block>;
                 auto const L_shift = n % digits<Block>;
 
                 if (L_shift == 0) {
-                        for (auto i = Nb - 1; i >= n_block; --i)
-                                elems[i] = elems[i - n_block];
+                        std::copy_backward(begin(elems), end(elems) - n_block, end(elems));
                 } else {
                         auto const R_shift = digits<Block> - L_shift;
 
@@ -180,20 +192,20 @@ struct bit_array
                                 ;
                         elems[n_block] = elems[0] << L_shift;
                 }
-                xstd::fill_n(&elems[0], n_block, mask::none<Block>);
+                std::fill_n(begin(elems), n_block, mask::none<Block>);
         }
 
-        constexpr auto do_right_shift(std::size_t n)
+        auto do_right_shift(std::size_t n)
         {
                 assert(n < N);
+                using std::begin; using std::end;
                 if (n == 0) return;
 
                 auto const n_block = n / digits<Block>;
                 auto const R_shift = n % digits<Block>;
 
                 if (R_shift == 0) {
-                        for (auto i = 0_z; i <= Nb - 1 - n_block; ++i)
-                               elems[i] = elems[i + n_block];
+                        std::copy(begin(elems) + n_block, end(elems), begin(elems));
                 } else {
                         auto const L_shift = digits<Block> - R_shift;
 
@@ -204,54 +216,59 @@ struct bit_array
                                 ;
                         elems[Nb - 1 - n_block] = elems[Nb - 1] >> R_shift;
                 }
-                xstd::fill_n(&elems[0] + Nb - n_block, n_block, mask::none<Block>);
+                std::fill_n(end(elems) - n_block, n_block, mask::none<Block>);
         }
 
         // observers
 
         template<std::size_t M>
-        constexpr std::enable_if_t<M != 0,
-        bool> do_all() const noexcept
+        auto do_all() const noexcept
+                -> std::enable_if_t<M != 0, bool>
         {
-                static_assert(0 < M && M < digits<Block>, "");
-                for (auto i = 0_z; i < Nb - 1; ++i)
-                        if (elems[i] != mask::all<Block>)
-                                return false;
-                return elems[Nb - 1] == mask::all<Block> >> (digits<Block> - M);
+                static_assert(M < digits<Block>, "");
+                using std::cbegin; using std::cend;
+                return std::all_of(cbegin(elems), cend(elems) - 1,
+                        [](auto const& block){
+                        return block == mask::all<Block>;
+                }) ? elems[Nb - 1] == mask::all<Block> >> (digits<Block> - M) : false;
         }
 
         template<std::size_t M>
-        constexpr std::enable_if_t<M == 0,
-        bool> do_all() const noexcept
+        auto do_all() const noexcept
+                -> std::enable_if_t<M == 0, bool>
         {
-                for (auto const& block : elems)
-                        if (block != mask::all<Block>)
-                                return false;
-                return true;
+                using std::cbegin; using std::cend;
+                return std::all_of(cbegin(elems), cend(elems),
+                        [](auto const& block){
+                        return block == mask::all<Block>;
+                });
         }
 
-        constexpr auto do_any() const noexcept
+        auto do_any() const noexcept
         {
-                for (auto const& block : elems)
-                        if (block != mask::none<Block>)
-                                return true;
-                return false;
+                using std::cbegin; using std::cend;
+                return std::any_of(cbegin(elems), cend(elems),
+                        [](auto const& block){
+                        return block != mask::none<Block>;
+                });
         }
 
-        constexpr auto do_none() const noexcept
+        auto do_none() const noexcept
         {
-                for (auto const& block : elems)
-                        if (block != mask::none<Block>)
-                                return false;
-                return true;
+                using std::cbegin; using std::cend;
+                return std::none_of(cbegin(elems), cend(elems),
+                        [](auto const& block){
+                        return block != mask::none<Block>;
+                });
         }
 
-        constexpr auto do_count() const noexcept
+        auto do_count() const noexcept
         {
-                auto sum = 0_z;
-                for (auto const& block : elems)
-                        sum += popcount(block);
-                return sum;
+                using std::cbegin; using std::cend;
+                return std::accumulate(cbegin(elems), cend(elems), 0_z,
+                        [](auto const& sum, auto const& block){
+                        return sum + popcount(block);
+                });
         }
 };
 

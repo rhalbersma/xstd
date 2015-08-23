@@ -75,11 +75,11 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(SetIntersection, T, SetTypes)
 
         constexpr auto i_ab = a & b;
         constexpr auto i_ba = b & a;
-        static_assert(i_ab == i_ba, "");
+//        BOOST_CHECK_EQUAL(i_ab, i_ba);
         BOOST_CHECK_EQUAL_COLLECTIONS(begin(i_ab), end(i_ab), begin(i_ba), end(i_ba));
 
-        static_assert(i_ab.is_subset_of(a), "");
-        static_assert(i_ab.is_subset_of(b), "");
+        BOOST_CHECK(i_ab.is_subset_of(a));
+        BOOST_CHECK(i_ab.is_subset_of(b));
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(SetUnion, T, SetTypes)
@@ -89,11 +89,11 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(SetUnion, T, SetTypes)
 
         constexpr auto u_ab = a | b;
         constexpr auto u_ba = b | a;
-        static_assert(u_ab == u_ba, "");
+//        BOOST_CHECK_EQUAL(u_ab, u_ba);
         BOOST_CHECK_EQUAL_COLLECTIONS(begin(u_ab), end(u_ab), begin(u_ba), end(u_ba));
 
-        static_assert(a.is_subset_of(u_ab), "");
-        static_assert(b.is_subset_of(u_ab), "");
+        BOOST_CHECK(a.is_subset_of(u_ab));
+        BOOST_CHECK(b.is_subset_of(u_ab));
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(SetSymmetricDifference, T, SetTypes)
@@ -103,15 +103,15 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(SetSymmetricDifference, T, SetTypes)
 
         constexpr auto s_ab = a ^ b;
         constexpr auto s_ba = b ^ a;
-        static_assert(s_ab == s_ba, "");
+//        BOOST_CHECK_EQUAL(s_ab, s_ba);
         BOOST_CHECK_EQUAL_COLLECTIONS(begin(s_ab), end(s_ab), begin(s_ba), end(s_ba));
 
         constexpr auto u = (a - b) | (b - a);
-        static_assert(s_ab == u, "");
+//        BOOST_CHECK_EQUAL(s_ab, u);
         BOOST_CHECK_EQUAL_COLLECTIONS(begin(s_ab), end(s_ab), begin(u), end(u));
 
         constexpr auto d = (a | b) - (a & b);
-        static_assert(s_ab == d, "");
+//        BOOST_CHECK_EQUAL(s_ab, d);
         BOOST_CHECK_EQUAL_COLLECTIONS(begin(s_ab), end(s_ab), begin(d), end(d));
 }
 
@@ -123,10 +123,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(SetDifference, T, SetTypes)
         constexpr auto d_ab = a - b;
         constexpr auto d_ba = b - a;
 
-        static_assert( d_ab.is_subset_of(a), "");
-        static_assert(!d_ba.is_subset_of(a), "");
-        static_assert( d_ba.is_subset_of(b), "");
-        static_assert(!d_ab.is_subset_of(b), "");
+        BOOST_CHECK( d_ab.is_subset_of(a));
+        BOOST_CHECK(!d_ba.is_subset_of(a));
+        BOOST_CHECK( d_ba.is_subset_of(b));
+        BOOST_CHECK(!d_ab.is_subset_of(b));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

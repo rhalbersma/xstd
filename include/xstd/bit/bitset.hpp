@@ -1,12 +1,12 @@
 #pragma once
-#include <xstd/bit_array.hpp>           // bit_array
+#include <xstd/bit/bit_array.hpp>           // bit_array
 #include <xstd/bit/iterator.hpp>        // ConstIterator
 #include <xstd/bit/mask.hpp>            // one
 #include <xstd/bit/reference.hpp>       // ConstReference
-#include <xstd/iterator.hpp>            // reverse_iterator, begin, end, rbegin, rend, cbegin, cend, crbegin, crend
 #include <xstd/limits.hpp>              // digits
 #include <cassert>                      // assert
 #include <initializer_list>             // initializer_list
+#include <iterator>
 #include <type_traits>                  // enable_if_t
 
 namespace xstd {
@@ -43,8 +43,8 @@ public:
         using const_reference = reference;
         using iterator = bit::ConstIterator<block_type, Nb, N>;
         using const_iterator = iterator;
-        using reverse_iterator = xstd::reverse_iterator<iterator>;
-        using const_reverse_iterator = xstd::reverse_iterator<const_iterator>;
+        using reverse_iterator = std::reverse_iterator<iterator>;
+        using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
         // constructors
 
@@ -362,6 +362,90 @@ private:
 };
 
 template<std::size_t N>
+constexpr auto
+begin(bitset<N>& b) -> decltype(b.begin())
+{
+        return b.begin();
+}
+
+template<std::size_t N>
+constexpr auto
+begin(const bitset<N>& b) -> decltype(b.begin())
+{
+        return b.begin();
+}
+
+template<std::size_t N>
+constexpr auto
+end(bitset<N>& b) -> decltype(b.end())
+{
+        return b.end();
+}
+
+template<std::size_t N>
+constexpr auto
+end(const bitset<N>& b) -> decltype(b.end())
+{
+        return b.end();
+}
+
+template<std::size_t N>
+constexpr auto
+cbegin(const bitset<N>& b) noexcept(noexcept(std::begin(b))) -> decltype(xstd::begin(b))
+{
+        return xstd::begin(b);
+}
+
+template<std::size_t N>
+constexpr auto
+cend(const bitset<N>& b) noexcept(noexcept(std::end(b)))-> decltype(xstd::end(b))
+{
+        return xstd::end(b);
+}
+
+template<std::size_t N>
+constexpr auto
+rbegin(bitset<N>& b) -> decltype(b.rbegin())
+{
+        return b.rbegin();
+}
+
+template<std::size_t N>
+constexpr auto
+rbegin(const bitset<N>& b) -> decltype(b.rbegin())
+{
+        return b.rbegin();
+}
+
+template<std::size_t N>
+constexpr auto
+rend(bitset<N>& b) -> decltype(b.rend())
+{
+        return b.rend();
+}
+
+template<std::size_t N>
+constexpr auto
+rend(const bitset<N>& b) -> decltype(b.rend())
+{
+        return b.rend();
+}
+
+template<std::size_t N>
+constexpr auto
+crbegin(const bitset<N>& b) -> decltype(xstd::rbegin(b))
+{
+        return xstd::rbegin(b);
+}
+
+template<std::size_t N>
+constexpr auto
+crend(const bitset<N>& b) -> decltype(xstd::rend(b))
+{
+        return xstd::rend(b);
+}
+
+template<std::size_t N>
 constexpr bool operator==(const bitset<N>& lhs, const bitset<N>& rhs) noexcept
 {
         return lhs.do_equal(rhs);
@@ -370,7 +454,7 @@ constexpr bool operator==(const bitset<N>& lhs, const bitset<N>& rhs) noexcept
 template<std::size_t N>
 constexpr bool operator<(const bitset<N>& lhs, const bitset<N>& rhs) noexcept
 {
-        return lhs.do_colexicographical_compare(rhs);
+        return lhs.do_less(rhs);
 }
 
 template<std::size_t N>

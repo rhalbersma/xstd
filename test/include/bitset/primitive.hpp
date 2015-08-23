@@ -47,6 +47,54 @@ constexpr auto op_not_equal_to(bitset<N> const& lhs, bitset<N> const& rhs) noexc
         return value == expected;
 }
 
+template<std::size_t N>
+constexpr auto op_less(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
+{
+        // arrange
+        auto expected = false;
+        for (auto i = N - 1; i < N; --i) {
+                if (!lhs.test(i) && rhs.test(i)) { expected = true; break; }
+                if (!rhs.test(i) && lhs.test(i)) {                  break; }
+        }
+
+        // act
+        auto const value = lhs < rhs;
+
+        // assert
+        return value == expected;
+}
+
+template<std::size_t N>
+constexpr auto is_subset_of(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
+{
+        // arrange
+        auto expected = true;
+        for (auto i = 0_z; i < N; ++i)
+                expected &= !lhs.test(i) || rhs.test(i);
+
+        // act
+        auto const value = lhs.is_subset_of(rhs);
+
+        // assert
+        return value == expected;
+}
+
+template<std::size_t N>
+constexpr auto is_proper_subset_of(bitset<N> const& lhs, bitset<N> const& rhs) noexcept
+{
+        // arrange
+        auto expected = false;
+        for (auto i = 0_z; i < N; ++i)
+                if (!lhs.test(i) && rhs.test(i)) { expected = true; break; }
+        expected &= lhs.is_subset_of(rhs);
+
+        // act
+        auto const value = lhs.is_proper_subset_of(rhs);
+
+        // assert
+        return value == expected;
+}
+
 // modifiers
 
 template<std::size_t N>

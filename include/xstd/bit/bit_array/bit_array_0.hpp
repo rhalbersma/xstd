@@ -1,5 +1,5 @@
 #pragma once
-#include <xstd/bit_array/bit_array_fwd.hpp>     // bit_array (primary template)
+#include <xstd/bit/bit_array/bit_array_fwd.hpp>     // bit_array (primary template)
 #include <xstd/limits.hpp>                      // is_unsigned_integer
 #include <cstddef>                              // size_t
 
@@ -27,11 +27,11 @@ struct bit_array<Block, 0>
 
         // comparators
 
-        constexpr auto do_equal                    (bit_array const&) const noexcept { return true;  }
-        constexpr auto do_colexicographical_compare(bit_array const&) const noexcept { return false; }
-        constexpr auto do_intersects               (bit_array const&) const noexcept { return false; }
-        constexpr auto do_is_subset_of             (bit_array const&) const noexcept { return true;  }
-        constexpr auto do_is_proper_subset_of      (bit_array const&) const noexcept { return false; }
+        constexpr auto do_equal              (bit_array const&) const noexcept { return true;  }
+        constexpr auto do_less               (bit_array const&) const noexcept { return false; }
+        constexpr auto do_intersects         (bit_array const&) const noexcept { return false; }
+        constexpr auto do_is_subset_of       (bit_array const&) const noexcept { return true;  }
+        constexpr auto do_is_proper_subset_of(bit_array const&) const noexcept { return false; }
 
         // modifiers
 
