@@ -1,6 +1,5 @@
 #pragma once
 #include <boost/iterator/iterator_facade.hpp>   // iterator_core_access, iterator_facade
-#include <xstd/iterator.hpp>                    // begin, end
 #include <cstddef>                              // ptrdiff_t
 #include <iterator>                             // input_iterator_tag
 

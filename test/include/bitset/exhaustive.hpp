@@ -27,6 +27,36 @@ constexpr auto op_not_equal_to() noexcept
         return check;
 }
 
+template<std::size_t N>
+constexpr auto op_less() noexcept
+{
+        auto check = true;
+        for (auto i = 0_z; i < N; ++i)
+                for (auto j = 0_z; j < N; ++j)
+                        check &= op_less(bitset<N>{i}, bitset<N>{j});
+        return check;
+}
+
+template<std::size_t N>
+constexpr auto is_subset_of() noexcept
+{
+        auto check = true;
+        for (auto i = 0_z; i < N; ++i)
+                for (auto j = 0_z; j < N; ++j)
+                        check &= is_subset_of(bitset<N>{i}, bitset<N>{j});
+        return check;
+}
+
+template<std::size_t N>
+constexpr auto is_proper_subset_of() noexcept
+{
+        auto check = true;
+        for (auto i = 0_z; i < N; ++i)
+                for (auto j = 0_z; j < N; ++j)
+                        check &= is_proper_subset_of(bitset<N>{i}, bitset<N>{j});
+        return check;
+}
+
 // modifiers
 
 template<std::size_t N>

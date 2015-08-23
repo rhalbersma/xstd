@@ -1,5 +1,5 @@
 #pragma once
-#include <xstd/bit_array/bit_array_fwd.hpp>     // base_bitset
+#include <xstd/bit/bit_array/bit_array_fwd.hpp>     // base_bitset
 #include <xstd/bit/mask.hpp>                    // none, one, all
 #include <xstd/bit/primitive.hpp>               // popcount
 #include <xstd/limits.hpp>                      // digits, is_unsigned_integer
@@ -77,7 +77,7 @@ struct bit_array<Block, 1>
                 return elems == other.elems;
         }
 
-        constexpr auto do_colexicographical_compare(bit_array const& other) const noexcept
+        constexpr auto do_less(bit_array const& other) const noexcept
         {
                 return elems < other.elems;
         }
