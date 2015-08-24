@@ -1,9 +1,11 @@
 #pragma once
-#include <xstd/bit/bit_array/bit_array_fwd.hpp>     // bit_array
+#include <xstd/bit/bit_array/bit_array_fwd.hpp> // bit_array
 #include <xstd/bit/mask.hpp>                    // none, one, all
 #include <xstd/bit/primitive.hpp>               // popcount
 #include <xstd/cstddef.hpp>                     // _z
 #include <xstd/limits.hpp>                      // digits, is_unsigned_integer
+#include <boost/iterator/zip_iterator.hpp>      // make_zip_iterator
+#include <boost/tuple/tuple.hpp>                // make_tuple
 #include <algorithm>                            // all_of, any_of, none_of, equal, lexicographical_compare,
                                                 // copy, copy_backward, fill_n, swap_ranges
 #include <cassert>                              // assert
@@ -80,13 +82,13 @@ struct bit_array
 
         // comparators
 
-        auto do_equal(bit_array const& other) const noexcept
+        auto op_equal_to(bit_array const& other) const noexcept
         {
                 using std::cbegin; using std::cend;
                 return std::equal(cbegin(elems), cend(elems), cbegin(other.elems), cend(other.elems));
         }
 
-        auto do_less(bit_array const& other) const noexcept
+        auto op_less(bit_array const& other) const noexcept
         {
                 using std::crbegin; using std::crend;
                 return std::lexicographical_compare(crbegin(elems), crend(elems), crbegin(other.elems), crend(other.elems));
@@ -95,30 +97,23 @@ struct bit_array
         auto do_intersects(bit_array const& other) const noexcept
         {
                 using std::cbegin; using std::cend;
-                return !std::equal(cbegin(elems), cend(elems), cbegin(other.elems), cend(other.elems),
-                        [](auto const& lhs, auto const& rhs){
-                        return !(lhs & rhs);
+                return std::any_of(
+                        boost::make_zip_iterator(boost::make_tuple(cbegin(elems), cbegin(other.elems))),
+                        boost::make_zip_iterator(boost::make_tuple(cend  (elems), cend  (other.elems))),
+                        [](auto const& blocks){
+                        return boost::get<0>(blocks) & boost::get<1>(blocks);
                 });
         }
 
         auto do_is_subset_of(bit_array const& other) const noexcept
         {
-                for (auto i = 0_z; i < Nb; ++i)
-                       if (elems[i] & ~other.elems[i])
-                                return false;
-                return true;
-        }
-
-        constexpr auto do_is_proper_subset_of(bit_array const& other) const noexcept
-        {
-                auto proper = false;
-                for (auto i = 0_z; i < Nb; ++i) {
-                        if ( elems[i] & ~other.elems[i])
-                                return false;
-                        if (~elems[i] &  other.elems[i])
-                                proper = true;
-                }
-                return proper;
+                using std::cbegin; using std::cend;
+                return std::all_of(
+                        boost::make_zip_iterator(boost::make_tuple(cbegin(elems), cbegin(other.elems))),
+                        boost::make_zip_iterator(boost::make_tuple(cend  (elems), cend  (other.elems))),
+                        [](auto const& blocks){
+                        return !(boost::get<0>(blocks) & ~boost::get<1>(blocks));
+                });
         }
 
         // modifiers
@@ -141,37 +136,37 @@ struct bit_array
                 std::fill_n(begin(elems), Nb, mask::none<Block>);
         }
 
-        constexpr auto do_flip() noexcept
+        constexpr auto op_flip() noexcept
         {
                 for (auto& block : elems)
                         block = ~block;
         }
 
-        constexpr auto do_and(bit_array const& other) noexcept
+        constexpr auto op_and(bit_array const& other) noexcept
         {
                 for (auto i = 0_z; i < Nb; ++i)
                         elems[i] &= other.elems[i];
         }
 
-        constexpr auto do_or(bit_array const& other) noexcept
+        constexpr auto op_or(bit_array const& other) noexcept
         {
                 for (auto i = 0_z; i < Nb; ++i)
                         elems[i] |= other.elems[i];
         }
 
-        constexpr auto do_xor(bit_array const& other) noexcept
+        constexpr auto op_xor(bit_array const& other) noexcept
         {
                 for (auto i = 0_z; i < Nb; ++i)
                         elems[i] ^= other.elems[i];
         }
 
-        constexpr auto do_minus(bit_array const& other) noexcept
+        constexpr auto op_minus(bit_array const& other) noexcept
         {
                 for (auto i = 0_z; i < Nb; ++i)
                         elems[i] &= ~other.elems[i];
         }
 
-        auto do_left_shift(std::size_t n)
+        auto op_left_shift(std::size_t n)
         {
                 assert(n < N);
                 using std::begin; using std::end;
@@ -195,7 +190,7 @@ struct bit_array
                 std::fill_n(begin(elems), n_block, mask::none<Block>);
         }
 
-        auto do_right_shift(std::size_t n)
+        auto op_right_shift(std::size_t n)
         {
                 assert(n < N);
                 using std::begin; using std::end;
