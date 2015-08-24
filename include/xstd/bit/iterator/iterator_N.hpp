@@ -118,7 +118,7 @@ private:
                 }
                 --block;
 
-                for (auto i = index / digits<Block> - 1; i >= 0; --i) {
+                for (auto i = index / digits<Block> - 1; i < Nb; --i) {
                         if (auto const mask = *block) {
                                 index = i * digits<Block> + bsrnz(mask);
                                 assert(index < N);

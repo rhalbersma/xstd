@@ -72,31 +72,24 @@ struct bit_array<Block, 1>
 
         // comparators
 
-        constexpr auto do_equal(bit_array const& other) const noexcept
+        constexpr auto op_equal_to(bit_array const& other) const noexcept
         {
                 return elems == other.elems;
         }
 
-        constexpr auto do_less(bit_array const& other) const noexcept
+        constexpr auto op_less(bit_array const& other) const noexcept
         {
                 return elems < other.elems;
         }
 
         constexpr auto do_intersects(bit_array const& other) const noexcept
         {
-                return (elems & other.elems) != mask::none<Block>;
+                return elems & other.elems;
         }
 
         constexpr auto do_is_subset_of(bit_array const& other) const noexcept
         {
-                return (elems & ~other.elems) == mask::none<Block>;
-        }
-
-        constexpr auto do_is_proper_subset_of(bit_array const& other) const noexcept
-        {
-                if (elems & ~other.elems)
-                        return false;
-                return (~elems & other.elems) != mask::none<Block>;
+                return !(elems & ~other.elems);
         }
 
         // modifiers
@@ -117,38 +110,38 @@ struct bit_array<Block, 1>
                 elems = mask::none<Block>;
         }
 
-        constexpr auto do_flip() noexcept
+        constexpr auto op_flip() noexcept
         {
                 elems = ~elems;
         }
 
-        constexpr auto do_and(bit_array const& other) noexcept
+        constexpr auto op_and(bit_array const& other) noexcept
         {
                 elems &= other.elems;
         }
 
-        constexpr auto do_or(bit_array const& other) noexcept
+        constexpr auto op_or(bit_array const& other) noexcept
         {
                 elems |= other.elems;
         }
 
-        constexpr auto do_xor(bit_array const& other) noexcept
+        constexpr auto op_xor(bit_array const& other) noexcept
         {
                 elems ^= other.elems;
         }
 
-        constexpr auto do_minus(bit_array const& other) noexcept
+        constexpr auto op_minus(bit_array const& other) noexcept
         {
                 elems &= ~other.elems;
         }
 
-        constexpr auto do_left_shift(std::size_t n)
+        constexpr auto op_left_shift(std::size_t n)
         {
                 assert(n < N);
                 elems <<= n;
         }
 
-        constexpr auto do_right_shift(std::size_t n)
+        constexpr auto op_right_shift(std::size_t n)
         {
                 assert(n < N);
                 elems >>= n;

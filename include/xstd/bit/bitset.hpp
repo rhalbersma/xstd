@@ -221,12 +221,12 @@ public:
 
         constexpr bool is_proper_subset_of(const bitset<N>& other) const noexcept
         {
-                return this->do_is_proper_subset_of(other);
+                return this->do_is_subset_of(other) && !other.is_subset_of(*this);
         }
 
         constexpr bool is_proper_superset_of(const bitset<N>& other) const noexcept
         {
-                return other.is_proper_subset_of(*this);
+                return this->do_is_superset_of(other) && !other.is_superset_of(*this);
         }
 
         // modifiers
@@ -248,39 +248,39 @@ public:
 
         constexpr bitset<N>& flip() noexcept
         {
-                this->do_flip();
+                this->op_flip();
                 sanitize();
                 return *this;
         }
 
         constexpr bitset<N>& operator&=(const bitset<N>& rhs) noexcept
         {
-                this->do_and(rhs);
+                this->op_and(rhs);
                 return *this;
         }
 
         constexpr bitset<N>& operator|=(const bitset<N>& rhs) noexcept
         {
-                this->do_or(rhs);
+                this->op_or(rhs);
                 return *this;
         }
 
         constexpr bitset<N>& operator^=(const bitset<N>& rhs) noexcept
         {
-                this->do_xor(rhs);
+                this->op_xor(rhs);
                 return *this;
         }
 
         constexpr bitset<N>& operator-=(const bitset<N>& rhs) noexcept
         {
-                this->do_minus(rhs);
+                this->op_minus(rhs);
                 return *this;
         }
 
         constexpr bitset<N>& operator<<=(std::size_t pos) // Throws: Nothing.
         {
                 assert(pos < N);
-                this->do_left_shift(pos);
+                this->op_left_shift(pos);
                 sanitize();
                 return *this;
         }
@@ -288,7 +288,7 @@ public:
         constexpr bitset<N>& operator>>=(std::size_t pos) // Throws: Nothing.
         {
                 assert(pos < N);
-                this->do_right_shift(pos);
+                this->op_right_shift(pos);
                 return *this;
         }
 
@@ -331,31 +331,31 @@ private:
         }
 
         template<std::size_t M>
-        constexpr std::enable_if_t<M != 0,
-        block_type> sanitized(block_type b) noexcept
+        constexpr auto sanitized(block_type b) noexcept
+                -> std::enable_if_t<M != 0, block_type>
         {
-                static_assert(0 < M && M < digits<block_type>, "");
+                static_assert(M < digits<block_type>, "");
                 return b & (bit::mask::all<block_type> >> (digits<block_type> - M));
         }
 
         template<std::size_t M>
-        constexpr std::enable_if_t<M == 0,
-        block_type> sanitized(block_type b) noexcept
+        constexpr auto sanitized(block_type b) noexcept
+                -> std::enable_if_t<M == 0, block_type>
         {
                 return b;
         }
 
         template<std::size_t M>
-        constexpr std::enable_if_t<M != 0,
-        void> sanitize(block_type& b) noexcept
+        constexpr auto sanitize(block_type& b) noexcept
+                -> std::enable_if_t<M != 0, void>
         {
-                static_assert(0 < M && M < digits<block_type>, "");
+                static_assert(M < digits<block_type>, "");
                 b &= bit::mask::all<block_type> >> (digits<block_type> - M);
         }
 
         template<std::size_t M>
-        constexpr std::enable_if_t<M == 0,
-        void> sanitize(block_type& /* b */) noexcept
+        constexpr auto sanitize(block_type& /* b */) noexcept
+                -> std::enable_if_t<M == 0, void>
         {
                 // no-op
         }
@@ -448,13 +448,13 @@ crend(const bitset<N>& b) -> decltype(xstd::rend(b))
 template<std::size_t N>
 constexpr bool operator==(const bitset<N>& lhs, const bitset<N>& rhs) noexcept
 {
-        return lhs.do_equal(rhs);
+        return lhs.op_equal_to(rhs);
 }
 
 template<std::size_t N>
 constexpr bool operator<(const bitset<N>& lhs, const bitset<N>& rhs) noexcept
 {
-        return lhs.do_less(rhs);
+        return lhs.op_less(rhs);
 }
 
 template<std::size_t N>
