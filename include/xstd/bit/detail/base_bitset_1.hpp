@@ -153,10 +153,10 @@ struct base_bitset<Block, 1>
         }
 
         template<class UnaryFunction>
-        constexpr auto do_consume_each(UnaryFunction f)
+        constexpr auto do_for_each(UnaryFunction f) const
         {
-                for (; elems; elems &= elems - 1)
-                        f(ctznz(elems));
+                for (auto block = elems; block; block &= block - 1)
+                        f(ctznz(block));
         }
 
         // observers

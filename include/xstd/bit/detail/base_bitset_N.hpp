@@ -221,11 +221,11 @@ struct base_bitset
         }
 
         template<class UnaryFunction>
-        constexpr auto do_consume_each(UnaryFunction f)
+        constexpr auto do_for_each(UnaryFunction f) const
         {
                 for (auto i = 0_z, offset = 0_z; i < Nb; ++i, offset += digits<Block>)
-                        for (; elems[i]; elems[i] &= elems[i] - 1)
-                                f(offset + ctznz(elems[i]));
+                        for (auto block = elems[i]; block; block &= block - 1)
+                                f(offset + ctznz(block));
         }
 
         // observers
