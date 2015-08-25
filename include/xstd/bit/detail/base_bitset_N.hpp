@@ -224,8 +224,8 @@ struct base_bitset
         constexpr auto do_consume_each(UnaryFunction f)
         {
                 for (auto i = 0_z, offset = 0_z; i < Nb; ++i, offset += digits<Block>)
-                        for (auto block = elems[i]; block; block &= block - 1)
-                                f(offset + ctznz(block));
+                        for (; elems[i]; elems[i] &= elems[i] - 1)
+                                f(offset + ctznz(elems[i]));
         }
 
         // observers
