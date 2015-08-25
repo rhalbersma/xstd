@@ -2,7 +2,6 @@
 #include <xstd/bit/base_bitset.hpp>     // base_bitset
 #include <xstd/bit/mask.hpp>            // one
 #include <xstd/bit/proxy.hpp>           // ConstIterator, ConstReference
-#include <xstd/bit/input_range.hpp>
 #include <xstd/limits.hpp>              // digits
 #include <cassert>                      // assert
 #include <initializer_list>             // initializer_list
