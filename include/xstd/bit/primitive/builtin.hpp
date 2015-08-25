@@ -2,14 +2,13 @@
 #include <xstd/limits.hpp>      // digits
 #include <cassert>              // assert
 #include <cstddef>              // size_t
-#include <cstdint>              // uint64_t
 
 namespace xstd {
 namespace bit {
 namespace builtin {
 namespace detail {
 
-// GCC has built-in functions for Count Trailing Zeros
+// GCC / Clang have built-in functions for Count Trailing Zeros
 // for unsigned, unsigned long and unsigned long long.
 // For zero input, the result is undefined.
 
@@ -43,7 +42,7 @@ struct ctznz<unsigned long long>
         }
 };
 
-// GCC has built-in functions for Count Leading Zeros
+// GCC / Clang have built-in functions for Count Leading Zeros
 // for unsigned, unsigned long and unsigned long long.
 // For zero input, the result is undefined
 
@@ -77,7 +76,7 @@ struct clznz<unsigned long long>
         }
 };
 
-// GCC has built-in functions for Population Count
+// GCC / Clang have built-in functions for Population Count
 // for unsigned, unsigned long and unsigned long long.
 
 template<class T>

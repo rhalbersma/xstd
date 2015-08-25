@@ -1,33 +1,33 @@
 #pragma once
-#include <xstd/bit/bit_array/bit_array_fwd.hpp> // bit_array
+#include <xstd/bit/detail/base_bitset_fwd.hpp>  // base_bitset
 #include <xstd/bit/mask.hpp>                    // none, one, all
-#include <xstd/bit/primitive.hpp>               // popcount
-#include <xstd/cstddef.hpp>                     // _z
+#include <xstd/bit/primitive.hpp>               // ctznz, popcount
+#include <xstd/cstddef.hpp>                     // size_t, _z
 #include <xstd/limits.hpp>                      // digits, is_unsigned_integer
 #include <boost/iterator/zip_iterator.hpp>      // make_zip_iterator
 #include <boost/tuple/tuple.hpp>                // make_tuple
 #include <algorithm>                            // all_of, any_of, none_of, equal, lexicographical_compare,
                                                 // copy, copy_backward, fill_n, swap_ranges
 #include <cassert>                              // assert
-#include <cstddef>                              // size_t
 #include <iterator>                             // begin, end, cbegin, cend, crbegin, crend
 #include <numeric>                              // accumulate
 #include <type_traits>                          // enable_if
 
 namespace xstd {
 namespace bit {
+namespace detail {
 
 template<class Block, std::size_t Nb>
-struct bit_array
+struct base_bitset
 {
         static_assert(is_unsigned_integer<Block>, "");
         static constexpr auto N = Nb * digits<Block>;
 
         Block elems[Nb];
 
-        bit_array() = default;
+        base_bitset() = default;
 
-        /* implicit */ constexpr bit_array(Block value) noexcept
+        /* implicit */ constexpr base_bitset(Block value) noexcept
         :
                 elems{{value}}
         {}
@@ -80,21 +80,27 @@ struct bit_array
                 return elems[n / digits<Block>];
         }
 
+        constexpr auto block_mask(std::size_t n) const noexcept
+        {
+                assert(n < N);
+                return mask::one<Block> << (n % digits<Block>);
+        }
+
         // comparators
 
-        auto op_equal_to(bit_array const& other) const noexcept
+        auto op_equal_to(base_bitset const& other) const noexcept
         {
                 using std::cbegin; using std::cend;
                 return std::equal(cbegin(elems), cend(elems), cbegin(other.elems), cend(other.elems));
         }
 
-        auto op_less(bit_array const& other) const noexcept
+        auto op_less(base_bitset const& other) const noexcept
         {
                 using std::crbegin; using std::crend;
                 return std::lexicographical_compare(crbegin(elems), crend(elems), crbegin(other.elems), crend(other.elems));
         }
 
-        auto do_intersects(bit_array const& other) const noexcept
+        auto do_intersects(base_bitset const& other) const noexcept
         {
                 using std::cbegin; using std::cend;
                 return std::any_of(
@@ -105,7 +111,7 @@ struct bit_array
                 });
         }
 
-        auto do_is_subset_of(bit_array const& other) const noexcept
+        auto do_is_subset_of(base_bitset const& other) const noexcept
         {
                 using std::cbegin; using std::cend;
                 return std::all_of(
@@ -118,7 +124,7 @@ struct bit_array
 
         // modifiers
 
-        auto do_swap(bit_array& other) noexcept
+        auto do_swap(base_bitset& other) noexcept
         {
                 using std::begin; using std::end;
                 std::swap_ranges(begin(elems), end(elems), begin(other.elems));
@@ -142,25 +148,25 @@ struct bit_array
                         block = ~block;
         }
 
-        constexpr auto op_and(bit_array const& other) noexcept
+        constexpr auto op_and(base_bitset const& other) noexcept
         {
                 for (auto i = 0_z; i < Nb; ++i)
                         elems[i] &= other.elems[i];
         }
 
-        constexpr auto op_or(bit_array const& other) noexcept
+        constexpr auto op_or(base_bitset const& other) noexcept
         {
                 for (auto i = 0_z; i < Nb; ++i)
                         elems[i] |= other.elems[i];
         }
 
-        constexpr auto op_xor(bit_array const& other) noexcept
+        constexpr auto op_xor(base_bitset const& other) noexcept
         {
                 for (auto i = 0_z; i < Nb; ++i)
                         elems[i] ^= other.elems[i];
         }
 
-        constexpr auto op_minus(bit_array const& other) noexcept
+        constexpr auto op_minus(base_bitset const& other) noexcept
         {
                 for (auto i = 0_z; i < Nb; ++i)
                         elems[i] &= ~other.elems[i];
@@ -212,6 +218,14 @@ struct bit_array
                         elems[Nb - 1 - n_block] = elems[Nb - 1] >> R_shift;
                 }
                 std::fill_n(end(elems) - n_block, n_block, mask::none<Block>);
+        }
+
+        template<class UnaryFunction>
+        constexpr auto do_consume_each(UnaryFunction f)
+        {
+                for (auto i = 0_z, offset = 0_z; i < Nb; ++i, offset += digits<Block>)
+                        for (auto block = elems[i]; block; block &= block - 1)
+                                f(offset + ctznz(block));
         }
 
         // observers
@@ -267,5 +281,6 @@ struct bit_array
         }
 };
 
+}       // namespace detail
 }       // namespace bit
 }       // namespace xstd

@@ -1,17 +1,18 @@
 #pragma once
-#include <xstd/bit/bit_array/bit_array_fwd.hpp>     // bit_array (primary template)
+#include <xstd/bit/detail/base_bitset_fwd.hpp>  // base_bitset
 #include <xstd/limits.hpp>                      // is_unsigned_integer
 #include <cstddef>                              // size_t
 
 namespace xstd {
 namespace bit {
+namespace detail {
 
 template<class Block>
-struct bit_array<Block, 0>
+struct base_bitset<Block, 0>
 {
         static_assert(is_unsigned_integer<Block>, "");
 
-        bit_array() = default;
+        base_bitset() = default;
 
         // data access
 
@@ -25,28 +26,33 @@ struct bit_array<Block, 0>
         constexpr auto&       block_ref (std::size_t)       noexcept { return *static_cast<Block*      >(nullptr); }
         constexpr auto const& block_ref (std::size_t) const noexcept { return *static_cast<Block const*>(nullptr); }
 
+        constexpr auto        block_mask(std::size_t) const noexcept { return Block{}; }
+
         // comparators
 
-        constexpr auto op_equal_to    (bit_array const&) const noexcept { return true;  }
-        constexpr auto op_less        (bit_array const&) const noexcept { return false; }
-        constexpr auto do_intersects  (bit_array const&) const noexcept { return false; }
-        constexpr auto do_is_subset_of(bit_array const&) const noexcept { return true;  }
+        constexpr auto op_equal_to    (base_bitset const&) const noexcept { return true;  }
+        constexpr auto op_less        (base_bitset const&) const noexcept { return false; }
+        constexpr auto do_intersects  (base_bitset const&) const noexcept { return false; }
+        constexpr auto do_is_subset_of(base_bitset const&) const noexcept { return true;  }
 
         // modifiers
 
-        constexpr auto do_swap(bit_array&) noexcept {}
+        constexpr auto do_swap(base_bitset&) noexcept {}
 
         constexpr auto do_set  () noexcept {}
         constexpr auto do_reset() noexcept {}
         constexpr auto op_flip () noexcept {}
 
-        constexpr auto op_and  (bit_array const&) noexcept {}
-        constexpr auto op_or   (bit_array const&) noexcept {}
-        constexpr auto op_xor  (bit_array const&) noexcept {}
-        constexpr auto op_minus(bit_array const&) noexcept {}
+        constexpr auto op_and  (base_bitset const&) noexcept {}
+        constexpr auto op_or   (base_bitset const&) noexcept {}
+        constexpr auto op_xor  (base_bitset const&) noexcept {}
+        constexpr auto op_minus(base_bitset const&) noexcept {}
 
         constexpr auto op_left_shift (std::size_t) {}
         constexpr auto op_right_shift(std::size_t) {}
+
+        template<class UnaryFunction>
+        constexpr auto do_consume_each(UnaryFunction) {}
 
         // observers
 
@@ -58,5 +64,6 @@ struct bit_array<Block, 0>
         constexpr std::size_t do_count() const noexcept { return 0;     }
 };
 
+}       // namespace detail
 }       // namespace bit
 }       // namespace xstd

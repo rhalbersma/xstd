@@ -11,7 +11,7 @@ public:
         constexpr InputRangeCoreAccess() noexcept = delete;
 
         template<class Facade>
-        static void pop_front(Facade* f)
+        static auto pop_front(Facade* f)
         {
                 f->pop_front();
         }
@@ -64,7 +64,7 @@ public:
                 friend class boost::iterator_core_access;
 
                 // operator++() and operator++(int) provided by boost::iterator_facade
-                void increment()
+                auto increment()
                 {
                         InputRangeCoreAccess::pop_front(range_);
                 }
