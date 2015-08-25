@@ -1,9 +1,8 @@
 #pragma once
-#include <xstd/cstddef.hpp>     // _z
+#include <xstd/cstddef.hpp>     // size_t, _z
 #include <xstd/limits.hpp>      // digits, digits_ratio
 #include <cassert>              // assert
-#include <cstddef>      // size_t
-#include <cstdint>      // uint8_t
+#include <cstdint>              // uint8_t
 
 namespace xstd {
 namespace bit {

@@ -1,6 +1,5 @@
 #pragma once
 #include <xstd/bit/input_range_facade.hpp>      // InputRangeCoreAcces, InputRangeFacade
-#include <xstd/bit/mask.hpp>                    // none
 #include <xstd/bit/primitive.hpp>               // ctznz
 #include <xstd/limits.hpp>                      // is_unsigned_integer
 #include <cassert>                              // assert
@@ -28,7 +27,7 @@ public:
                 range{r}
         {}
 
-private:
+//private:
         // gateway for InputRangeFacade to access private implementation
         friend class xstd::InputRangeCoreAccess;
 
@@ -46,7 +45,7 @@ private:
 
         auto empty() const noexcept
         {
-                return range == mask::none<Block>;
+                return !range;
         }
 };
 

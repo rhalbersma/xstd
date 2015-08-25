@@ -1,7 +1,7 @@
 #pragma once
-#include <xstd/bit/bit_array/bit_array_fwd.hpp>     // base_bitset
+#include <xstd/bit/detail/base_bitset_fwd.hpp>  // base_bitset
 #include <xstd/bit/mask.hpp>                    // none, one, all
-#include <xstd/bit/primitive.hpp>               // popcount
+#include <xstd/bit/primitive.hpp>               // ctznz, popcount
 #include <xstd/limits.hpp>                      // digits, is_unsigned_integer
 #include <cassert>                              // assert
 #include <cstddef>                              // size_t
@@ -10,18 +10,19 @@
 
 namespace xstd {
 namespace bit {
+namespace detail {
 
 template<class Block>
-struct bit_array<Block, 1>
+struct base_bitset<Block, 1>
 {
         static_assert(is_unsigned_integer<Block>, "");
         static constexpr auto N = 1 * digits<Block>;
 
         Block elems;
 
-        bit_array() = default;
+        base_bitset() = default;
 
-        /* implicit */ constexpr bit_array(Block value) noexcept
+        /* implicit */ constexpr base_bitset(Block value) noexcept
         :
                 elems{value}
         {}
@@ -58,43 +59,47 @@ struct bit_array<Block, 1>
                 return elems;
         }
 
-        constexpr auto& block_ref(std::size_t /* n */)
+        constexpr auto& block_ref(std::size_t)
         {
-                //assert(n < N);
                 return elems;
         }
 
-        constexpr auto const& block_ref(std::size_t /* n */) const
+        constexpr auto const& block_ref(std::size_t) const
         {
-                //assert(n < N);
                 return elems;
+        }
+
+        constexpr auto block_mask(std::size_t n) const noexcept
+        {
+                assert(n < N);
+                return mask::one<Block> << n;
         }
 
         // comparators
 
-        constexpr auto op_equal_to(bit_array const& other) const noexcept
+        constexpr auto op_equal_to(base_bitset const& other) const noexcept
         {
                 return elems == other.elems;
         }
 
-        constexpr auto op_less(bit_array const& other) const noexcept
+        constexpr auto op_less(base_bitset const& other) const noexcept
         {
                 return elems < other.elems;
         }
 
-        constexpr auto do_intersects(bit_array const& other) const noexcept
+        constexpr auto do_intersects(base_bitset const& other) const noexcept
         {
                 return elems & other.elems;
         }
 
-        constexpr auto do_is_subset_of(bit_array const& other) const noexcept
+        constexpr auto do_is_subset_of(base_bitset const& other) const noexcept
         {
                 return !(elems & ~other.elems);
         }
 
         // modifiers
 
-        /* constexpr */ auto do_swap(bit_array& other) noexcept
+        auto do_swap(base_bitset& other) noexcept
         {
                 using std::swap;
                 swap(elems, other.elems);
@@ -115,22 +120,22 @@ struct bit_array<Block, 1>
                 elems = ~elems;
         }
 
-        constexpr auto op_and(bit_array const& other) noexcept
+        constexpr auto op_and(base_bitset const& other) noexcept
         {
                 elems &= other.elems;
         }
 
-        constexpr auto op_or(bit_array const& other) noexcept
+        constexpr auto op_or(base_bitset const& other) noexcept
         {
                 elems |= other.elems;
         }
 
-        constexpr auto op_xor(bit_array const& other) noexcept
+        constexpr auto op_xor(base_bitset const& other) noexcept
         {
                 elems ^= other.elems;
         }
 
-        constexpr auto op_minus(bit_array const& other) noexcept
+        constexpr auto op_minus(base_bitset const& other) noexcept
         {
                 elems &= ~other.elems;
         }
@@ -147,19 +152,26 @@ struct bit_array<Block, 1>
                 elems >>= n;
         }
 
+        template<class UnaryFunction>
+        constexpr auto do_consume_each(UnaryFunction f)
+        {
+                for (; elems; elems &= elems - 1)
+                        f(ctznz(elems));
+        }
+
         // observers
 
         template<std::size_t M>
-        constexpr std::enable_if_t<M != 0,
-        bool> do_all() const noexcept
+        constexpr auto do_all() const noexcept
+                -> std::enable_if_t<M != 0, bool>
         {
-                static_assert(0 < M && M < digits<Block>, "");
+                static_assert(M < digits<Block>, "");
                 return elems == mask::all<Block> >> (digits<Block> - M);
         }
 
         template<std::size_t M>
-        constexpr std::enable_if_t<M == 0,
-        bool> do_all() const noexcept
+        constexpr auto do_all() const noexcept
+                -> std::enable_if_t<M == 0, bool>
         {
                 return elems == mask::all<Block>;
         }
@@ -180,5 +192,6 @@ struct bit_array<Block, 1>
         }
 };
 
+}       // namespace detail
 }       // namespace bit
 }       // namespace xstd

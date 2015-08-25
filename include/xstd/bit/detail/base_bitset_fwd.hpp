@@ -3,15 +3,17 @@
 
 namespace xstd {
 namespace bit {
+namespace detail {
 
 template<class Block, std::size_t Nb>
-struct bit_array;
+struct base_bitset;
 
 template<class Block>
-struct bit_array<Block, 1>;
+struct base_bitset<Block, 1>;
 
 template<class Block>
-struct bit_array<Block, 0>;
+struct base_bitset<Block, 0>;
 
+}       // namespace detail
 }       // namespace bit
 }       // namespace xstd

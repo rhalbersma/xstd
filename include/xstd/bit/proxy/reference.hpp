@@ -1,6 +1,6 @@
 #pragma once
-#include <xstd/bit/iterator/iterator_fwd.hpp>   // ConstIterator
-#include <xstd/bit/iterator/reference_fwd.hpp>  // ConstReference
+#include <xstd/bit/proxy/reference_fwd.hpp>     // ConstReference
+#include <xstd/bit/proxy/iterator_fwd.hpp>      // ConstIterator
 #include <xstd/limits.hpp>                      // digits, is_unsigned_integer
 #include <cassert>                              // assert
 #include <cstddef>                              // size_t
