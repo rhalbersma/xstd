@@ -52,7 +52,7 @@ struct base_bitset<Block, 0>
         constexpr auto op_right_shift(std::size_t) {}
 
         template<class UnaryFunction>
-        constexpr auto do_consume_each(UnaryFunction) {}
+        constexpr auto do_for_each(UnaryFunction) const {}
 
         // observers
 

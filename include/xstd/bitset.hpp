@@ -274,9 +274,9 @@ public:
         }
 
         template<class UnaryFunction>
-        constexpr auto consume_each(UnaryFunction f)
+        constexpr auto for_each(UnaryFunction f) const
         {
-                this->do_consume_each(f);
+                this->do_for_each(f);
         }
 
         // observers
