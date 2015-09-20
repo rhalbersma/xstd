@@ -1,12 +1,9 @@
 #pragma once
-#include <type_traits>
+#include <type_traits>  // underlying_type, void_t (C++1z)
 
 namespace xstd {
 
 // www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3911.pdf
-
-template<class...>
-using void_t = void;
 
 template<class T>
 struct type_is
@@ -37,7 +34,7 @@ template
         template<class...> class Op,
         class... Args
 >
-struct detector<Default, void_t<Op<Args...>>, Op, Args...>
+struct detector<Default, std::void_t<Op<Args...>>, Op, Args...>
 {
         constexpr static auto value = true;
         using type = Op<Args...>;
