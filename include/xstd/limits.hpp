@@ -17,18 +17,14 @@ constexpr auto digits = static_cast<std::size_t>(std::numeric_limits<T>::digits)
 template<class Numerator, class Denominator>
 constexpr auto digits_ratio = digits<Numerator> / digits<Denominator>;
 
-template<class T>
-constexpr auto is_representable(std::size_t N) noexcept
-{
-        static_assert(is_unsigned_integer<T>, "");
-        return N <= std::numeric_limits<T>::max();
-}
+template<class T, std::size_t N>
+constexpr auto is_representable = N <= (std::numeric_limits<T>::max() + 1);
 
 template<class T>
 constexpr auto is_power_of_2(T x) noexcept
 {
         static_assert(is_unsigned_integer<T>, "");
-        return (x & - x) > (x - 1);
+        return (x - 1) < (x & - x);
 }
 
 constexpr auto align_on(std::size_t offset, std::size_t align) noexcept
