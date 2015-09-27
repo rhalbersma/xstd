@@ -2,6 +2,7 @@
 #include <cassert>      // assert
 #include <cstddef>      // size_t
 #include <limits>       // digits, is_signed, is_integer, max
+#include <type_traits>  // bool_constant (C++1z)
 
 namespace xstd {
 
@@ -18,7 +19,10 @@ template<class Numerator, class Denominator>
 constexpr auto digits_ratio = digits<Numerator> / digits<Denominator>;
 
 template<class T, std::size_t N>
-constexpr auto is_representable = N <= (std::numeric_limits<T>::max() + 1);
+constexpr auto is_representable_v = N <= (std::numeric_limits<T>::max() + 1);
+
+template<class T, std::size_t N>
+using is_representable_t = std::bool_constant<is_representable_v<T, N>>;
 
 template<class T>
 constexpr auto is_power_of_2(T x) noexcept

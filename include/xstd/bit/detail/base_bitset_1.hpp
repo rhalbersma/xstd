@@ -161,17 +161,15 @@ struct base_bitset<Block, 1>
 
         // observers
 
-        template<std::size_t M>
+        template<std::size_t M, std::enable_if_t<M != 0>* = nullptr>
         constexpr auto do_all() const noexcept
-                -> std::enable_if_t<M != 0, bool>
         {
                 static_assert(M < digits<Block>, "");
                 return elems == mask::all<Block> >> (digits<Block> - M);
         }
 
-        template<std::size_t M>
+        template<std::size_t M, std::enable_if_t<M == 0>* = nullptr>
         constexpr auto do_all() const noexcept
-                -> std::enable_if_t<M == 0, bool>
         {
                 return elems == mask::all<Block>;
         }
