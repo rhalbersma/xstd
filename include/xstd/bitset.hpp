@@ -312,32 +312,28 @@ private:
                 sanitize<N % digits<block_type>>(this->block_back());
         }
 
-        template<std::size_t M>
+        template<std::size_t M, std::enable_if_t<M != 0>* = nullptr>
         constexpr auto sanitized(block_type b) noexcept
-                -> std::enable_if_t<M != 0, block_type>
         {
                 static_assert(M < digits<block_type>, "");
                 return b & (bit::mask::all<block_type> >> (digits<block_type> - M));
         }
 
-        template<std::size_t M>
+        template<std::size_t M, std::enable_if_t<M == 0>* = nullptr>
         constexpr auto sanitized(block_type b) noexcept
-                -> std::enable_if_t<M == 0, block_type>
         {
                 return b;
         }
 
-        template<std::size_t M>
+        template<std::size_t M, std::enable_if_t<M != 0>* = nullptr>
         constexpr auto sanitize(block_type& b) noexcept
-                -> std::enable_if_t<M != 0, void>
         {
                 static_assert(M < digits<block_type>, "");
                 b &= bit::mask::all<block_type> >> (digits<block_type> - M);
         }
 
-        template<std::size_t M>
+        template<std::size_t M, std::enable_if_t<M == 0>* = nullptr>
         constexpr auto sanitize(block_type& /* b */) noexcept
-                -> std::enable_if_t<M == 0, void>
         {
                 // no-op
         }

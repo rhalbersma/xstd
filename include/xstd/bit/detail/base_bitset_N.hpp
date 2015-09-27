@@ -230,9 +230,8 @@ struct base_bitset
 
         // observers
 
-        template<std::size_t M>
+        template<std::size_t M, std::enable_if_t<M != 0>* = nullptr>
         auto do_all() const noexcept
-                -> std::enable_if_t<M != 0, bool>
         {
                 static_assert(M < digits<Block>, "");
                 using std::cbegin; using std::cend;
@@ -242,9 +241,8 @@ struct base_bitset
                 }) ? elems[Nb - 1] == mask::all<Block> >> (digits<Block> - M) : false;
         }
 
-        template<std::size_t M>
+        template<std::size_t M, std::enable_if_t<M == 0>* = nullptr>
         auto do_all() const noexcept
-                -> std::enable_if_t<M == 0, bool>
         {
                 using std::cbegin; using std::cend;
                 return std::all_of(cbegin(elems), cend(elems),
