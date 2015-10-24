@@ -11,8 +11,8 @@ namespace bit {
 template<class Block, std::size_t Nb, std::size_t N>
 class ConstReference
 {
-        static_assert(is_unsigned_integer<Block>, "");
-        static_assert(N <= Nb * digits<Block>, "");
+        static_assert(is_unsigned_integer<Block>);
+        static_assert(N <= Nb * digits<Block>);
 
         Block const& block;
         std::size_t index;

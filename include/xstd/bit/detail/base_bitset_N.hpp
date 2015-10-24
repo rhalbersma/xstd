@@ -20,7 +20,7 @@ namespace detail {
 template<class Block, std::size_t Nb>
 struct base_bitset
 {
-        static_assert(is_unsigned_integer<Block>, "");
+        static_assert(is_unsigned_integer<Block>);
         static constexpr auto N = Nb * digits<Block>;
 
         Block elems[Nb];
@@ -233,7 +233,7 @@ struct base_bitset
         template<std::size_t M, std::enable_if_t<M != 0>* = nullptr>
         auto do_all() const noexcept
         {
-                static_assert(M < digits<Block>, "");
+                static_assert(M < digits<Block>);
                 using std::cbegin; using std::cend;
                 return std::all_of(cbegin(elems), cend(elems) - 1,
                         [](auto const& block){

@@ -10,7 +10,7 @@ namespace detail {
 template<class Block>
 struct base_bitset<Block, 0>
 {
-        static_assert(is_unsigned_integer<Block>, "");
+        static_assert(is_unsigned_integer<Block>);
 
         base_bitset() = default;
 
@@ -57,7 +57,7 @@ struct base_bitset<Block, 0>
         // observers
 
         template<std::size_t M>
-        constexpr auto        do_all  () const noexcept { static_assert(M == 0, ""); return true; }
+        constexpr auto        do_all  () const noexcept { static_assert(M == 0); return true; }
 
         constexpr auto        do_any  () const noexcept { return false; }
         constexpr auto        do_none () const noexcept { return true;  }

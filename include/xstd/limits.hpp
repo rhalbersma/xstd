@@ -27,7 +27,7 @@ using is_representable_t = std::bool_constant<is_representable_v<T, N>>;
 template<class T>
 constexpr auto is_power_of_2(T x) noexcept
 {
-        static_assert(is_unsigned_integer<T>, "");
+        static_assert(is_unsigned_integer<T>);
         return (x - 1) < (x & - x);
 }
 

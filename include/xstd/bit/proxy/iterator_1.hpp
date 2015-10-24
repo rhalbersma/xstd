@@ -23,8 +23,8 @@ class ConstIterator<Block, 1, N>
                 std::ptrdiff_t
         >
 {
-        static_assert(is_unsigned_integer<Block>, "");
-        static_assert(N <= 1 * digits<Block>, "");
+        static_assert(is_unsigned_integer<Block>);
+        static_assert(N <= 1 * digits<Block>);
 
         Block const* block{};
         std::size_t index{};
