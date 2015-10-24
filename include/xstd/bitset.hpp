@@ -315,7 +315,7 @@ private:
         template<std::size_t M, std::enable_if_t<M != 0>* = nullptr>
         constexpr auto sanitized(block_type b) noexcept
         {
-                static_assert(M < digits<block_type>, "");
+                static_assert(M < digits<block_type>);
                 return b & (bit::mask::all<block_type> >> (digits<block_type> - M));
         }
 
@@ -328,7 +328,7 @@ private:
         template<std::size_t M, std::enable_if_t<M != 0>* = nullptr>
         constexpr auto sanitize(block_type& b) noexcept
         {
-                static_assert(M < digits<block_type>, "");
+                static_assert(M < digits<block_type>);
                 b &= bit::mask::all<block_type> >> (digits<block_type> - M);
         }
 

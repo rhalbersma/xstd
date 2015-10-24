@@ -15,7 +15,7 @@ namespace detail {
 template<class Block>
 struct base_bitset<Block, 1>
 {
-        static_assert(is_unsigned_integer<Block>, "");
+        static_assert(is_unsigned_integer<Block>);
         static constexpr auto N = 1 * digits<Block>;
 
         Block elems;
@@ -164,7 +164,7 @@ struct base_bitset<Block, 1>
         template<std::size_t M, std::enable_if_t<M != 0>* = nullptr>
         constexpr auto do_all() const noexcept
         {
-                static_assert(M < digits<Block>, "");
+                static_assert(M < digits<Block>);
                 return elems == mask::all<Block> >> (digits<Block> - M);
         }
 
