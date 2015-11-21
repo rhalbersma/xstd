@@ -3,90 +3,86 @@
 
 namespace xstd {
 
-// www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n3911.pdf
-
 template<class T>
 struct type_is
 {
         using type = T;
 };
 
-// http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2015/n4436.pdf
+  /// Implementation of the detection idiom (negative case).
+  template<typename _Default, typename _AlwaysVoid,
+           template<typename...> class _Op, typename... _Args>
+    struct __detector
+    {
+      using value_t = std::false_type;
+      using type = _Default;
+    };
 
-// primary template handles all types not supporting the archetypal Op
-template
-<
-        class Default,
-        class, // always void; supplied externally
-        template<class...> class Op,
-        class... Args
->
-struct detector
-{
-        constexpr static auto value = false;
-        using type = Default;
-};
+  /// Implementation of the detection idiom (positive case).
+  template<typename _Default, template<typename...> class _Op,
+            typename... _Args>
+    struct __detector<_Default, std::void_t<_Op<_Args...>>, _Op, _Args...>
+    {
+      using value_t = std::true_type;
+      using type = _Op<_Args...>;
+    };
 
-// specialization recognizes and handles only types supporting Op
-template
-<
-        class Default,
-        template<class...> class Op,
-        class... Args
->
-struct detector<Default, std::void_t<Op<Args...>>, Op, Args...>
-{
-        constexpr static auto value = true;
-        using type = Op<Args...>;
-};
+  // Detect whether _Op<_Args...> is a valid type, use _Default if not.
+  template<typename _Default, template<typename...> class _Op,
+           typename... _Args>
+    using __detected_or = __detector<_Default, void, _Op, _Args...>;
 
-template<template<class...> class Op, class... Args>
-using is_detected = detector<void, void, Op, Args...>;
+  // _Op<_Args...> if that is a valid type, otherwise _Default.
+  template<typename _Default, template<typename...> class _Op,
+           typename... _Args>
+    using __detected_or_t
+      = typename __detected_or<_Default, _Op, _Args...>::type;
 
-template<template<class...> class Op, class... Args>
-constexpr auto is_detected_v = is_detected<Op, Args...>::value;
-
-template<template<class...> class Op, class... Args>
-using detected_t = typename is_detected<Op, Args...>::type;
-
-template<class Default, template<class...> class Op, class... Args>
-using detected_or = detector<Default, void, Op, Args...>;
-
-template<class Default, template<class...> class Op, class... Args>
-using detected_or_t = typename detected_or<Default, Op, Args...>::type;
-
-template<class Expected, template<class...> class Op, class... Args>
-using is_detected_exact = std::is_same<Expected, detected_t<Op, Args...>>;
-
-template<class Expected, template<class...> class Op, class... Args >
-constexpr auto is_detected_exact_v = is_detected_exact<Expected, Op, Args...>::value;
-
-template<class To, template<class...> class Op, class... Args>
-using is_detected_convertible = std::is_convertible<detected_t<Op, Args...>, To>;
-
-template<class To, template<class...> class Op, class... Args>
-constexpr auto is_detected_convertible_v = is_detected_convertible<To, Op, Args...>::value;
+  // _Op<_Args...> if that is a valid type, otherwise _Default<_Args...>.
+  template<template<typename...> class _Default,
+           template<typename...> class _Op, typename... _Args>
+    using __detected_or_t_ =
+      __detected_or_t<_Default<_Args...>, _Op, _Args...>;
 
 struct nonesuch
 {
-        ~nonesuch() = delete;
-        nonesuch() = delete;
-        nonesuch(nonesuch const&) = delete;
-        nonesuch& operator=(nonesuch const&) = delete;
+  nonesuch() = delete;
+  ~nonesuch() = delete;
+  nonesuch(nonesuch const&) = delete;
+  void operator=(nonesuch const&) = delete;
 };
 
-// http://www.reddit.com/r/cpp/comments/2pey6r/tutorial_on_tag_dispatching_crazy_eddies_crazy_c/cmwal2r
-template<class T>
-struct always_false
-:
-        std::false_type
-{};
+template<template<typename...> class _Op, typename... _Args>
+  using is_detected
+    = typename __detector<nonesuch, void, _Op, _Args...>::value_t;
 
-template<class T>
-using always_false_t = typename always_false<T>::type;
+template<template<typename...> class _Op, typename... _Args>
+  constexpr bool is_detected_v = is_detected<_Op, _Args...>::value;
 
-template<class T>
-constexpr auto always_false_v = always_false<T>::value;
+template<template<typename...> class _Op, typename... _Args>
+  using detected_t
+    = typename __detector<nonesuch, void, _Op, _Args...>::type;
+
+template<typename _Default, template<typename...> class _Op, typename... _Args>
+  using detected_or = __detected_or<_Default, _Op, _Args...>;
+
+template<typename _Default, template<typename...> class _Op, typename... _Args>
+  using detected_or_t = typename detected_or<_Default, _Op, _Args...>::type;
+
+template<typename Expected, template<typename...> class _Op, typename... _Args>
+  using is_detected_exact = std::is_same<Expected, detected_t<_Op, _Args...>>;
+
+template<typename Expected, template<typename...> class _Op, typename... _Args>
+  constexpr bool is_detected_exact_v
+    = is_detected_exact<Expected, _Op, _Args...>::value;
+
+template<typename _To, template<typename...> class _Op, typename... _Args>
+  using is_detected_convertible
+    = std::is_convertible<detected_t<_Op, _Args...>, _To>;
+
+template<typename _To, template<typename...> class _Op, typename... _Args>
+  constexpr bool is_detected_convertible_v
+    = is_detected_convertible<_To, _Op, _Args...>::value;
 
 template<class E>
 constexpr auto to_underlying_type(E e) noexcept
