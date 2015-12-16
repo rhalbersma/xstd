@@ -2,7 +2,7 @@
 #include <cassert>      // assert
 #include <cstddef>      // size_t
 #include <limits>       // digits, is_signed, is_integer, max
-#include <type_traits>  // bool_constant (C++1z)
+#include <type_traits>  // bool_constant
 
 namespace xstd {
 

@@ -9,10 +9,10 @@ project(XSTD CXX)
 # Compiler settings
 ###############################################################
 
-# use C++14 features
+# use C++17 features
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z -stdlib=libc++")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=512")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ftemplate-depth=512 -fconstexpr-steps=2097152 -ftemplate-backtrace-limit=0")
 
 # fail hard
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -pedantic-errors")
@@ -35,7 +35,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-global-constructors")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-weak-vtables")
 
 # optimizations
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -flto -march=native -mtune=native")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -flto -march=native -mtune=native")
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lc++abi -flto -fuse-ld=gold")
 
@@ -92,5 +92,5 @@ endif()
 # TESTING
 ###############################################################
 
-include(CTest)  # calls enable_testing()
+include(CTest)          # calls enable_testing()
 add_subdirectory(test)  # see CMakeLists.txt in test/ subdirectory
