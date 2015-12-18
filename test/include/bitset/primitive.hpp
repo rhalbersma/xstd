@@ -365,7 +365,7 @@ template<std::size_t N>
 constexpr auto count(bitset<N> const& b) noexcept
 {
         // arrange [bitset.members]/37
-        std::size_t expected = 0;
+        auto expected = 0_z;
         for (auto i = 0_z; i < N; ++i)
                 expected += b.test(i);
 
