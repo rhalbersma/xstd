@@ -157,6 +157,7 @@ struct base_bitset<Block, 1>
         {
                 for (auto block = elems; block; block &= block - 1)
                         f(ctznz(block));
+                return f;
         }
 
         // observers

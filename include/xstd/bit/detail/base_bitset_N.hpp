@@ -226,6 +226,7 @@ struct base_bitset
                 for (auto i = 0_z, offset = 0_z; i < Nb; ++i, offset += digits<Block>)
                         for (auto block = elems[i]; block; block &= block - 1)
                                 f(offset + ctznz(block));
+                return f;
         }
 
         // observers
