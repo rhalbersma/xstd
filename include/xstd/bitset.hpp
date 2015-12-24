@@ -276,7 +276,7 @@ public:
         template<class UnaryFunction>
         constexpr auto for_each(UnaryFunction f) const
         {
-                this->do_for_each(f);
+                return this->do_for_each(f);
         }
 
         // observers
