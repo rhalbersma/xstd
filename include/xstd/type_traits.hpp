@@ -90,6 +90,12 @@ constexpr auto to_underlying_type(E e) noexcept
         return static_cast<std::underlying_type_t<E>>(e);
 }
 
+template<class T>
+using value_t = typename T::value_type;
+
+template<class T>
+using _t = typename T::type;
+
 namespace block_adl {
 
 template<class>
