@@ -150,7 +150,11 @@ There are no (anticipated) conflicts with other literal suffixes, either for bui
 
 **6.5** This proposal follows the existing practice established in [WG21/N3642](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2013/n3642.pdf) with respect to the `constexpr` (present) and `noexcept` (absent) specifiers, as well as the usage of an appropriately named `inline namespace std::literals::support_literals`.
 
-**6.6** There are no decisions left up to implementers, because the proposed wording forms a full specification. There is a [reference implementation](https://bitbucket.org/rhalbersma/xstd/src/3ddfa8e9d24a0349b875709e7b609568d7684d9d/include/xstd/cstddef.hpp?at=default) and small [test suite](https://bitbucket.org/rhalbersma/xstd/src/3ddfa8e9d24a0349b875709e7b609568d7684d9d/test/src/cstddef.cpp?at=default) available for inspection. Note that the reference implementation uses `namespace xstd` and underscored suffix `_zu` because of the restriction from `[lex.ext]/10` that a program containing a user-defined suffix without an underscore is ill-formed, no diagnostic required.   
+**6.6** There are no decisions left up to implementers, because the proposed wording forms a full specification. 
+
+**6.7** There is a [reference implementation](https://bitbucket.org/rhalbersma/xstd/src/41b35cd8db50a529e426bae8f2669283247c1b6d/include/xstd/cstddef.hpp?at=default) and small [test suite](https://bitbucket.org/rhalbersma/xstd/src/41b35cd8db50a529e426bae8f2669283247c1b6d/test/src/cstddef.cpp?at=default) available for inspection. Note that the reference implementation uses `namespace xstd` and underscored suffix `_zu` because of the restriction from `[lex.ext]/10` that a program containing a user-defined suffix without an underscore is ill-formed, no diagnostic required. 
+
+**6.8** This proposal successfully compiles and runs on g++ >= 4.7.3, clang >= 3.1 and Visual C++ >= 2015 (possibly on earlier versions of Visual C++ if `constexpr` literals are not used).  
 
 7 Proposed Wording
 ------------------
