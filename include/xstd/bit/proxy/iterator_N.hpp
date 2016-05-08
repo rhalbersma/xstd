@@ -58,7 +58,7 @@ private:
         constexpr auto find_first()
         {
                 assert(block != nullptr);
-                for (auto i = 0_z; i < Nb; ++i) {
+                for (auto i = 0_zu; i < Nb; ++i) {
                         if (auto const mask = *block) {
                                 assert(i * digits<Block> + bsfnz(mask) < N);
                                 return i * digits<Block> + bsfnz(mask);

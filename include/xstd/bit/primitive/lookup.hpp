@@ -75,8 +75,8 @@ public:
         template<class U>
         static constexpr auto ctz(U x) noexcept
         {
-                auto n = 0_z;
-                for (auto i = 0_z; i < digits_ratio<U, T>; ++i) {
+                auto n = 0_zu;
+                for (auto i = 0_zu; i < digits_ratio<U, T>; ++i) {
                         auto const b = block_mask(x, i);
                         n += ctz_[b];
                         if (b)
@@ -89,7 +89,7 @@ public:
         template<class U>
         static constexpr auto clz(U x) noexcept
         {
-                auto n = 0_z;
+                auto n = 0_zu;
                 for (auto i = digits_ratio<U, T> - 1; i < digits_ratio<U, T>; --i) {
                         auto const b = block_mask(x, i);
                         n += clz_[b];
@@ -103,8 +103,8 @@ public:
         template<class U>
         static constexpr auto popcount(U x) noexcept
         {
-                auto n = 0_z;
-                for (auto i = 0_z; i < digits_ratio<U, T>; ++i)
+                auto n = 0_zu;
+                for (auto i = 0_zu; i < digits_ratio<U, T>; ++i)
                         n += popcount_[block_mask(x, i)];
                 assert(n <= digits<U>);
                 return n;

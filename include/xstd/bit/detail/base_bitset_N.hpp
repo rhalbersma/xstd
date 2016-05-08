@@ -150,25 +150,25 @@ struct base_bitset
 
         constexpr auto op_and(base_bitset const& other) noexcept
         {
-                for (auto i = 0_z; i < Nb; ++i)
+                for (auto i = 0_zu; i < Nb; ++i)
                         elems[i] &= other.elems[i];
         }
 
         constexpr auto op_or(base_bitset const& other) noexcept
         {
-                for (auto i = 0_z; i < Nb; ++i)
+                for (auto i = 0_zu; i < Nb; ++i)
                         elems[i] |= other.elems[i];
         }
 
         constexpr auto op_xor(base_bitset const& other) noexcept
         {
-                for (auto i = 0_z; i < Nb; ++i)
+                for (auto i = 0_zu; i < Nb; ++i)
                         elems[i] ^= other.elems[i];
         }
 
         constexpr auto op_minus(base_bitset const& other) noexcept
         {
-                for (auto i = 0_z; i < Nb; ++i)
+                for (auto i = 0_zu; i < Nb; ++i)
                         elems[i] &= ~other.elems[i];
         }
 
@@ -210,7 +210,7 @@ struct base_bitset
                 } else {
                         auto const L_shift = digits<Block> - R_shift;
 
-                        for (auto i = 0_z; i < Nb - 1 - n_block; ++i)
+                        for (auto i = 0_zu; i < Nb - 1 - n_block; ++i)
                                 elems[i] =
                                         (elems[i + n_block    ] >> R_shift) |
                                         (elems[i + n_block + 1] << L_shift)
@@ -223,7 +223,7 @@ struct base_bitset
         template<class UnaryFunction>
         constexpr auto do_for_each(UnaryFunction f) const
         {
-                for (auto i = 0_z, offset = 0_z; i < Nb; ++i, offset += digits<Block>)
+                for (auto i = 0_zu, offset = 0_zu; i < Nb; ++i, offset += digits<Block>)
                         for (auto block = elems[i]; block; block &= block - 1)
                                 f(offset + ctznz(block));
                 return f;
@@ -273,7 +273,7 @@ struct base_bitset
         auto do_count() const noexcept
         {
                 using std::cbegin; using std::cend;
-                return std::accumulate(cbegin(elems), cend(elems), 0_z,
+                return std::accumulate(cbegin(elems), cend(elems), 0_zu,
                         [](auto const& sum, auto const& block){
                         return sum + popcount(block);
                 });
