@@ -96,25 +96,4 @@ using value_t = typename T::value_type;
 template<class T>
 using _t = typename T::type;
 
-namespace block_adl {
-
-template<class>
-struct empty_base
-{
-        empty_base() = default;
-
-        template<class... Args>
-        constexpr empty_base(Args&&...) {}
-};
-
-template<bool Condition, class T>
-using optional_base = std::conditional_t<Condition, T, empty_base<T>>;
-
-}       // namespace block_adl
-
-// deriving from empty_base or optional_base will not make xstd an associated namespace
-// this prevents ADL from finding overloads for e.g. begin/end/swap from namespace xstd
-using block_adl::empty_base;
-using block_adl::optional_base;
-
 }       // namespace xstd
