@@ -2,15 +2,20 @@
 #include <xstd/bit/detail/base_bitset_fwd.hpp>  // base_bitset
 #include <xstd/bit/mask.hpp>                    // none, one, all
 #include <xstd/bit/primitive.hpp>               // ctznz, popcount
-#include <xstd/cstddef.hpp>                     // size_t, _z
+#include <xstd/cstddef.hpp>                     // size_t, _zu
 #include <xstd/limits.hpp>                      // digits, is_unsigned_integer
-#include <boost/iterator/zip_iterator.hpp>      // make_zip_iterator
+#include <boost/algorithm/cxx11/all_of.hpp>     // all_of
+#include <boost/algorithm/cxx11/any_of.hpp>     // any_of
+#include <boost/algorithm/cxx11/none_of.hpp>    // none_of
+#include <boost/range/adaptors.hpp>             // reverse
+#include <boost/range/algorithm.hpp>            // equal, fill_n, lexicographical_compare
+#include <boost/range/algorithm/swap_ranges.hpp>// swap_ranges
+#include <boost/range/combine.hpp>              // combine
+#include <boost/range/numeric.hpp>              // accumulate
 #include <boost/tuple/tuple.hpp>                // make_tuple
-#include <algorithm>                            // all_of, any_of, none_of, equal, lexicographical_compare,
-                                                // copy, copy_backward, fill_n, swap_ranges
+#include <algorithm>                            // all_of, copy_n, copy_backward
 #include <cassert>                              // assert
 #include <iterator>                             // begin, end, cbegin, cend, crbegin, crend
-#include <numeric>                              // accumulate
 #include <type_traits>                          // enable_if
 
 namespace xstd {
@@ -90,33 +95,29 @@ struct base_bitset
 
         auto op_equal_to(base_bitset const& other) const noexcept
         {
-                using std::cbegin; using std::cend;
-                return std::equal(cbegin(elems), cend(elems), cbegin(other.elems), cend(other.elems));
+                return boost::equal(elems, other.elems);
         }
 
         auto op_less(base_bitset const& other) const noexcept
         {
-                using std::crbegin; using std::crend;
-                return std::lexicographical_compare(crbegin(elems), crend(elems), crbegin(other.elems), crend(other.elems));
+                using boost::adaptors::reverse;
+                return boost::lexicographical_compare(reverse(elems), reverse(other.elems));
         }
 
         auto do_intersects(base_bitset const& other) const noexcept
         {
-                using std::cbegin; using std::cend;
-                return std::any_of(
-                        boost::make_zip_iterator(boost::make_tuple(cbegin(elems), cbegin(other.elems))),
-                        boost::make_zip_iterator(boost::make_tuple(cend  (elems), cend  (other.elems))),
+                return boost::algorithm::any_of(
+                        boost::combine(elems, other.elems),
                         [](auto const& blocks){
                         return boost::get<0>(blocks) & boost::get<1>(blocks);
                 });
+
         }
 
         auto do_is_subset_of(base_bitset const& other) const noexcept
         {
-                using std::cbegin; using std::cend;
-                return std::all_of(
-                        boost::make_zip_iterator(boost::make_tuple(cbegin(elems), cbegin(other.elems))),
-                        boost::make_zip_iterator(boost::make_tuple(cend  (elems), cend  (other.elems))),
+                return boost::algorithm::all_of(
+                        boost::combine(elems, other.elems),
                         [](auto const& blocks){
                         return !(boost::get<0>(blocks) & ~boost::get<1>(blocks));
                 });
@@ -126,20 +127,17 @@ struct base_bitset
 
         auto do_swap(base_bitset& other) noexcept
         {
-                using std::begin; using std::end;
-                std::swap_ranges(begin(elems), end(elems), begin(other.elems));
+                boost::range::swap_ranges(elems, other.elems);
         }
 
         auto do_set() noexcept
         {
-                using std::begin;
-                std::fill_n(begin(elems), Nb, mask::all<Block>);
+                boost::fill_n(elems, Nb, mask::all<Block>);
         }
 
         auto do_reset() noexcept
         {
-                using std::begin;
-                std::fill_n(begin(elems), Nb, mask::none<Block>);
+                boost::fill_n(elems, Nb, mask::none<Block>);
         }
 
         constexpr auto op_flip() noexcept
@@ -193,20 +191,21 @@ struct base_bitset
                                 ;
                         elems[n_block] = elems[0] << L_shift;
                 }
-                std::fill_n(begin(elems), n_block, mask::none<Block>);
+                boost::fill_n(elems, n_block, mask::none<Block>);
         }
 
         auto op_right_shift(std::size_t n)
         {
                 assert(n < N);
                 using std::begin; using std::end;
+                using boost::adaptors::reverse;
                 if (n == 0) return;
 
                 auto const n_block = n / digits<Block>;
                 auto const R_shift = n % digits<Block>;
 
                 if (R_shift == 0) {
-                        std::copy(begin(elems) + n_block, end(elems), begin(elems));
+                        std::copy_n(begin(elems) + n_block, N - n_block, begin(elems));
                 } else {
                         auto const L_shift = digits<Block> - R_shift;
 
@@ -217,7 +216,7 @@ struct base_bitset
                                 ;
                         elems[Nb - 1 - n_block] = elems[Nb - 1] >> R_shift;
                 }
-                std::fill_n(end(elems) - n_block, n_block, mask::none<Block>);
+                boost::fill_n(reverse(elems), n_block, mask::none<Block>);
         }
 
         template<class UnaryFunction>
@@ -245,8 +244,7 @@ struct base_bitset
         template<std::size_t M, std::enable_if_t<M == 0>* = nullptr>
         auto do_all() const noexcept
         {
-                using std::cbegin; using std::cend;
-                return std::all_of(cbegin(elems), cend(elems),
+                return boost::algorithm::all_of(elems,
                         [](auto const& block){
                         return block == mask::all<Block>;
                 });
@@ -254,8 +252,7 @@ struct base_bitset
 
         auto do_any() const noexcept
         {
-                using std::cbegin; using std::cend;
-                return std::any_of(cbegin(elems), cend(elems),
+                return boost::algorithm::any_of(elems,
                         [](auto const& block){
                         return block != mask::none<Block>;
                 });
@@ -263,8 +260,7 @@ struct base_bitset
 
         auto do_none() const noexcept
         {
-                using std::cbegin; using std::cend;
-                return std::none_of(cbegin(elems), cend(elems),
+                return boost::algorithm::none_of(elems,
                         [](auto const& block){
                         return block != mask::none<Block>;
                 });
@@ -272,8 +268,7 @@ struct base_bitset
 
         auto do_count() const noexcept
         {
-                using std::cbegin; using std::cend;
-                return std::accumulate(cbegin(elems), cend(elems), 0_zu,
+                return boost::accumulate(elems, 0_zu,
                         [](auto const& sum, auto const& block){
                         return sum + popcount(block);
                 });
