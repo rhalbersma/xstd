@@ -17,6 +17,7 @@
 #include <cassert>                              // assert
 #include <iterator>                             // begin, end, cbegin, cend, crbegin, crend
 #include <type_traits>                          // enable_if
+#include <utility>                              // move
 
 namespace xstd {
 namespace bit {
@@ -106,20 +107,16 @@ struct base_bitset
 
         auto do_intersects(base_bitset const& other) const noexcept
         {
-                return boost::algorithm::any_of(
-                        boost::combine(elems, other.elems),
-                        [](auto const& blocks){
-                        return boost::get<0>(blocks) & boost::get<1>(blocks);
+                return boost::algorithm::any_of(boost::combine(elems, other.elems), [](auto const block){
+                        return boost::get<0>(block) & boost::get<1>(block);
                 });
 
         }
 
         auto do_is_subset_of(base_bitset const& other) const noexcept
         {
-                return boost::algorithm::all_of(
-                        boost::combine(elems, other.elems),
-                        [](auto const& blocks){
-                        return !(boost::get<0>(blocks) & ~boost::get<1>(blocks));
+                return boost::algorithm::all_of(boost::combine(elems, other.elems), [](auto const block){
+                        return !(boost::get<0>(block) & ~boost::get<1>(block));
                 });
         }
 
@@ -170,7 +167,7 @@ struct base_bitset
                         elems[i] &= ~other.elems[i];
         }
 
-        auto op_left_shift(std::size_t n)
+        auto op_left_shift(std::size_t const n)
         {
                 assert(n < N);
                 using std::begin; using std::end;
@@ -184,17 +181,18 @@ struct base_bitset
                 } else {
                         auto const R_shift = digits<Block> - L_shift;
 
-                        for (auto i = Nb - 1; i > n_block; --i)
+                        for (auto i = Nb - 1; i > n_block; --i) {
                                 elems[i] =
                                         (elems[i - n_block    ] << L_shift) |
                                         (elems[i - n_block - 1] >> R_shift)
                                 ;
+                        }
                         elems[n_block] = elems[0] << L_shift;
                 }
                 boost::fill_n(elems, n_block, mask::none<Block>);
         }
 
-        auto op_right_shift(std::size_t n)
+        auto op_right_shift(std::size_t const n)
         {
                 assert(n < N);
                 using std::begin; using std::end;
@@ -205,15 +203,16 @@ struct base_bitset
                 auto const R_shift = n % digits<Block>;
 
                 if (R_shift == 0) {
-                        std::copy_n(begin(elems) + n_block, N - n_block, begin(elems));
+                        std::copy_n(begin(elems) + n_block, Nb - n_block, begin(elems));
                 } else {
                         auto const L_shift = digits<Block> - R_shift;
 
-                        for (auto i = 0_zu; i < Nb - 1 - n_block; ++i)
+                        for (auto i = 0_zu; i < Nb - 1 - n_block; ++i) {
                                 elems[i] =
                                         (elems[i + n_block    ] >> R_shift) |
                                         (elems[i + n_block + 1] << L_shift)
                                 ;
+                        }
                         elems[Nb - 1 - n_block] = elems[Nb - 1] >> R_shift;
                 }
                 boost::fill_n(reverse(elems), n_block, mask::none<Block>);
@@ -222,10 +221,27 @@ struct base_bitset
         template<class UnaryFunction>
         constexpr auto do_for_each(UnaryFunction f) const
         {
-                for (auto i = 0_zu, offset = 0_zu; i < Nb; ++i, offset += digits<Block>)
-                        for (auto block = elems[i]; block; block &= block - 1)
-                                f(offset + ctznz(block));
-                return f;
+                for (auto i = 0_zu, offset = 0_zu; i < Nb; ++i, offset += digits<Block>) {
+                        for (auto block = elems[i]; block;) {
+                                auto const first = bsfnz(block);
+                                f(offset + first);
+                                block ^= block_mask(first);
+                        }
+                }
+                return std::move(f);
+        }
+
+        template<class UnaryFunction>
+        constexpr auto do_reverse_for_each(UnaryFunction f) const
+        {
+                for (std::size_t i = Nb - 1, offset = N - digits<Block>; i < Nb; --i, offset -= digits<Block>) {
+                        for (auto block = elems[i]; block;) {
+                                auto const last = bsrnz(block);
+                                f(offset + last);
+                                block ^= block_mask(last);
+                        }
+                }
+                return std::move(f);
         }
 
         // observers
@@ -235,8 +251,7 @@ struct base_bitset
         {
                 static_assert(M < digits<Block>);
                 using std::cbegin; using std::cend;
-                return std::all_of(cbegin(elems), cend(elems) - 1,
-                        [](auto const& block){
+                return std::all_of(cbegin(elems), cend(elems) - 1, [](auto const block){
                         return block == mask::all<Block>;
                 }) ? elems[Nb - 1] == mask::all<Block> >> (digits<Block> - M) : false;
         }
@@ -244,32 +259,28 @@ struct base_bitset
         template<std::size_t M, std::enable_if_t<M == 0>* = nullptr>
         auto do_all() const noexcept
         {
-                return boost::algorithm::all_of(elems,
-                        [](auto const& block){
+                return boost::algorithm::all_of(elems, [](auto const block){
                         return block == mask::all<Block>;
                 });
         }
 
         auto do_any() const noexcept
         {
-                return boost::algorithm::any_of(elems,
-                        [](auto const& block){
+                return boost::algorithm::any_of(elems, [](auto const block){
                         return block != mask::none<Block>;
                 });
         }
 
         auto do_none() const noexcept
         {
-                return boost::algorithm::none_of(elems,
-                        [](auto const& block){
+                return boost::algorithm::none_of(elems, [](auto const block){
                         return block != mask::none<Block>;
                 });
         }
 
         auto do_count() const noexcept
         {
-                return boost::accumulate(elems, 0_zu,
-                        [](auto const& sum, auto const& block){
+                return boost::accumulate(elems, 0_zu, [](auto const sum, auto const block){
                         return sum + popcount(block);
                 });
         }

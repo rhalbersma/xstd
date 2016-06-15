@@ -140,13 +140,13 @@ struct base_bitset<Block, 1>
                 elems &= ~other.elems;
         }
 
-        constexpr auto op_left_shift(std::size_t n)
+        constexpr auto op_left_shift(std::size_t const n)
         {
                 assert(n < N);
                 elems <<= n;
         }
 
-        constexpr auto op_right_shift(std::size_t n)
+        constexpr auto op_right_shift(std::size_t const n)
         {
                 assert(n < N);
                 elems >>= n;
@@ -155,9 +155,23 @@ struct base_bitset<Block, 1>
         template<class UnaryFunction>
         constexpr auto do_for_each(UnaryFunction f) const
         {
-                for (auto block = elems; block; block &= block - 1)
-                        f(ctznz(block));
-                return f;
+                for (auto block = elems; block;) {
+                        auto const first = bsfnz(block);
+                        f(first);
+                        block ^= block_mask(first);
+                }
+                return std::move(f);
+        }
+
+        template<class UnaryFunction>
+        constexpr auto do_reverse_for_each(UnaryFunction f) const
+        {
+                for (auto block = elems; block;) {
+                        auto const last = bsrnz(block);
+                        f(last);
+                        block ^= block_mask(last);
+                }
+                return std::move(f);
         }
 
         // observers
