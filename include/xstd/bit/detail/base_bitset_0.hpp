@@ -2,6 +2,7 @@
 #include <xstd/bit/detail/base_bitset_fwd.hpp>  // base_bitset
 #include <xstd/limits.hpp>                      // is_unsigned_integer
 #include <cstddef>                              // size_t
+#include <utility>                              // move
 
 namespace xstd {
 namespace bit {
@@ -48,20 +49,23 @@ struct base_bitset<Block, 0>
         constexpr auto op_xor  (base_bitset const&) noexcept {}
         constexpr auto op_minus(base_bitset const&) noexcept {}
 
-        constexpr auto op_left_shift (std::size_t) {}
-        constexpr auto op_right_shift(std::size_t) {}
+        constexpr auto op_left_shift (std::size_t const) {}
+        constexpr auto op_right_shift(std::size_t const) {}
 
         template<class UnaryFunction>
-        constexpr auto do_for_each(UnaryFunction f) const { return f; }
+        constexpr auto do_for_each(UnaryFunction f) const { return std::move(f); }
+
+        template<class UnaryFunction>
+        constexpr auto do_reverse_for_each(UnaryFunction f) const { return std::move(f); }
 
         // observers
 
         template<std::size_t M>
-        constexpr auto        do_all  () const noexcept { static_assert(M == 0); return true; }
+        constexpr auto do_all  () const noexcept { static_assert(M == 0); return true; }
 
-        constexpr auto        do_any  () const noexcept { return false; }
-        constexpr auto        do_none () const noexcept { return true;  }
-        constexpr std::size_t do_count() const noexcept { return 0;     }
+        constexpr auto do_any  () const noexcept { return false; }
+        constexpr auto do_none () const noexcept { return true;  }
+        constexpr auto do_count() const noexcept { return std::size_t{0}; }
 };
 
 }       // namespace detail

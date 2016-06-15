@@ -274,9 +274,15 @@ public:
         }
 
         template<class UnaryFunction>
-        constexpr auto for_each(UnaryFunction f) const
+        constexpr UnaryFunction for_each(UnaryFunction f) const
         {
                 return this->do_for_each(f);
+        }
+
+        template<class UnaryFunction>
+        constexpr UnaryFunction reverse_for_each(UnaryFunction f) const
+        {
+                return this->do_reverse_for_each(f);
         }
 
         // observers
@@ -302,27 +308,27 @@ public:
         }
 
 private:
-        constexpr auto sanitized(block_type b) const noexcept
+        constexpr auto sanitized(block_type const b) const noexcept
         {
                 return sanitized<N % digits<block_type>>(b);
         }
 
-        constexpr auto sanitize() noexcept
-        {
-                sanitize<N % digits<block_type>>(this->block_back());
-        }
-
         template<std::size_t M, std::enable_if_t<M != 0>* = nullptr>
-        constexpr auto sanitized(block_type b) noexcept
+        constexpr auto sanitized(block_type const b) noexcept
         {
                 static_assert(M < digits<block_type>);
                 return b & (bit::mask::all<block_type> >> (digits<block_type> - M));
         }
 
         template<std::size_t M, std::enable_if_t<M == 0>* = nullptr>
-        constexpr auto sanitized(block_type b) noexcept
+        constexpr auto sanitized(block_type const b) noexcept
         {
                 return b;
+        }
+
+        constexpr auto sanitize() noexcept
+        {
+                sanitize<N % digits<block_type>>(this->block_back());
         }
 
         template<std::size_t M, std::enable_if_t<M != 0>* = nullptr>
