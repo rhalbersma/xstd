@@ -22,10 +22,10 @@ struct base_bitset<Block, 0>
         constexpr auto*       block_end  ()       noexcept { return this; }
         constexpr auto const* block_end  () const noexcept { return this; }
 
-        constexpr auto&       block_back()                  noexcept { return *static_cast<Block*      >(nullptr); }
-        constexpr auto const& block_back()            const noexcept { return *static_cast<Block const*>(nullptr); }
-        constexpr auto&       block_ref (std::size_t)       noexcept { return *static_cast<Block*      >(nullptr); }
-        constexpr auto const& block_ref (std::size_t) const noexcept { return *static_cast<Block const*>(nullptr); }
+        constexpr auto&       block_back()                  noexcept;// { return *static_cast<Block*      >(nullptr); }
+        constexpr auto const& block_back()            const noexcept;// { return *static_cast<Block const*>(nullptr); }
+        constexpr auto&       block_ref (std::size_t)       noexcept;// { return *static_cast<Block*      >(nullptr); }
+        constexpr auto const& block_ref (std::size_t) const noexcept;// { return *static_cast<Block const*>(nullptr); }
 
         constexpr auto        block_mask(std::size_t) const noexcept { return Block{}; }
 
