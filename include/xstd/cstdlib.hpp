@@ -18,7 +18,7 @@ constexpr auto signum(int n) noexcept
 }
 
 // The following is discussed in the C++ Standard [expr.mul]/4 and
-// http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf
+// http://research.Microsoft.com/pubs/151917/divmodnote-letter.pdf
 
 // a constexpr version of std::div(int, int)
 constexpr auto truncated_div(int D, int d) // Throws: Nothing.

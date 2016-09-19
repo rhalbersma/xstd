@@ -10,7 +10,7 @@ BOOST_AUTO_TEST_SUITE(CstdLib)
 
 BOOST_AUTO_TEST_CASE(TruncatedFlooredEuclideanDivision)
 {
-        // http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf
+        // http://research.Microsoft.com/pubs/151917/divmodnote-letter.pdf
 
         auto const input = std::vector<std::pair<int, int>>
         {
