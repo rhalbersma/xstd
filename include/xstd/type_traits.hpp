@@ -10,15 +10,10 @@ struct type_is
 };
 
 template<class E>
-constexpr auto to_underlying_type(E e) noexcept
+constexpr auto to_underlying_type(E const e) noexcept
 {
+        static_assert(std::is_enum<E>{});
         return static_cast<std::underlying_type_t<E>>(e);
 }
-
-template<class T>
-using value_t = typename T::value_type;
-
-template<class T>
-using _t = typename T::type;
 
 }       // namespace xstd
