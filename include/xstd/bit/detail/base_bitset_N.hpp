@@ -246,7 +246,7 @@ struct base_bitset
 
         // observers
 
-        template<std::size_t M, std::enable_if_t<M != 0>* = nullptr>
+        template<std::size_t M, std::enable_if_t<M != 0>...>
         auto do_all() const noexcept
         {
                 static_assert(M < digits<Block>);
@@ -256,7 +256,7 @@ struct base_bitset
                 }) ? elems[Nb - 1] == mask::all<Block> >> (digits<Block> - M) : false;
         }
 
-        template<std::size_t M, std::enable_if_t<M == 0>* = nullptr>
+        template<std::size_t M, std::enable_if_t<M == 0>...>
         auto do_all() const noexcept
         {
                 return boost::algorithm::all_of(elems, [](auto const block){
