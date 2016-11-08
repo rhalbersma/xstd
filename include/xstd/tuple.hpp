@@ -9,6 +9,7 @@ constexpr auto compare(T const& lhs, U const& rhs) noexcept
 {
         return (lhs < rhs) ? -1 : (rhs < lhs) ? +1 : 0;
 }
+
 namespace detail {
 
 template<size_t N>

@@ -16,7 +16,6 @@
 #include <algorithm>                            // all_of, copy_n, copy_backward
 #include <cassert>                              // assert
 #include <iterator>                             // begin, end, cbegin, cend, crbegin, crend
-#include <type_traits>                          // enable_if
 #include <utility>                              // move
 
 namespace xstd {
@@ -246,22 +245,20 @@ struct base_bitset
 
         // observers
 
-        template<std::size_t M, std::enable_if_t<M != 0>...>
+        template<std::size_t M>
         auto do_all() const noexcept
         {
                 static_assert(M < digits<Block>);
-                using std::cbegin; using std::cend;
-                return std::all_of(cbegin(elems), cend(elems) - 1, [](auto const block){
-                        return block == mask::all<Block>;
-                }) ? elems[Nb - 1] == mask::all<Block> >> (digits<Block> - M) : false;
-        }
-
-        template<std::size_t M, std::enable_if_t<M == 0>...>
-        auto do_all() const noexcept
-        {
-                return boost::algorithm::all_of(elems, [](auto const block){
-                        return block == mask::all<Block>;
-                });
+                if constexpr (M != 0) {
+                        using std::cbegin; using std::cend;
+                        return std::all_of(cbegin(elems), cend(elems) - 1, [](auto const block){
+                                return block == mask::all<Block>;
+                        }) && (elems[Nb - 1] == mask::all<Block> >> (digits<Block> - M));
+                } else {
+                        return boost::algorithm::all_of(elems, [](auto const block){
+                                return block == mask::all<Block>;
+                        });
+                }
         }
 
         auto do_any() const noexcept
