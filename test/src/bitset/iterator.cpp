@@ -6,7 +6,7 @@
 namespace xstd {
 
 BOOST_AUTO_TEST_SUITE(BitIterator)
-/*
+
 using SetTypes = boost::mpl::vector
 <
         bitset< 64>,
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(ReverseBackwardIterationTraversesRange, T, SetType
         auto it = rend(b); for (; it != rbegin(b); --it){}
 
         BOOST_CHECK(it.base() == end(b));
-}*/
+}
 
 BOOST_AUTO_TEST_SUITE_END()
 
