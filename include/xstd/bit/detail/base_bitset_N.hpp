@@ -2,7 +2,6 @@
 #include <xstd/bit/detail/base_bitset_fwd.hpp>  // base_bitset
 #include <xstd/bit/mask.hpp>                    // none, one, all
 #include <xstd/bit/primitive.hpp>               // ctznz, popcount
-#include <xstd/cstddef.hpp>                     // size_t, _zu
 #include <xstd/limits.hpp>                      // digits, is_unsigned_integer
 #include <boost/algorithm/cxx11/all_of.hpp>     // all_of
 #include <boost/algorithm/cxx11/any_of.hpp>     // any_of
@@ -22,7 +21,7 @@ namespace xstd {
 namespace bit {
 namespace detail {
 
-template<class Block, std::size_t Nb>
+template<class Block, int Nb>
 struct base_bitset
 {
         static_assert(is_unsigned_integer<Block>);
@@ -73,19 +72,19 @@ struct base_bitset
                 return elems[Nb - 1];
         }
 
-        constexpr auto& block_ref(std::size_t n)
+        constexpr auto& block_ref(int n)
         {
                 assert(n < N);
                 return elems[n / digits<Block>];
         }
 
-        constexpr auto const& block_ref(std::size_t n) const
+        constexpr auto const& block_ref(int n) const
         {
                 assert(n < N);
                 return elems[n / digits<Block>];
         }
 
-        constexpr auto block_mask(std::size_t n) const noexcept
+        constexpr auto block_mask(int n) const noexcept
         {
                 assert(n < N);
                 return mask::one<Block> << (n % digits<Block>);
@@ -144,29 +143,29 @@ struct base_bitset
 
         constexpr auto op_and(base_bitset const& other) noexcept
         {
-                for (auto i = 0_zu; i < Nb; ++i)
+                for (auto i = 0; i < Nb; ++i)
                         elems[i] &= other.elems[i];
         }
 
         constexpr auto op_or(base_bitset const& other) noexcept
         {
-                for (auto i = 0_zu; i < Nb; ++i)
+                for (auto i = 0; i < Nb; ++i)
                         elems[i] |= other.elems[i];
         }
 
         constexpr auto op_xor(base_bitset const& other) noexcept
         {
-                for (auto i = 0_zu; i < Nb; ++i)
+                for (auto i = 0; i < Nb; ++i)
                         elems[i] ^= other.elems[i];
         }
 
         constexpr auto op_minus(base_bitset const& other) noexcept
         {
-                for (auto i = 0_zu; i < Nb; ++i)
+                for (auto i = 0; i < Nb; ++i)
                         elems[i] &= ~other.elems[i];
         }
 
-        auto op_left_shift(std::size_t const n)
+        auto op_left_shift(int const n)
         {
                 assert(n < N);
                 using std::begin; using std::end;
@@ -191,7 +190,7 @@ struct base_bitset
                 boost::fill_n(elems, n_block, mask::none<Block>);
         }
 
-        auto op_right_shift(std::size_t const n)
+        auto op_right_shift(int const n)
         {
                 assert(n < N);
                 using std::begin; using std::end;
@@ -206,7 +205,7 @@ struct base_bitset
                 } else {
                         auto const L_shift = digits<Block> - R_shift;
 
-                        for (auto i = 0_zu; i < Nb - 1 - n_block; ++i) {
+                        for (auto i = 0; i < Nb - 1 - n_block; ++i) {
                                 elems[i] =
                                         (elems[i + n_block    ] >> R_shift) |
                                         (elems[i + n_block + 1] << L_shift)
@@ -220,7 +219,7 @@ struct base_bitset
         template<class UnaryFunction>
         constexpr auto do_for_each(UnaryFunction f) const
         {
-                for (auto i = 0_zu, offset = 0_zu; i < Nb; ++i, offset += digits<Block>) {
+                for (auto i = 0, offset = 0; i < Nb; ++i, offset += digits<Block>) {
                         for (auto block = elems[i]; block;) {
                                 auto const first = bsfnz(block);
                                 f(offset + first);
@@ -233,7 +232,7 @@ struct base_bitset
         template<class UnaryFunction>
         constexpr auto do_reverse_for_each(UnaryFunction f) const
         {
-                for (std::size_t i = Nb - 1, offset = N - digits<Block>; i < Nb; --i, offset -= digits<Block>) {
+                for (auto i = Nb - 1, offset = N - digits<Block>; i >= 0; --i, offset -= digits<Block>) {
                         for (auto block = elems[i]; block;) {
                                 auto const last = bsrnz(block);
                                 f(offset + last);
@@ -245,7 +244,7 @@ struct base_bitset
 
         // observers
 
-        template<std::size_t M>
+        template<int M>
         auto do_all() const noexcept
         {
                 static_assert(M < digits<Block>);
@@ -277,7 +276,7 @@ struct base_bitset
 
         auto do_count() const noexcept
         {
-                return boost::accumulate(elems, 0_zu, [](auto const sum, auto const block){
+                return boost::accumulate(elems, 0, [](auto const sum, auto const block){
                         return sum + popcount(block);
                 });
         }

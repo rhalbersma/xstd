@@ -3,27 +3,26 @@
 #include <xstd/bit/proxy/iterator_fwd.hpp>      // ConstIterator
 #include <xstd/limits.hpp>                      // digits, is_unsigned_integer
 #include <cassert>                              // assert
-#include <cstddef>                              // size_t
 
 namespace xstd {
 namespace bit {
 
-template<class Block, std::size_t Nb, std::size_t N>
+template<class Block, int Nb, int N>
 class ConstReference
 {
         static_assert(is_unsigned_integer<Block>);
         static_assert(N <= Nb * digits<Block>);
 
         Block const& block;
-        std::size_t index;
+        int index;
 
 public:
         ConstReference() = delete;
         ConstReference(ConstReference const&) = default;
         ConstReference& operator=(ConstReference const&) = delete;
-        ConstReference& operator=(std::size_t) = delete;
+        ConstReference& operator=(int) = delete;
 
-        constexpr ConstReference(Block const& b, std::size_t n) noexcept
+        constexpr ConstReference(Block const& b, int n) noexcept
         :
                 block{b},
                 index{n}
@@ -31,7 +30,7 @@ public:
                 assert(n < N);
         }
 
-        /* implicit */ constexpr operator std::size_t() const noexcept
+        /* implicit */ constexpr operator int() const noexcept
         {
                 return index;
         }

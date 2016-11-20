@@ -1,7 +1,6 @@
 #pragma once
 #include <xstd/bit/detail/base_bitset_fwd.hpp>  // base_bitset
 #include <xstd/limits.hpp>                      // is_unsigned_integer
-#include <cstddef>                              // size_t
 #include <utility>                              // move
 
 namespace xstd {
@@ -22,12 +21,12 @@ struct base_bitset<Block, 0>
         constexpr auto*       block_end  ()       noexcept { return this; }
         constexpr auto const* block_end  () const noexcept { return this; }
 
-        constexpr auto&       block_back()                  noexcept;// { return *static_cast<Block*      >(nullptr); }
-        constexpr auto const& block_back()            const noexcept;// { return *static_cast<Block const*>(nullptr); }
-        constexpr auto&       block_ref (std::size_t)       noexcept;// { return *static_cast<Block*      >(nullptr); }
-        constexpr auto const& block_ref (std::size_t) const noexcept;// { return *static_cast<Block const*>(nullptr); }
+        constexpr auto&       block_back()          noexcept;// { return *static_cast<Block*      >(nullptr); }
+        constexpr auto const& block_back()    const noexcept;// { return *static_cast<Block const*>(nullptr); }
+        constexpr auto&       block_ref (int)       noexcept;// { return *static_cast<Block*      >(nullptr); }
+        constexpr auto const& block_ref (int) const noexcept;// { return *static_cast<Block const*>(nullptr); }
 
-        constexpr auto        block_mask(std::size_t) const noexcept { return Block{}; }
+        constexpr auto        block_mask(int) const noexcept { return Block{}; }
 
         // comparators
 
@@ -49,8 +48,8 @@ struct base_bitset<Block, 0>
         constexpr auto op_xor  (base_bitset const&) noexcept {}
         constexpr auto op_minus(base_bitset const&) noexcept {}
 
-        constexpr auto op_left_shift (std::size_t const) {}
-        constexpr auto op_right_shift(std::size_t const) {}
+        constexpr auto op_left_shift (int const) {}
+        constexpr auto op_right_shift(int const) {}
 
         template<class UnaryFunction>
         constexpr auto do_for_each(UnaryFunction f) const { return std::move(f); }
@@ -60,12 +59,12 @@ struct base_bitset<Block, 0>
 
         // observers
 
-        template<std::size_t M>
+        template<int M>
         constexpr auto do_all  () const noexcept { static_assert(M == 0); return true; }
 
         constexpr auto do_any  () const noexcept { return false; }
         constexpr auto do_none () const noexcept { return true;  }
-        constexpr auto do_count() const noexcept { return std::size_t{0}; }
+        constexpr auto do_count() const noexcept { return 0; }
 };
 
 }       // namespace detail

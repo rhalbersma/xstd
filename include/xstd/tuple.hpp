@@ -1,5 +1,4 @@
 #pragma once
-#include <cstddef>      // size-t
 #include <tuple>        // get, tuple
 
 namespace xstd {
@@ -12,7 +11,7 @@ constexpr auto compare(T const& lhs, U const& rhs) noexcept
 
 namespace detail {
 
-template<size_t N>
+template<int N>
 struct compare
 {
         template<class T, class U>

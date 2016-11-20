@@ -2,7 +2,6 @@
 #include <xstd/bit/proxy/iterator_fwd.hpp>      // ConstIterator
 #include <xstd/bit/proxy/reference_fwd.hpp>     // ConstReference
 #include <xstd/bit/primitive.hpp>               // bsfnz, bsrnz, clznz, ctznz
-#include <xstd/cstddef.hpp>                     // _z
 #include <xstd/limits.hpp>                      // digits, is_unsigned_integer
 #include <boost/iterator/iterator_facade.hpp>   // iterator_core_access, iterator_facade
 #include <cassert>                              // assert
@@ -12,23 +11,23 @@
 namespace xstd {
 namespace bit {
 
-template<class Block, std::size_t Nb, std::size_t N>
+template<class Block, int Nb, int N>
 class ConstIterator
 :
         public boost::iterator_facade
         <
                 ConstIterator<Block, Nb, N>,
-                std::size_t const,
+                int const,
                 std::bidirectional_iterator_tag,
                 ConstReference<Block, Nb, N>,
-                std::ptrdiff_t
+                int
         >
 {
         static_assert(is_unsigned_integer<Block>);
         static_assert(N <= Nb * digits<Block>);
 
         Block const* block{};
-        std::size_t index{};
+        int index{};
 
 public:
         ConstIterator() = default;
@@ -42,7 +41,7 @@ public:
                 assert(index <= N);
         }
 
-        constexpr ConstIterator(Block const* b, std::size_t n)
+        constexpr ConstIterator(Block const* b, int n)
         :
                 block{b},
                 index{n}
@@ -58,7 +57,7 @@ private:
         constexpr auto find_first()
         {
                 assert(block != nullptr);
-                for (auto i = 0_zu; i < Nb; ++i) {
+                for (auto i = 0; i < Nb; ++i) {
                         if (auto const mask = *block) {
                                 assert(i * digits<Block> + bsfnz(mask) < N);
                                 return i * digits<Block> + bsfnz(mask);
@@ -118,7 +117,7 @@ private:
                 }
                 --block;
 
-                for (auto i = index / digits<Block> - 1; i < Nb; --i) {
+                for (auto i = index / digits<Block> - 1; i >= 0; --i) {
                         if (auto const mask = *block) {
                                 index = i * digits<Block> + bsrnz(mask);
                                 assert(index < N);
