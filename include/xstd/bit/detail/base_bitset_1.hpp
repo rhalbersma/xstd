@@ -4,7 +4,6 @@
 #include <xstd/bit/primitive.hpp>               // ctznz, popcount
 #include <xstd/limits.hpp>                      // digits, is_unsigned_integer
 #include <cassert>                              // assert
-#include <cstddef>                              // size_t
 #include <utility>                              // swap
 
 namespace xstd {
@@ -58,17 +57,17 @@ struct base_bitset<Block, 1>
                 return elems;
         }
 
-        constexpr auto& block_ref(std::size_t)
+        constexpr auto& block_ref(int)
         {
                 return elems;
         }
 
-        constexpr auto const& block_ref(std::size_t) const
+        constexpr auto const& block_ref(int) const
         {
                 return elems;
         }
 
-        constexpr auto block_mask(std::size_t n) const noexcept
+        constexpr auto block_mask(int const n) const noexcept
         {
                 assert(n < N);
                 return mask::one<Block> << n;
@@ -139,13 +138,13 @@ struct base_bitset<Block, 1>
                 elems &= ~other.elems;
         }
 
-        constexpr auto op_left_shift(std::size_t const n)
+        constexpr auto op_left_shift(int const n)
         {
                 assert(n < N);
                 elems <<= n;
         }
 
-        constexpr auto op_right_shift(std::size_t const n)
+        constexpr auto op_right_shift(int const n)
         {
                 assert(n < N);
                 elems >>= n;
@@ -175,7 +174,7 @@ struct base_bitset<Block, 1>
 
         // observers
 
-        template<std::size_t M>
+        template<int M>
         constexpr auto do_all() const noexcept
         {
                 static_assert(M < digits<Block>);

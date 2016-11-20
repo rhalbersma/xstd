@@ -1,11 +1,10 @@
 #pragma once
-#include <cstddef>      // size_t
 
 namespace xstd {
 namespace bit {
 namespace detail {
 
-template<class Block, std::size_t Nb>
+template<class Block, int Nb>
 struct base_bitset;
 
 template<class Block>

@@ -13,15 +13,15 @@ constexpr auto is_unsigned_integer =
 ;
 
 template<class T>
-constexpr auto digits = static_cast<std::size_t>(std::numeric_limits<T>::digits);
+constexpr auto digits = std::numeric_limits<T>::digits;
 
 template<class Numerator, class Denominator>
 constexpr auto digits_ratio = digits<Numerator> / digits<Denominator>;
 
-template<class T, std::size_t N>
+template<class T, int N>
 constexpr auto is_representable_v = N <= (std::numeric_limits<T>::max() + 1);
 
-template<class T, std::size_t N>
+template<class T, int N>
 using is_representable_t = std::bool_constant<is_representable_v<T, N>>;
 
 template<class T>

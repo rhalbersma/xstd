@@ -1,5 +1,4 @@
 #pragma once
-#include <xstd/cstddef.hpp>     // size_t, _z
 #include <xstd/limits.hpp>      // digits, digits_ratio
 #include <cassert>              // assert
 #include <cstdint>              // uint8_t
@@ -11,7 +10,7 @@ namespace lookup {
 template<class T = uint8_t>
 class table
 {
-        static constexpr std::size_t ctz_[] =
+        static constexpr int ctz_[] =
         {
                 8,  0,  1,  0,  2,  0,  1,  0,  3,  0,  1,  0,  2,  0,  1,  0,
                 4,  0,  1,  0,  2,  0,  1,  0,  3,  0,  1,  0,  2,  0,  1,  0,
@@ -31,7 +30,7 @@ class table
                 4,  0,  1,  0,  2,  0,  1,  0,  3,  0,  1,  0,  2,  0,  1,  0
         };
 
-        static constexpr std::size_t clz_[] =
+        static constexpr int clz_[] =
         {
                 8,  7,  6,  6,  5,  5,  5,  5,  4,  4,  4,  4,  4,  4,  4,  4,
                 3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,
@@ -51,7 +50,7 @@ class table
                 0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0
         };
 
-        static constexpr std::size_t popcount_[]  =
+        static constexpr int popcount_[]  =
         {
                 0,  1,  1,  2,  1,  2,  2,  3,  1,  2,  2,  3,  2,  3,  3,  4,
                 1,  2,  2,  3,  2,  3,  3,  4,  2,  3,  3,  4,  3,  4,  4,  5,
@@ -75,8 +74,8 @@ public:
         template<class U>
         static constexpr auto ctz(U x) noexcept
         {
-                auto n = 0_zu;
-                for (auto i = 0_zu; i < digits_ratio<U, T>; ++i) {
+                auto n = 0;
+                for (auto i = 0; i < digits_ratio<U, T>; ++i) {
                         auto const b = block_mask(x, i);
                         n += ctz_[b];
                         if (b)
@@ -89,8 +88,8 @@ public:
         template<class U>
         static constexpr auto clz(U x) noexcept
         {
-                auto n = 0_zu;
-                for (auto i = digits_ratio<U, T> - 1; i < digits_ratio<U, T>; --i) {
+                auto n = 0;
+                for (auto i = digits_ratio<U, T> - 1; i >= 0; --i) {
                         auto const b = block_mask(x, i);
                         n += clz_[b];
                         if (b)
@@ -103,8 +102,8 @@ public:
         template<class U>
         static constexpr auto popcount(U x) noexcept
         {
-                auto n = 0_zu;
-                for (auto i = 0_zu; i < digits_ratio<U, T>; ++i)
+                auto n = 0;
+                for (auto i = 0; i < digits_ratio<U, T>; ++i)
                         n += popcount_[block_mask(x, i)];
                 assert(n <= digits<U>);
                 return n;
@@ -112,16 +111,16 @@ public:
 
 private:
         template<class U>
-        static constexpr auto block_mask(U x, std::size_t i)
+        static constexpr auto block_mask(U x, int i)
         {
                 assert(i < (digits_ratio<U, T>));
                 return static_cast<T>(x >> (i * digits<T>));
         }
 };
 
-template<class T> constexpr std::size_t table<T>::ctz_[];
-template<class T> constexpr std::size_t table<T>::clz_[];
-template<class T> constexpr std::size_t table<T>::popcount_[];
+template<class T> constexpr int table<T>::ctz_[];
+template<class T> constexpr int table<T>::clz_[];
+template<class T> constexpr int table<T>::popcount_[];
 
 using detail = table<>;
 

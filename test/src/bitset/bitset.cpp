@@ -4,7 +4,6 @@
 #include <boost/test/unit_test.hpp>             // BOOST_AUTO_TEST_SUITE, BOOST_CHECK, BOOST_CHECK_EQUAL, BOOST_CHECK_EQUAL_COLLECTIONS, BOOST_AUTO_TEST_SUITE_END
 #include <boost/test/test_case_template.hpp>    // BOOST_AUTO_TEST_CASE_TEMPLATE
 #include <algorithm>                            // adjacent_find, is_sorted, minmax_element
-#include <cstdint>                              // uint64_t
 #include <functional>                           // greater, greater_equal, less, less_equal
 #include <initializer_list>                     // initializer_list
 #include <iterator>                             // begin, end, cbegin, cend, distance
@@ -18,8 +17,6 @@
 namespace xstd {
 
 BOOST_AUTO_TEST_SUITE(BitSet)
-
-using U = std::size_t;
 
 using SetTypes = boost::mpl::vector
 <
@@ -103,7 +100,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
         // modifiers
 
         // TODO: g++ 6 hangs during compilation of these non-const members
-/*
+
         BOOST_CHECK(set_one<N>());
         BOOST_CHECK(reset_one<N>());
         BOOST_CHECK(flip_one<N>());
@@ -118,7 +115,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
         BOOST_CHECK(op_minus_assign<N>());
         BOOST_CHECK(op_shift_left_assign<N>());
         BOOST_CHECK(op_shift_right_assign<N>());
-*/
+
         // observers
 
         BOOST_CHECK(all<N>());
