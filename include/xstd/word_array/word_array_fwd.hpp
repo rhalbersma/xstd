@@ -1,18 +1,11 @@
 #pragma once
 
 namespace xstd {
-namespace bit {
-namespace detail {
 
 template<class Block, int Nb>
-struct base_bitset;
+struct word_array;
 
 template<class Block>
-struct base_bitset<Block, 1>;
+struct word_array<Block, 1>;
 
-template<class Block>
-struct base_bitset<Block, 0>;
-
-}       // namespace detail
-}       // namespace bit
 }       // namespace xstd

@@ -1,5 +1,5 @@
-#include <bitset/exhaustive.hpp>
-#include <xstd/bitset.hpp>                      // bitset
+#include <int_set/exhaustive.hpp>
+#include <xstd/int_set.hpp>                      // int_set
 #include <boost/mpl/vector.hpp>                 // vector
 #include <boost/test/unit_test.hpp>             // BOOST_AUTO_TEST_SUITE, BOOST_CHECK, BOOST_CHECK_EQUAL, BOOST_CHECK_EQUAL_COLLECTIONS, BOOST_AUTO_TEST_SUITE_END
 #include <boost/test/test_case_template.hpp>    // BOOST_AUTO_TEST_CASE_TEMPLATE
@@ -20,11 +20,11 @@ BOOST_AUTO_TEST_SUITE(BitSet)
 
 using SetTypes = boost::mpl::vector
 <
-        //bitset<  0>,
-        bitset< 64>,    // Chess
-        bitset< 81>,    // Shogi
-        bitset< 90>,    // Xiangqi
-        bitset<361>     // Go
+        //int_set<  0>,
+        int_set< 64>    // Chess
+        //int_set< 81>,    // Shogi
+        //int_set< 90>,    // Xiangqi
+        //int_set<361>     // Go
 >;
 /*
 BOOST_AUTO_TEST_CASE_TEMPLATE(DefaultConstructorZeroInitializes, T, SetTypes)
@@ -94,12 +94,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
         BOOST_CHECK(op_equal_to<N>());
         BOOST_CHECK(op_not_equal_to<N>());
         BOOST_CHECK(op_less<N>());
-        BOOST_CHECK(is_subset_of<N>());
-        BOOST_CHECK(is_proper_subset_of<N>());
+        BOOST_CHECK(op_subset_of<N>());
+        BOOST_CHECK(op_proper_subset_of<N>());
 
         // modifiers
-
-        // TODO: g++ 6 hangs during compilation of these non-const members
 
         BOOST_CHECK(set_one<N>());
         BOOST_CHECK(reset_one<N>());

@@ -1,206 +1,197 @@
 #pragma once
-#include <xstd/bit/detail/base_bitset_fwd.hpp>  // base_bitset
+#include <xstd/word_array/word_array_fwd.hpp>     // word_array
 #include <xstd/bit/mask.hpp>                    // none, one, all
 #include <xstd/bit/primitive.hpp>               // ctznz, popcount
 #include <xstd/limits.hpp>                      // digits, is_unsigned_integer
 #include <cassert>                              // assert
-#include <utility>                              // swap
+#include <limits>                               // digits
+#include <type_traits>                          // is_nothrow_swappable
+#include <utility>                              // move, swap
 
 namespace xstd {
-namespace bit {
-namespace detail {
 
-template<class Block>
-struct base_bitset<Block, 1>
+template<class T>
+struct word_array<T, 1>
 {
-        static_assert(is_unsigned_integer<Block>);
-        static constexpr auto N = 1 * digits<Block>;
+        T m_word;
 
-        Block elems;
+        // types:
+        using value_type             = T;
+        using pointer                = T*;
+        using const_pointer          = T const*;
+        using reference              = T&;
+        using const_reference        = T const&;
+        using size_type              = int;
+        using difference_type        = int;
+        using iterator               = pointer;
+        using const_iterator         = const_pointer;
+        using reverse_iterator       = std::reverse_iterator<iterator>;
+        using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-        base_bitset() = default;
+        // no explicit construct/copy/destroy for aggregate type
 
-        /* implicit */ constexpr base_bitset(Block value) noexcept
-        :
-                elems{value}
-        {}
-
-        // data access
-
-        constexpr auto* block_begin() noexcept
+        constexpr auto fill(value_type const& u) noexcept
         {
-                return &elems;
+                m_word = u;
         }
 
-        constexpr auto const* block_begin() const noexcept
+        auto swap(word_array& other) noexcept
         {
-                return &elems;
+                using std::swap;
+                swap(m_word, other.m_word);
         }
 
-        constexpr auto* block_end() noexcept
-        {
-                return &elems;
-        }
+        // iterators:
+        constexpr auto begin()         noexcept { return       iterator(data()); }
+        constexpr auto begin()   const noexcept { return const_iterator(data()); }
+        constexpr auto end()           noexcept { return       iterator(data() + 1); }
+        constexpr auto end()     const noexcept { return const_iterator(data() + 1); }
+        constexpr auto rbegin()        noexcept { return       reverse_iterator(end()); }
+        constexpr auto rbegin()  const noexcept { return const_reverse_iterator(end()); }
+        constexpr auto rend()          noexcept { return       reverse_iterator(begin()); }
+        constexpr auto rend()    const noexcept { return const_reverse_iterator(begin()); }
+        constexpr auto cbegin()  const noexcept { return       iterator(data());     }
+        constexpr auto cend()    const noexcept { return const_iterator(data() + 1); }
+        constexpr auto crbegin() const noexcept { return const_reverse_iterator(end());   }
+        constexpr auto crend()   const noexcept { return const_reverse_iterator(begin()); }
 
-        constexpr auto const* block_end() const noexcept
-        {
-                return &elems;
-        }
+        // capacity:
+        constexpr auto empty()     const noexcept { return false; }
+        constexpr auto size()      const noexcept { return 1;     }
+        constexpr auto max_size()  const noexcept { return 1;     }
+        static constexpr auto word_size() noexcept { return std::numeric_limits<value_type>::digits; }
 
-        constexpr auto& block_back() noexcept
-        {
-                return elems;
-        }
-
-        constexpr auto const& block_back() const noexcept
-        {
-                return elems;
-        }
-
-        constexpr auto& block_ref(int)
-        {
-                return elems;
-        }
-
-        constexpr auto const& block_ref(int) const
-        {
-                return elems;
-        }
-
-        constexpr auto block_mask(int const n) const noexcept
-        {
-                assert(n < N);
-                return mask::one<Block> << n;
-        }
-
-        // comparators
-
-        constexpr auto op_equal_to(base_bitset const& other) const noexcept
-        {
-                return elems == other.elems;
-        }
-
-        constexpr auto op_less(base_bitset const& other) const noexcept
-        {
-                return elems < other.elems;
-        }
-
-        constexpr auto do_intersects(base_bitset const& other) const noexcept
-        {
-                return elems & other.elems;
-        }
-
-        constexpr auto do_is_subset_of(base_bitset const& other) const noexcept
-        {
-                return !(elems & ~other.elems);
-        }
+        // element access:
+        constexpr       reference operator[](size_type const n)       { assert(n == 0); return m_word; }
+        constexpr const_reference operator[](size_type const n) const { assert(n == 0); return m_word; }
+        constexpr       reference front()       { return m_word; }
+        constexpr const_reference front() const { return m_word; }
+        constexpr       reference back()       { return m_word; }
+        constexpr const_reference back() const { return m_word; }
+        constexpr auto data()       noexcept { return &m_word; }
+        constexpr auto data() const noexcept { return &m_word; }
 
         // modifiers
 
-        auto do_swap(base_bitset& other) noexcept
+        constexpr auto& flip() noexcept
         {
-                using std::swap;
-                swap(elems, other.elems);
+                m_word = ~m_word;
+                return *this;
         }
 
-        constexpr auto do_set() noexcept
+        constexpr auto& operator&=(word_array const& other) noexcept
         {
-                elems = mask::all<Block>;
+                m_word &= other.m_word;
+                return *this;
         }
 
-        constexpr auto do_reset() noexcept
+        constexpr auto operator|=(word_array const& other) noexcept
         {
-                elems = mask::none<Block>;
+                m_word |= other.m_word;
+                return *this;
         }
 
-        constexpr auto op_flip() noexcept
+        constexpr auto operator^=(word_array const& other) noexcept
         {
-                elems = ~elems;
+                m_word ^= other.m_word;
+                return *this;
         }
 
-        constexpr auto op_and(base_bitset const& other) noexcept
+        constexpr auto operator-=(word_array const& other) noexcept
         {
-                elems &= other.elems;
+                m_word &= ~other.m_word;
+                return *this;
         }
 
-        constexpr auto op_or(base_bitset const& other) noexcept
+        constexpr auto operator<<=(int const n) // Throws: Nothing.
         {
-                elems |= other.elems;
+                assert(0 <= n); assert(n < size() * word_size());
+                m_word <<= n;
+                return *this;
         }
 
-        constexpr auto op_xor(base_bitset const& other) noexcept
+        constexpr auto operator>>=(int const n) // Throws: Nothing.
         {
-                elems ^= other.elems;
-        }
-
-        constexpr auto op_minus(base_bitset const& other) noexcept
-        {
-                elems &= ~other.elems;
-        }
-
-        constexpr auto op_left_shift(int const n)
-        {
-                assert(n < N);
-                elems <<= n;
-        }
-
-        constexpr auto op_right_shift(int const n)
-        {
-                assert(n < N);
-                elems >>= n;
+                assert(0 <= n); assert(n < size() * word_size());
+                m_word >>= n;
+                return *this;
         }
 
         template<class UnaryFunction>
-        constexpr auto do_for_each(UnaryFunction f) const
+        constexpr auto for_each(UnaryFunction f) const
         {
-                for (auto block = elems; block;) {
-                        auto const first = bsfnz(block);
+                for (auto word = m_word; word;) {
+                        auto const first = bit::bsfnz(word);
                         f(first);
-                        block ^= block_mask(first);
+                        word ^= bit::mask::one<value_type> << first;
                 }
                 return std::move(f);
         }
 
         template<class UnaryFunction>
-        constexpr auto do_reverse_for_each(UnaryFunction f) const
+        constexpr auto reverse_for_each(UnaryFunction f) const
         {
-                for (auto block = elems; block;) {
-                        auto const last = bsrnz(block);
+                for (auto word = m_word; word;) {
+                        auto const last = bit::bsrnz(word);
                         f(last);
-                        block ^= block_mask(last);
+                        word ^= bit::mask::one<value_type> << last;
                 }
                 return std::move(f);
         }
 
         // observers
 
-        template<int M>
-        constexpr auto do_all() const noexcept
+        template<int M = 0>
+        constexpr auto all() const noexcept
         {
-                static_assert(M < digits<Block>);
-                if constexpr (M != 0) {
-                        return elems == mask::all<Block> >> (digits<Block> - M);
+                static_assert(0 <= M); static_assert(M < word_size());
+                if constexpr (M == 0) {
+                        return m_word == bit::mask::all<value_type>;
                 } else {
-                        return elems == mask::all<Block>;
+                        return m_word == bit::mask::all<value_type> >> (word_size() - M);
                 }
         }
 
-        constexpr auto do_any() const noexcept
+        constexpr auto any() const noexcept
         {
-                return elems != mask::none<Block>;
+                return m_word != bit::mask::none<value_type>;
         }
 
-        constexpr auto do_none() const noexcept
+        constexpr auto none() const noexcept
         {
-                return elems == mask::none<Block>;
+                return m_word == bit::mask::none<value_type>;
         }
 
-        constexpr auto do_count() const noexcept
+        constexpr auto count() const noexcept
         {
-                return popcount(elems);
+                return bit::popcount(m_word);
         }
 };
 
-}       // namespace detail
-}       // namespace bit
+template<class T>
+constexpr auto operator==(word_array<T, 1> const& lhs, word_array<T, 1> const& rhs) noexcept
+{
+        return lhs.m_word == rhs.m_word;
+}
+
+template<class T>
+constexpr auto operator<(word_array<T, 1> const& lhs, word_array<T, 1> const& rhs) noexcept
+{
+        return lhs.m_word < rhs.m_word;
+}
+
+template<class T>
+constexpr auto intersects(word_array<T, 1> const& lhs, word_array<T, 1> const& rhs) noexcept
+        -> bool
+{
+        return lhs.m_word & rhs.m_word;
+}
+
+template<class T>
+constexpr auto subset_of(word_array<T, 1> const& lhs, word_array<T, 1> const& rhs) noexcept
+        -> bool
+{
+        return !(lhs.m_word & ~rhs.m_word);
+}
+
 }       // namespace xstd

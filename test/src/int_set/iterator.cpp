@@ -1,18 +1,18 @@
-#include <xstd/bitset.hpp>                         // Set
+#include <xstd/int_set.hpp>                         // Set
 #include <boost/mpl/vector.hpp>                 // vector
 #include <boost/test/unit_test.hpp>             // BOOST_AUTO_TEST_SUITE, BOOST_CHECK, BOOST_CHECK_EQUAL, BOOST_CHECK_EQUAL_COLLECTIONS, BOOST_AUTO_TEST_SUITE_END
 #include <boost/test/test_case_template.hpp>    // BOOST_AUTO_TEST_CASE_TEMPLATE
 
 namespace xstd {
-
+/*
 BOOST_AUTO_TEST_SUITE(BitIterator)
 
 using SetTypes = boost::mpl::vector
 <
-        bitset< 64>,
-        bitset<128>,
-        bitset<192>,
-        bitset<256>
+        int_set< 64>,
+        int_set<128>,
+        int_set<192>,
+        int_set<256>
 >;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(ForwardIterationTraversesRange, T, SetTypes)
@@ -48,5 +48,5 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(ReverseBackwardIterationTraversesRange, T, SetType
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-
+*/
 }       // namespace xstd

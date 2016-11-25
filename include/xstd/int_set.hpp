@@ -1,12 +1,12 @@
 #pragma once
-#include <xstd/bit/base_bitset.hpp>     // base_bitset
-#include <xstd/bit/mask.hpp>            // one
-#include <xstd/bit/proxy.hpp>           // ConstIterator, ConstReference
-#include <xstd/limits.hpp>              // digits
-#include <cassert>                      // assert
+#include <xstd/word_array.hpp>   // word_array
+#include <xstd/bit/mask.hpp>    // one
+#include <xstd/bit/proxy.hpp>   // ConstIterator, ConstReference
+#include <xstd/limits.hpp>      // digits
+#include <cassert>              // assert
 #include <cstdint>
-#include <initializer_list>             // initializer_list
-#include <iterator>                     // reverse_iterator
+#include <initializer_list>     // initializer_list
+#include <iterator>             // reverse_iterator
 
 namespace xstd {
 
@@ -16,83 +16,81 @@ constexpr auto num_blocks(int N)
         return (N - 1 + digits<Block>) / digits<Block>;
 }
 
-template<int>
-class bitset;
-
-template<int N>
-constexpr bool operator==(const bitset<N>& lhs, const bitset<N>& rhs) noexcept;
-
-template<int N>
-constexpr bool operator<(const bitset<N>& lhs, const bitset<N>& rhs) noexcept;
-
-template<int N>
-constexpr bool intersect(const bitset<N>& lhs, const bitset<N>& rhs) noexcept;
-
 using bitstorage = uint64_t;
 
-template<int N>
-class bitset
-:
-        bit::detail::base_bitset<bitstorage, num_blocks<bitstorage>(N)>
-{
-        using block_type = bitstorage;
-        static constexpr auto Nb = num_blocks<block_type>(N);
-        using Base = bit::detail::base_bitset<block_type, num_blocks<block_type>(N)>;
+template<int>
+class int_set;
 
-        friend constexpr bool operator== <>(const bitset<N>&, const bitset<N>&) noexcept;
-        friend constexpr bool operator<  <>(const bitset<N>&, const bitset<N>&) noexcept;
-        friend constexpr bool intersect  <>(const bitset<N>&, const bitset<N>&) noexcept;
+template<int N> bool operator==(int_set<N> const&, int_set<N> const&) noexcept;
+template<int N> bool operator< (int_set<N> const&, int_set<N> const&) noexcept;
+template<int N> bool intersects(int_set<N> const&, int_set<N> const&) noexcept;
+template<int N> bool subset_of (int_set<N> const&, int_set<N> const&) noexcept;
+
+template<int N>
+class int_set
+{
+        using word_type = bitstorage;
+        static constexpr auto Nb = num_blocks<word_type>(N);
+        using Base = word_array<word_type, num_blocks<word_type>(N)>;
+
+        Base m_words;
+
+        friend bool operator==<>(int_set<N> const&, int_set<N> const&) noexcept;
+        friend bool operator< <>(int_set<N> const&, int_set<N> const&) noexcept;
+        friend bool intersects<>(int_set<N> const&, int_set<N> const&) noexcept;
+        friend bool subset_of <>(int_set<N> const&, int_set<N> const&) noexcept;
 public:
-        using reference = bit::ConstReference<block_type, Nb, N>;
-        using const_reference = reference;
-        using iterator = bit::ConstIterator<block_type, Nb, N>;
-        using const_iterator = iterator;
-        using reverse_iterator = std::reverse_iterator<iterator>;
+        // types:
+        using value_type             = int;
+        using pointer                = int*;
+        using const_pointer          = int const*;
+        using       reference        = bit::ConstReference<word_type, Nb, N>;
+        using const_reference        = reference;
+        using size_type              = int;
+        using difference_type        = int;
+        using       iterator         = bit::ConstIterator<word_type, Nb, N>;
+        using const_iterator         = iterator;
+        using       reverse_iterator = std::reverse_iterator<iterator>;
         using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
         // constructors
 
-        constexpr bitset() = default;
+        int_set() = default;
 
         template<class ForwardIterator>
-        constexpr bitset(ForwardIterator first, ForwardIterator last)
+        constexpr int_set(ForwardIterator first, ForwardIterator last) // Throws: Nothing.
         :
-                Base{}
+                m_words{}
         {
                 for (auto it = first; it != last; ++it)
                         set(*it);
         }
 
-        constexpr bitset(std::initializer_list<int> ilist)
+        constexpr int_set(std::initializer_list<value_type> ilist) // Throws: Nothing.
         :
-                bitset(ilist.begin(), ilist.end())
-        {}
-
-        [[deprecated]] /* implicit */ constexpr bitset(unsigned long long value) noexcept
-        :
-                Base{sanitized(value)}
+                int_set(ilist.begin(), ilist.end())
         {}
 
         // iterators
-
+/*
         constexpr auto begin() noexcept
         {
-                return iterator{this->block_begin()};
+                return iterator{m_words.begin()};
         }
 
         constexpr auto begin() const noexcept
         {
-                return const_iterator{this->block_begin()};
+                return const_iterator{m_words.begin()};
         }
 
         constexpr auto end() noexcept
         {
-                return iterator{this->block_end(), N};
+                return iterator{m_words.end(), N};
         }
 
         constexpr auto end() const noexcept
         {
-                return const_iterator{this->block_end(), N};
+                return const_iterator{m_words.end(), N};
         }
 
         constexpr auto rbegin() noexcept
@@ -134,7 +132,7 @@ public:
         {
                 return rend();
         }
-
+*/
         // capacity
 
         static constexpr auto size() noexcept
@@ -144,383 +142,395 @@ public:
 
         // modifiers
 
-        constexpr void swap(bitset<N>& other) noexcept
+        auto& set() noexcept
         {
-                this->do_swap(other);
-        }
-
-        // element access
-
-        constexpr bool test(int pos) const // Throws: Nothing.
-        {
-                assert(pos < N);
-                return this->block_ref(pos) & this->block_mask(pos);
-        }
-
-        constexpr bitset<N>& set(int pos) // Throws: Nothing.
-        {
-                assert(pos < N);
-                this->block_ref(pos) |= this->block_mask(pos);
-                assert(test(pos));
-                return *this;
-        }
-
-        constexpr bitset<N>& reset(int pos) // Throws: Nothing.
-        {
-                assert(pos < N);
-                this->block_ref(pos) &= ~this->block_mask(pos);
-                assert(!test(pos));
-                return *this;
-        }
-
-        constexpr bitset<N>& flip(int pos) // Throws: Nothing.
-        {
-                assert(pos < N);
-                this->block_ref(pos) ^= this->block_mask(pos);
-                return *this;
-        }
-
-        constexpr auto* data() noexcept
-        {
-                return this->block_begin();
-        }
-
-        constexpr auto const* data() const noexcept
-        {
-                return this->block_begin();
-        }
-
-        // comparators
-
-        constexpr bool is_subset_of(const bitset<N>& other) const noexcept
-        {
-                return this->do_is_subset_of(other);
-        }
-
-        constexpr bool is_superset_of(const bitset<N>& other) const noexcept
-        {
-                return other.is_subset_of(*this);
-        }
-
-        constexpr bool is_proper_subset_of(const bitset<N>& other) const noexcept
-        {
-                return this->do_is_subset_of(other) && !other.is_subset_of(*this);
-        }
-
-        constexpr bool is_proper_superset_of(const bitset<N>& other) const noexcept
-        {
-                return this->do_is_superset_of(other) && !other.is_superset_of(*this);
-        }
-
-        // modifiers
-
-        constexpr bitset<N>& set() noexcept
-        {
-                this->do_set();
+                m_words.fill(bit::mask::all<word_type>);
                 sanitize();
                 assert(all());
                 return *this;
         }
 
-        constexpr bitset<N>& reset() noexcept
+        auto& reset() noexcept
         {
-                this->do_reset();
+                m_words.fill(bit::mask::none<word_type>);
                 assert(none());
                 return *this;
         }
 
-        constexpr bitset<N>& flip() noexcept
+        auto swap(int_set& other) noexcept
         {
-                this->op_flip();
+                m_words.swap(other);
+        }
+
+        // element access
+
+        constexpr auto& set(int const n) // Throws: Nothing.
+        {
+                assert(0 <= n); assert(n < N);
+                m_words[which(n)] |= word(where(n));
+                assert(test(n));
+                return *this;
+        }
+
+        constexpr auto& reset(int const n) // Throws: Nothing.
+        {
+                assert(0 <= n); assert(n < N);
+                m_words[which(n)] &= ~word(where(n));
+                assert(!test(n));
+                return *this;
+        }
+
+        constexpr auto& flip(int const n) // Throws: Nothing.
+        {
+                assert(0 <= n); assert(n < N);
+                m_words[which(n)] ^= word(where(n));
+                return *this;
+        }
+
+        constexpr auto test(int const n) const // Throws: Nothing.
+                -> bool
+        {
+                assert(0 <= n); assert(n < N);
+                return m_words[which(n)] & word(where(n));
+        }
+
+        // comparators
+
+        // modifiers
+
+        constexpr auto& flip() noexcept
+        {
+                m_words.flip();
                 sanitize();
                 return *this;
         }
 
-        constexpr bitset<N>& operator&=(const bitset<N>& rhs) noexcept
+        constexpr auto& operator&=(int_set const& other) noexcept
         {
-                this->op_and(rhs);
+                m_words &= other.m_words;
                 return *this;
         }
 
-        constexpr bitset<N>& operator|=(const bitset<N>& rhs) noexcept
+        constexpr auto& operator|=(int_set const& other) noexcept
         {
-                this->op_or(rhs);
+                m_words |= other.m_words;
                 return *this;
         }
 
-        constexpr bitset<N>& operator^=(const bitset<N>& rhs) noexcept
+        constexpr auto& operator^=(int_set const& other) noexcept
         {
-                this->op_xor(rhs);
+                m_words ^= other.m_words;
                 return *this;
         }
 
-        constexpr bitset<N>& operator-=(const bitset<N>& rhs) noexcept
+        constexpr auto& operator-=(int_set const& other) noexcept
         {
-                this->op_minus(rhs);
+                m_words -= other.m_words;
                 return *this;
         }
 
-        constexpr bitset<N>& operator<<=(int pos) // Throws: Nothing.
+        auto& operator<<=(int const n) // Throws: Nothing.
         {
-                assert(pos < N);
-                this->op_left_shift(pos);
+                assert(0 <= n); assert(n < N);
+                m_words <<= n;
                 sanitize();
                 return *this;
         }
 
-        constexpr bitset<N>& operator>>=(int pos) // Throws: Nothing.
+        auto& operator>>=(int const n) // Throws: Nothing.
         {
-                assert(pos < N);
-                this->op_right_shift(pos);
+                assert(0 <= n); assert(n < N);
+                m_words >>= n;
                 return *this;
         }
 
         template<class UnaryFunction>
-        constexpr UnaryFunction for_each(UnaryFunction f) const
+        constexpr auto for_each(UnaryFunction f) const
         {
-                return this->do_for_each(f);
+                return m_words.for_each(std::move(f));
         }
 
         template<class UnaryFunction>
-        constexpr UnaryFunction reverse_for_each(UnaryFunction f) const
+        constexpr auto reverse_for_each(UnaryFunction f) const
         {
-                return this->do_reverse_for_each(f);
+                return m_words.reverse_for_each(std::move(f));
         }
 
         // observers
 
-        constexpr bool all() const noexcept
+        auto all() const noexcept
         {
-                return this->template do_all<N % digits<block_type>>();
+                return m_words.template all<remaining_bits()>();
         }
 
-        constexpr bool any() const noexcept
+        auto any() const noexcept
         {
-                return this->do_any();
+                return m_words.any();
         }
 
-        constexpr bool none() const noexcept
+        auto none() const noexcept
         {
-                return this->do_none();
+                return m_words.none();
         }
 
-        constexpr auto count() const noexcept
+        auto count() const noexcept
         {
-                return this->do_count();
+                return m_words.count();
         }
 
 private:
-        constexpr auto sanitized(block_type const b) const noexcept
+        constexpr auto which(int const n) const // Throws: Nothing.
         {
-                return sanitized<N % digits<block_type>>(b);
+                assert(0 <= n); assert(n < N);
+                if constexpr (N <= word_size()) {
+                        return 0;
+                } else {
+                        return n / word_size();
+                }
         }
 
-        template<int M>
-        constexpr auto sanitized(block_type const b) noexcept
+        constexpr auto where(int const n) const // Throws: Nothing.
         {
-                static_assert(M < digits<block_type>);
-                if constexpr (M != 0) {
-                        return b & (bit::mask::all<block_type> >> (digits<block_type> - M));
+                assert(0 <= n); assert(n < N);
+                if constexpr (N <= word_size()) {
+                        return n;
                 } else {
-                        return b;
+                        return n % word_size();
                 }
+        }
+
+        constexpr auto word(int const n) const // Throws: Nothing.
+        {
+                assert(0 <= n); assert(n < word_size());
+                return bit::mask::one<word_type> << n;
+        }
+
+        static constexpr auto remaining_bits() noexcept
+        {
+                return N % word_size();
+        }
+
+        static constexpr auto word_size() noexcept
+        {
+                return Base::word_size();
         }
 
         constexpr auto sanitize() noexcept
         {
-                sanitize<N % digits<block_type>>(this->block_back());
-        }
-
-        template<int M>
-        constexpr auto sanitize(block_type& b) noexcept
-        {
-                static_assert(M < digits<block_type>);
-                if constexpr (M != 0) {
-                        b &= bit::mask::all<block_type> >> (digits<block_type> - M);
+                if constexpr (remaining_bits() != 0) {
+                        m_words.back() &= bit::mask::all<word_type> >> (word_size() - remaining_bits());
                 }
         }
 };
-
+/*
 template<int N>
 constexpr auto
-begin(bitset<N>& b) -> decltype(b.begin())
+begin(int_set<N>& b) -> decltype(b.begin())
 {
         return b.begin();
 }
 
 template<int N>
 constexpr auto
-begin(const bitset<N>& b) -> decltype(b.begin())
+begin(int_set<N> const& b) -> decltype(b.begin())
 {
         return b.begin();
 }
 
 template<int N>
 constexpr auto
-end(bitset<N>& b) -> decltype(b.end())
+end(int_set<N>& b) -> decltype(b.end())
 {
         return b.end();
 }
 
 template<int N>
 constexpr auto
-end(const bitset<N>& b) -> decltype(b.end())
+end(int_set<N> const& b) -> decltype(b.end())
 {
         return b.end();
 }
 
 template<int N>
 constexpr auto
-cbegin(const bitset<N>& b) noexcept(noexcept(std::begin(b))) -> decltype(xstd::begin(b))
+cbegin(int_set<N> const& b) noexcept(noexcept(std::begin(b))) -> decltype(xstd::begin(b))
 {
         return xstd::begin(b);
 }
 
 template<int N>
 constexpr auto
-cend(const bitset<N>& b) noexcept(noexcept(std::end(b)))-> decltype(xstd::end(b))
+cend(int_set<N> const& b) noexcept(noexcept(std::end(b)))-> decltype(xstd::end(b))
 {
         return xstd::end(b);
 }
 
 template<int N>
 constexpr auto
-rbegin(bitset<N>& b) -> decltype(b.rbegin())
+rbegin(int_set<N>& b) -> decltype(b.rbegin())
 {
         return b.rbegin();
 }
 
 template<int N>
 constexpr auto
-rbegin(const bitset<N>& b) -> decltype(b.rbegin())
+rbegin(int_set<N> const& b) -> decltype(b.rbegin())
 {
         return b.rbegin();
 }
 
 template<int N>
 constexpr auto
-rend(bitset<N>& b) -> decltype(b.rend())
+rend(int_set<N>& b) -> decltype(b.rend())
 {
         return b.rend();
 }
 
 template<int N>
 constexpr auto
-rend(const bitset<N>& b) -> decltype(b.rend())
+rend(int_set<N> const& b) -> decltype(b.rend())
 {
         return b.rend();
 }
 
 template<int N>
 constexpr auto
-crbegin(const bitset<N>& b) -> decltype(xstd::rbegin(b))
+crbegin(int_set<N> const& b) -> decltype(xstd::rbegin(b))
 {
         return xstd::rbegin(b);
 }
 
 template<int N>
 constexpr auto
-crend(const bitset<N>& b) -> decltype(xstd::rend(b))
+crend(int_set<N> const& b) -> decltype(xstd::rend(b))
 {
         return xstd::rend(b);
 }
-
+*/
 template<int N>
-constexpr bool operator==(const bitset<N>& lhs, const bitset<N>& rhs) noexcept
+bool operator==(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        return lhs.op_equal_to(rhs);
+        return lhs.m_words == rhs.m_words;
 }
 
 template<int N>
-constexpr bool operator<(const bitset<N>& lhs, const bitset<N>& rhs) noexcept
+bool operator<(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        return lhs.op_less(rhs);
+        return lhs.m_words < rhs.m_words;
 }
 
 template<int N>
-constexpr bool operator!=(const bitset<N>& lhs, const bitset<N>& rhs) noexcept
+auto operator!=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         return !(lhs == rhs);
 }
 
 template<int N>
-constexpr bool operator>(const bitset<N>& lhs, const bitset<N>& rhs) noexcept
+auto operator>(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         return rhs < lhs;
 }
 
 template<int N>
-constexpr bool operator>=(const bitset<N>& lhs, const bitset<N>& rhs) noexcept
+auto operator>=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         return !(lhs < rhs);
 }
 
 template<int N>
-constexpr bool operator<=(const bitset<N>& lhs, const bitset<N>& rhs) noexcept
+auto operator<=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         return !(rhs < lhs);
 }
 
 template<int N>
-constexpr void swap(bitset<N>& lhs, bitset<N>& rhs) noexcept
+auto swap(int_set<N>& lhs, int_set<N>& rhs) noexcept
 {
         lhs.swap(rhs);
 }
 
 template<int N>
-constexpr bool intersect(const bitset<N>& lhs, const bitset<N>& rhs) noexcept
+bool intersects(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        return lhs.do_intersects(rhs);
+        return intersects(lhs.m_words, rhs.m_words);
 }
 
 template<int N>
-constexpr bool disjoint(const bitset<N>& lhs, const bitset<N>& rhs) noexcept
+auto disjoint(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        return !intersect(lhs, rhs);
+        return !intersects(lhs, rhs);
+}
+
+// <=
+template<int N>
+bool subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        return subset_of(lhs.m_words, rhs.m_words);
+}
+
+// >=
+template<int N>
+auto superset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        return subset_of(rhs, lhs);
+}
+
+// <
+template<int N>
+auto proper_subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        return subset_of(lhs, rhs) && !subset_of(rhs, lhs);
+}
+
+// >
+template<int N>
+auto proper_superset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        return superset_of(lhs, rhs) && !superset_of(rhs, lhs);
 }
 
 template<int N>
-constexpr bitset<N> operator~(const bitset<N>& lhs) noexcept
+constexpr auto operator~(int_set<N> const& lhs) noexcept
 {
-        bitset<N> nrv{lhs}; nrv.flip(); return nrv;
+        int_set<N> nrv{lhs}; nrv.flip(); return nrv;
 }
 
 template<int N>
-constexpr bitset<N> operator&(const bitset<N>& lhs, const bitset<N>& rhs) noexcept
+constexpr auto operator&(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        bitset<N> nrv{lhs}; nrv &= rhs; return nrv;
+        int_set<N> nrv{lhs}; nrv &= rhs; return nrv;
 }
 
 template<int N>
-constexpr bitset<N> operator|(const bitset<N>& lhs, const bitset<N>& rhs) noexcept
+constexpr auto operator|(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        bitset<N> nrv{lhs}; nrv |= rhs; return nrv;
+        int_set<N> nrv{lhs}; nrv |= rhs; return nrv;
 }
 
 template<int N>
-constexpr bitset<N> operator^(const bitset<N>& lhs, const bitset<N>& rhs) noexcept
+constexpr auto operator^(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        bitset<N> nrv{lhs}; nrv ^= rhs; return nrv;
+        int_set<N> nrv{lhs}; nrv ^= rhs; return nrv;
 }
 
 template<int N>
-constexpr bitset<N> operator-(const bitset<N>& lhs, const bitset<N>& rhs) noexcept
+constexpr auto operator-(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        bitset<N> nrv{lhs}; nrv -= rhs; return nrv;
+        int_set<N> nrv{lhs}; nrv -= rhs; return nrv;
 }
 
 template<int N>
-constexpr bitset<N> operator<<(const bitset<N>& lhs, int pos) // Throws: Nothing.
+auto operator<<(int_set<N> const& lhs, int const n) // Throws: Nothing.
 {
-        assert(pos < N);
-        bitset<N> nrv{lhs}; nrv <<= pos; return nrv;
+        assert(0 <= n); assert(n < N);
+        int_set<N> nrv{lhs}; nrv <<= n; return nrv;
 }
 
 template<int N>
-constexpr bitset<N> operator>>(const bitset<N>& lhs, int pos) // Throws: Nothing.
+auto operator>>(int_set<N> const& lhs, int const n) // Throws: Nothing.
 {
-        assert(pos < N);
-        bitset<N> nrv{lhs}; nrv >>= pos; return nrv;
+        assert(0 <= n); assert(n < N);
+        int_set<N> nrv{lhs}; nrv >>= n; return nrv;
 }
 
 }       // namespace xstd

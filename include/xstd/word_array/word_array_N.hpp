@@ -1,5 +1,5 @@
 #pragma once
-#include <xstd/bit/detail/base_bitset_fwd.hpp>  // base_bitset
+#include <xstd/word_array/word_array_fwd.hpp>     // word_array
 #include <xstd/bit/mask.hpp>                    // none, one, all
 #include <xstd/bit/primitive.hpp>               // ctznz, popcount
 #include <xstd/limits.hpp>                      // digits, is_unsigned_integer
@@ -15,228 +15,183 @@
 #include <algorithm>                            // all_of, copy_n, copy_backward
 #include <cassert>                              // assert
 #include <iterator>                             // begin, end, cbegin, cend, crbegin, crend
+#include <limits>                               // digits
+#include <type_traits>                          // is_nothrow_swappable
 #include <utility>                              // move
 
 namespace xstd {
-namespace bit {
-namespace detail {
 
-template<class Block, int Nb>
-struct base_bitset
+template<class T, int N>
+struct word_array
 {
-        static_assert(is_unsigned_integer<Block>);
-        static constexpr auto N = Nb * digits<Block>;
+        T m_words[N];
 
-        Block elems[Nb];
+        // types:
+        using value_type             = T;
+        using pointer                = T*;
+        using const_pointer          = T const*;
+        using reference              = T&;
+        using const_reference        = T const&;
+        using size_type              = int;
+        using difference_type        = int;
+        using iterator               = pointer;
+        using const_iterator         = const_pointer;
+        using reverse_iterator       = std::reverse_iterator<iterator>;
+        using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-        base_bitset() = default;
+        // no explicit construct/copy/destroy for aggregate type
 
-        /* implicit */ constexpr base_bitset(Block value) noexcept
-        :
-                elems{{value}}
-        {}
-
-        // data access
-
-        constexpr auto* block_begin() noexcept
+        auto fill(value_type const& u) noexcept
         {
-                using std::begin;
-                return begin(elems);
+                boost::fill_n(m_words, N, u);
         }
 
-        constexpr auto const* block_begin() const noexcept
+        auto swap(word_array& other) noexcept
         {
-                using std::begin;
-                return begin(elems);
+                boost::range::swap_ranges(m_words, other.m_words);
         }
 
-        constexpr auto* block_end() noexcept
-        {
-                using std::end;
-                return end(elems);
-        }
+        // iterators:
+        constexpr auto begin()         noexcept { using std::begin;   return begin(m_words);   }
+        constexpr auto begin()   const noexcept { using std::begin;   return begin(m_words);   }
+        constexpr auto end()           noexcept { using std::end;     return end(m_words);     }
+        constexpr auto end()     const noexcept { using std::end;     return end(m_words);     }
+        constexpr auto rbegin()        noexcept { using std::rbegin;  return rbegin(m_words);  }
+        constexpr auto rbegin()  const noexcept { using std::rbegin;  return rbegin(m_words);  }
+        constexpr auto rend()          noexcept { using std::rend;    return rend(m_words);    }
+        constexpr auto rend()    const noexcept { using std::rend;    return rend(m_words);    }
+        constexpr auto cbegin()  const noexcept { using std::cbegin;  return cbegin(m_words);  }
+        constexpr auto cend()    const noexcept { using std::cend;    return cend(m_words);    }
+        constexpr auto crbegin() const noexcept { using std::crbegin; return crbegin(m_words); }
+        constexpr auto crend()   const noexcept { using std::crend;   return crend(m_words);   }
 
-        constexpr auto const* block_end() const noexcept
-        {
-                using std::end;
-                return end(elems);
-        }
+        // capacity:
+        constexpr auto empty()     const noexcept { return size() == 0; }
+        constexpr auto size()      const noexcept { return N; }
+        constexpr auto max_size()  const noexcept { return N; }
+        static constexpr auto word_size() noexcept { return std::numeric_limits<value_type>::digits; }
 
-        constexpr auto& block_back() noexcept
-        {
-                return elems[Nb - 1];
-        }
-
-        constexpr auto const& block_back() const noexcept
-        {
-                return elems[Nb - 1];
-        }
-
-        constexpr auto& block_ref(int n)
-        {
-                assert(n < N);
-                return elems[n / digits<Block>];
-        }
-
-        constexpr auto const& block_ref(int n) const
-        {
-                assert(n < N);
-                return elems[n / digits<Block>];
-        }
-
-        constexpr auto block_mask(int n) const noexcept
-        {
-                assert(n < N);
-                return mask::one<Block> << (n % digits<Block>);
-        }
-
-        // comparators
-
-        auto op_equal_to(base_bitset const& other) const noexcept
-        {
-                return boost::equal(elems, other.elems);
-        }
-
-        auto op_less(base_bitset const& other) const noexcept
-        {
-                using boost::adaptors::reverse;
-                return boost::lexicographical_compare(reverse(elems), reverse(other.elems));
-        }
-
-        auto do_intersects(base_bitset const& other) const noexcept
-        {
-                return boost::algorithm::any_of(boost::combine(elems, other.elems), [](auto const block){
-                        return boost::get<0>(block) & boost::get<1>(block);
-                });
-
-        }
-
-        auto do_is_subset_of(base_bitset const& other) const noexcept
-        {
-                return boost::algorithm::all_of(boost::combine(elems, other.elems), [](auto const block){
-                        return !(boost::get<0>(block) & ~boost::get<1>(block));
-                });
-        }
+        // element access:
+        constexpr       reference operator[](size_type n)       { assert(0 <= n); assert(n < size()); return m_words[n]; }
+        constexpr const_reference operator[](size_type n) const { assert(0 <= n); assert(n < size()); return m_words[n]; }
+        constexpr       reference front()       { return m_words[0]; }
+        constexpr const_reference front() const { return m_words[0]; }
+        constexpr       reference back()       { return m_words[N - 1]; }
+        constexpr const_reference back() const { return m_words[N - 1]; }
+        constexpr auto data()       noexcept { return &m_words[0]; }
+        constexpr auto data() const noexcept { return &m_words[0]; }
 
         // modifiers
 
-        auto do_swap(base_bitset& other) noexcept
+        constexpr auto& flip() noexcept
         {
-                boost::range::swap_ranges(elems, other.elems);
+                for (auto& word : m_words)
+                        word = ~word;
+                return *this;
         }
 
-        auto do_set() noexcept
+        constexpr auto& operator&=(word_array const& other) noexcept
         {
-                boost::fill_n(elems, Nb, mask::all<Block>);
+                for (auto i = 0; i < N; ++i)
+                        m_words[i] &= other.m_words[i];
+                return *this;
         }
 
-        auto do_reset() noexcept
+        constexpr auto& operator|=(word_array const& other) noexcept
         {
-                boost::fill_n(elems, Nb, mask::none<Block>);
+                for (auto i = 0; i < N; ++i)
+                        m_words[i] |= other.m_words[i];
+                return *this;
         }
 
-        constexpr auto op_flip() noexcept
+        constexpr auto& operator^=(word_array const& other) noexcept
         {
-                for (auto& block : elems)
-                        block = ~block;
+                for (auto i = 0; i < N; ++i)
+                        m_words[i] ^= other.m_words[i];
+                return *this;
         }
 
-        constexpr auto op_and(base_bitset const& other) noexcept
+        constexpr auto& operator-=(word_array const& other) noexcept
         {
-                for (auto i = 0; i < Nb; ++i)
-                        elems[i] &= other.elems[i];
+                for (auto i = 0; i < N; ++i)
+                        m_words[i] &= ~other.m_words[i];
+                return *this;
         }
 
-        constexpr auto op_or(base_bitset const& other) noexcept
+        auto& operator<<=(int const n) // Throws: Nothing.
         {
-                for (auto i = 0; i < Nb; ++i)
-                        elems[i] |= other.elems[i];
-        }
-
-        constexpr auto op_xor(base_bitset const& other) noexcept
-        {
-                for (auto i = 0; i < Nb; ++i)
-                        elems[i] ^= other.elems[i];
-        }
-
-        constexpr auto op_minus(base_bitset const& other) noexcept
-        {
-                for (auto i = 0; i < Nb; ++i)
-                        elems[i] &= ~other.elems[i];
-        }
-
-        auto op_left_shift(int const n)
-        {
-                assert(n < N);
+                assert(0 <= n); assert(n < size() * word_size());
                 using std::begin; using std::end;
-                if (n == 0) return;
+                if (n == 0) return *this;
 
-                auto const n_block = n / digits<Block>;
-                auto const L_shift = n % digits<Block>;
+                auto const n_block = n / word_size();
+                auto const L_shift = n % word_size();
 
                 if (L_shift == 0) {
-                        std::copy_backward(begin(elems), end(elems) - n_block, end(elems));
+                        std::copy_backward(begin(m_words), end(m_words) - n_block, end(m_words));
                 } else {
-                        auto const R_shift = digits<Block> - L_shift;
+                        auto const R_shift = word_size() - L_shift;
 
-                        for (auto i = Nb - 1; i > n_block; --i) {
-                                elems[i] =
-                                        (elems[i - n_block    ] << L_shift) |
-                                        (elems[i - n_block - 1] >> R_shift)
+                        for (auto i = N - 1; i > n_block; --i) {
+                                m_words[i] =
+                                        (m_words[i - n_block    ] << L_shift) |
+                                        (m_words[i - n_block - 1] >> R_shift)
                                 ;
                         }
-                        elems[n_block] = elems[0] << L_shift;
+                        m_words[n_block] = m_words[0] << L_shift;
                 }
-                boost::fill_n(elems, n_block, mask::none<Block>);
+                boost::fill_n(m_words, n_block, bit::mask::none<value_type>);
+                return *this;
         }
 
-        auto op_right_shift(int const n)
+        auto& operator>>=(int const n) // Throws: Nothing.
         {
-                assert(n < N);
+                assert(0 <= n); assert(n < size() * word_size());
                 using std::begin; using std::end;
                 using boost::adaptors::reverse;
-                if (n == 0) return;
+                if (n == 0) return *this;
 
-                auto const n_block = n / digits<Block>;
-                auto const R_shift = n % digits<Block>;
+                auto const n_block = n / word_size();
+                auto const R_shift = n % word_size();
 
                 if (R_shift == 0) {
-                        std::copy_n(begin(elems) + n_block, Nb - n_block, begin(elems));
+                        std::copy_n(begin(m_words) + n_block, N - n_block, begin(m_words));
                 } else {
-                        auto const L_shift = digits<Block> - R_shift;
+                        auto const L_shift = word_size() - R_shift;
 
-                        for (auto i = 0; i < Nb - 1 - n_block; ++i) {
-                                elems[i] =
-                                        (elems[i + n_block    ] >> R_shift) |
-                                        (elems[i + n_block + 1] << L_shift)
+                        for (auto i = 0; i < N - 1 - n_block; ++i) {
+                                m_words[i] =
+                                        (m_words[i + n_block    ] >> R_shift) |
+                                        (m_words[i + n_block + 1] << L_shift)
                                 ;
                         }
-                        elems[Nb - 1 - n_block] = elems[Nb - 1] >> R_shift;
+                        m_words[N - 1 - n_block] = m_words[N - 1] >> R_shift;
                 }
-                boost::fill_n(reverse(elems), n_block, mask::none<Block>);
+                boost::fill_n(reverse(m_words), n_block, bit::mask::none<value_type>);
+                return *this;
         }
 
         template<class UnaryFunction>
-        constexpr auto do_for_each(UnaryFunction f) const
+        constexpr auto for_each(UnaryFunction f) const
         {
-                for (auto i = 0, offset = 0; i < Nb; ++i, offset += digits<Block>) {
-                        for (auto block = elems[i]; block;) {
-                                auto const first = bsfnz(block);
+                for (auto i = 0, offset = 0; i < N; ++i, offset += word_size()) {
+                        for (auto word = m_words[i]; word;) {
+                                auto const first = bit::bsfnz(word);
                                 f(offset + first);
-                                block ^= block_mask(first);
+                                word ^= bit::mask::one<value_type> << first;
                         }
                 }
                 return std::move(f);
         }
 
         template<class UnaryFunction>
-        constexpr auto do_reverse_for_each(UnaryFunction f) const
+        constexpr auto reverse_for_each(UnaryFunction f) const
         {
-                for (auto i = Nb - 1, offset = N - digits<Block>; i >= 0; --i, offset -= digits<Block>) {
-                        for (auto block = elems[i]; block;) {
-                                auto const last = bsrnz(block);
+                for (auto i = N - 1, offset = (size() - 1) * word_size(); i >= 0; --i, offset -= word_size()) {
+                        for (auto word = m_words[i]; word;) {
+                                auto const last = bit::bsrnz(word);
                                 f(offset + last);
-                                block ^= block_mask(last);
+                                word ^= bit::mask::one<value_type> << last;
                         }
                 }
                 return std::move(f);
@@ -244,44 +199,71 @@ struct base_bitset
 
         // observers
 
-        template<int M>
-        auto do_all() const noexcept
+        template<int M = 0>
+        auto all() const noexcept
         {
-                static_assert(M < digits<Block>);
-                if constexpr (M != 0) {
-                        using std::cbegin; using std::cend;
-                        return std::all_of(cbegin(elems), cend(elems) - 1, [](auto const block){
-                                return block == mask::all<Block>;
-                        }) && (elems[Nb - 1] == mask::all<Block> >> (digits<Block> - M));
-                } else {
-                        return boost::algorithm::all_of(elems, [](auto const block){
-                                return block == mask::all<Block>;
+                static_assert(0 <= M); static_assert(M < word_size());
+                if constexpr (M == 0) {
+                        return boost::algorithm::all_of(m_words, [](auto const word){
+                                return word == bit::mask::all<value_type>;
                         });
+                } else {
+                        using std::cbegin; using std::cend;
+                        return std::all_of(cbegin(m_words), cend(m_words) - 1, [](auto const word){
+                                return word == bit::mask::all<value_type>;
+                        }) && (back() == bit::mask::all<value_type> >> (word_size() - M));
                 }
         }
 
-        auto do_any() const noexcept
+        auto any() const noexcept
         {
-                return boost::algorithm::any_of(elems, [](auto const block){
-                        return block != mask::none<Block>;
+                return boost::algorithm::any_of(m_words, [](auto const word){
+                        return word != bit::mask::none<value_type>;
                 });
         }
 
-        auto do_none() const noexcept
+        auto none() const noexcept
         {
-                return boost::algorithm::none_of(elems, [](auto const block){
-                        return block != mask::none<Block>;
+                return boost::algorithm::none_of(m_words, [](auto const word){
+                        return word != bit::mask::none<value_type>;
                 });
         }
 
-        auto do_count() const noexcept
+        auto count() const noexcept
         {
-                return boost::accumulate(elems, 0, [](auto const sum, auto const block){
-                        return sum + popcount(block);
+                return boost::accumulate(m_words, 0, [](auto const sum, auto const word){
+                        return sum + bit::popcount(word);
                 });
         }
 };
 
-}       // namespace detail
-}       // namespace bit
+template<class T, int N>
+auto operator==(word_array<T, N> const& lhs, word_array<T, N> const& rhs) noexcept
+{
+        return boost::equal(lhs.m_words, rhs.m_words);
+}
+
+template<class T, int N>
+auto operator<(word_array<T, N> const& lhs, word_array<T, N> const& rhs) noexcept
+{
+        using boost::adaptors::reverse;
+        return boost::lexicographical_compare(reverse(lhs.m_words), reverse(rhs.m_words));
+}
+
+template<class T, int N>
+auto intersects(word_array<T, N> const& lhs, word_array<T, N> const& rhs) noexcept
+{
+        return boost::algorithm::any_of(boost::combine(lhs.m_words, rhs.m_words), [](auto const& block){
+                return boost::get<0>(block) & boost::get<1>(block);
+        });
+}
+
+template<class T, int N>
+auto subset_of(word_array<T, N> const& lhs, word_array<T, N> const& rhs) noexcept
+{
+        return boost::algorithm::all_of(boost::combine(lhs.m_words, rhs.m_words), [](auto const& block){
+                return !(boost::get<0>(block) & ~boost::get<1>(block));
+        });
+}
+
 }       // namespace xstd
