@@ -1,21 +1,23 @@
 #pragma once
-#include <xstd/bit/mask.hpp>                            // all, none, one
-#include <xstd/bit/primitive.hpp>                       // popcount
-#include <boost/algorithm/cxx11/all_of.hpp>             // all_of
-#include <boost/algorithm/cxx11/any_of.hpp>             // any_of
-#include <boost/algorithm/cxx11/none_of.hpp>            // none_of
-#include <boost/range/adaptors.hpp>                     // reverse
-#include <boost/range/algorithm.hpp>                    // equal, fill_n
-#include <boost/range/algorithm/swap_ranges.hpp>        // swap_ranges
-#include <boost/range/combine.hpp>                      // combine
-#include <boost/range/numeric.hpp>                      // accumulate
-#include <boost/tuple/tuple.hpp>                        // get
-#include <algorithm>                                    // copy_n, copy_backward
-#include <cassert>                                      // assert
-#include <iterator>                                     // reverse_iterator, const_reverse_iterator
-#include <limits>                                       // digits
-#include <type_traits>                                  // is_unsigned, is_integral
-#include <utility>                                      // move, swap
+#include <xstd/bit/mask.hpp>                                    // all, none, one
+#include <xstd/bit/primitive.hpp>                               // popcount
+#include <boost/algorithm/cxx11/all_of.hpp>                     // all_of
+#include <boost/algorithm/cxx11/any_of.hpp>                     // any_of
+#include <boost/algorithm/cxx11/none_of.hpp>                    // none_of
+#include <boost/range/adaptor/reversed.hpp>                     // reverse
+#include <boost/range/algorithm/equal.hpp>                      // equal
+#include <boost/range/algorithm/fill_n.hpp>                     // fill_n
+#include <boost/range/algorithm/lexicographical_compare.hpp>    // lexicographical_compare
+#include <boost/range/algorithm/swap_ranges.hpp>                // swap_ranges
+#include <boost/range/combine.hpp>                              // combine
+#include <boost/range/numeric.hpp>                              // accumulate
+#include <boost/tuple/tuple.hpp>                                // get
+#include <algorithm>                                            // copy_n, copy_backward
+#include <cassert>                                              // assert
+#include <iterator>                                             // reverse_iterator
+#include <limits>                                               // digits
+#include <type_traits>                                          // is_unsigned, is_integral
+#include <utility>                                              // move, swap
 
 namespace xstd {
 
@@ -158,13 +160,13 @@ struct word_array
                 if constexpr (Nw == 1) {
                         m_words[0] <<= n;
                 } else if constexpr (Nw >= 2) {
-                        using std::cbegin; using std::cend; using std::end;
                         if (n == 0) return *this;
 
                         auto const n_block = n / word_size();
                         auto const L_shift = n % word_size();
 
                         if (L_shift == 0) {
+                                using std::cbegin; using std::cend; using std::end;
                                 std::copy_backward(cbegin(m_words), cend(m_words) - n_block, end(m_words));
                         } else {
                                 auto const R_shift = word_size() - L_shift;
@@ -188,14 +190,13 @@ struct word_array
                 if constexpr (Nw == 1) {
                         m_words[0] >>= n;
                 } else if constexpr (Nw >= 2) {
-                        using std::cbegin; using std::begin;
-                        using boost::adaptors::reverse;
                         if (n == 0) return *this;
 
                         auto const n_block = n / word_size();
                         auto const R_shift = n % word_size();
 
                         if (R_shift == 0) {
+                                using std::cbegin; using std::begin;
                                 std::copy_n(cbegin(m_words) + n_block, Nw - n_block, begin(m_words));
                         } else {
                                 auto const L_shift = word_size() - R_shift;
@@ -208,6 +209,7 @@ struct word_array
                                 }
                                 m_words[Nw - 1 - n_block] = m_words[Nw - 1] >> R_shift;
                         }
+                        using boost::adaptors::reverse;
                         boost::fill_n(reverse(m_words), n_block, bit::mask::none<value_type>);
                 }
                 return *this;
@@ -282,6 +284,63 @@ template<class WordT, int Nw>
 auto operator!=(word_array<WordT, Nw> const& lhs, word_array<WordT, Nw> const& rhs) noexcept
 {
         return !(lhs == rhs);
+}
+
+template<class WordT, int Nw>
+auto operator<(word_array<WordT, Nw> const& lhs, word_array<WordT, Nw> const& rhs) noexcept
+{
+        if constexpr (Nw == 0) {
+                return false;
+        } else if constexpr (Nw == 1) {
+                return lhs.m_words[0] < rhs.m_words[0];
+        } else if constexpr (Nw >= 2) {
+                using boost::adaptors::reverse;
+                return boost::lexicographical_compare(reverse(lhs.m_words), reverse(rhs.m_words));
+        }
+}
+
+template<class WordT, int Nw>
+auto operator>(word_array<WordT, Nw> const& lhs, word_array<WordT, Nw> const& rhs) noexcept
+{
+        return rhs < lhs;
+}
+
+template<class WordT, int Nw>
+auto operator>=(word_array<WordT, Nw> const& lhs, word_array<WordT, Nw> const& rhs) noexcept
+{
+        return !(lhs < rhs);
+}
+
+template<class WordT, int Nw>
+auto operator<=(word_array<WordT, Nw> const& lhs, word_array<WordT, Nw> const& rhs) noexcept
+{
+        return !(rhs < lhs);
+}
+
+template<class WordT, int Nw>
+auto intersects(word_array<WordT, Nw> const& lhs, word_array<WordT, Nw> const& rhs) noexcept
+        -> bool
+{
+        if constexpr (Nw == 1) {
+                return lhs.m_words[0] & rhs.m_words[0];
+        } else if constexpr (Nw >= 2) {
+                return boost::algorithm::any_of(boost::combine(lhs.m_words, rhs.m_words), [](auto const& block){
+                        return boost::get<0>(block) & boost::get<1>(block);
+                });
+        }
+}
+
+template<class WordT, int Nw>
+auto subset_of(word_array<WordT, Nw> const& lhs, word_array<WordT, Nw> const& rhs) noexcept
+        -> bool
+{
+        if constexpr (Nw == 1) {
+                return !(lhs.m_words[0] & ~rhs.m_words[0]);
+        } else if constexpr (Nw >= 2) {
+                return boost::algorithm::all_of(boost::combine(lhs.m_words, rhs.m_words), [](auto const& block){
+                        return !(boost::get<0>(block) & ~boost::get<1>(block));
+                });
+        }
 }
 
 template<class WordT, int Nw>

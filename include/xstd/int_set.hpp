@@ -3,11 +3,13 @@
 #include <xstd/bit/mask.hpp>                    // one
 #include <xstd/bit/primitive.hpp>               // ctznz, popcount
 #include <boost/iterator/iterator_facade.hpp>   // iterator_core_access, iterator_facade
+#include <boost/range/adaptor/sliced.hpp>       // sliced
 #include <cassert>                              // assert
 #include <cstdint>                              // uint64_t
 #include <initializer_list>                     // initializer_list
 #include <iterator>                             // reverse_iterator
 #include <limits>                               // digits
+#include <iostream>
 
 namespace xstd {
 
@@ -34,14 +36,30 @@ class int_set
                 if constexpr (Nw == 0) {
                         return 0;
                 } else if constexpr (Nw == 1) {
-                        return bit::ctz(m_words[0]);
+                        return bit::bsf(m_words[0]);
                 } else if constexpr (Nw >= 2) {
                         for (auto i = 0; i < Nw; ++i) {
                                 if (auto const word = m_words[i]) {
-                                        return i * word_size + bit::ctznz(word);
+                                        return i * word_size + bit::bsfnz(word);
                                 }
                         }
                         return Nb;
+                }
+        }
+
+        constexpr auto find_last() const noexcept
+        {
+                if constexpr (Nw == 0) {
+                        return -1;
+                } else if constexpr (Nw == 1) {
+                        return bit::bsr(m_words[0]);
+                } else if constexpr (Nw >= 2) {
+                        for (auto i = Nw - 1; i >= 0; --i) {
+                                if (auto const word = m_words[i]) {
+                                        return i * word_size + bit::bsrnz(word);
+                                }
+                        }
+                        return -1;
                 }
         }
 
@@ -64,7 +82,7 @@ public:
                 }
 
                 WordT const& m_word;
-                value_type m_index;
+                value_type const m_index;
         public:
                 const_reference() = delete;
                 const_reference(const_reference const&) = default;
@@ -76,6 +94,7 @@ public:
                         m_word{w},
                         m_index{n}
                 {
+                        if (m_index )
                         assert_invariant();
                 }
 
@@ -103,7 +122,7 @@ public:
         {
                 auto assert_invariant() const
                 {
-                        assert(0 <= m_index); assert(m_index <= N);
+                        assert(-1 <= m_index); assert(m_index <= Nb);
                 }
 
                 WordT const* m_word;
@@ -116,6 +135,8 @@ public:
                         m_word{w},
                         m_index{n}
                 {
+                        std::cout << "*m_word = " << std::hex << *m_word << ", ";
+                        std::cout << "m_index = " << m_index << "\n";
                         assert_invariant();
                 }
 
@@ -129,18 +150,25 @@ public:
                         assert(m_word != nullptr);
                         assert(m_index < N);
 
+                        if constexpr (Nw == 0) {
+                                assert(false);
+                                return;
+                        }
                         if (++m_index == N) {
                                 ++m_word;
+                                if constexpr (N != Nb) {
+                                        m_index = Nb;
+                                }
                                 return;
                         }
                         if constexpr (Nw == 1) {
-                                assert(which(m_index) == 0); assert(!where(m_index));
+                                assert(which(m_index) == 0); assert(where(m_index));
                                 if (auto const word = *m_word >> m_index) {
                                         m_index += bit::ctznz(word);
                                         return;
                                 }
                                 ++m_word;
-                                m_index = N;
+                                m_index = Nb;
                         } else if constexpr (Nw >= 2) {
                                 if (auto const index = where(m_index)) {
                                         if (auto const word = *m_word >> index) {
@@ -150,15 +178,13 @@ public:
                                         m_index += word_size - index;
                                         assert(!where(m_index));
                                 }
-                                for (++m_word; m_index < N; ++m_word, m_index += word_size) {
+                                for (++m_word; m_index < Nb; ++m_word, m_index += word_size) {
                                         if (*m_word) {
                                                 m_index += bit::ctznz(*m_word);
                                                 return;
                                         }
                                 }
-                                if constexpr (where(N)) {
-                                        m_index = N;
-                                }
+                                assert(m_index == Nb);
                         }
                 }
 
@@ -168,9 +194,12 @@ public:
                         assert(m_word != nullptr);
                         assert(0 < m_index);
 
-                        if (m_index-- == N) {
-                                --m_word;
-                        } else if (m_index == 0) {
+                        if constexpr (Nw == 0) {
+                                assert(false);
+                                return;
+                        }
+                        if (--m_index == 0) {
+                                m_index = -1;
                                 return;
                         }
                         if constexpr (Nw == 1) {
@@ -179,26 +208,24 @@ public:
                                         m_index -= bit::clznz(word);
                                         return;
                                 }
-                                m_index = 0;
+                                m_index = -1;
                         } else if constexpr (Nw >= 2) {
                                 if (auto const index = where(m_index)) {
                                         if (auto const word = *m_word << (word_size - 1 - index)) {
                                                 m_index -= bit::clznz(word);
                                                 return;
                                         }
-                                        m_index;
+                                        m_index -= index;
+                                        assert(!where(m_index));
                                 }
-                                --m_word;
-                                for (; m_index > 0; --m_word, m_index -= word_size) {
+                                for (--m_word; m_index >= 0; --m_word, m_index -= word_size) {
                                         if (auto const word = *m_word) {
                                                 m_index -= bit::clznz(*m_word);
                                                 return;
                                         }
                                 }
+                                m_index = -1;
                         }
-
-                        assert_invariant();
-                        assert(m_index < N);
                 }
 
                 // operator* provided by boost::iterator_facade
@@ -372,14 +399,14 @@ public:
                         for (auto word = m_words[0]; word;) {
                                 auto const first = bit::bsfnz(word);
                                 f(first);
-                                word ^= bit::mask::one<value_type> << first;
+                                word ^= bit::mask::one<WordT> << first;
                         }
                 } else if constexpr (Nw >= 2) {
                         for (auto i = 0, offset = 0; i < Nw; ++i, offset += word_size) {
                                 for (auto word = m_words[i]; word;) {
                                         auto const first = bit::bsfnz(word);
                                         f(offset + first);
-                                        word ^= bit::mask::one<value_type> << first;
+                                        word ^= bit::mask::one<WordT> << first;
                                 }
                         }
                 }
@@ -400,7 +427,7 @@ public:
                                 for (auto word = m_words[i]; word;) {
                                         auto const last = bit::bsrnz(word);
                                         f(offset + last);
-                                        word ^= bit::mask::one<value_type> << last;
+                                        word ^= bit::mask::one<WordT> << last;
                                 }
                         }
                 }
@@ -411,10 +438,21 @@ public:
 
         auto all() const noexcept
         {
-                if constexpr (remaining_bits() == 0) {
+                if constexpr (missing_bits() == 0) {
                         return m_words.all();
                 } else {
-                        return m_words.all();//.template all<remaining_bits()>();
+                        if constexpr (Nw == 0) {
+                                return true;
+                        } else if constexpr (Nw == 1) {
+                                return m_words.back() == bit::mask::all<WordT> >> missing_bits();
+                        } else if constexpr (Nw >= 2) {
+                                using boost::adaptors::sliced;
+                                return
+                                        boost::algorithm::all_of(m_words | sliced(0, Nw - 1), [](auto const word){
+                                                return word == bit::mask::all<WordT>;
+                                        }) && (m_words.back() == bit::mask::all<WordT> >> missing_bits());
+                                ;
+                        }
                 }
         }
 
@@ -460,15 +498,15 @@ private:
                 return bit::mask::one<WordT> << n;
         }
 
-        static constexpr auto remaining_bits() noexcept
+        static constexpr auto missing_bits() noexcept
         {
-                return word_size - N % word_size;
+                return Nb - N;
         }
 
         constexpr auto sanitize() noexcept
         {
-                if constexpr (remaining_bits() != 0) {
-                        m_words.back() &= bit::mask::all<WordT> >> (word_size - remaining_bits());
+                if constexpr (missing_bits() != 0) {
+                        m_words.back() &= bit::mask::all<WordT> >> missing_bits();
                 }
         }
 
@@ -477,7 +515,133 @@ private:
         friend bool intersects<>(int_set<N> const&, int_set<N> const&) noexcept;
         friend bool subset_of <>(int_set<N> const&, int_set<N> const&) noexcept;
 };
-/*
+
+template<int N>
+bool operator==(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        return lhs.m_words == rhs.m_words;
+}
+
+template<int N>
+auto operator!=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        return !(lhs == rhs);
+}
+
+template<int N>
+constexpr auto operator~(int_set<N> const& lhs) noexcept
+{
+        int_set<N> nrv{lhs}; nrv.flip(); return nrv;
+}
+
+template<int N>
+constexpr auto operator&(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        int_set<N> nrv{lhs}; nrv &= rhs; return nrv;
+}
+
+template<int N>
+constexpr auto operator|(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        int_set<N> nrv{lhs}; nrv |= rhs; return nrv;
+}
+
+template<int N>
+constexpr auto operator^(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        int_set<N> nrv{lhs}; nrv ^= rhs; return nrv;
+}
+
+template<int N>
+constexpr auto operator-(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        int_set<N> nrv{lhs}; nrv -= rhs; return nrv;
+}
+
+template<int N>
+auto operator<<(int_set<N> const& lhs, int const n) // Throws: Nothing.
+{
+        assert(0 <= n); assert(n < N);
+        int_set<N> nrv{lhs}; nrv <<= n; return nrv;
+}
+
+template<int N>
+auto operator>>(int_set<N> const& lhs, int const n) // Throws: Nothing.
+{
+        assert(0 <= n); assert(n < N);
+        int_set<N> nrv{lhs}; nrv >>= n; return nrv;
+}
+
+template<int N>
+bool operator<(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        return lhs.m_words < rhs.m_words;
+}
+
+template<int N>
+auto operator>(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        return rhs < lhs;
+}
+
+template<int N>
+auto operator>=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        return !(lhs < rhs);
+}
+
+template<int N>
+auto operator<=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        return !(rhs < lhs);
+}
+
+template<int N>
+auto swap(int_set<N>& lhs, int_set<N>& rhs) noexcept
+{
+        lhs.swap(rhs);
+}
+
+template<int N>
+bool intersects(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        return intersects(lhs.m_words, rhs.m_words);
+}
+
+template<int N>
+auto disjoint(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        return !intersects(lhs, rhs);
+}
+
+// <=
+template<int N>
+bool subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        return subset_of(lhs.m_words, rhs.m_words);
+}
+
+// >=
+template<int N>
+auto superset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        return subset_of(rhs, lhs);
+}
+
+// <
+template<int N>
+auto proper_subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        return subset_of(lhs, rhs) && !subset_of(rhs, lhs);
+}
+
+// >
+template<int N>
+auto proper_superset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        return superset_of(lhs, rhs) && !superset_of(rhs, lhs);
+}
+
 template<int N>
 constexpr auto
 begin(int_set<N>& b) -> decltype(b.begin())
@@ -560,182 +724,6 @@ constexpr auto
 crend(int_set<N> const& b) -> decltype(xstd::rend(b))
 {
         return xstd::rend(b);
-}
-*/
-
-template<class WordT, int Nw>
-auto operator<(word_array<WordT, Nw> const& lhs, word_array<WordT, Nw> const& rhs) noexcept
-{
-        if constexpr (Nw == 0) {
-                return false;
-        } else if constexpr (Nw == 1) {
-                return lhs.m_words[0] < rhs.m_words[0];
-        } else if constexpr (Nw == 2) {
-                using boost::adaptors::reverse;
-                return boost::lexicographical_compare(reverse(lhs.m_words), reverse(rhs.m_words));
-        }
-}
-
-template<class WordT, int Nw>
-auto intersects(word_array<WordT, Nw> const& lhs, word_array<WordT, Nw> const& rhs) noexcept
-{
-        return boost::algorithm::any_of(boost::combine(lhs.m_words, rhs.m_words), [](auto const& block){
-                return boost::get<0>(block) & boost::get<1>(block);
-        });
-}
-
-template<class WordT, int Nw>
-auto subset_of(word_array<WordT, Nw> const& lhs, word_array<WordT, Nw> const& rhs) noexcept
-{
-        return boost::algorithm::all_of(boost::combine(lhs.m_words, rhs.m_words), [](auto const& block){
-                return !(boost::get<0>(block) & ~boost::get<1>(block));
-        });
-}
-
-
-template<class WordT, int Nw>
-auto operator>(word_array<WordT, Nw> const& lhs, word_array<WordT, Nw> const& rhs) noexcept
-{
-        return rhs < lhs;
-}
-
-template<class WordT, int Nw>
-auto operator>=(word_array<WordT, Nw> const& lhs, word_array<WordT, Nw> const& rhs) noexcept
-{
-        return !(lhs < rhs);
-}
-
-template<class WordT, int Nw>
-auto operator<=(word_array<WordT, Nw> const& lhs, word_array<WordT, Nw> const& rhs) noexcept
-{
-        return !(rhs < lhs);
-}
-
-
-template<int N>
-bool operator==(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
-{
-        return lhs.m_words == rhs.m_words;
-}
-
-template<int N>
-bool operator<(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
-{
-        return lhs.m_words < rhs.m_words;
-}
-
-template<int N>
-auto operator!=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
-{
-        return !(lhs == rhs);
-}
-
-template<int N>
-auto operator>(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
-{
-        return rhs < lhs;
-}
-
-template<int N>
-auto operator>=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
-{
-        return !(lhs < rhs);
-}
-
-template<int N>
-auto operator<=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
-{
-        return !(rhs < lhs);
-}
-
-template<int N>
-auto swap(int_set<N>& lhs, int_set<N>& rhs) noexcept
-{
-        lhs.swap(rhs);
-}
-
-template<int N>
-bool intersects(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
-{
-        return intersects(lhs.m_words, rhs.m_words);
-}
-
-template<int N>
-auto disjoint(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
-{
-        return !intersects(lhs, rhs);
-}
-
-// <=
-template<int N>
-bool subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
-{
-        return subset_of(lhs.m_words, rhs.m_words);
-}
-
-// >=
-template<int N>
-auto superset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
-{
-        return subset_of(rhs, lhs);
-}
-
-// <
-template<int N>
-auto proper_subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
-{
-        return subset_of(lhs, rhs) && !subset_of(rhs, lhs);
-}
-
-// >
-template<int N>
-auto proper_superset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
-{
-        return superset_of(lhs, rhs) && !superset_of(rhs, lhs);
-}
-
-template<int N>
-constexpr auto operator~(int_set<N> const& lhs) noexcept
-{
-        int_set<N> nrv{lhs}; nrv.flip(); return nrv;
-}
-
-template<int N>
-constexpr auto operator&(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
-{
-        int_set<N> nrv{lhs}; nrv &= rhs; return nrv;
-}
-
-template<int N>
-constexpr auto operator|(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
-{
-        int_set<N> nrv{lhs}; nrv |= rhs; return nrv;
-}
-
-template<int N>
-constexpr auto operator^(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
-{
-        int_set<N> nrv{lhs}; nrv ^= rhs; return nrv;
-}
-
-template<int N>
-constexpr auto operator-(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
-{
-        int_set<N> nrv{lhs}; nrv -= rhs; return nrv;
-}
-
-template<int N>
-auto operator<<(int_set<N> const& lhs, int const n) // Throws: Nothing.
-{
-        assert(0 <= n); assert(n < N);
-        int_set<N> nrv{lhs}; nrv <<= n; return nrv;
-}
-
-template<int N>
-auto operator>>(int_set<N> const& lhs, int const n) // Throws: Nothing.
-{
-        assert(0 <= n); assert(n < N);
-        int_set<N> nrv{lhs}; nrv >>= n; return nrv;
 }
 
 }       // namespace xstd
