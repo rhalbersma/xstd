@@ -87,14 +87,13 @@ public:
                 const_reference() = delete;
                 const_reference(const_reference const&) = default;
                 const_reference& operator=(const_reference const&) = delete;
-                const_reference& operator=(value_type) = delete;
+                const_reference& operator=(value_type const) = delete;
 
-                constexpr const_reference(WordT const& w, value_type n) noexcept
+                constexpr const_reference(WordT const& w, value_type const i) noexcept
                 :
                         m_word{w},
-                        m_index{n}
+                        m_index{i}
                 {
-                        if (m_index )
                         assert_invariant();
                 }
 
