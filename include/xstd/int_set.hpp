@@ -9,7 +9,6 @@
 #include <initializer_list>                     // initializer_list
 #include <iterator>                             // reverse_iterator
 #include <limits>                               // digits
-#include <iostream>
 
 namespace xstd {
 
@@ -30,39 +29,6 @@ class int_set
         static constexpr auto Nb = Nw * word_size;
 
         word_array<WordT, Nw> m_words;
-
-        constexpr auto find_first() const noexcept
-        {
-                if constexpr (Nw == 0) {
-                        return 0;
-                } else if constexpr (Nw == 1) {
-                        return bit::bsf(m_words[0]);
-                } else if constexpr (Nw >= 2) {
-                        for (auto i = 0; i < Nw; ++i) {
-                                if (auto const word = m_words[i]) {
-                                        return i * word_size + bit::bsfnz(word);
-                                }
-                        }
-                        return Nb;
-                }
-        }
-
-        constexpr auto find_last() const noexcept
-        {
-                if constexpr (Nw == 0) {
-                        return -1;
-                } else if constexpr (Nw == 1) {
-                        return bit::bsr(m_words[0]);
-                } else if constexpr (Nw >= 2) {
-                        for (auto i = Nw - 1; i >= 0; --i) {
-                                if (auto const word = m_words[i]) {
-                                        return i * word_size + bit::bsrnz(word);
-                                }
-                        }
-                        return -1;
-                }
-        }
-
 public:
         // types:
         using value_type             = int;
@@ -76,7 +42,7 @@ public:
 
         class const_reference
         {
-                auto assert_invariant() const
+                constexpr auto assert_invariants() const noexcept
                 {
                         assert(0 <= m_index); assert(m_index < N);
                 }
@@ -94,7 +60,7 @@ public:
                         m_word{w},
                         m_index{i}
                 {
-                        assert_invariant();
+                        assert_invariants();
                 }
 
                 /* implicit */ constexpr operator auto() const noexcept
@@ -102,7 +68,8 @@ public:
                         return m_index;
                 }
 
-                constexpr const_iterator operator&() const noexcept
+                constexpr auto operator&() const noexcept
+                        -> const_iterator
                 {
                         return { &m_word, m_index };
                 }
@@ -119,9 +86,10 @@ public:
                         difference_type
                 >
         {
-                auto assert_invariant() const
+                constexpr auto assert_invariants() const noexcept
                 {
-                        assert(-1 <= m_index); assert(m_index <= Nb);
+                        assert(m_word != nullptr);
+                        assert(0 <= m_index); assert(m_index <= N);
                 }
 
                 WordT const* m_word;
@@ -129,108 +97,154 @@ public:
         public:
                 const_iterator() = default;
 
-                constexpr const_iterator(WordT const* w, value_type n)
+                explicit constexpr const_iterator(WordT const* w) // Throws: Nothing.
                 :
                         m_word{w},
-                        m_index{n}
+                        m_index{find_first()}
                 {
-                        std::cout << "*m_word = " << std::hex << *m_word << ", ";
-                        std::cout << "m_index = " << m_index << "\n";
-                        assert_invariant();
+                        assert_invariants();
+                }
+
+                constexpr const_iterator(WordT const* w, value_type const i) // Throws: Nothing.
+                :
+                        m_word{w},
+                        m_index{i}
+                {
+                        assert_invariants();
                 }
 
         private:
-                // gateway for boost::iterator_facade to access private implementation
+                constexpr auto find_first() noexcept
+                {
+                        if constexpr (Nw == 0) {
+                                ++m_word;
+                                return N;
+                        } else if constexpr (Nw == 1) {
+                                if (auto const word = *m_word) {
+                                        return bit::ctznz(word);
+                                } else {
+                                        ++m_word;
+                                        return N;
+                                }
+                        } else if constexpr (Nw >= 2) {
+                                for (auto i = 0; i < Nw; ++i) {
+                                        if (auto const word = *m_word) {
+                                                assert(i * word_size + bit::bsfnz(word) < N);
+                                                return i * word_size + bit::bsfnz(word);
+                                        }
+                                        ++m_word;
+                                }
+                                return N;
+                        }
+                }
+
+                // gateway for boost::iterator_facade to access the implemenation
+                // increment(), decrement(), dereference() and equal()
                 friend class boost::iterator_core_access;
 
                 // operator++() and operator++(int) provided by boost::iterator_facade
-                constexpr auto increment()
+                constexpr auto increment() // Throws: Nothing.
                 {
-                        assert(m_word != nullptr);
-                        assert(m_index < N);
-
+                        assert(0 <= m_index); assert(m_index < N);
                         if constexpr (Nw == 0) {
-                                assert(false);
                                 return;
-                        }
-                        if (++m_index == N) {
-                                ++m_word;
-                                if constexpr (N != Nb) {
-                                        m_index = Nb;
+                        } else if constexpr (Nw == 1) {
+                                if (++m_index == N) {
+                                        ++m_word;
+                                        return;
                                 }
-                                return;
-                        }
-                        if constexpr (Nw == 1) {
-                                assert(which(m_index) == 0); assert(where(m_index));
                                 if (auto const word = *m_word >> m_index) {
                                         m_index += bit::ctznz(word);
                                         return;
+                                } else {
+                                        ++m_word;
+                                        m_index = N;
+                                }
+                                assert(0 < m_index && m_index <= N);
+                        } else if constexpr (Nw >= 2) {
+                                if (++m_index == N) {
+                                        ++m_word;
+                                        return;
+                                }
+
+                                auto const index = where(m_index);
+                                if (index == 0) {
+                                        ++m_word;
+                                }
+                                if (auto const word = *m_word >> index) {
+                                        m_index += bit::ctznz(word);
+                                        assert(m_index < N);
+                                        return;
                                 }
                                 ++m_word;
-                                m_index = Nb;
-                        } else if constexpr (Nw >= 2) {
-                                if (auto const index = where(m_index)) {
-                                        if (auto const word = *m_word >> index) {
-                                                m_index += bit::ctznz(word);
+
+                                for (auto i = which(m_index) + 1; i < Nw; ++i) {
+                                        if (auto const word = *m_word) {
+                                                m_index = i * word_size + bit::bsfnz(word);
+                                                assert(m_index < N);
                                                 return;
                                         }
-                                        m_index += word_size - index;
-                                        assert(!where(m_index));
+                                        ++m_word;
                                 }
-                                for (++m_word; m_index < Nb; ++m_word, m_index += word_size) {
-                                        if (*m_word) {
-                                                m_index += bit::ctznz(*m_word);
-                                                return;
-                                        }
-                                }
-                                assert(m_index == Nb);
+                                m_index = N;
+                                assert(0 < m_index && m_index <= N);
                         }
                 }
 
                 // operator--() and operator--(int) provided by boost::iterator_facade
-                constexpr auto decrement()
+                constexpr auto decrement() // Throws: Nothing.
                 {
-                        assert(m_word != nullptr);
-                        assert(0 < m_index);
-
+                        assert(0 < m_index); assert(m_index <= N);
                         if constexpr (Nw == 0) {
-                                assert(false);
                                 return;
-                        }
-                        if (--m_index == 0) {
-                                m_index = -1;
-                                return;
-                        }
-                        if constexpr (Nw == 1) {
-                                assert(which(m_index) == 0); assert(!where(m_index));
-                                if (auto const word = *m_word << (word_size - 1 - m_index)) {
-                                        m_index -= bit::clznz(word);
+                        } else if constexpr (Nw == 1) {
+                                if (--m_index == 0) {
                                         return;
                                 }
-                                m_index = -1;
+                                if (m_index == N - 1) {
+                                        --m_word;
+                                }
+                                if (auto const word = *m_word << (word_size - 1 - m_index)) {
+                                        m_index -= bit::clznz(word);
+                                } else {
+                                        m_index = 0;
+                                }
+                                assert(m_index < N);
                         } else if constexpr (Nw >= 2) {
-                                if (auto const index = where(m_index)) {
-                                        if (auto const word = *m_word << (word_size - 1 - index)) {
-                                                m_index -= bit::clznz(word);
-                                                return;
-                                        }
-                                        m_index -= index;
-                                        assert(!where(m_index));
+                                if (--m_index == 0) {
+                                        return;
                                 }
-                                for (--m_word; m_index >= 0; --m_word, m_index -= word_size) {
+
+                                auto const index = where(m_index);
+                                if (index == word_size - 1 || m_index == N - 1) {
+                                        --m_word;
+                                }
+                                if (auto const word = *m_word << (word_size - 1 - index)) {
+                                        m_index -= bit::clznz(word);
+                                        assert(m_index < N);
+                                        return;
+                                }
+                                --m_word;
+
+                                for (auto i = which(m_index) - 1; i >= 0; --i) {
                                         if (auto const word = *m_word) {
-                                                m_index -= bit::clznz(*m_word);
+                                                m_index = i * word_size + bit::bsrnz(word);
+                                                assert(m_index < N);
                                                 return;
                                         }
+                                        --m_word;
                                 }
-                                m_index = -1;
+                                ++m_word;
+                                m_index = 0;
+                                assert(m_index < N);
                         }
                 }
 
                 // operator* provided by boost::iterator_facade
-                constexpr const_reference dereference() const
+                constexpr auto dereference() const // Throws: Nothing.
+                        -> const_reference
                 {
-                        assert(m_index != N);
+                        assert(0 <= m_index); assert(m_index < N);
                         return { *m_word, m_index };
                 }
 
@@ -256,8 +270,9 @@ public:
         :
                 m_words{}
         {
-                for (auto it = first; it != last; ++it)
+                for (auto it = first; it != last; ++it) {
                         set(*it);
+                }
         }
 
         constexpr int_set(std::initializer_list<value_type> ilist) // Throws: Nothing.
@@ -267,10 +282,10 @@ public:
 
         // iterators
 
-        constexpr auto begin()         noexcept { return       iterator{m_words.begin(), find_first()}; }
-        constexpr auto begin()   const noexcept { return const_iterator{m_words.begin(), find_first()}; }
-        constexpr auto end()           noexcept { return       iterator{m_words.end(), Nb}; }
-        constexpr auto end()     const noexcept { return const_iterator{m_words.end(), Nb}; }
+        constexpr auto begin()         noexcept { return       iterator{m_words.begin()}; }
+        constexpr auto begin()   const noexcept { return const_iterator{m_words.begin()}; }
+        constexpr auto end()           noexcept { return       iterator{m_words.end(), N}; }
+        constexpr auto end()     const noexcept { return const_iterator{m_words.end(), N}; }
         constexpr auto rbegin()        noexcept { return       reverse_iterator{end()}; }
         constexpr auto rbegin()  const noexcept { return const_reverse_iterator{end()}; }
         constexpr auto rend()          noexcept { return       reverse_iterator{begin()}; }
@@ -314,7 +329,7 @@ public:
         constexpr auto& set(int const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
-                m_words[which(n)] |= word(where(n));
+                m_words[which(n)] |= word_mask(where(n));
                 assert(test(n));
                 return *this;
         }
@@ -322,7 +337,7 @@ public:
         constexpr auto& reset(int const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
-                m_words[which(n)] &= ~word(where(n));
+                m_words[which(n)] &= ~word_mask(where(n));
                 assert(!test(n));
                 return *this;
         }
@@ -330,7 +345,7 @@ public:
         constexpr auto& flip(int const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
-                m_words[which(n)] ^= word(where(n));
+                m_words[which(n)] ^= word_mask(where(n));
                 return *this;
         }
 
@@ -338,7 +353,7 @@ public:
                 -> bool
         {
                 assert(0 <= n); assert(n < N);
-                return m_words[which(n)] & word(where(n));
+                return m_words[which(n)] & word_mask(where(n));
         }
 
         // comparators
@@ -398,14 +413,14 @@ public:
                         for (auto word = m_words[0]; word;) {
                                 auto const first = bit::bsfnz(word);
                                 f(first);
-                                word ^= bit::mask::one<WordT> << first;
+                                word ^= word_mask(first);
                         }
                 } else if constexpr (Nw >= 2) {
                         for (auto i = 0, offset = 0; i < Nw; ++i, offset += word_size) {
                                 for (auto word = m_words[i]; word;) {
                                         auto const first = bit::bsfnz(word);
                                         f(offset + first);
-                                        word ^= bit::mask::one<WordT> << first;
+                                        word ^= word_mask(first);
                                 }
                         }
                 }
@@ -419,14 +434,14 @@ public:
                         for (auto word = m_words[0]; word;) {
                                 auto const last = bit::bsrnz(word);
                                 f(last);
-                                word ^= bit::mask::one<value_type> << last;
+                                word ^= word_mask(last);
                         }
                 } else if constexpr (Nw >= 2) {
                         for (auto i = Nw - 1, offset = (size() - 1) * word_size; i >= 0; --i, offset -= word_size) {
                                 for (auto word = m_words[i]; word;) {
                                         auto const last = bit::bsrnz(word);
                                         f(offset + last);
-                                        word ^= bit::mask::one<WordT> << last;
+                                        word ^= word_mask(last);
                                 }
                         }
                 }
@@ -491,7 +506,7 @@ private:
                 }
         }
 
-        constexpr auto word(int const n) const // Throws: Nothing.
+        constexpr auto word_mask(int const n) const // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < word_size);
                 return bit::mask::one<WordT> << n;
