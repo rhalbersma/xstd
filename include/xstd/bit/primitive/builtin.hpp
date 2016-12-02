@@ -1,11 +1,20 @@
 #pragma once
-#include <cassert>      // assert
-#include <limits>       // digits
+#include <xstd/bit/mask.hpp>    // all
+#include <xstd/limits.hpp>      // digits
+#include <cassert>              // assert
+#include <cstdint>              // uint64_t
 
 namespace xstd {
 namespace bit {
 namespace builtin {
 namespace detail {
+
+template<int N>
+constexpr auto get(__uint128_t x) noexcept
+{
+        static_assert(0 <= N); static_assert(N < 2);
+        return static_cast<uint64_t>(x >> (N * 64));
+}
 
 // GCC / Clang have built-in functions for Count Trailing Zeros
 // for unsigned, unsigned long and unsigned long long.
@@ -26,6 +35,15 @@ struct ctznz
         constexpr auto operator()(unsigned long long x) const
         {
                 return __builtin_ctzll(x);
+        }
+
+        constexpr auto operator()(__uint128_t x) const
+        {
+                if (auto const lower = get<0>(x)) {
+                        return __builtin_ctzll(lower);
+                } else {
+                        return __builtin_ctzll(get<1>(x)) + 64;
+                }
         }
 };
 
@@ -49,6 +67,15 @@ struct clznz
         {
                 return __builtin_clzll(x);
         }
+
+        constexpr auto operator()(__uint128_t x) const
+        {
+                if (auto const upper = get<1>(x)) {
+                        return __builtin_clzll(upper);
+                } else {
+                        return __builtin_clzll(get<0>(x)) + 64;
+                }
+        }
 };
 
 // GCC / Clang have built-in functions for Population Count
@@ -69,6 +96,14 @@ struct popcount
         constexpr auto operator()(unsigned long long x) const noexcept
         {
                 return __builtin_popcountll(x);
+        }
+
+        constexpr auto operator()(__uint128_t x) const noexcept
+        {
+                return
+                        __builtin_popcountll(get<0>(x)) +
+                        __builtin_popcountll(get<1>(x))
+                ;
         }
 };
 
@@ -91,13 +126,13 @@ constexpr auto clznz(T x)
 template<class T>
 constexpr auto ctz(T x) noexcept
 {
-        return x ? ctznz(x) : std::numeric_limits<T>::digits;
+        return x ? ctznz(x) : digits<T>;
 }
 
 template<class T>
 constexpr auto clz(T x) noexcept
 {
-        return x ? clznz(x) : std::numeric_limits<T>::digits;
+        return x ? clznz(x) : digits<T>;
 }
 
 template<class T>
@@ -111,7 +146,7 @@ template<class T>
 constexpr auto bsrnz(T x)
 {
         assert(x != 0);
-        return std::numeric_limits<T>::digits - 1 - clznz(x);
+        return digits<T> - 1 - clznz(x);
 }
 
 template<class T>
@@ -123,7 +158,7 @@ constexpr auto bsf(T x)
 template<class T>
 constexpr auto bsr(T x)
 {
-        return std::numeric_limits<T>::digits - 1 - clz(x);
+        return digits<T> - 1 - clz(x);
 }
 
 template<class T>

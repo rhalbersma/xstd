@@ -1,19 +1,16 @@
 #pragma once
 #include <cassert>      // assert
 #include <cstddef>      // size_t
-#include <limits>       // digits, is_signed, is_integer, max
+#include <limits>       // digits, max
 #include <type_traits>  // bool_constant
 
 namespace xstd {
 
 template<class T>
-constexpr auto is_unsigned_integer =
-        !std::numeric_limits<T>::is_signed &&
-         std::numeric_limits<T>::is_integer
-;
-
-template<class T>
 constexpr auto digits = std::numeric_limits<T>::digits;
+
+template<>
+constexpr auto digits<__uint128_t> = 128;
 
 template<class Numerator, class Denominator>
 constexpr auto digits_ratio = digits<Numerator> / digits<Denominator>;
@@ -27,7 +24,6 @@ using is_representable_t = std::bool_constant<is_representable_v<T, N>>;
 template<class T>
 constexpr auto is_power_of_2(T x) noexcept
 {
-        static_assert(is_unsigned_integer<T>);
         return (x - 1) < (x & - x);
 }
 
