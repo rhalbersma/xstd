@@ -2,7 +2,7 @@
 #include <xstd/bit/mask.hpp>                                    // all, none, one
 #include <xstd/bit/primitive.hpp>                               // popcount
 #include <xstd/limits.hpp>                                      // digits
-#include <xstd/type_traits.hpp>                                 // is_unsigned, is_integral
+#include <xstd/type_traits.hpp>                                 // is_unsigned, is_integral, is_trivial_special_members
 #include <boost/algorithm/cxx11/all_of.hpp>                     // all_of
 #include <boost/algorithm/cxx11/any_of.hpp>                     // any_of
 #include <boost/algorithm/cxx11/none_of.hpp>                    // none_of
@@ -17,6 +17,7 @@
 #include <algorithm>                                            // copy_n, copy_backward
 #include <cassert>                                              // assert
 #include <iterator>                                             // reverse_iterator
+#include <type_traits>                                          // is_pod
 #include <utility>                                              // move, swap
 
 namespace xstd {
@@ -27,6 +28,13 @@ struct word_array
         static_assert(is_unsigned<WordT>{});
         static_assert(is_integral<WordT>{});
         static_assert(0 <= Nw);
+
+        static constexpr auto static_assert_type_traits() noexcept
+        {
+                using T = word_array;
+                static_assert(is_trivial_special_members_v<T>);
+                static_assert(std::is_pod<T>{});
+        }
 
         WordT m_words[Nw ? Nw : 1];
 

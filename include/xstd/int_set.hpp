@@ -2,12 +2,14 @@
 #include <xstd/bit/mask.hpp>                    // one
 #include <xstd/bit/primitive.hpp>               // ctznz, popcount
 #include <xstd/limits.hpp>                      // digits
+#include <xstd/type_traits.hpp>                 // is_trivial_special_members
 #include <xstd/word_array.hpp>                  // word_array
 #include <boost/iterator/iterator_facade.hpp>   // iterator_core_access, iterator_facade
 #include <boost/range/adaptor/sliced.hpp>       // sliced
 #include <cassert>                              // assert
 #include <initializer_list>                     // initializer_list
 #include <iterator>                             // reverse_iterator
+#include <type_traits>                          // is_pod
 
 namespace xstd {
 
@@ -22,6 +24,13 @@ template<int N> bool subset_of (int_set<N> const&, int_set<N> const&) noexcept;
 template<int N>
 class int_set
 {
+        static constexpr auto static_assert_type_traits() noexcept
+        {
+                using T = int_set;
+                static_assert(is_trivial_special_members_v<T>);
+                static_assert(std::is_pod<T>{});
+        }
+
         using WordT = unsigned long long;
         static constexpr auto word_size = digits<WordT>;
         static constexpr auto Nw = (N - 1 + word_size) / word_size;
