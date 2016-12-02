@@ -1,6 +1,8 @@
 #pragma once
 #include <xstd/bit/mask.hpp>                                    // all, none, one
 #include <xstd/bit/primitive.hpp>                               // popcount
+#include <xstd/limits.hpp>                                      // digits
+#include <xstd/type_traits.hpp>                                 // is_unsigned, is_integral
 #include <boost/algorithm/cxx11/all_of.hpp>                     // all_of
 #include <boost/algorithm/cxx11/any_of.hpp>                     // any_of
 #include <boost/algorithm/cxx11/none_of.hpp>                    // none_of
@@ -15,8 +17,6 @@
 #include <algorithm>                                            // copy_n, copy_backward
 #include <cassert>                                              // assert
 #include <iterator>                                             // reverse_iterator
-#include <limits>                                               // digits
-#include <type_traits>                                          // is_unsigned, is_integral
 #include <utility>                                              // move, swap
 
 namespace xstd {
@@ -24,8 +24,8 @@ namespace xstd {
 template<class WordT, int Nw>
 struct word_array
 {
-        static_assert(std::is_unsigned<WordT>{});
-        static_assert(std::is_integral<WordT>{});
+        static_assert(is_unsigned<WordT>{});
+        static_assert(is_integral<WordT>{});
         static_assert(0 <= Nw);
 
         WordT m_words[Nw ? Nw : 1];
@@ -82,7 +82,7 @@ struct word_array
         constexpr bool      empty()     const noexcept { return Nw == 0; }
         constexpr size_type size()      const noexcept { return Nw; }
         constexpr size_type max_size()  const noexcept { return Nw; }
-        constexpr size_type word_size() const noexcept { return std::numeric_limits<value_type>::digits; }
+        constexpr size_type word_size() const noexcept { return digits<value_type>; }
 
         // element access:
         constexpr       reference operator[](size_type const n)       { assert(0 <= n); assert(n < Nw); return m_words[n]; }
@@ -209,8 +209,8 @@ struct word_array
                                 }
                                 m_words[Nw - 1 - n_block] = m_words[Nw - 1] >> R_shift;
                         }
-                        using boost::adaptors::reverse;
-                        boost::fill_n(reverse(m_words), n_block, bit::mask::none<value_type>);
+                        using boost::adaptors::reversed;
+                        boost::fill_n(m_words | reversed, n_block, bit::mask::none<value_type>);
                 }
                 return *this;
         }
@@ -266,6 +266,12 @@ struct word_array
                         });
                 }
         }
+
+        template<class HashAlgorithm>
+        auto hash_append() const
+        {
+
+        }
 };
 
 template<class WordT, int Nw>
@@ -294,8 +300,8 @@ auto operator<(word_array<WordT, Nw> const& lhs, word_array<WordT, Nw> const& rh
         } else if constexpr (Nw == 1) {
                 return lhs.m_words[0] < rhs.m_words[0];
         } else if constexpr (Nw >= 2) {
-                using boost::adaptors::reverse;
-                return boost::lexicographical_compare(reverse(lhs.m_words), reverse(rhs.m_words));
+                using boost::adaptors::reversed;
+                return boost::lexicographical_compare(lhs.m_words | reversed, rhs.m_words | reversed);
         }
 }
 
@@ -321,7 +327,9 @@ template<class WordT, int Nw>
 auto intersects(word_array<WordT, Nw> const& lhs, word_array<WordT, Nw> const& rhs) noexcept
         -> bool
 {
-        if constexpr (Nw == 1) {
+        if constexpr (Nw == 0) {
+                return false;
+        } else if constexpr (Nw == 1) {
                 return lhs.m_words[0] & rhs.m_words[0];
         } else if constexpr (Nw >= 2) {
                 return boost::algorithm::any_of(boost::combine(lhs.m_words, rhs.m_words), [](auto const& block){
@@ -334,7 +342,9 @@ template<class WordT, int Nw>
 auto subset_of(word_array<WordT, Nw> const& lhs, word_array<WordT, Nw> const& rhs) noexcept
         -> bool
 {
-        if constexpr (Nw == 1) {
+        if constexpr (Nw == 0) {
+                return true;
+        } else if constexpr (Nw == 1) {
                 return !(lhs.m_words[0] & ~rhs.m_words[0]);
         } else if constexpr (Nw >= 2) {
                 return boost::algorithm::all_of(boost::combine(lhs.m_words, rhs.m_words), [](auto const& block){

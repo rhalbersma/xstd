@@ -15,7 +15,8 @@ using UnsignedIntegerTypes = boost::mpl::vector
 <
         unsigned,
         unsigned long,
-        unsigned long long
+        unsigned long long,
+        __uint128_t
 >;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(CountTrailingZeros, T, UnsignedIntegerTypes)

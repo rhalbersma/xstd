@@ -78,8 +78,9 @@ public:
                 for (auto i = 0; i < digits_ratio<U, T>; ++i) {
                         auto const b = block_mask(x, i);
                         n += ctz_[b];
-                        if (b)
+                        if (b) {
                                 return n;
+                        }
                 }
                 assert(n == digits<U>);
                 return n;
@@ -92,8 +93,9 @@ public:
                 for (auto i = digits_ratio<U, T> - 1; i >= 0; --i) {
                         auto const b = block_mask(x, i);
                         n += clz_[b];
-                        if (b)
+                        if (b) {
                                 return n;
+                        }
                 }
                 assert(n == digits<U>);
                 return n;
@@ -103,8 +105,9 @@ public:
         static constexpr auto popcount(U x) noexcept
         {
                 auto n = 0;
-                for (auto i = 0; i < digits_ratio<U, T>; ++i)
+                for (auto i = 0; i < digits_ratio<U, T>; ++i) {
                         n += popcount_[block_mask(x, i)];
+                }
                 assert(n <= digits<U>);
                 return n;
         }

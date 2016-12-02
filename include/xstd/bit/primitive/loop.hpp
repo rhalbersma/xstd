@@ -10,18 +10,22 @@ namespace loop {
 template<class T>
 constexpr auto ctz(T x) noexcept
 {
-        for (auto i = 0; i < digits<T>; ++i)
-                if (x & (mask::one<T> << i))
+        for (auto i = 0; i < digits<T>; ++i) {
+                if (x & (mask::one<T> << i)) {
                         return i;
+                }
+        }
         return digits<T>;
 }
 
 template<class T>
 constexpr auto clz(T x) noexcept
 {
-        for (auto i = digits<T> - 1; i >= 0; --i)
-                if (x & (mask::one<T> << i))
+        for (auto i = digits<T> - 1; i >= 0; --i) {
+                if (x & (mask::one<T> << i)) {
                         return digits<T> - 1 - i;
+                }
+        }
         return digits<T>;
 }
 
@@ -53,8 +57,9 @@ template<class T>
 constexpr auto popcount(T x) noexcept
 {
         auto n = 0;
-        for (; x; x &= x - mask::one<T>)
+        for (; x; x &= x - mask::one<T>) {
                 ++n;
+        }
         assert(n <= digits<T>);
         return n;
 }

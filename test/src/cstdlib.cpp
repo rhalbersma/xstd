@@ -1,12 +1,11 @@
-#include <xstd/cstdlib.hpp>             // truncated_div, floored_div, euclidean_div, div_t
-#include <boost/range/algorithm.hpp>    // equal
-#include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_CASE, BOOST_CHECK, BOOST_AUTO_TEST_SUITE_END
-#include <utility>                      // pair
-#include <vector>                       // vector
+#include <xstd/cstdlib.hpp>                     // truncated_div, floored_div, euclidean_div
+#include <boost/range/algorithm/equal.hpp>      // equal
+#include <boost/test/unit_test.hpp>             // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_CASE, BOOST_CHECK, BOOST_AUTO_TEST_SUITE_END
+#include <cstdlib>                              // div_t
+#include <utility>                              // pair
+#include <vector>                               // vector
 
-namespace xstd {
-
-BOOST_AUTO_TEST_SUITE(CstdLib)
+BOOST_AUTO_TEST_SUITE(CStdLib)
 
 BOOST_AUTO_TEST_CASE(TruncatedFlooredEuclideanDivision)
 {
@@ -36,28 +35,25 @@ BOOST_AUTO_TEST_CASE(TruncatedFlooredEuclideanDivision)
                 { 0, +1}, { 0, +1}, {-1, +1}, {+1, +1}
         };
 
+        using namespace xstd;
+
         BOOST_CHECK(
-                boost::equal(input, truncated_result,
-                        [](auto const& lhs, auto const& rhs) {
+                boost::equal(input, truncated_result, [](auto const& lhs, auto const& rhs) {
                         return truncated_div(lhs.first, lhs.second) == rhs;
                 })
         );
 
         BOOST_CHECK(
-                boost::equal(input, floored_result,
-                        [](auto const& lhs, auto const& rhs) {
+                boost::equal(input, floored_result, [](auto const& lhs, auto const& rhs) {
                         return floored_div(lhs.first, lhs.second) == rhs;
                 })
         );
 
         BOOST_CHECK(
-                boost::equal(input, euclidean_result,
-                        [](auto const& lhs, auto const& rhs) {
+                boost::equal(input, euclidean_result, [](auto const& lhs, auto const& rhs) {
                         return euclidean_div(lhs.first, lhs.second) == rhs;
                 })
         );
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-
-}       // namespace xstd

@@ -1,14 +1,13 @@
 #pragma once
-#include <xstd/word_array.hpp>                  // word_array
 #include <xstd/bit/mask.hpp>                    // one
 #include <xstd/bit/primitive.hpp>               // ctznz, popcount
+#include <xstd/limits.hpp>                      // digits
+#include <xstd/word_array.hpp>                  // word_array
 #include <boost/iterator/iterator_facade.hpp>   // iterator_core_access, iterator_facade
 #include <boost/range/adaptor/sliced.hpp>       // sliced
 #include <cassert>                              // assert
-#include <cstdint>                              // uint64_t
 #include <initializer_list>                     // initializer_list
 #include <iterator>                             // reverse_iterator
-#include <limits>                               // digits
 
 namespace xstd {
 
@@ -23,19 +22,21 @@ template<int N> bool subset_of (int_set<N> const&, int_set<N> const&) noexcept;
 template<int N>
 class int_set
 {
-        using WordT = uint64_t;
-        static constexpr auto word_size = std::numeric_limits<WordT>::digits;
+        using WordT = unsigned long long;
+        static constexpr auto word_size = digits<WordT>;
         static constexpr auto Nw = (N - 1 + word_size) / word_size;
         static constexpr auto Nb = Nw * word_size;
 
         word_array<WordT, Nw> m_words;
 public:
         // types:
-        using value_type             = int;
-        using pointer                = int*;
-        using const_pointer          = int const*;
-        using size_type              = int;
-        using difference_type        = int;
+        using key_type = int;
+        using key_compare = std::less<>;
+        using value_type = int;
+        using value_compare = std::less<>;
+        using size_type = int ; // see 23.2
+        using difference_type = int ; // see 23.2
+
 
         class const_reference;
         class const_iterator;
@@ -257,22 +258,22 @@ public:
 
         using reference = const_reference;
         using iterator  = const_iterator;
+        using pointer = iterator;
+        using const_pointer = const_iterator;
 
         using reverse_iterator       = std::reverse_iterator<iterator>;
         using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+        using insert_return_type = void ;
 
-        // constructors
-
+        // 23.4.6.2, construct/copy/destroy:
         int_set() = default;
 
-        template<class ForwardIterator>
-        constexpr int_set(ForwardIterator first, ForwardIterator last) // Throws: Nothing.
+        template<class InputIterator>
+        constexpr int_set(InputIterator first, InputIterator last) // Throws: Nothing.
         :
                 m_words{}
         {
-                for (auto it = first; it != last; ++it) {
-                        set(*it);
-                }
+                insert(first, last);
         }
 
         constexpr int_set(std::initializer_list<value_type> ilist) // Throws: Nothing.
@@ -280,53 +281,72 @@ public:
                 int_set(ilist.begin(), ilist.end())
         {}
 
-        // iterators
+        constexpr int_set& operator=(std::initializer_list<value_type> ilist) // Throws: Nothing.
+        {
+                insert(ilist);
+                return *this;
+        }
 
+        // iterators:
         constexpr auto begin()         noexcept { return       iterator{m_words.begin()}; }
         constexpr auto begin()   const noexcept { return const_iterator{m_words.begin()}; }
         constexpr auto end()           noexcept { return       iterator{m_words.end(), N}; }
         constexpr auto end()     const noexcept { return const_iterator{m_words.end(), N}; }
+
         constexpr auto rbegin()        noexcept { return       reverse_iterator{end()}; }
         constexpr auto rbegin()  const noexcept { return const_reverse_iterator{end()}; }
         constexpr auto rend()          noexcept { return       reverse_iterator{begin()}; }
         constexpr auto rend()    const noexcept { return const_reverse_iterator{begin()}; }
+
         constexpr auto cbegin()  const noexcept { return begin(); }
         constexpr auto cend()    const noexcept { return end();   }
         constexpr auto crbegin() const noexcept { return rbegin(); }
         constexpr auto crend()   const noexcept { return rend();   }
 
-        // capacity
+        // capacity:
 
-        static constexpr auto size() noexcept
+        auto empty() const noexcept
+        {
+                return m_words.none();
+        }
+
+        auto full() const noexcept
+        {
+                if constexpr (missing_bits() == 0) {
+                        return m_words.all();
+                } else {
+                        static_assert(Nw != 0);
+                        if constexpr (Nw == 1) {
+                                return m_words.back() == bit::mask::all<WordT> >> missing_bits();
+                        } else if constexpr (Nw >= 2) {
+                                using boost::adaptors::sliced;
+                                return
+                                        boost::algorithm::all_of(m_words | sliced(0, Nw - 1), [](auto const word){
+                                                return word == bit::mask::all<WordT>;
+                                        }) && (m_words.back() == bit::mask::all<WordT> >> missing_bits());
+                                ;
+                        }
+                }
+        }
+
+        auto size() const noexcept
+        {
+                return m_words.count();
+        }
+
+        static constexpr auto max_size() noexcept
         {
                 return N;
         }
 
+        static constexpr auto capacity() noexcept
+        {
+                return Nb;
+        }
+
         // modifiers
 
-        auto& set() noexcept
-        {
-                m_words.fill(bit::mask::all<WordT>);
-                sanitize();
-                assert(all());
-                return *this;
-        }
-
-        auto& reset() noexcept
-        {
-                m_words.fill(bit::mask::none<WordT>);
-                assert(none());
-                return *this;
-        }
-
-        auto swap(int_set& other) noexcept
-        {
-                m_words.swap(other);
-        }
-
-        // element access
-
-        constexpr auto& set(int const n) // Throws: Nothing.
+        constexpr auto& insert(value_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
                 m_words[which(n)] |= word_mask(where(n));
@@ -334,7 +354,28 @@ public:
                 return *this;
         }
 
-        constexpr auto& reset(int const n) // Throws: Nothing.
+        template<class InputIterator>
+        constexpr auto insert(InputIterator first, InputIterator last) // Throws: Nothing.
+        {
+                for (auto it = first; it != last; ++it) {
+                        insert(*it);
+                }
+        }
+
+        constexpr auto insert(std::initializer_list<value_type> ilist) // Throws: Nothing.
+        {
+                insert(ilist.begin(), ilist.end());
+        }
+
+        auto& fill() noexcept
+        {
+                m_words.fill(bit::mask::all<WordT>);
+                sanitize();
+                assert(full());
+                return *this;
+        }
+
+        constexpr auto& erase(value_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
                 m_words[which(n)] &= ~word_mask(where(n));
@@ -342,21 +383,38 @@ public:
                 return *this;
         }
 
-        constexpr auto& flip(int const n) // Throws: Nothing.
+        template<class InputIterator>
+        constexpr auto erase(InputIterator first, InputIterator last) // Throws: Nothing.
+        {
+                for (auto it = first; it != last; ++it) {
+                        erase(*it);
+                }
+        }
+
+        auto swap(int_set& other) noexcept
+        {
+                m_words.swap(other);
+        }
+
+        auto clear() noexcept
+        {
+                m_words.fill(bit::mask::none<WordT>);
+                assert(empty());
+        }
+
+        constexpr auto& flip(value_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
                 m_words[which(n)] ^= word_mask(where(n));
                 return *this;
         }
 
-        constexpr auto test(int const n) const // Throws: Nothing.
+        constexpr auto test(value_type const n) const // Throws: Nothing.
                 -> bool
         {
                 assert(0 <= n); assert(n < N);
                 return m_words[which(n)] & word_mask(where(n));
         }
-
-        // comparators
 
         // modifiers
 
@@ -446,43 +504,6 @@ public:
                         }
                 }
                 return std::move(f);
-        }
-
-        // observers
-
-        auto all() const noexcept
-        {
-                if constexpr (missing_bits() == 0) {
-                        return m_words.all();
-                } else {
-                        if constexpr (Nw == 0) {
-                                return true;
-                        } else if constexpr (Nw == 1) {
-                                return m_words.back() == bit::mask::all<WordT> >> missing_bits();
-                        } else if constexpr (Nw >= 2) {
-                                using boost::adaptors::sliced;
-                                return
-                                        boost::algorithm::all_of(m_words | sliced(0, Nw - 1), [](auto const word){
-                                                return word == bit::mask::all<WordT>;
-                                        }) && (m_words.back() == bit::mask::all<WordT> >> missing_bits());
-                                ;
-                        }
-                }
-        }
-
-        auto any() const noexcept
-        {
-                return m_words.any();
-        }
-
-        auto none() const noexcept
-        {
-                return m_words.none();
-        }
-
-        auto count() const noexcept
-        {
-                return m_words.count();
         }
 
 private:
@@ -584,6 +605,50 @@ auto operator>>(int_set<N> const& lhs, int const n) // Throws: Nothing.
 {
         assert(0 <= n); assert(n < N);
         int_set<N> nrv{lhs}; nrv >>= n; return nrv;
+}
+
+template<int N>
+constexpr auto set_complement(int_set<N> const& lhs) noexcept
+{
+        return ~lhs;
+}
+
+template<int N>
+constexpr auto set_intersection(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        return lhs & rhs;
+}
+
+template<int N>
+constexpr auto set_union(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        return lhs | rhs;
+}
+
+template<int N>
+constexpr auto set_symmetric_difference(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        return lhs ^ rhs;
+}
+
+template<int N>
+constexpr auto set_difference(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        return lhs - rhs;
+}
+
+template<int N>
+auto set_transform_plus(int_set<N> const& lhs, int const n) // Throws: Nothing.
+{
+        assert(0 <= n); assert(n < N);
+        return lhs << n;
+}
+
+template<int N>
+auto set_transform_minus(int_set<N> const& lhs, int const n) // Throws: Nothing.
+{
+        assert(0 <= n); assert(n < N);
+        return lhs >> n;
 }
 
 template<int N>
