@@ -16,7 +16,9 @@
 #include <boost/tuple/tuple.hpp>                                // get
 #include <algorithm>                                            // copy_n, copy_backward
 #include <cassert>                                              // assert
+#include <initializer_list>                                     //
 #include <iterator>                                             // reverse_iterator
+#include <stdexcept>                                            // out_of_range
 #include <type_traits>                                          // is_pod
 #include <utility>                                              // move, swap
 
@@ -53,7 +55,7 @@ struct word_array
 
         // no explicit construct/copy/destroy for aggregate type
 
-        auto fill(value_type const& u) noexcept
+        void fill(value_type const& u) noexcept
         {
                 if constexpr (Nw == 1) {
                         m_words[0] = u;
@@ -62,7 +64,7 @@ struct word_array
                 }
         }
 
-        auto swap(word_array& other) noexcept
+        void swap(word_array& other) noexcept
         {
                 if constexpr (Nw == 1) {
                         using std::swap;
@@ -73,18 +75,18 @@ struct word_array
         }
 
         // iterators:
-        constexpr auto begin()         noexcept { return       iterator(data()); }
-        constexpr auto begin()   const noexcept { return const_iterator(data()); }
-        constexpr auto end()           noexcept { return       iterator(data() + Nw); }
-        constexpr auto end()     const noexcept { return const_iterator(data() + Nw); }
-        constexpr auto rbegin()        noexcept { return       reverse_iterator(end()); }
-        constexpr auto rbegin()  const noexcept { return const_reverse_iterator(end()); }
-        constexpr auto rend()          noexcept { return       reverse_iterator(begin()); }
-        constexpr auto rend()    const noexcept { return const_reverse_iterator(begin()); }
-        constexpr auto cbegin()  const noexcept { return       iterator(data());     }
-        constexpr auto cend()    const noexcept { return const_iterator(data() + Nw); }
-        constexpr auto crbegin() const noexcept { return const_reverse_iterator(end());   }
-        constexpr auto crend()   const noexcept { return const_reverse_iterator(begin()); }
+        constexpr iterator               begin()         noexcept { return data(); }
+        constexpr const_iterator         begin()   const noexcept { return data(); }
+        constexpr iterator               end()           noexcept { return data() + Nw; }
+        constexpr const_iterator         end()     const noexcept { return data() + Nw; }
+        constexpr reverse_iterator       rbegin()        noexcept { return end(); }
+        constexpr const_reverse_iterator rbegin()  const noexcept { return end(); }
+        constexpr reverse_iterator       rend()          noexcept { return begin(); }
+        constexpr const_reverse_iterator rend()    const noexcept { return begin(); }
+        constexpr iterator               cbegin()  const noexcept { return data();      }
+        constexpr const_iterator         cend()    const noexcept { return data() + Nw; }
+        constexpr const_reverse_iterator crbegin() const noexcept { return end();   }
+        constexpr const_reverse_iterator crend()   const noexcept { return begin(); }
 
         // capacity:
         constexpr bool      empty()     const noexcept { return Nw == 0; }
@@ -93,14 +95,16 @@ struct word_array
         constexpr size_type word_size() const noexcept { return digits<value_type>; }
 
         // element access:
-        constexpr       reference operator[](size_type const n)       { assert(0 <= n); assert(n < Nw); return m_words[n]; }
-        constexpr const_reference operator[](size_type const n) const { assert(0 <= n); assert(n < Nw); return m_words[n]; }
-        constexpr       reference front()       { assert(!empty()); return m_words[0]; }
+        constexpr reference       operator[](size_type n)       { assert(0 <= n); assert(n < Nw); return m_words[n]; }
+        constexpr const_reference operator[](size_type n) const { assert(0 <= n); assert(n < Nw); return m_words[n]; }
+        constexpr reference       at(size_type n)       { if (!(0 <= n && n < Nw)) throw std::out_of_range(""); return (*this)[n]; }
+        constexpr const_reference at(size_type n) const { if (!(0 <= n && n < Nw)) throw std::out_of_range(""); return (*this)[n]; }
+        constexpr reference       front()       { assert(!empty()); return m_words[0]; }
         constexpr const_reference front() const { assert(!empty()); return m_words[0]; }
-        constexpr       reference back()        { assert(!empty()); return m_words[Nw ? Nw - 1 : 0]; }
+        constexpr reference       back()        { assert(!empty()); return m_words[Nw ? Nw - 1 : 0]; }
         constexpr const_reference back()  const { assert(!empty()); return m_words[Nw ? Nw - 1 : 0]; }
-        constexpr       pointer data()       noexcept { return &m_words[0]; }
-        constexpr const_pointer data() const noexcept { return &m_words[0]; }
+        constexpr pointer         data()       noexcept { return &m_words[0]; }
+        constexpr const_pointer   data() const noexcept { return &m_words[0]; }
 
         constexpr auto& flip() noexcept
         {
@@ -223,6 +227,19 @@ struct word_array
                 return *this;
         }
 
+        auto count() const noexcept
+        {
+                if constexpr (Nw == 0) {
+                        return 0;
+                } else if constexpr (Nw == 1) {
+                        return bit::popcount(m_words[0]);
+                } else if (Nw >= 2) {
+                        return boost::accumulate(m_words, 0, [](auto const sum, auto const word){
+                                return sum + bit::popcount(word);
+                        });
+                }
+        }
+
         auto all() const noexcept
         {
                 if constexpr (Nw == 0) {
@@ -262,23 +279,10 @@ struct word_array
                 }
         }
 
-        auto count() const noexcept
-        {
-                if constexpr (Nw == 0) {
-                        return 0;
-                } else if constexpr (Nw == 1) {
-                        return bit::popcount(m_words[0]);
-                } else if (Nw >= 2) {
-                        return boost::accumulate(m_words, 0, [](auto const sum, auto const word){
-                                return sum + bit::popcount(word);
-                        });
-                }
-        }
-
         template<class HashAlgorithm>
-        auto hash_append() const
+        friend auto hash_append(HashAlgorithm, word_array const&)
         {
-
+                // TODO
         }
 };
 
@@ -403,6 +407,122 @@ auto operator>>(word_array<WordT, Nw> const& lhs, int const n) // Throws: Nothin
 {
         assert(0 <= n); assert(n < Nw * lhs.word_size());
         word_array<WordT, Nw> nrv{lhs}; nrv >>= n; return nrv;
+}
+
+// range access:
+
+template<class WordT, int Nw>
+constexpr auto begin(word_array<WordT, Nw>& wa)
+        -> decltype(wa.begin())
+{
+        return wa.begin();
+}
+
+template<class WordT, int Nw>
+constexpr auto begin(word_array<WordT, Nw> const& wa)
+        -> decltype(wa)
+{
+        return wa.begin();
+}
+
+template<class WordT, int Nw>
+constexpr auto end(word_array<WordT, Nw>& wa)
+        -> decltype(wa.end())
+{
+        return wa.end();
+}
+
+template<class WordT, int Nw>
+constexpr auto end(word_array<WordT, Nw> const& wa)
+        -> decltype(wa.end())
+{
+        return wa.end();
+}
+
+template<class WordT, int Nw>
+constexpr auto cbegin(word_array<WordT, Nw> const& wa) noexcept(noexcept(xstd::begin(wa)))
+        -> decltype(xstd::begin(wa))
+{
+        return xstd::begin(wa);
+}
+
+template<class WordT, int Nw>
+constexpr auto cend(word_array<WordT, Nw> const& wa) noexcept(noexcept(xstd::end(wa)))
+        -> decltype(xstd::end(wa))
+{
+        return xstd::end(wa);
+}
+
+template<class WordT, int Nw>
+constexpr auto rbegin(word_array<WordT, Nw>& wa)
+        -> decltype(wa.rbegin())
+{
+        return wa.rbegin();
+}
+
+template<class WordT, int Nw>
+constexpr auto rbegin(word_array<WordT, Nw> const& wa)
+        -> decltype(wa.rbegin())
+{
+        return wa.rbegin();
+}
+
+template<class WordT, int Nw>
+constexpr auto rend(word_array<WordT, Nw>& wa)
+        -> decltype(wa.rend())
+{
+        return wa.rend();
+}
+
+template<class WordT, int Nw>
+constexpr auto rend(word_array<WordT, Nw> const& wa)
+        -> decltype(wa.rend())
+{
+        return wa.rend();
+}
+
+template<class WordT, int Nw>
+constexpr auto crbegin(word_array<WordT, Nw> const& wa)
+        -> decltype(xstd::rbegin(wa))
+{
+        return xstd::rbegin(wa);
+}
+
+template<class WordT, int Nw>
+constexpr auto crend(word_array<WordT, Nw> const& wa)
+        -> decltype(xstd::rend(wa))
+{
+        return xstd::rend(wa);
+}
+
+// container access:
+
+template<class WordT, int Nw>
+constexpr auto size(word_array<WordT, Nw> const& wa)
+        -> decltype(wa.size())
+{
+        return wa.size();
+}
+
+template<class WordT, int Nw>
+constexpr auto empty(word_array<WordT, Nw> const& wa)
+        -> decltype(wa.empty())
+{
+        return wa.empty();
+}
+
+template<class WordT, int Nw>
+constexpr auto data(word_array<WordT, Nw>& wa)
+        -> decltype(wa.data())
+{
+        return wa.data();
+}
+
+template<class WordT, int Nw>
+constexpr auto data(word_array<WordT, Nw> const& wa)
+        -> decltype(wa.data())
+{
+        return wa.data();
 }
 
 }       // namespace xstd

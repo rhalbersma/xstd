@@ -24,6 +24,8 @@ template<int N> bool subset_of (int_set<N> const&, int_set<N> const&) noexcept;
 template<int N>
 class int_set
 {
+        static_assert(0 <= N);
+
         static constexpr auto static_assert_type_traits() noexcept
         {
                 using T = int_set;
@@ -45,7 +47,6 @@ public:
         using value_compare = std::less<>;
         using size_type = int ; // see 23.2
         using difference_type = int ; // see 23.2
-
 
         class const_reference;
         class const_iterator;
@@ -730,88 +731,120 @@ auto proper_superset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
         return superset_of(lhs, rhs) && !superset_of(rhs, lhs);
 }
 
+// range access:
+
 template<int N>
-constexpr auto
-begin(int_set<N>& b) -> decltype(b.begin())
+constexpr auto begin(int_set<N>& is)
+        -> decltype(is.begin())
 {
-        return b.begin();
+        return is.begin();
 }
 
 template<int N>
-constexpr auto
-begin(int_set<N> const& b) -> decltype(b.begin())
+constexpr auto begin(int_set<N> const& is)
+        -> decltype(is.begin())
 {
-        return b.begin();
+        return is.begin();
 }
 
 template<int N>
-constexpr auto
-end(int_set<N>& b) -> decltype(b.end())
+constexpr auto end(int_set<N>& is)
+        -> decltype(is.end())
 {
-        return b.end();
+        return is.end();
 }
 
 template<int N>
-constexpr auto
-end(int_set<N> const& b) -> decltype(b.end())
+constexpr auto end(int_set<N> const& is)
+        -> decltype(is.end())
 {
-        return b.end();
+        return is.end();
 }
 
 template<int N>
-constexpr auto
-cbegin(int_set<N> const& b) noexcept(noexcept(std::begin(b))) -> decltype(xstd::begin(b))
+constexpr auto cbegin(int_set<N> const& is) noexcept(noexcept(xstd::begin(is)))
+        -> decltype(xstd::begin(is))
 {
-        return xstd::begin(b);
+        return xstd::begin(is);
 }
 
 template<int N>
-constexpr auto
-cend(int_set<N> const& b) noexcept(noexcept(std::end(b)))-> decltype(xstd::end(b))
+constexpr auto cend(int_set<N> const& is) noexcept(noexcept(xstd::end(is)))
+        -> decltype(xstd::end(is))
 {
-        return xstd::end(b);
+        return xstd::end(is);
 }
 
 template<int N>
-constexpr auto
-rbegin(int_set<N>& b) -> decltype(b.rbegin())
+constexpr auto rbegin(int_set<N>& is)
+        -> decltype(is.rbegin())
 {
-        return b.rbegin();
+        return is.rbegin();
 }
 
 template<int N>
-constexpr auto
-rbegin(int_set<N> const& b) -> decltype(b.rbegin())
+constexpr auto rbegin(int_set<N> const& is)
+        -> decltype(is.rbegin())
 {
-        return b.rbegin();
+        return is.rbegin();
 }
 
 template<int N>
-constexpr auto
-rend(int_set<N>& b) -> decltype(b.rend())
+constexpr auto rend(int_set<N>& is)
+        -> decltype(is.rend())
 {
-        return b.rend();
+        return is.rend();
 }
 
 template<int N>
-constexpr auto
-rend(int_set<N> const& b) -> decltype(b.rend())
+constexpr auto rend(int_set<N> const& is)
+        -> decltype(is.rend())
 {
-        return b.rend();
+        return is.rend();
 }
 
 template<int N>
-constexpr auto
-crbegin(int_set<N> const& b) -> decltype(xstd::rbegin(b))
+constexpr auto crbegin(int_set<N> const& is)
+        -> decltype(xstd::rbegin(is))
 {
-        return xstd::rbegin(b);
+        return xstd::rbegin(is);
 }
 
 template<int N>
-constexpr auto
-crend(int_set<N> const& b) -> decltype(xstd::rend(b))
+constexpr auto crend(int_set<N> const& is)
+        -> decltype(xstd::rend(is))
 {
-        return xstd::rend(b);
+        return xstd::rend(is);
+}
+
+// container access:
+
+template<int N>
+constexpr auto size(int_set<N> const& is)
+        -> decltype(is.size())
+{
+        return is.size();
+}
+
+template<int N>
+constexpr auto empty(int_set<N> const& is)
+        -> decltype(is.empty())
+{
+        return is.empty();
+}
+
+template<int N>
+constexpr auto data(int_set<N>& is)
+        -> decltype(is.data())
+{
+        return is.data();
+}
+
+template<int N>
+constexpr auto data(int_set<N> const& is)
+        -> decltype(is.data())
+{
+        return is.data();
 }
 
 }       // namespace xstd
