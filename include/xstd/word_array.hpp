@@ -92,7 +92,6 @@ struct word_array
         constexpr bool      empty()     const noexcept { return Nw == 0; }
         constexpr size_type size()      const noexcept { return Nw; }
         constexpr size_type max_size()  const noexcept { return Nw; }
-        constexpr size_type word_size() const noexcept { return digits<value_type>; }
 
         // element access:
         constexpr reference       operator[](size_type n)       { assert(0 <= n); assert(n < Nw); return m_words[n]; }
@@ -168,20 +167,20 @@ struct word_array
 
         auto& operator<<=(size_type const n) // Throws: Nothing.
         {
-                assert(0 <= n); assert(n < Nw * word_size());
+                assert(0 <= n); assert(n < Nw * digits<value_type>);
                 if constexpr (Nw == 1) {
                         m_words[0] <<= n;
                 } else if constexpr (Nw >= 2) {
                         if (n == 0) return *this;
 
-                        auto const n_block = n / word_size();
-                        auto const L_shift = n % word_size();
+                        auto const n_block = n / digits<value_type>;
+                        auto const L_shift = n % digits<value_type>;
 
                         if (L_shift == 0) {
                                 using std::cbegin; using std::cend; using std::end;
                                 std::copy_backward(cbegin(m_words), cend(m_words) - n_block, end(m_words));
                         } else {
-                                auto const R_shift = word_size() - L_shift;
+                                auto const R_shift = digits<value_type> - L_shift;
 
                                 for (auto i = Nw - 1; i > n_block; --i) {
                                         m_words[i] =
@@ -198,20 +197,20 @@ struct word_array
 
         auto& operator>>=(size_type const n) // Throws: Nothing.
         {
-                assert(0 <= n); assert(n < Nw * word_size());
+                assert(0 <= n); assert(n < Nw * digits<value_type>);
                 if constexpr (Nw == 1) {
                         m_words[0] >>= n;
                 } else if constexpr (Nw >= 2) {
                         if (n == 0) return *this;
 
-                        auto const n_block = n / word_size();
-                        auto const R_shift = n % word_size();
+                        auto const n_block = n / digits<value_type>;
+                        auto const R_shift = n % digits<value_type>;
 
                         if (R_shift == 0) {
                                 using std::cbegin; using std::begin;
                                 std::copy_n(cbegin(m_words) + n_block, Nw - n_block, begin(m_words));
                         } else {
-                                auto const L_shift = word_size() - R_shift;
+                                auto const L_shift = digits<value_type> - R_shift;
 
                                 for (auto i = 0; i < Nw - 1 - n_block; ++i) {
                                         m_words[i] =
