@@ -5,10 +5,9 @@
 #include <xstd/type_traits.hpp>                 // is_trivial_special_members
 #include <xstd/word_array.hpp>                  // word_array
 #include <boost/iterator/iterator_facade.hpp>   // iterator_core_access, iterator_facade
-#include <boost/range/adaptor/sliced.hpp>       // sliced
 #include <cassert>                              // assert
 #include <initializer_list>                     // initializer_list
-#include <iterator>                             // reverse_iterator
+#include <iterator>                             // bidirectional_iterator_tag, reverse_iterator
 #include <type_traits>                          // is_pod
 
 namespace xstd {
@@ -59,14 +58,14 @@ public:
                 }
 
                 WordT const& m_word;
-                value_type const m_index;
+                size_type const m_index;
         public:
                 const_reference() = delete;
                 const_reference(const_reference const&) = default;
                 const_reference& operator=(const_reference const&) = delete;
                 const_reference& operator=(value_type const) = delete;
 
-                constexpr const_reference(WordT const& w, value_type const i) noexcept
+                constexpr const_reference(WordT const& w, size_type const i) noexcept
                 :
                         m_word{w},
                         m_index{i}
@@ -74,7 +73,7 @@ public:
                         assert_invariants();
                 }
 
-                /* implicit */ constexpr operator auto() const noexcept
+                /* implicit */ constexpr operator value_type() const noexcept
                 {
                         return m_index;
                 }
@@ -104,7 +103,7 @@ public:
                 }
 
                 WordT const* m_word;
-                value_type m_index;
+                size_type m_index;
         public:
                 const_iterator() = default;
 
@@ -116,7 +115,7 @@ public:
                         assert_invariants();
                 }
 
-                constexpr const_iterator(WordT const* w, value_type const i) // Throws: Nothing.
+                constexpr const_iterator(WordT const* w, size_type const i) // Throws: Nothing.
                 :
                         m_word{w},
                         m_index{i}
@@ -273,7 +272,7 @@ public:
 
         using reverse_iterator       = std::reverse_iterator<iterator>;
         using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-        using insert_return_type = void ;
+        using insert_return_type = void;
 
         // 23.4.6.2, construct/copy/destroy:
         int_set() = default;
@@ -308,51 +307,17 @@ public:
         constexpr auto rend()          noexcept { return       reverse_iterator{begin()}; }
         constexpr auto rend()    const noexcept { return const_reverse_iterator{begin()}; }
 
-        constexpr auto cbegin()  const noexcept { return begin(); }
-        constexpr auto cend()    const noexcept { return end();   }
-        constexpr auto crbegin() const noexcept { return rbegin(); }
-        constexpr auto crend()   const noexcept { return rend();   }
+        constexpr auto cbegin()  const noexcept { return const_iterator{begin()}; }
+        constexpr auto cend()    const noexcept { return const_iterator{end()};   }
+        constexpr auto crbegin() const noexcept { return const_reverse_iterator{rbegin()}; }
+        constexpr auto crend()   const noexcept { return const_reverse_iterator{rend()};   }
 
         // capacity:
-
-        auto empty() const noexcept
-        {
-                return m_words.none();
-        }
-
-        auto full() const noexcept
-        {
-                if constexpr (missing_bits() == 0) {
-                        return m_words.all();
-                } else {
-                        static_assert(Nw != 0);
-                        if constexpr (Nw == 1) {
-                                return m_words.back() == bit::mask::all<WordT> >> missing_bits();
-                        } else if constexpr (Nw >= 2) {
-                                using boost::adaptors::sliced;
-                                return
-                                        boost::algorithm::all_of(m_words | sliced(0, Nw - 1), [](auto const word){
-                                                return word == bit::mask::all<WordT>;
-                                        }) && (m_words.back() == bit::mask::all<WordT> >> missing_bits());
-                                ;
-                        }
-                }
-        }
-
-        auto size() const noexcept
-        {
-                return m_words.count();
-        }
-
-        static constexpr auto max_size() noexcept
-        {
-                return N;
-        }
-
-        static constexpr auto capacity() noexcept
-        {
-                return Nb;
-        }
+        bool      empty() const noexcept { return m_words.none();                 }
+        bool      full()  const noexcept { return m_words.template all<Nb - N>(); }
+        size_type size()  const noexcept { return m_words.count();                }
+        static constexpr size_type max_size() noexcept { return N;  }
+        static constexpr size_type capacity() noexcept { return Nb; }
 
         // modifiers
 
@@ -401,7 +366,7 @@ public:
                 }
         }
 
-        auto swap(int_set& other) noexcept
+        auto swap(int_set& other) noexcept(noexcept(m_words.swap(other)))
         {
                 m_words.swap(other);
         }
@@ -543,15 +508,10 @@ private:
                 return bit::mask::one<WordT> << n;
         }
 
-        static constexpr auto missing_bits() noexcept
-        {
-                return Nb - N;
-        }
-
         constexpr auto sanitize() noexcept
         {
-                if constexpr (missing_bits() != 0) {
-                        m_words.back() &= bit::mask::all<WordT> >> missing_bits();
+                if constexpr (N < Nb) {
+                        m_words.back() &= bit::mask::all<WordT> >> (Nb - N);
                 }
         }
 
@@ -686,7 +646,7 @@ auto operator<=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 }
 
 template<int N>
-auto swap(int_set<N>& lhs, int_set<N>& rhs) noexcept
+auto swap(int_set<N>& lhs, int_set<N>& rhs) noexcept(noexcept(lhs.swap(rhs)))
 {
         lhs.swap(rhs);
 }

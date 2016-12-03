@@ -7,6 +7,7 @@
 #include <boost/algorithm/cxx11/any_of.hpp>                     // any_of
 #include <boost/algorithm/cxx11/none_of.hpp>                    // none_of
 #include <boost/range/adaptor/reversed.hpp>                     // reverse
+#include <boost/range/adaptor/sliced.hpp>                       // sliced
 #include <boost/range/algorithm/equal.hpp>                      // equal
 #include <boost/range/algorithm/fill_n.hpp>                     // fill_n
 #include <boost/range/algorithm/lexicographical_compare.hpp>    // lexicographical_compare
@@ -64,7 +65,7 @@ struct word_array
                 }
         }
 
-        void swap(word_array& other) noexcept
+        void swap(word_array& other) noexcept /* (is_nothrow_swappable_v<WordT>) */
         {
                 if constexpr (Nw == 1) {
                         using std::swap;
@@ -75,23 +76,25 @@ struct word_array
         }
 
         // iterators:
-        constexpr iterator               begin()         noexcept { return data(); }
-        constexpr const_iterator         begin()   const noexcept { return data(); }
-        constexpr iterator               end()           noexcept { return data() + Nw; }
-        constexpr const_iterator         end()     const noexcept { return data() + Nw; }
-        constexpr reverse_iterator       rbegin()        noexcept { return end(); }
-        constexpr const_reverse_iterator rbegin()  const noexcept { return end(); }
-        constexpr reverse_iterator       rend()          noexcept { return begin(); }
-        constexpr const_reverse_iterator rend()    const noexcept { return begin(); }
-        constexpr iterator               cbegin()  const noexcept { return data();      }
-        constexpr const_iterator         cend()    const noexcept { return data() + Nw; }
-        constexpr const_reverse_iterator crbegin() const noexcept { return end();   }
-        constexpr const_reverse_iterator crend()   const noexcept { return begin(); }
+        constexpr auto begin()         noexcept { return       iterator{data()}; }
+        constexpr auto begin()   const noexcept { return const_iterator{data()}; }
+        constexpr auto end()           noexcept { return       iterator{data() + Nw}; }
+        constexpr auto end()     const noexcept { return const_iterator{data() + Nw}; }
+
+        constexpr auto rbegin()        noexcept { return       reverse_iterator{end()}; }
+        constexpr auto rbegin()  const noexcept { return const_reverse_iterator{end()}; }
+        constexpr auto rend()          noexcept { return       reverse_iterator{begin()}; }
+        constexpr auto rend()    const noexcept { return const_reverse_iterator{begin()}; }
+
+        constexpr auto cbegin()  const noexcept { return const_iterator{begin()}; }
+        constexpr auto cend()    const noexcept { return const_iterator{end()};   }
+        constexpr auto crbegin() const noexcept { return const_reverse_iterator{rbegin()}; }
+        constexpr auto crend()   const noexcept { return const_reverse_iterator{rend()};   }
 
         // capacity:
-        constexpr bool      empty()     const noexcept { return Nw == 0; }
-        constexpr size_type size()      const noexcept { return Nw; }
-        constexpr size_type max_size()  const noexcept { return Nw; }
+        constexpr bool      empty()    const noexcept { return Nw == 0; }
+        constexpr size_type size()     const noexcept { return Nw; }
+        constexpr size_type max_size() const noexcept { return Nw; }
 
         // element access:
         constexpr reference       operator[](size_type n)       { assert(0 <= n); assert(n < Nw); return m_words[n]; }
@@ -239,16 +242,31 @@ struct word_array
                 }
         }
 
+        template<int M = 0>
         auto all() const noexcept
         {
-                if constexpr (Nw == 0) {
-                        return true;
-                } else if constexpr (Nw == 1) {
-                        return m_words[0] == bit::mask::all<value_type>;
-                } else if constexpr (Nw >= 2) {
-                        return boost::algorithm::all_of(m_words, [](auto const word){
-                                return word == bit::mask::all<value_type>;
-                        });
+                if constexpr (M == 0) {
+                        if constexpr (Nw == 0) {
+                                return true;
+                        } else if constexpr (Nw == 1) {
+                                return m_words[0] == bit::mask::all<value_type>;
+                        } else if constexpr (Nw >= 2) {
+                                return boost::algorithm::all_of(m_words, [](auto const word){
+                                        return word == bit::mask::all<value_type>;
+                                });
+                        }
+                } else {
+                        static_assert(Nw != 0);
+                        if constexpr (Nw == 1) {
+                                return m_words[0] == bit::mask::all<WordT> >> M;
+                        } else if constexpr (Nw >= 2) {
+                                using boost::adaptors::sliced;
+                                return
+                                        boost::algorithm::all_of(m_words | sliced(0, Nw - 1), [](auto const word){
+                                                return word == bit::mask::all<WordT>;
+                                        }) && (m_words[Nw - 1] == bit::mask::all<WordT> >> M);
+                                ;
+                        }
                 }
         }
 
@@ -332,6 +350,12 @@ template<class WordT, int Nw>
 auto operator<=(word_array<WordT, Nw> const& lhs, word_array<WordT, Nw> const& rhs) noexcept
 {
         return !(rhs < lhs);
+}
+
+template <class WordT, int N>
+void swap(word_array<WordT, N>& lhs, word_array<WordT, N>& rhs) noexcept(noexcept(lhs.swap(rhs)))
+{
+        lhs.swap(rhs);
 }
 
 template<class WordT, int Nw>
