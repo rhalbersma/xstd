@@ -96,8 +96,8 @@ struct word_array
         // element access:
         constexpr reference       operator[](size_type n)       { assert(0 <= n); assert(n < Nw); return m_words[n]; }
         constexpr const_reference operator[](size_type n) const { assert(0 <= n); assert(n < Nw); return m_words[n]; }
-        constexpr reference       at(size_type n)       { if (!(0 <= n && n < Nw)) throw std::out_of_range(""); return (*this)[n]; }
-        constexpr const_reference at(size_type n) const { if (!(0 <= n && n < Nw)) throw std::out_of_range(""); return (*this)[n]; }
+        constexpr reference       at(size_type n)       { if (!(0 <= n && n < Nw)) { throw std::out_of_range(""); } return (*this)[n]; }
+        constexpr const_reference at(size_type n) const { if (!(0 <= n && n < Nw)) { throw std::out_of_range(""); } return (*this)[n]; }
         constexpr reference       front()       { assert(!empty()); return m_words[0]; }
         constexpr const_reference front() const { assert(!empty()); return m_words[0]; }
         constexpr reference       back()        { assert(!empty()); return m_words[Nw ? Nw - 1 : 0]; }
