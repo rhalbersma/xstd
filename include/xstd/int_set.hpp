@@ -515,10 +515,10 @@ private:
                 }
         }
 
-        friend bool operator==<>(int_set<N> const&, int_set<N> const&) noexcept;
-        friend bool operator< <>(int_set<N> const&, int_set<N> const&) noexcept;
-        friend bool intersects<>(int_set<N> const&, int_set<N> const&) noexcept;
-        friend bool subset_of <>(int_set<N> const&, int_set<N> const&) noexcept;
+        friend bool operator== <>(int_set const&, int_set const&) noexcept;
+        friend bool operator<  <>(int_set const&, int_set const&) noexcept;
+        friend bool intersects <>(int_set const&, int_set const&) noexcept;
+        friend bool subset_of  <>(int_set const&, int_set const&) noexcept;
 };
 
 template<int N>
