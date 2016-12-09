@@ -4,6 +4,7 @@
 #include <xstd/limits.hpp>                      // digits
 #include <xstd/type_traits.hpp>                 // is_trivial_special_members
 #include <xstd/word_array.hpp>                  // word_array
+#include <hash_append/hash_append.h>            // hash_append
 #include <boost/iterator/iterator_facade.hpp>   // iterator_core_access, iterator_facade
 #include <cassert>                              // assert
 #include <initializer_list>                     // initializer_list
@@ -479,6 +480,13 @@ public:
                         }
                 }
                 return std::move(f);
+        }
+
+        template<class HashAlgorithm>
+        friend auto hash_append(HashAlgorithm& h, int_set const& is)
+        {
+                using xstd::hash_append;
+                hash_append(h, is.m_words);
         }
 
 private:

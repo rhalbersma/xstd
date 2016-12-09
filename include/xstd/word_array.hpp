@@ -3,6 +3,7 @@
 #include <xstd/bit/primitive.hpp>                               // popcount
 #include <xstd/limits.hpp>                                      // digits
 #include <xstd/type_traits.hpp>                                 // is_unsigned, is_integral, is_trivial_special_members
+#include <hash_append/hash_append.h>                            // hash_append
 #include <boost/algorithm/cxx11/all_of.hpp>                     // all_of
 #include <boost/algorithm/cxx11/any_of.hpp>                     // any_of
 #include <boost/algorithm/cxx11/none_of.hpp>                    // none_of
@@ -297,9 +298,10 @@ struct word_array
         }
 
         template<class HashAlgorithm>
-        friend auto hash_append(HashAlgorithm, word_array const&)
+        friend auto hash_append(HashAlgorithm& h, word_array const& wa)
         {
-                // TODO
+                using xstd::hash_append;
+                hash_append(h, wa.m_words);
         }
 };
 

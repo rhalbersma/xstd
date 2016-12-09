@@ -48,6 +48,9 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto -fuse-ld=gold")
 set(project_include_dirs ${PROJECT_SOURCE_DIR}/include)
 include_directories(${project_include_dirs})
 
+set(EXT_include_dirs ${PROJECT_SOURCE_DIR}/../ext)
+include_directories(${EXT_include_dirs})
+
 #----------------
 # Boost libraries
 #----------------
