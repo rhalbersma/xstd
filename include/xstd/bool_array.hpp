@@ -2,8 +2,6 @@
 #include <xstd/bit/mask.hpp>                    // one
 #include <xstd/bit/primitive.hpp>               // ctznz, popcount
 #include <xstd/limits.hpp>                      // digits
-#include <xstd/type_traits.hpp>                 // is_trivial_special_members
-#include <xstd/word_array.hpp>                  // word_array
 #include <boost/iterator/iterator_facade.hpp>   // iterator_core_access, iterator_facade
 #include <cassert>                              // assert
 #include <initializer_list>                     // initializer_list
@@ -19,9 +17,7 @@ struct bool_array
 
         static constexpr auto static_assert_type_traits() noexcept
         {
-                using T = bool_array;
-                static_assert(is_trivial_special_members_v<T>);
-                static_assert(std::is_pod<T>{});
+                static_assert(std::is_pod<bool_array>{});
         }
 
         using WordT = unsigned long long;
@@ -29,7 +25,7 @@ struct bool_array
         static constexpr auto Nw = (N - 1 + word_size) / word_size;
         static constexpr auto Nb = Nw * word_size;
 
-        word_array<WordT, Nw> m_words;
+        WordT m_words[Nw];
 
         // types:
         using value_type = bool;
