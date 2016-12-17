@@ -10,7 +10,7 @@ project(DCTL CXX)
 ###############################################################
 
 # use C++17 features
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z")# -stdlib=libc++")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++1z")# -stdlib=libc++")
 
 # fail hard
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror -pedantic-errors -Wno-shadow -Wno-missing-variable-declarations")

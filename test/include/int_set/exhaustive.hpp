@@ -1,110 +1,135 @@
 #pragma once
-#include <int_set/primitive.hpp>
-#include <xstd/int_set.hpp>              // int_set
+#include <int_set/primitive.hpp>        // primitive tests
+#include <xstd/int_set.hpp>             // int_set
 
 namespace xstd {
 
-// comparators
-
 template<int N>
-auto op_equal_to() noexcept
+constexpr auto bitand_assign() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= op_equal_to(int_set<N>{i}, int_set<N>{j});
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= bitand_assign(int_set<N>{i}, int_set<N>{j});
+                }
+        }
         return check;
 }
 
 template<int N>
-auto op_not_equal_to() noexcept
+constexpr auto bitor_assign() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= op_not_equal_to(int_set<N>{i}, int_set<N>{j});
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= bitor_assign(int_set<N>{i}, int_set<N>{j});
+                }
+        }
         return check;
 }
 
 template<int N>
-auto op_less() noexcept
+constexpr auto xor_assign() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= op_less(int_set<N>{i}, int_set<N>{j});
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= xor_assign(int_set<N>{i}, int_set<N>{j});
+                }
+        }
         return check;
 }
 
 template<int N>
-auto op_subset_of() noexcept
+constexpr auto minus_assign() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= op_subset_of(int_set<N>{i}, int_set<N>{j});
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= minus_assign(int_set<N>{i}, int_set<N>{j});
+                }
+        }
         return check;
 }
 
 template<int N>
-auto op_proper_subset_of() noexcept
+auto shift_left_assign() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= op_proper_subset_of(int_set<N>{i}, int_set<N>{j});
-        return check;
-}
-
-// modifiers
-
-template<int N>
-constexpr auto set_one() noexcept
-{
-        auto check = true;
-        for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= set_one(int_set<N>{i}, j);
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= shift_left_assign(int_set<N>{i}, j);
+                }
+        }
         return check;
 }
 
 template<int N>
-constexpr auto reset_one() noexcept
+auto shift_right_assign() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= reset_one(int_set<N>{i}, j);
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= shift_right_assign(int_set<N>{i}, j);
+                }
+        }
         return check;
 }
 
 template<int N>
-constexpr auto flip_one() noexcept
+auto fill() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= flip_one(int_set<N>{i}, j);
+        for (auto i = 0; i < N; ++i) {
+                check &= fill(~(~int_set<N>{} << i));
+        }
+        check &= fill(~int_set<N>{});
         return check;
 }
 
 template<int N>
-auto set_all() noexcept
+constexpr auto insert() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                check &= set_all(~(~int_set<N>{} << i));
-        check &= set_all(~int_set<N>{});
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= insert(int_set<N>{i}, j);
+                }
+        }
         return check;
 }
 
 template<int N>
-auto reset_all() noexcept
+auto clear() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                check &= reset_all(~(~int_set<N>{} << i));
-        check &= reset_all(~int_set<N>{});
+        for (auto i = 0; i < N; ++i) {
+                check &= clear(~(~int_set<N>{} << i));
+        }
+        check &= clear(~int_set<N>{});
+        return check;
+}
+
+template<int N>
+constexpr auto erase() noexcept
+{
+        auto check = true;
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= erase(int_set<N>{i}, j);
+                }
+        }
+        return check;
+}
+
+template<int N>
+constexpr auto compl_() noexcept
+{
+        auto check = true;
+        for (auto i = 0; i < N; ++i) {
+                check &= compl_(~(~int_set<N>{} << i));
+        }
+        check &= compl_(~int_set<N>{});
         return check;
 }
 
@@ -112,183 +137,221 @@ template<int N>
 constexpr auto flip_all() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
+        for (auto i = 0; i < N; ++i) {
                 check &= flip_all(~(~int_set<N>{} << i));
+        }
         check &= flip_all(~int_set<N>{});
         return check;
 }
 
 template<int N>
-constexpr auto op_and_assign() noexcept
+constexpr auto flip_one() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= op_and_assign(int_set<N>{i}, int_set<N>{j});
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= flip_one(int_set<N>{i}, j);
+                }
+        }
         return check;
 }
 
 template<int N>
-constexpr auto op_or_assign() noexcept
+auto size_() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= op_or_assign(int_set<N>{i}, int_set<N>{j});
+        for (auto i = 0; i < N; ++i) {
+                check &= size_(~(~int_set<N>{} << i));
+        }
+        check &= size_(~int_set<N>{});
         return check;
 }
 
 template<int N>
-constexpr auto op_xor_assign() noexcept
+auto max_size() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= op_xor_assign(int_set<N>{i}, int_set<N>{j});
+        for (auto i = 0; i < N; ++i) {
+                check &= max_size(~(~int_set<N>{} << i));
+        }
+        check &= max_size(~int_set<N>{});
         return check;
 }
 
 template<int N>
-constexpr auto op_minus_assign() noexcept
+auto equal_to() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= op_minus_assign(int_set<N>{i}, int_set<N>{j});
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= equal_to(int_set<N>{i}, int_set<N>{j});
+                }
+        }
         return check;
 }
 
 template<int N>
-auto op_shift_left_assign() noexcept
+auto not_equal_to() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= op_shift_left_assign(int_set<N>{i}, j);
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= not_equal_to(int_set<N>{i}, int_set<N>{j});
+                }
+        }
         return check;
 }
 
 template<int N>
-auto op_shift_right_assign() noexcept
+auto less() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= op_shift_right_assign(int_set<N>{i}, j);
-        return check;
-}
-
-// observers
-
-template<int N>
-auto all() noexcept
-{
-        auto check = true;
-        for (auto i = 0; i < N; ++i)
-                check &= all(~(~int_set<N>{} << i));
-        check &= all(~int_set<N>{});
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= less(int_set<N>{i}, int_set<N>{j});
+                }
+        }
         return check;
 }
 
 template<int N>
-auto any() noexcept
+auto subset_of_() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                check &= any(~(~int_set<N>{} << i));
-        check &= any(~int_set<N>{});
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= subset_of_(int_set<N>{i}, int_set<N>{j});
+                }
+        }
         return check;
 }
 
 template<int N>
-auto none() noexcept
+auto proper_subset_of_() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                check &= none(~(~int_set<N>{} << i));
-        check &= none(~int_set<N>{});
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= proper_subset_of_(int_set<N>{i}, int_set<N>{j});
+                }
+        }
         return check;
 }
 
 template<int N>
-auto count() noexcept
+constexpr auto test() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                check &= count(~(~int_set<N>{} << i));
-        check &= count(~int_set<N>{});
+        for (auto i = 0; i < N; ++i) {
+                check &= test<N>(i);
+        }
+        return check;
+}
+
+template<int N>
+auto full() noexcept
+{
+        auto check = true;
+        for (auto i = 0; i < N; ++i) {
+                check &= full(~(~int_set<N>{} << i));
+        }
+        check &= full(~int_set<N>{});
+        return check;
+}
+
+template<int N>
+auto not_empty() noexcept
+{
+        auto check = true;
+        for (auto i = 0; i < N; ++i) {
+                check &= not_empty(~(~int_set<N>{} << i));
+        }
+        check &= not_empty(~int_set<N>{});
+        return check;
+}
+
+template<int N>
+auto empty_() noexcept
+{
+        auto check = true;
+        for (auto i = 0; i < N; ++i) {
+                check &= empty_(~(~int_set<N>{} << i));
+        }
+        check &= empty_(~int_set<N>{});
         return check;
 }
 
 // operators
 
 template<int N>
-constexpr auto op_complement() noexcept
+auto shift_left() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                check &= op_complement(~(~int_set<N>{} << i));
-        check &= op_complement(~int_set<N>{});
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= shift_left(int_set<N>{i}, j);
+                }
+        }
         return check;
 }
 
 template<int N>
-constexpr auto op_and() noexcept
+auto shift_right() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= op_and(int_set<N>{i}, int_set<N>{j});
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= shift_right(int_set<N>{i}, j);
+                }
+        }
         return check;
 }
 
 template<int N>
-constexpr auto op_or() noexcept
+constexpr auto bitand_() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= op_or(int_set<N>{i}, int_set<N>{j});
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= bitand_(int_set<N>{i}, int_set<N>{j});
+                }
+        }
         return check;
 }
 
 template<int N>
-constexpr auto op_xor() noexcept
+constexpr auto bitor_() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= op_xor(int_set<N>{i}, int_set<N>{j});
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= bitor_(int_set<N>{i}, int_set<N>{j});
+                }
+        }
         return check;
 }
 
 template<int N>
-constexpr auto op_minus() noexcept
+constexpr auto xor_() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= op_minus(int_set<N>{i}, int_set<N>{j});
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= xor_(int_set<N>{i}, int_set<N>{j});
+                }
+        }
         return check;
 }
 
 template<int N>
-auto op_shift_left() noexcept
+constexpr auto minus() noexcept
 {
         auto check = true;
-        for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= op_shift_left(int_set<N>{i}, j);
-        return check;
-}
-
-template<int N>
-auto op_shift_right() noexcept
-{
-        auto check = true;
-        for (auto i = 0; i < N; ++i)
-                for (auto j = 0; j < N; ++j)
-                        check &= op_shift_right(int_set<N>{i}, j);
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= minus(int_set<N>{i}, int_set<N>{j});
+                }
+        }
         return check;
 }
 

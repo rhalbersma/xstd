@@ -21,7 +21,7 @@ constexpr auto cons_default() noexcept
 
 // [bitset.members]/1
 template<int N>
-constexpr auto op_and_assign(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+constexpr auto bitand_assign(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         // arrange
         auto const prev = lhs;
@@ -44,7 +44,7 @@ constexpr auto op_and_assign(int_set<N> const& lhs, int_set<N> const& rhs) noexc
 
 // [bitset.members]/3
 template<int N>
-constexpr auto op_or_assign(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+constexpr auto bitor_assign(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         // arrange
         auto const prev = lhs;
@@ -67,7 +67,7 @@ constexpr auto op_or_assign(int_set<N> const& lhs, int_set<N> const& rhs) noexce
 
 // [bitset.members]/5
 template<int N>
-constexpr auto op_xor_assign(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+constexpr auto xor_assign(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         // arrange
         auto const prev = lhs;
@@ -89,7 +89,7 @@ constexpr auto op_xor_assign(int_set<N> const& lhs, int_set<N> const& rhs) noexc
 }
 
 template<int N>
-constexpr auto op_minus_assign(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+constexpr auto minus_assign(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         // arrange
         auto const prev = lhs;
@@ -112,7 +112,7 @@ constexpr auto op_minus_assign(int_set<N> const& lhs, int_set<N> const& rhs) noe
 
 // [bitset.members]/7
 template<int N>
-auto op_shift_left_assign(int_set<N> const& b, int const pos)
+auto shift_left_assign(int_set<N> const& b, int const pos)
 {
         // arrange
         auto const prev = b;
@@ -135,7 +135,7 @@ auto op_shift_left_assign(int_set<N> const& b, int const pos)
 
 // [bitset.members]/9
 template<int N>
-auto op_shift_right_assign(int_set<N> const& b, int const pos)
+auto shift_right_assign(int_set<N> const& b, int const pos)
 {
         // arrange
         auto const prev = b;
@@ -158,7 +158,7 @@ auto op_shift_right_assign(int_set<N> const& b, int const pos)
 
 // [bitset.members]/11
 template<int N>
-auto set_all(int_set<N> const& b) noexcept
+auto fill(int_set<N> const& b) noexcept
 {
         // arrange
         auto value = b;
@@ -172,7 +172,7 @@ auto set_all(int_set<N> const& b) noexcept
 
 // [bitset.members]/14
 template<int N>
-constexpr auto set_one(int_set<N> const& b, int const pos)
+constexpr auto insert(int_set<N> const& b, int const pos)
 {
         // arrange
         auto const prev = b;
@@ -195,7 +195,7 @@ constexpr auto set_one(int_set<N> const& b, int const pos)
 
 // [bitset.members]/16
 template<int N>
-auto reset_all(int_set<N> const& b) noexcept
+auto clear(int_set<N> const& b) noexcept
 {
         // arrange
         auto value = b;
@@ -209,7 +209,7 @@ auto reset_all(int_set<N> const& b) noexcept
 
 // [bitset.members]/19
 template<int N>
-constexpr auto reset_one(int_set<N> const& b, int const pos)
+constexpr auto erase(int_set<N> const& b, int const pos)
 {
         // arrange
         auto const prev = b;
@@ -232,7 +232,7 @@ constexpr auto reset_one(int_set<N> const& b, int const pos)
 
 // [bitset.members]/21
 template<int N>
-constexpr auto op_complement(int_set<N> const& b) noexcept
+constexpr auto compl_(int_set<N> const& b) noexcept
 {
         // arrange
         auto expected = b;
@@ -289,7 +289,7 @@ constexpr auto flip_one(int_set<N> const& b, int const pos)
 
 // [bitset.members]/34
 template<int N>
-auto count(int_set<N> const& b) noexcept
+auto size_(int_set<N> const& b) noexcept
 {
         // arrange
         auto expected = 0;
@@ -304,9 +304,23 @@ auto count(int_set<N> const& b) noexcept
         return value == expected;
 }
 
+// [bitset.members]/35
+template<int N>
+auto max_size(int_set<N> const& b) noexcept
+{
+        // arrange
+        auto const expected = N;
+
+        // act
+        auto const value = b.max_size();
+
+        // assert
+        return value == expected;
+}
+
 // [bitset.members]/36
 template<int N>
-auto op_equal_to(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+auto equal_to(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         // arrange
         auto expected = true;
@@ -323,7 +337,7 @@ auto op_equal_to(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 
 // [bitset.members]/37
 template<int N>
-auto op_not_equal_to(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+auto not_equal_to(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         // arrange
         auto const expected = !(lhs == rhs);
@@ -336,7 +350,7 @@ auto op_not_equal_to(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 }
 
 template<int N>
-auto op_less(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+auto less(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         // arrange
         auto expected = false;
@@ -353,7 +367,7 @@ auto op_less(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 }
 
 template<int N>
-auto op_subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+auto subset_of_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         // arrange
         auto expected = true;
@@ -369,14 +383,10 @@ auto op_subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 }
 
 template<int N>
-auto op_proper_subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+auto proper_subset_of_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         // arrange
-        auto expected = false;
-        for (auto i = 0; i < N; ++i) {
-                if (!lhs.test(i) && rhs.test(i)) { expected = true; break; }
-        }
-        expected &= subset_of(lhs, rhs);
+        auto const expected = subset_of(lhs, rhs) && !subset_of(rhs, lhs);
 
         // act
         auto const value = proper_subset_of(lhs, rhs);
@@ -385,9 +395,31 @@ auto op_proper_subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
         return value == expected;
 }
 
+// [bitset.members]/39
+template<int N>
+auto test(int const pos) noexcept
+{
+        // arrange
+        auto b = int_set<N>{};
+
+        // act
+        b.insert(pos);
+
+        // assert
+        auto check = true;
+        for (auto i = 0; i < N; ++i) {
+                if (i == pos) {
+                        check &= b.test(i);
+                } else {
+                        check &= !b.test(i);
+                }
+        }
+        return check;
+}
+
 // [bitset.members]/40
 template<int N>
-auto all(int_set<N> const& b) noexcept
+auto full(int_set<N> const& b) noexcept
 {
         // arrange
         auto const expected = b.size() == b.max_size();
@@ -401,7 +433,7 @@ auto all(int_set<N> const& b) noexcept
 
 // [bitset.members]/41
 template<int N>
-auto any(int_set<N> const& b) noexcept
+auto not_empty(int_set<N> const& b) noexcept
 {
         // arrange
         auto const expected = b.size() != 0;
@@ -415,7 +447,7 @@ auto any(int_set<N> const& b) noexcept
 
 // [bitset.members]/42
 template<int N>
-auto none(int_set<N> const& b) noexcept
+auto empty_(int_set<N> const& b) noexcept
 {
         // arrange
         auto const expected = b.size() == 0;
@@ -429,7 +461,7 @@ auto none(int_set<N> const& b) noexcept
 
 // [bitset.members]/43
 template<int N>
-auto op_shift_left(int_set<N> const& b, int n)
+auto shift_left(int_set<N> const& b, int n)
 {
         // arrange
         auto expected = b;
@@ -444,7 +476,7 @@ auto op_shift_left(int_set<N> const& b, int n)
 
 // [bitset.members]/44
 template<int N>
-auto op_shift_right(int_set<N> const& b, int n)
+auto shift_right(int_set<N> const& b, int n)
 {
         // arrange
         auto expected = b;
@@ -461,7 +493,7 @@ auto op_shift_right(int_set<N> const& b, int n)
 
 // [bitset.operators]/1
 template<int N>
-constexpr auto op_and(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+constexpr auto bitand_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         // arrange
         auto expected = lhs;
@@ -476,7 +508,7 @@ constexpr auto op_and(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 
 // [bitset.operators]/2
 template<int N>
-constexpr auto op_or(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+constexpr auto bitor_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         // arrange
         auto expected = lhs;
@@ -491,7 +523,7 @@ constexpr auto op_or(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 
 // [bitset.operators]/3
 template<int N>
-constexpr auto op_xor(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+constexpr auto xor_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         // arrange
         auto expected = lhs;
@@ -505,7 +537,7 @@ constexpr auto op_xor(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 }
 
 template<int N>
-constexpr auto op_minus(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+constexpr auto minus(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         // arrange
         auto expected = lhs;
