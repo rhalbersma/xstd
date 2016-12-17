@@ -1,8 +1,7 @@
 #pragma once
-#include <xstd/bit/mask.hpp>    // all
-#include <xstd/limits.hpp>      // digits
-#include <cassert>              // assert
-#include <cstdint>              // uint64_t
+#include <cassert>      // assert
+#include <cstdint>      // uint64_t
+#include <limits>       // digits
 
 namespace xstd {
 namespace bit {
@@ -124,15 +123,9 @@ constexpr auto clznz(T x)
 }
 
 template<class T>
-constexpr auto ctz(T x) noexcept
+constexpr auto popcount(T x) noexcept
 {
-        return x ? ctznz(x) : digits<T>;
-}
-
-template<class T>
-constexpr auto clz(T x) noexcept
-{
-        return x ? clznz(x) : digits<T>;
+        return detail::popcount{}(x);
 }
 
 template<class T>
@@ -146,7 +139,19 @@ template<class T>
 constexpr auto bsrnz(T x)
 {
         assert(x != 0);
-        return digits<T> - 1 - clznz(x);
+        return std::numeric_limits<T>::digits - 1 - clznz(x);
+}
+
+template<class T>
+constexpr auto ctz(T x) noexcept
+{
+        return x ? ctznz(x) : std::numeric_limits<T>::digits;
+}
+
+template<class T>
+constexpr auto clz(T x) noexcept
+{
+        return x ? clznz(x) : std::numeric_limits<T>::digits;
 }
 
 template<class T>
@@ -158,15 +163,8 @@ constexpr auto bsf(T x)
 template<class T>
 constexpr auto bsr(T x)
 {
-        return digits<T> - 1 - clz(x);
+        return std::numeric_limits<T>::digits - 1 - clz(x);
 }
-
-template<class T>
-constexpr auto popcount(T x) noexcept
-{
-        return detail::popcount{}(x);
-}
-
 }       // namespace builtin
 }       // namespace bit
 }       // namespace xstd

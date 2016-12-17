@@ -1,7 +1,7 @@
 #pragma once
-#include <xstd/limits.hpp>      // digits, digits_ratio
-#include <cassert>              // assert
-#include <cstdint>              // uint8_t
+#include <cassert>      // assert
+#include <cstdint>      // uint8_t
+#include <limits>       // digits
 
 namespace xstd {
 namespace bit {
@@ -82,7 +82,7 @@ public:
                                 return n;
                         }
                 }
-                assert(n == digits<U>);
+                assert(n == std::numeric_limits<U>::digits);
                 return n;
         }
 
@@ -97,7 +97,7 @@ public:
                                 return n;
                         }
                 }
-                assert(n == digits<U>);
+                assert(n == std::numeric_limits<U>::digits);
                 return n;
         }
 
@@ -108,16 +108,19 @@ public:
                 for (auto i = 0; i < digits_ratio<U, T>; ++i) {
                         n += popcount_[block_mask(x, i)];
                 }
-                assert(n <= digits<U>);
+                assert(n <= std::numeric_limits<U>::digits);
                 return n;
         }
 
 private:
+        template<class Numerator, class Denominator>
+        static constexpr auto digits_ratio = std::numeric_limits<Numerator>::digits / std::numeric_limits<Denominator>::digits;
+
         template<class U>
         static constexpr auto block_mask(U x, int i)
         {
                 assert(i < (digits_ratio<U, T>));
-                return static_cast<T>(x >> (i * digits<T>));
+                return static_cast<T>(x >> (i * std::numeric_limits<T>::digits));
         }
 };
 
@@ -128,45 +131,57 @@ template<class T> constexpr int table<T>::popcount_[];
 using detail = table<>;
 
 template<class T>
-constexpr auto ctz(T x) noexcept
+constexpr auto ctznz(T x) noexcept
 {
         return detail::ctz(x);
 }
 
 template<class T>
-constexpr auto clz(T x) noexcept
-{
-        return detail::clz(x);
-}
-
-template<class T>
-constexpr auto ctznz(T x) noexcept
-{
-        return ctz(x);
-}
-
-template<class T>
 constexpr auto clznz(T x) noexcept
 {
-        return clz(x);
-}
-
-template<class T>
-constexpr auto bsfnz(T x) noexcept
-{
-        return ctznz(x);
-}
-
-template<class T>
-constexpr auto bsrnz(T x) noexcept
-{
-        return digits<T> - 1 - clznz(x);
+        return detail::clz(x);
 }
 
 template<class T>
 constexpr auto popcount(T x) noexcept
 {
         return detail::popcount(x);
+}
+
+template<class T>
+constexpr auto bsfnz(T x)
+{
+        return ctznz(x);
+}
+
+template<class T>
+constexpr auto bsrnz(T x)
+{
+        return std::numeric_limits<T>::digits - 1 - clznz(x);
+}
+
+template<class T>
+constexpr auto ctz(T x) noexcept
+{
+        return ctznz(x);
+}
+
+template<class T>
+constexpr auto clz(T x) noexcept
+{
+        return clznz(x);
+}
+
+template<class T>
+constexpr auto bsf(T x)
+{
+        return bsfnz(x);
+}
+
+template<class T>
+constexpr auto bsr(T x)
+{
+        return bsrnz(x);
 }
 
 }       // namespace lookup

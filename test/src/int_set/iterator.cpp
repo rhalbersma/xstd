@@ -10,7 +10,6 @@
 #include <initializer_list>                             // initializer_list
 #include <iterator>                                     // begin, end, cbegin, cend, distance
 
-
 namespace xstd {
 
 BOOST_AUTO_TEST_SUITE(BitIterator)

@@ -1,19 +1,10 @@
 #pragma once
 #include <cassert>      // assert
 #include <cstddef>      // size_t
-#include <limits>       // digits, max
+#include <limits>       // max
 #include <type_traits>  // bool_constant
 
 namespace xstd {
-
-template<class T>
-constexpr auto digits = std::numeric_limits<T>::digits;
-
-template<>
-constexpr auto digits<__uint128_t> = 128;
-
-template<class Numerator, class Denominator>
-constexpr auto digits_ratio = digits<Numerator> / digits<Denominator>;
 
 template<class T, int N>
 constexpr auto is_representable_v = N <= (std::numeric_limits<T>::max() + 1);

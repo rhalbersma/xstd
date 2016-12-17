@@ -41,6 +41,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto -fuse-ld=gold")
 
+#define __GLIBCXX_BITSIZE_INT_N_0 128
+#define __GLIBCXX_TYPE_INT_N_0 __int128
+
 ###############################################################
 # DEPENDENCIES
 ###############################################################
@@ -58,6 +61,10 @@ find_package(Boost 1.60.0 REQUIRED COMPONENTS chrono system timer unit_test_fram
 include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 add_definitions(-D BOOST_ALL_DYN_LINK)
 add_definitions(-D BOOST_TEST_MAIN)
+
+# 128-bit integers for Clang + libstdc++
+add_definitions(-D __GLIBCXX_TYPE_INT_N_0=__int128)
+add_definitions(-D __GLIBCXX_BITSIZE_INT_N_0=128)
 
 ###############################################################
 # TESTING

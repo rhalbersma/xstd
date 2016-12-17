@@ -1,6 +1,6 @@
 #pragma once
-#include <xstd/bit/mask.hpp>                            // all, one, none
-#include <xstd/bit/primitive.hpp>                       // ctznz, popcount
+#include <xstd/int_set/bit.hpp>                         // bsfnz, bsrnz, clznz, ctznz, popcount
+#include <xstd/int_set/mask.hpp>                        // all, one, none
 #include <hash_append/hash_append.h>                    // hash_append
 #include <boost/algorithm/cxx11/all_of.hpp>             // all_of
 #include <boost/algorithm/cxx11/any_of.hpp>             // any_of
@@ -40,7 +40,7 @@ class int_set
                 static_assert(std::is_pod<int_set>{});
         }
 
-        using word_type = unsigned long long;
+        using word_type = __uint128_t;//unsigned long long;
         static_assert(std::is_unsigned<word_type>{});
         static_assert(std::is_integral<word_type>{});
 
@@ -321,7 +321,7 @@ public:
         constexpr auto crbegin() const noexcept { return const_reverse_iterator{rbegin()}; }
         constexpr auto crend()   const noexcept { return const_reverse_iterator{rend()};   }
 
-        bool empty() const noexcept
+        auto empty() const noexcept
         {
                 if constexpr (num_words == 0) {
                         return true;
@@ -334,7 +334,7 @@ public:
                 }
         }
 
-        bool full() const noexcept
+        auto full() const noexcept
         {
                 if constexpr (excess_bits == 0) {
                         if constexpr (num_words == 0) {
@@ -361,7 +361,7 @@ public:
                 }
         }
 
-        size_type size() const noexcept
+        auto size() const noexcept
         {
                 if constexpr (num_words == 0) {
                         return 0;
@@ -374,8 +374,8 @@ public:
                 }
         }
 
-        static constexpr size_type max_size() noexcept { return N;  }
-        static constexpr size_type capacity() noexcept { return num_bits; }
+        static constexpr auto max_size() noexcept { return N;  }
+        static constexpr auto capacity() noexcept { return num_bits; }
 
         constexpr auto& insert(value_type const n) // Throws: Nothing.
         {
@@ -428,7 +428,7 @@ public:
         }
 
         // TODO: libstdc++ 6.2 does not provide is_nothrow_swappable
-        void swap(int_set& other) noexcept // (num_words == 0 || is_nothrow_swappable<value_type>{})
+        auto swap(int_set& other) noexcept // (num_words == 0 || is_nothrow_swappable<value_type>{})
         {
                 if constexpr (num_words == 1) {
                         using std::swap;
@@ -631,7 +631,7 @@ public:
         }
 
 private:
-        void fill(word_type const& u) noexcept
+        auto fill(word_type const& u) noexcept
         {
                 if constexpr (num_words == 1) {
                         m_words[0] = u;
@@ -643,7 +643,7 @@ private:
         static constexpr auto which(int const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
-                if constexpr (N <= word_size) {
+                if constexpr (num_words == 1) {
                         return 0;
                 } else {
                         return n / word_size;
@@ -653,7 +653,7 @@ private:
         static constexpr auto where(int const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
-                if constexpr (N <= word_size) {
+                if constexpr (num_words == 1) {
                         return n;
                 } else {
                         return n % word_size;
