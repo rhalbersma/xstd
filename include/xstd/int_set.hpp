@@ -332,6 +332,11 @@ public:
         constexpr auto crbegin() const noexcept { return const_reverse_iterator{rbegin()}; }
         constexpr auto crend()   const noexcept { return const_reverse_iterator{rend()};   }
 
+        auto data() const noexcept
+        {
+                return &m_words[0];
+        }
+
         auto empty() const noexcept
         {
                 if constexpr (num_words == 0) {
