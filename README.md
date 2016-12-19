@@ -1,11 +1,12 @@
 Extensions to the C++ Standard Library
 ======================================
 
-Suffixes for `size_t` (and `ptrdiff_t`) literals
+User-Defined Literals for `size_t`
 
-`constexpr`-ified `std::array`
+Rebooting the `std::bitset` franchise
 
-A reboot of the `std::bitset` franchise 
+Converting enums to their underlying types
+
 
 License
 -------
