@@ -41,9 +41,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++ -lc++abi")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -flto -fuse-ld=gold")
 
-#define __GLIBCXX_BITSIZE_INT_N_0 128
-#define __GLIBCXX_TYPE_INT_N_0 __int128
-
 ###############################################################
 # DEPENDENCIES
 ###############################################################
