@@ -215,24 +215,24 @@ auto less() noexcept
 }
 
 template<int N>
-auto subset_of_() noexcept
+auto is_subset_of_() noexcept
 {
         auto check = true;
         for (auto i = 0; i < N; ++i) {
                 for (auto j = 0; j < N; ++j) {
-                        check &= subset_of_(int_set<N>{i}, int_set<N>{j});
+                        check &= is_subset_of_(int_set<N>{i}, int_set<N>{j});
                 }
         }
         return check;
 }
 
 template<int N>
-auto proper_subset_of_() noexcept
+auto is_proper_subset_of_() noexcept
 {
         auto check = true;
         for (auto i = 0; i < N; ++i) {
                 for (auto j = 0; j < N; ++j) {
-                        check &= proper_subset_of_(int_set<N>{i}, int_set<N>{j});
+                        check &= is_proper_subset_of_(int_set<N>{i}, int_set<N>{j});
                 }
         }
         return check;

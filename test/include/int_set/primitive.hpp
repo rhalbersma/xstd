@@ -367,7 +367,7 @@ auto less(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 }
 
 template<int N>
-auto subset_of_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+auto is_subset_of_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         // arrange
         auto expected = true;
@@ -376,20 +376,20 @@ auto subset_of_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
         }
 
         // act
-        auto const value = subset_of(lhs, rhs);
+        auto const value = is_subset_of(lhs, rhs);
 
         // assert
         return value == expected;
 }
 
 template<int N>
-auto proper_subset_of_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+auto is_proper_subset_of_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         // arrange
-        auto const expected = subset_of(lhs, rhs) && !subset_of(rhs, lhs);
+        auto const expected = is_subset_of(lhs, rhs) && !is_subset_of(rhs, lhs);
 
         // act
-        auto const value = proper_subset_of(lhs, rhs);
+        auto const value = is_proper_subset_of(lhs, rhs);
 
         // assert
         return value == expected;

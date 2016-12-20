@@ -17,10 +17,10 @@ namespace xstd {
 template<int>
 class int_set;
 
-template<int N> auto operator==(int_set<N> const&, int_set<N> const&) noexcept;
-template<int N> auto operator< (int_set<N> const&, int_set<N> const&) noexcept;
-template<int N> auto intersects(int_set<N> const&, int_set<N> const&) noexcept;
-template<int N> auto subset_of (int_set<N> const&, int_set<N> const&) noexcept;
+template<int N> auto operator==  (int_set<N> const&, int_set<N> const&) noexcept;
+template<int N> auto operator<   (int_set<N> const&, int_set<N> const&) noexcept;
+template<int N> auto intersects  (int_set<N> const&, int_set<N> const&) noexcept;
+template<int N> auto is_subset_of(int_set<N> const&, int_set<N> const&) noexcept;
 
 template<int N>
 class int_set
@@ -694,10 +694,10 @@ private:
                 }
         }
 
-        friend auto operator== <>(int_set const&, int_set const&) noexcept;
-        friend auto operator<  <>(int_set const&, int_set const&) noexcept;
-        friend auto intersects <>(int_set const&, int_set const&) noexcept;
-        friend auto subset_of  <>(int_set const&, int_set const&) noexcept;
+        friend auto operator==    <>(int_set const&, int_set const&) noexcept;
+        friend auto operator<     <>(int_set const&, int_set const&) noexcept;
+        friend auto intersects    <>(int_set const&, int_set const&) noexcept;
+        friend auto is_subset_of  <>(int_set const&, int_set const&) noexcept;
 };
 
 template<int N>
@@ -869,7 +869,7 @@ auto disjoint(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 }
 
 template<int N>
-auto subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+auto is_subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         static constexpr auto num_words = int_set<N>::num_words;
         if constexpr (num_words == 0) {
@@ -885,21 +885,21 @@ auto subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 }
 
 template<int N>
-auto superset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+auto is_superset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        return subset_of(rhs, lhs);
+        return is_subset_of(rhs, lhs);
 }
 
 template<int N>
-auto proper_subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+auto is_proper_subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        return subset_of(lhs, rhs) && !subset_of(rhs, lhs);
+        return is_subset_of(lhs, rhs) && !is_subset_of(rhs, lhs);
 }
 
 template<int N>
-auto proper_superset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+auto is_proper_superset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        return superset_of(lhs, rhs) && !superset_of(rhs, lhs);
+        return is_superset_of(lhs, rhs) && !is_superset_of(rhs, lhs);
 }
 
 template<int N>

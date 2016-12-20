@@ -44,8 +44,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
         BOOST_CHECK(equal_to<N>());
         BOOST_CHECK(not_equal_to<N>());
         BOOST_CHECK(less<N>());
-        BOOST_CHECK(subset_of_<N>());
-        BOOST_CHECK(proper_subset_of_<N>());
+        BOOST_CHECK(is_subset_of_<N>());
+        BOOST_CHECK(is_proper_subset_of_<N>());
         BOOST_CHECK(test<N>());
         BOOST_CHECK(full<N>());
         BOOST_CHECK(not_empty<N>());
