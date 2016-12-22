@@ -5,7 +5,7 @@ Extensions to the C++ Standard Library
 
 `<cstddef>`: User-Defined Literals for `size_t` (proposed as [N4254](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4254.html) and [P0330R0](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0330r0.pdf)).
 
-`<cstdlib>`: Floored and Euclidean versions of `std::div` and equality operators on `std::div_t`.
+`<cstdlib>`: Floored and Euclidean versions of `std::div()` and equality operators on `std::div_t`, a `constexpr std::abs()` and `signum()`
 
 `<type_traits>`: Conversions of scoped enums to their underlying types.
 
