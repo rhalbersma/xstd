@@ -1,8 +1,7 @@
 #pragma once
-#include <xstd/int_set/bit.hpp>         // bsfnz, bsrnz, clznz, ctznz, popcount
-#include <xstd/int_set/mask.hpp>        // all, one, none
+#include <xstd/builtin.hpp>             // bsfnz, bsrnz, clznz, ctznz, popcount
 #include <hash_append/hash_append.h>    // hash_append
-#include <algorithm>                    // all_of, copy_backward, copy_n, equal, fill_n, lexicographical_compare, none_of, swap_ranges
+#include <algorithm>                    // all_of, copy_backward, copy_n, equal, fill_n, lexicographical_compare, swap_ranges
 #include <cassert>                      // assert
 #include <functional>                   // less
 #include <initializer_list>             // initializer_list
@@ -169,7 +168,7 @@ public:
                                 return N;
                         } else if constexpr (num_words == 1) {
                                 if (auto const word = *m_word) {
-                                        return bit::ctznz(word);
+                                        return builtin::ctznz(word);
                                 } else {
                                         ++m_word;
                                         return N;
@@ -177,8 +176,8 @@ public:
                         } else if constexpr (num_words >= 2) {
                                 for (auto i = 0; i < num_words; ++i) {
                                         if (auto const word = *m_word) {
-                                                assert(i * word_size + bit::bsfnz(word) < N);
-                                                return i * word_size + bit::bsfnz(word);
+                                                assert(i * word_size + builtin::bsfnz(word) < N);
+                                                return i * word_size + builtin::bsfnz(word);
                                         }
                                         ++m_word;
                                 }
@@ -197,7 +196,7 @@ public:
                                         return;
                                 }
                                 if (auto const word = *m_word >> m_index) {
-                                        m_index += bit::ctznz(word);
+                                        m_index += builtin::ctznz(word);
                                         return;
                                 } else {
                                         ++m_word;
@@ -215,7 +214,7 @@ public:
                                         ++m_word;
                                 }
                                 if (auto const word = *m_word >> index) {
-                                        m_index += bit::ctznz(word);
+                                        m_index += builtin::ctznz(word);
                                         assert(m_index < N);
                                         return;
                                 }
@@ -223,7 +222,7 @@ public:
 
                                 for (auto i = which(m_index) + 1; i < num_words; ++i) {
                                         if (auto const word = *m_word) {
-                                                m_index = i * word_size + bit::bsfnz(word);
+                                                m_index = i * word_size + builtin::bsfnz(word);
                                                 assert(m_index < N);
                                                 return;
                                         }
@@ -247,7 +246,7 @@ public:
                                         --m_word;
                                 }
                                 if (auto const word = *m_word << (word_size - 1 - m_index)) {
-                                        m_index -= bit::clznz(word);
+                                        m_index -= builtin::clznz(word);
                                 } else {
                                         m_index = 0;
                                 }
@@ -262,7 +261,7 @@ public:
                                         --m_word;
                                 }
                                 if (auto const word = *m_word << (word_size - 1 - index)) {
-                                        m_index -= bit::clznz(word);
+                                        m_index -= builtin::clznz(word);
                                         assert(m_index < N);
                                         return;
                                 }
@@ -270,7 +269,7 @@ public:
 
                                 for (auto i = which(m_index) - 1; i >= 0; --i) {
                                         if (auto const word = *m_word) {
-                                                m_index = i * word_size + bit::bsrnz(word);
+                                                m_index = i * word_size + builtin::bsrnz(word);
                                                 assert(m_index < N);
                                                 return;
                                         }
@@ -319,8 +318,8 @@ public:
 
         constexpr auto begin()         noexcept { using std::begin; return       iterator{begin(m_words)}; }
         constexpr auto begin()   const noexcept { using std::begin; return const_iterator{begin(m_words)}; }
-        constexpr auto end()           noexcept { using std::end; return       iterator{end(m_words), N}; }
-        constexpr auto end()     const noexcept { using std::end; return const_iterator{end(m_words), N}; }
+        constexpr auto end()           noexcept { using std::end;   return       iterator{end(m_words), N}; }
+        constexpr auto end()     const noexcept { using std::end;   return const_iterator{end(m_words), N}; }
 
         constexpr auto rbegin()        noexcept { return       reverse_iterator{end()}; }
         constexpr auto rbegin()  const noexcept { return const_reverse_iterator{end()}; }
@@ -342,11 +341,11 @@ public:
                 if constexpr (num_words == 0) {
                         return true;
                 } else if constexpr (num_words == 1) {
-                        return m_words[0] == bit::mask::none<word_type>;
+                        return m_words[0] == mask_none;
                 } else if constexpr (num_words >= 2) {
                         using std::cbegin; using std::cend;
-                        return std::none_of(cbegin(m_words), cend(m_words), [](auto const word){
-                                return word != bit::mask::none<word_type>;
+                        return std::all_of(cbegin(m_words), cend(m_words), [](auto const word){
+                                return word == mask_none;
                         });
                 }
         }
@@ -357,23 +356,23 @@ public:
                         if constexpr (num_words == 0) {
                                 return true;
                         } else if constexpr (num_words == 1) {
-                                return m_words[0] == bit::mask::all<word_type>;
+                                return m_words[0] == mask_all;
                         } else if constexpr (num_words >= 2) {
                                 using std::cbegin; using std::cend;
                                 return std::all_of(cbegin(m_words), cend(m_words), [](auto const word){
-                                        return word == bit::mask::all<word_type>;
+                                        return word == mask_all;
                                 });
                         }
                 } else {
                         static_assert(num_words != 0);
                         if constexpr (num_words == 1) {
-                                return m_words[0] == bit::mask::all<word_type> >> excess_bits;
+                                return m_words[0] == mask_all >> excess_bits;
                         } else if constexpr (num_words >= 2) {
                                 using std::cbegin; using std::cend;
                                 return
                                         std::all_of(cbegin(m_words), std::prev(cend(m_words)), [](auto const word){
-                                                return word == bit::mask::all<word_type>;
-                                        }) && (m_words[num_words - 1] == bit::mask::all<word_type> >> excess_bits);
+                                                return word == mask_all;
+                                        }) && (m_words[num_words - 1] == mask_all >> excess_bits);
                                 ;
                         }
                 }
@@ -384,11 +383,11 @@ public:
                 if constexpr (num_words == 0) {
                         return 0;
                 } else if constexpr (num_words == 1) {
-                        return bit::popcount(m_words[0]);
+                        return builtin::popcount(m_words[0]);
                 } else if (num_words >= 2) {
                         using std::cbegin; using std::cend;
                         return std::accumulate(cbegin(m_words), cend(m_words), 0, [](auto const sum, auto const word){
-                                return sum + bit::popcount(word);
+                                return sum + builtin::popcount(word);
                         });
                 }
         }
@@ -419,7 +418,7 @@ public:
 
         auto& fill() noexcept
         {
-                /*m_words.*/fill(bit::mask::all<word_type>);
+                /*m_words.*/fill(mask_all);
                 sanitize();
                 assert(full());
                 return *this;
@@ -460,7 +459,7 @@ public:
 
         auto clear() noexcept
         {
-                /*m_words.*/fill(bit::mask::none<word_type>);
+                fill(mask_none);
                 assert(empty());
         }
 
@@ -564,7 +563,7 @@ public:
                                 }
                                 m_words[n_block] = m_words[0] << L_shift;
                         }
-                        std::fill_n(begin(m_words), n_block, bit::mask::none<word_type>);
+                        std::fill_n(begin(m_words), n_block, mask_none);
                 }
                 sanitize();
                 return *this;
@@ -596,7 +595,7 @@ public:
                                 m_words[num_words - 1 - n_block] = m_words[num_words - 1] >> R_shift;
                         }
                         using std::rbegin;
-                        std::fill_n(rbegin(m_words), n_block, bit::mask::none<word_type>);
+                        std::fill_n(rbegin(m_words), n_block, mask_none);
                 }
                 return *this;
         }
@@ -606,14 +605,14 @@ public:
         {
                 if constexpr (num_words == 1) {
                         for (auto word = m_words[0]; word;) {
-                                auto const first = bit::bsfnz(word);
+                                auto const first = builtin::bsfnz(word);
                                 f(first);
                                 word ^= word_mask(first);
                         }
                 } else if constexpr (num_words >= 2) {
                         for (auto i = 0, offset = 0; i < num_words; ++i, offset += word_size) {
                                 for (auto word = m_words[i]; word;) {
-                                        auto const first = bit::bsfnz(word);
+                                        auto const first = builtin::bsfnz(word);
                                         f(offset + first);
                                         word ^= word_mask(first);
                                 }
@@ -627,14 +626,14 @@ public:
         {
                 if constexpr (num_words == 1) {
                         for (auto word = m_words[0]; word;) {
-                                auto const last = bit::bsrnz(word);
+                                auto const last = builtin::bsrnz(word);
                                 f(last);
                                 word ^= word_mask(last);
                         }
                 } else if constexpr (num_words >= 2) {
                         for (auto i = num_words - 1, offset = (size() - 1) * word_size; i >= 0; --i, offset -= word_size) {
                                 for (auto word = m_words[i]; word;) {
-                                        auto const last = bit::bsrnz(word);
+                                        auto const last = builtin::bsrnz(word);
                                         f(offset + last);
                                         word ^= word_mask(last);
                                 }
@@ -651,6 +650,10 @@ public:
         }
 
 private:
+        static constexpr auto mask_none =  static_cast<word_type>(0);
+        static constexpr auto mask_one  =  static_cast<word_type>(1);
+        static constexpr auto mask_all  = ~static_cast<word_type>(0);
+
         auto fill(word_type const& u) noexcept
         {
                 if constexpr (num_words == 1) {
@@ -684,13 +687,13 @@ private:
         static constexpr auto word_mask(value_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < word_size);
-                return bit::mask::one<word_type> << n;
+                return mask_one << n;
         }
 
         constexpr auto sanitize() noexcept
         {
                 if constexpr (excess_bits != 0) {
-                        m_words[num_words - 1] &= bit::mask::all<word_type> >> excess_bits;
+                        m_words[num_words - 1] &= mask_all >> excess_bits;
                 }
         }
 

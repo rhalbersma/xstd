@@ -4,9 +4,11 @@
 #include <limits>       // digits
 
 namespace xstd {
-namespace bit {
 namespace builtin {
 namespace detail {
+
+// GCC / Clang have support for extended 128-bit integers.
+// Uset get<0> and get<1> to extract the lower and upper 64-bit integers.
 
 template<int N>
 constexpr auto get(__uint128_t x) noexcept
@@ -166,5 +168,4 @@ constexpr auto bsr(T x)
         return std::numeric_limits<T>::digits - 1 - clz(x);
 }
 }       // namespace builtin
-}       // namespace bit
 }       // namespace xstd

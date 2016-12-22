@@ -70,7 +70,7 @@ Experience: I have implemented floored and Euclidean versions of `std::div`. The
 Motivation: Since other `div` versions are in use in other programming languages, this is a never ending source of confusion and ensuing questions on StackOverflow (slight exaggeration, the differences only occur when using negative numbers). 
 
 5 A set-associative cache quasi-container
-=========================================
+-----------------------------------------
 
         template<class Key, class T, size_t N, class Hash, class Replace>
         class set_associative_cache; 

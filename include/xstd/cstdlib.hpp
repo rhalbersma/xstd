@@ -58,14 +58,9 @@ constexpr auto euclidean_div(int D, int d) // Throws: Nothing.
         return std::div_t{qE, rE};
 }
 
-constexpr auto tied(std::div_t const& d) noexcept
-{
-        return std::tie(d.quot, d.rem);
-}
-
 constexpr auto operator==(std::div_t const& lhs, std::div_t const& rhs) noexcept
 {
-        return tied(lhs) == tied(rhs);
+        return std::tie(lhs.quot, lhs.rem) == std::tie(rhs.quot, rhs.rem);
 }
 
 constexpr auto operator!=(std::div_t const& lhs, std::div_t const& rhs) noexcept

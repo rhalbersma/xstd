@@ -1,12 +1,17 @@
 Extensions to the C++ Standard Library
 ======================================
 
-User-Defined Literals for `size_t`
+**Additions to existing headers**
 
-Rebooting the `std::bitset` franchise
+`<cstddef>`: User-Defined Literals for `size_t` (proposed as [N4254](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4254.html) and [P0330R0](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0330r0.pdf)).
 
-Converting enums to their underlying types
+`<cstdlib>`: Floored and Euclidean versions of `std::div` and equality operators on `std::div_t`.
 
+`<type_traits>`: Conversions of scoped enums to their underlying types.
+
+**New headers**
+
+`<int_set>`: Rebooting the `std::bitset` franchise.
 
 License
 -------
