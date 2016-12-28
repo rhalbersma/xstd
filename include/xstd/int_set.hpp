@@ -1,8 +1,8 @@
 #pragma once
-#include <xstd/builtin.hpp>             // bsfnz, bsrnz, clznz, ctznz, popcount
 #include <hash_append/hash_append.h>    // hash_append
 #include <algorithm>                    // all_of, copy_backward, copy_n, equal, fill_n, lexicographical_compare, swap_ranges
 #include <cassert>                      // assert
+#include <cstdint>                      // uint64_t
 #include <functional>                   // less
 #include <initializer_list>             // initializer_list
 #include <iterator>                     // begin, bidirectional_iterator_tag, cbegin, cend, crbegin, crend, end, next, prev, rbegin, reverse_iterator
@@ -12,6 +12,170 @@
 #include <type_traits>                  // is_integral, is_pod, is_unsigned
 
 namespace xstd {
+namespace builtin {
+namespace detail {
+
+// GCC / Clang have support for extended 128-bit integers.
+// Uset get<0> and get<1> to extract the lower and upper 64-bit integers.
+
+template<int N>
+constexpr auto get(__uint128_t x) noexcept
+{
+        static_assert(0 <= N); static_assert(N < 2);
+        return static_cast<uint64_t>(x >> (N * 64));
+}
+
+// GCC / Clang have built-in functions for Count Trailing Zeros
+// for unsigned, unsigned long and unsigned long long.
+// For zero input, the result is undefined.
+
+struct ctznz
+{
+        constexpr auto operator()(unsigned x) const
+        {
+                return __builtin_ctz(x);
+        }
+
+        constexpr auto operator()(unsigned long x) const
+        {
+                return __builtin_ctzl(x);
+        }
+
+        constexpr auto operator()(unsigned long long x) const
+        {
+                return __builtin_ctzll(x);
+        }
+
+        constexpr auto operator()(__uint128_t x) const
+        {
+                if (auto const lower = get<0>(x)) {
+                        return __builtin_ctzll(lower);
+                } else {
+                        return __builtin_ctzll(get<1>(x)) + 64;
+                }
+        }
+};
+
+// GCC / Clang have built-in functions for Count Leading Zeros
+// for unsigned, unsigned long and unsigned long long.
+// For zero input, the result is undefined
+
+struct clznz
+{
+        constexpr auto operator()(unsigned x) const
+        {
+                return __builtin_clz(x);
+        }
+
+        constexpr auto operator()(unsigned long x) const
+        {
+                return __builtin_clzl(x);
+        }
+
+        constexpr auto operator()(unsigned long long x) const
+        {
+                return __builtin_clzll(x);
+        }
+
+        constexpr auto operator()(__uint128_t x) const
+        {
+                if (auto const upper = get<1>(x)) {
+                        return __builtin_clzll(upper);
+                } else {
+                        return __builtin_clzll(get<0>(x)) + 64;
+                }
+        }
+};
+
+// GCC / Clang have built-in functions for Population Count
+// for unsigned, unsigned long and unsigned long long.
+
+struct popcount
+{
+        constexpr auto operator()(unsigned x) const noexcept
+        {
+                return __builtin_popcount(x);
+        }
+
+        constexpr auto operator()(unsigned long x) const noexcept
+        {
+                return __builtin_popcountl(x);
+        }
+
+        constexpr auto operator()(unsigned long long x) const noexcept
+        {
+                return __builtin_popcountll(x);
+        }
+
+        constexpr auto operator()(__uint128_t x) const noexcept
+        {
+                return
+                        __builtin_popcountll(get<0>(x)) +
+                        __builtin_popcountll(get<1>(x))
+                ;
+        }
+};
+
+}       // namespace detail
+
+template<class T>
+constexpr auto ctznz(T x)
+{
+        assert(x != 0);
+        return detail::ctznz{}(x);
+}
+
+template<class T>
+constexpr auto clznz(T x)
+{
+        assert(x != 0);
+        return detail::clznz{}(x);
+}
+
+template<class T>
+constexpr auto popcount(T x) noexcept
+{
+        return detail::popcount{}(x);
+}
+
+template<class T>
+constexpr auto bsfnz(T x)
+{
+        assert(x != 0);
+        return ctznz(x);
+}
+
+template<class T>
+constexpr auto bsrnz(T x)
+{
+        assert(x != 0);
+        return std::numeric_limits<T>::digits - 1 - clznz(x);
+}
+
+template<class T>
+constexpr auto ctz(T x) noexcept
+{
+        return x ? ctznz(x) : std::numeric_limits<T>::digits;
+}
+
+template<class T>
+constexpr auto clz(T x) noexcept
+{
+        return x ? clznz(x) : std::numeric_limits<T>::digits;
+}
+
+template<class T>
+constexpr auto bsf(T x)
+{
+        return ctz(x);
+}
+
+template<class T>
+constexpr auto bsr(T x)
+{
+        return std::numeric_limits<T>::digits - 1 - clz(x);
+}
+}       // namespace builtin
 
 template<int>
 class int_set;
@@ -378,17 +542,19 @@ public:
                 }
         }
 
-        auto size() const noexcept
+        constexpr auto size() const noexcept
         {
                 if constexpr (num_words == 0) {
                         return 0;
                 } else if constexpr (num_words == 1) {
                         return builtin::popcount(m_words[0]);
                 } else if (num_words >= 2) {
-                        using std::cbegin; using std::cend;
-                        return std::accumulate(cbegin(m_words), cend(m_words), 0, [](auto const sum, auto const word){
-                                return sum + builtin::popcount(word);
-                        });
+                        // std::accumulate is not constexpr as of C++17
+                        auto sum = 0;
+                        for (auto const word : m_words) {
+                                sum += builtin::popcount(word);
+                        }
+                        return sum;
                 }
         }
 
