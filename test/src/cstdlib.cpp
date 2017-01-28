@@ -32,7 +32,7 @@ auto const input = std::vector<std::pair<int, int>>
 BOOST_AUTO_TEST_CASE(StdDiv)
 {
         // arrange
-        auto const truncated_result = std::vector<xstd::div_t>
+        auto const std_result = std::vector<xstd::div_t>
         {
                 {+2, +2}, {-2, +2}, {-2, -2}, {+2, -2},
                 { 0, +1}, { 0, +1}, { 0, -1}, { 0, -1}
@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(StdDiv)
         });
 
         // assert
-        BOOST_CHECK_EQUAL_COLLECTIONS(std_div.cbegin(), std_div.cend(), truncated_result.cbegin(), truncated_result.cend());
+        BOOST_CHECK_EQUAL_COLLECTIONS(std_div.cbegin(), std_div.cend(), std_result.cbegin(), std_result.cend());
 }
 
 BOOST_AUTO_TEST_CASE(TruncatedDiv)
