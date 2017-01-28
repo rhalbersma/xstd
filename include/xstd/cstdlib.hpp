@@ -1,27 +1,28 @@
 #pragma once
 #include <cassert>      // assert
-#include <cstdlib>      // div_t
 #include <tuple>        // tie
 
 namespace xstd {
 
 // a constexpr version of std::abs(int)
-constexpr auto abs(int n) noexcept
+constexpr int abs(int n)
 {
         return n < 0 ? -n : n;
 }
 
 // http://stackoverflow.com/a/4609795/819272
-constexpr auto signum(int n) noexcept
+constexpr int signum(int n) noexcept
 {
         return static_cast<int>(0 < n) - static_cast<int>(n < 0);
 }
+
+struct div_t { int quot, rem; };
 
 // The following is discussed in the C++ Standard [expr.mul]/4 and
 // http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf
 
 // a constexpr version of std::div(int, int)
-constexpr auto truncated_div(int D, int d) // Throws: Nothing.
+constexpr div_t truncated_div(int D, int d) // Throws: Nothing.
 {
         assert(d != 0);
         auto const qT = D / d;
@@ -29,10 +30,10 @@ constexpr auto truncated_div(int D, int d) // Throws: Nothing.
         assert(D == d * qT + rT);
         assert(abs(rT) < abs(d));
         assert(signum(rT) == signum(D) || rT == 0);
-        return std::div_t{qT, rT};
+        return { qT, rT };
 }
 
-constexpr auto floored_div(int D, int d) // Throws: Nothing.
+constexpr div_t floored_div(int D, int d) // Throws: Nothing.
 {
         assert(d != 0);
         auto const divT = truncated_div(D, d);
@@ -42,10 +43,10 @@ constexpr auto floored_div(int D, int d) // Throws: Nothing.
         assert(D == d * qF + rF);
         assert(abs(rF) < abs(d));
         assert(signum(rF) == signum(d));
-        return std::div_t{qF, rF};
+        return { qF, rF };
 }
 
-constexpr auto euclidean_div(int D, int d) // Throws: Nothing.
+constexpr div_t euclidean_div(int D, int d) // Throws: Nothing.
 {
         assert(d != 0);
         auto const divT = truncated_div(D, d);
@@ -55,15 +56,18 @@ constexpr auto euclidean_div(int D, int d) // Throws: Nothing.
         assert(D == d * qE + rE);
         assert(abs(rE) < abs(d));
         assert(signum(rE) != -1);
-        return std::div_t{qE, rE};
+        return { qE, rE };
 }
 
-constexpr auto operator==(std::div_t const& lhs, std::div_t const& rhs) noexcept
+constexpr bool operator==(div_t const& lhs, div_t const& rhs) noexcept
 {
-        return std::tie(lhs.quot, lhs.rem) == std::tie(rhs.quot, rhs.rem);
+        return
+                std::tie(lhs.quot, lhs.rem) ==
+                std::tie(rhs.quot, rhs.rem)
+        ;
 }
 
-constexpr auto operator!=(std::div_t const& lhs, std::div_t const& rhs) noexcept
+constexpr bool operator!=(div_t const& lhs, div_t const& rhs) noexcept
 {
         return !(lhs == rhs);
 }

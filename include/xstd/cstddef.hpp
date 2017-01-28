@@ -12,4 +12,7 @@ constexpr std::size_t operator "" _zu(unsigned long long u)
 
 }       // inline namespace support_literals
 }       // inline namespace literals
+
+using namespace literals::support_literals;
+
 }       // namespace xstd

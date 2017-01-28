@@ -1,13 +1,14 @@
-#include <xstd/cstddef.hpp>     // _zu, size_t
-#include <type_traits>          // is_same
+#include <xstd/cstddef.hpp>             // _zu, size_t
+#include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_SUITE_END
+#include <type_traits>                  // is_same
 
-int main()
+BOOST_AUTO_TEST_SUITE(CStdDef)
+
+BOOST_AUTO_TEST_CASE(UserDefinedLiteralSizeT)
 {
         using namespace xstd::support_literals;
-
         static_assert(std::is_same<decltype(0_zu), std::size_t>{}, "");
-        constexpr std::size_t a = 0_zu;
-        constexpr auto b = 0_zu;
-        static_assert(a == static_cast<std::size_t>(0), "");
-        static_assert(a == b, "");
+        static_assert(0_zu == static_cast<std::size_t>(0), "");
 }
+
+BOOST_AUTO_TEST_SUITE_END()

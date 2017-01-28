@@ -1,7 +1,7 @@
 #pragma once
-#include <hash_append/hash_append.h>    // hash_append
 #include <algorithm>                    // all_of, copy_backward, copy_n, equal, fill_n, lexicographical_compare, swap_ranges
 #include <cassert>                      // assert
+#include <climits>                      // CHAR_BIT
 #include <cstdint>                      // uint64_t
 #include <functional>                   // less
 #include <initializer_list>             // initializer_list
@@ -808,13 +808,6 @@ public:
                 return std::move(f);
         }
 
-        template<class HashAlgorithm>
-        friend auto hash_append(HashAlgorithm& h, int_set const& is)
-        {
-                using xstd::hash_append;
-                hash_append(h, is.m_words);
-        }
-
 private:
         static constexpr auto mask_none =  static_cast<word_type>(0);
         static constexpr auto mask_one  =  static_cast<word_type>(1);
@@ -1071,6 +1064,12 @@ auto is_proper_superset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcep
         return is_superset_of(lhs, rhs) && !is_superset_of(rhs, lhs);
 }
 
+template<class HashAlgorithm, int N>
+auto hash_append(HashAlgorithm& h, int_set<N> const& is)
+{
+        h(is.data(), is.capacity() /  CHAR_BIT);
+}
+
 template<int N>
 constexpr auto begin(int_set<N>& is)
         -> decltype(is.begin())
@@ -1167,6 +1166,13 @@ constexpr auto empty(int_set<N> const& is)
         -> decltype(is.empty())
 {
         return is.empty();
+}
+
+template<int N>
+constexpr auto data(int_set<N> const& is)
+        -> decltype(is.data())
+{
+        return is.data();
 }
 
 }       // namespace xstd

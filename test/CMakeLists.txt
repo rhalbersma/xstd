@@ -1,25 +1,123 @@
 ###############################################################
-# include and source directories
+# use the Boost.Test unit testing framework
 ###############################################################
 
-set(test_include_dirs ${CMAKE_CURRENT_SOURCE_DIR}/include)
-set(test_source_dirs ${CMAKE_CURRENT_SOURCE_DIR}/src)
-include_directories(${test_include_dirs})
+find_package(Boost 1.60.0 REQUIRED COMPONENTS unit_test_framework)
 
 ###############################################################
-# executables and tests
+# common compiler and linker flags
 ###############################################################
 
-file(GLOB_RECURSE targets RELATIVE ${test_source_dirs} *.cpp)
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    list(APPEND cxx_compile_warning_flags
+        -Weverything 
+        -Werror 
+        -pedantic-errors
+        -Wno-c++98-compat 
+        -Wno-c++98-compat-pedantic      
+    )  
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    list(APPEND cxx_compile_warning_flags
+        -Wall
+        -Wextra
+        -Wpedantic
+        -Werror 
+        -pedantic-errors  
+    )  
+endif()
 
-foreach(t ${targets})
-  get_filename_component(target_path ${t} PATH)
-  get_filename_component(target_name_we ${t} NAME_WE)
-  string(REPLACE "/" "." target_id ${target_path}/${target_name_we})
-  string(REGEX REPLACE "^[.]" "" target_id ${target_id})
+list(APPEND cxx_compile_disabled_warning_flags_boost_test 
+    -Wno-disabled-macro-expansion 
+    -Wno-global-constructors 
+)
 
-  add_executable(${target_id} src/${t})
-  target_link_libraries(${target_id} ${Boost_LIBRARIES})
-  add_test(${target_id} ${target_id})    
-endforeach()
+list(APPEND cxx_compile_optimization_flags 
+    -g 
+    -O3
+    -flto 
+    -march=native 
+    -mtune=native
+)
 
+list(APPEND cxx_linker_optimization_flag
+    -flto 
+    -fuse-ld=gold
+)
+
+###############################################################
+# define test executables
+###############################################################
+
+add_executable(test.cstddef src/cstddef.cpp)
+
+target_link_libraries(test.cstddef PRIVATE
+    cstddef 
+    ${Boost_LIBRARIES}
+    ${cxx_linker_optimization_flag}    
+)
+
+target_compile_definitions(test.cstddef PRIVATE 
+    BOOST_TEST_DYN_LINK 
+    BOOST_TEST_MAIN
+)
+
+target_compile_options(test.cstddef PRIVATE 
+    ${cxx_compile_warning_flags}
+    ${cxx_compile_disabled_warning_flags_boost_test}
+    ${cxx_compile_optimization_flags}     
+)
+
+add_test(test.cstddef test.cstddef)
+
+###############################################################
+ 
+add_executable(test.cstdlib src/cstdlib.cpp)
+
+target_link_libraries(test.cstdlib PRIVATE
+    cstdlib 
+    ${Boost_LIBRARIES}
+    ${cxx_linker_optimization_flag}    
+)
+
+target_compile_definitions(test.cstdlib PRIVATE 
+    BOOST_TEST_DYN_LINK 
+    BOOST_TEST_MAIN
+)
+
+target_compile_options(test.cstdlib PRIVATE 
+    ${cxx_compile_warning_flags}
+    ${cxx_compile_disabled_warning_flags_boost_test}
+    ${cxx_compile_optimization_flags}     
+    -Wno-exit-time-destructors
+)
+
+add_test(test.cstdlib test.cstdlib)
+
+###############################################################
+ 
+add_executable(test.int_set src/int_set.cpp)
+
+target_include_directories(test.int_set PRIVATE
+    include
+)
+
+target_link_libraries(test.int_set PRIVATE
+    int_set 
+    ${Boost_LIBRARIES}
+    ${cxx_linker_optimization_flag}    
+)
+
+target_compile_definitions(test.int_set PRIVATE 
+    BOOST_TEST_DYN_LINK 
+    BOOST_TEST_MAIN
+)
+
+target_compile_options(test.int_set PRIVATE 
+    ${cxx_compile_warning_flags}
+    ${cxx_compile_disabled_warning_flags_boost_test}
+    ${cxx_compile_optimization_flags}     
+    -Wno-padded
+)
+
+add_test(test.int_set test.int_set)
+ 
