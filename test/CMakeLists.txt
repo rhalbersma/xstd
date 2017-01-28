@@ -8,8 +8,13 @@ find_package(Boost 1.60.0 REQUIRED COMPONENTS unit_test_framework)
 # common compiler and linker flags
 ###############################################################
 
+list(APPEND cxx_compile_definitions_boost_test
+    BOOST_TEST_DYN_LINK 
+    BOOST_TEST_MAIN
+)
+
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    list(APPEND cxx_compile_warning_flags
+    list(APPEND cxx_compile_optins_warnings
         -Weverything 
         -Werror 
         -pedantic-errors
@@ -17,7 +22,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
         -Wno-c++98-compat-pedantic      
     )  
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    list(APPEND cxx_compile_warning_flags
+    list(APPEND cxx_compile_options_warnings
         -Wall
         -Wextra
         -Wpedantic
@@ -26,12 +31,12 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     )  
 endif()
 
-list(APPEND cxx_compile_disabled_warning_flags_boost_test 
+list(APPEND cxx_compile_options_boost_test 
     -Wno-disabled-macro-expansion 
     -Wno-global-constructors 
 )
 
-list(APPEND cxx_compile_optimization_flags 
+list(APPEND cxx_compile_options_optimization 
     -g 
     -O3
     -flto 
@@ -39,7 +44,7 @@ list(APPEND cxx_compile_optimization_flags
     -mtune=native
 )
 
-list(APPEND cxx_linker_optimization_flag
+list(APPEND cxx_linker_optimization_flags
     -flto 
     -fuse-ld=gold
 )
@@ -53,18 +58,17 @@ add_executable(test.cstddef src/cstddef.cpp)
 target_link_libraries(test.cstddef PRIVATE
     cstddef 
     ${Boost_LIBRARIES}
-    ${cxx_linker_optimization_flag}    
+    ${cxx_linker_optimization_flags}    
 )
 
 target_compile_definitions(test.cstddef PRIVATE 
-    BOOST_TEST_DYN_LINK 
-    BOOST_TEST_MAIN
+    ${cxx_compile_definitions_boost_test}
 )
 
 target_compile_options(test.cstddef PRIVATE 
-    ${cxx_compile_warning_flags}
-    ${cxx_compile_disabled_warning_flags_boost_test}
-    ${cxx_compile_optimization_flags}     
+    ${cxx_compile_options_warnings}
+    ${cxx_compile_options_boost_test}
+    ${cxx_compile_options_optimization}     
 )
 
 add_test(test.cstddef test.cstddef)
@@ -76,18 +80,17 @@ add_executable(test.cstdlib src/cstdlib.cpp)
 target_link_libraries(test.cstdlib PRIVATE
     cstdlib 
     ${Boost_LIBRARIES}
-    ${cxx_linker_optimization_flag}    
+    ${cxx_linker_optimization_flags}    
 )
 
 target_compile_definitions(test.cstdlib PRIVATE 
-    BOOST_TEST_DYN_LINK 
-    BOOST_TEST_MAIN
+    ${cxx_compile_definitions_boost_test}
 )
 
 target_compile_options(test.cstdlib PRIVATE 
-    ${cxx_compile_warning_flags}
-    ${cxx_compile_disabled_warning_flags_boost_test}
-    ${cxx_compile_optimization_flags}     
+    ${cxx_compile_options_warnings}
+    ${cxx_compile_options_boost_test}
+    ${cxx_compile_options_optimization}     
     -Wno-exit-time-destructors
 )
 
@@ -104,19 +107,17 @@ target_include_directories(test.int_set PRIVATE
 target_link_libraries(test.int_set PRIVATE
     int_set 
     ${Boost_LIBRARIES}
-    ${cxx_linker_optimization_flag}    
+    ${cxx_linker_optimization_flags}    
 )
 
 target_compile_definitions(test.int_set PRIVATE 
-    BOOST_TEST_DYN_LINK 
-    BOOST_TEST_MAIN
+    ${cxx_compile_definitions_boost_test}
 )
 
 target_compile_options(test.int_set PRIVATE 
-    ${cxx_compile_warning_flags}
-    ${cxx_compile_disabled_warning_flags_boost_test}
-    ${cxx_compile_optimization_flags}     
-    -Wno-padded
+    ${cxx_compile_options_warnings}
+    ${cxx_compile_options_boost_test}
+    ${cxx_compile_options_optimization}     
 )
 
 add_test(test.int_set test.int_set)

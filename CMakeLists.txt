@@ -52,6 +52,7 @@ target_compile_definitions(int_set INTERFACE
 # CMake does not (yet) have c++1z compile features
 target_compile_options(int_set INTERFACE
     -std=gnu++1z
+    -Wno-padded
 )
 
 # c++14 compatible
