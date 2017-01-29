@@ -1,12 +1,18 @@
 #pragma once
-#include <xstd/limits.hpp>      // is_representable
-#include <cstdint>              // uint8_t, uint16_t, uint32_t, uint64_t
-                                // uint_fast8_t, uint_fast16_t, uint_fast32_t, uint_fast64_t
-                                // uint_least8_t, uint_least16_t, uint_least32_t, uint_least64_t
-#include <type_traits>          // enable_if
+#include <cstdint>      // uint8_t, uint16_t, uint32_t, uint64_t
+                        // uint_fast8_t, uint_fast16_t, uint_fast32_t, uint_fast64_t
+                        // uint_least8_t, uint_least16_t, uint_least32_t, uint_least64_t
+#include <limits>       // max
+#include <type_traits>  // enable_if, bool_constant
 
 namespace xstd {
 namespace detail {
+
+template<class T, int N>
+constexpr auto is_representable_v = N <= (std::numeric_limits<T>::max() + 1);
+
+template<class T, int N>
+using is_representable_t = std::bool_constant<is_representable_v<T, N>>;
 
 template<int, class = void>
 struct uint;

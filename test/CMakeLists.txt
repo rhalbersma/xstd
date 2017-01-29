@@ -14,12 +14,13 @@ list(APPEND cxx_compile_definitions_boost_test
 )
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-    list(APPEND cxx_compile_optins_warnings
+    list(APPEND cxx_compile_options_warnings
         -Weverything 
         -Werror 
         -pedantic-errors
         -Wno-c++98-compat 
         -Wno-c++98-compat-pedantic      
+        -Wno-padded
     )  
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     list(APPEND cxx_compile_options_warnings
@@ -37,14 +38,16 @@ list(APPEND cxx_compile_options_boost_test
 )
 
 list(APPEND cxx_compile_options_optimization 
-    -g 
-    -O3
+    -g
+    -O0
+    --coverage      
     -flto 
     -march=native 
     -mtune=native
 )
 
 list(APPEND cxx_linker_optimization_flags
+    --coverage      
     -flto 
     -fuse-ld=gold
 )
@@ -53,72 +56,34 @@ list(APPEND cxx_linker_optimization_flags
 # define test executables
 ###############################################################
 
-add_executable(test.cstddef src/cstddef.cpp)
-
-target_link_libraries(test.cstddef PRIVATE
+list(APPEND tests 
     cstddef 
-    ${Boost_LIBRARIES}
-    ${cxx_linker_optimization_flags}    
-)
-
-target_compile_definitions(test.cstddef PRIVATE 
-    ${cxx_compile_definitions_boost_test}
-)
-
-target_compile_options(test.cstddef PRIVATE 
-    ${cxx_compile_options_warnings}
-    ${cxx_compile_options_boost_test}
-    ${cxx_compile_options_optimization}     
-)
-
-add_test(test.cstddef test.cstddef)
-
-###############################################################
- 
-add_executable(test.cstdlib src/cstdlib.cpp)
-
-target_link_libraries(test.cstdlib PRIVATE
     cstdlib 
-    ${Boost_LIBRARIES}
-    ${cxx_linker_optimization_flags}    
+    int_set
 )
 
-target_compile_definitions(test.cstdlib PRIVATE 
-    ${cxx_compile_definitions_boost_test}
-)
-
-target_compile_options(test.cstdlib PRIVATE 
-    ${cxx_compile_options_warnings}
-    ${cxx_compile_options_boost_test}
-    ${cxx_compile_options_optimization}     
-    -Wno-exit-time-destructors
-)
-
-add_test(test.cstdlib test.cstdlib)
-
-###############################################################
- 
-add_executable(test.int_set src/int_set.cpp)
-
-target_include_directories(test.int_set PRIVATE
-    include
-)
-
-target_link_libraries(test.int_set PRIVATE
-    int_set 
-    ${Boost_LIBRARIES}
-    ${cxx_linker_optimization_flags}    
-)
-
-target_compile_definitions(test.int_set PRIVATE 
-    ${cxx_compile_definitions_boost_test}
-)
-
-target_compile_options(test.int_set PRIVATE 
-    ${cxx_compile_options_warnings}
-    ${cxx_compile_options_boost_test}
-    ${cxx_compile_options_optimization}     
-)
-
-add_test(test.int_set test.int_set)
- 
+foreach(t ${tests})
+    add_executable(test.${t} src/${t}.cpp)
+    
+    target_include_directories(test.${t} PRIVATE
+        include
+    )
+    
+    target_link_libraries(test.${t} PRIVATE
+        ${t} 
+        ${Boost_LIBRARIES}
+        ${cxx_linker_optimization_flags}    
+    )
+    
+    target_compile_definitions(test.${t} PRIVATE 
+        ${cxx_compile_definitions_boost_test}
+    )
+    
+    target_compile_options(test.${t} PRIVATE 
+        ${cxx_compile_options_warnings}
+        ${cxx_compile_options_boost_test}
+        ${cxx_compile_options_optimization}     
+    )
+    
+    add_test(test.${t} test.${t})
+endforeach()

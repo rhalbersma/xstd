@@ -133,10 +133,8 @@ using SetTypes = boost::mpl::vector
 <
         int_set<  0>,
         int_set<  1>,
-        int_set< 63>,
         int_set< 64>,
         int_set< 65>,
-        int_set<127>,
         int_set<128>
 >;
 
@@ -161,16 +159,23 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
         BOOST_CHECK(flip_one<N>());
 
         BOOST_CHECK(size_<N>());
+        BOOST_CHECK(non_member_size<N>());
         BOOST_CHECK(max_size<N>());
         BOOST_CHECK(equal_to<N>());
         BOOST_CHECK(not_equal_to<N>());
         BOOST_CHECK(less<N>());
+        BOOST_CHECK(greater<N>());
+        BOOST_CHECK(greater_equal<N>());
+        BOOST_CHECK(less_equal<N>());
         BOOST_CHECK(is_subset_of_<N>());
+        BOOST_CHECK(is_superset_of_<N>());
         BOOST_CHECK(is_proper_subset_of_<N>());
+        BOOST_CHECK(is_proper_superset_of_<N>());
         BOOST_CHECK(test<N>());
         BOOST_CHECK(full<N>());
         BOOST_CHECK(not_empty<N>());
         BOOST_CHECK(empty_<N>());
+        BOOST_CHECK(non_member_empty<N>());
         BOOST_CHECK(shift_left<N>());
         BOOST_CHECK(shift_right<N>());
 
@@ -250,6 +255,30 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(IsStrictlyIncreasing, T, SetTypes2)
 
         BOOST_CHECK(boost::adjacent_find(b           , std::greater_equal<>{}) == boost:: end(b));
         BOOST_CHECK(boost::adjacent_find(b | reversed, std::   less_equal<>{}) == boost::rend(b));
+}
+
+BOOST_AUTO_TEST_CASE(ForwardIteration)
+{
+        // arrange
+        auto const b = int_set<192>{ 63 };
+
+        // act
+        for (auto first = b.begin(), last = b.end(); first != last; ++first){}
+
+        // assert
+        //BOOST_CHECK(it == rbegin(b).base());
+}
+
+BOOST_AUTO_TEST_CASE(BackwardIteration)
+{
+        // arrange
+        auto const b = int_set<192>{ 128 };
+
+        // act
+        for (auto first = b.rbegin(), last = b.rend(); first != last; ++first){}
+
+        // assert
+        //BOOST_CHECK(it == rbegin(b).base());
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(ForwardIterationTraversesRange, T, SetTypes2)

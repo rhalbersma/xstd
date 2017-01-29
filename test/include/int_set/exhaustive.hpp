@@ -168,6 +168,17 @@ auto size_() noexcept
 }
 
 template<int N>
+auto non_member_size() noexcept
+{
+        auto check = true;
+        for (auto i = 0; i < N; ++i) {
+                check &= non_member_size(~(~int_set<N>{} << i));
+        }
+        check &= non_member_size(~int_set<N>{});
+        return check;
+}
+
+template<int N>
 auto max_size() noexcept
 {
         auto check = true;
@@ -181,7 +192,7 @@ auto max_size() noexcept
 template<int N>
 auto equal_to() noexcept
 {
-        auto check = true;
+        auto check = equal_to(int_set<N>{}, int_set<N>{});
         for (auto i = 0; i < N; ++i) {
                 for (auto j = 0; j < N; ++j) {
                         check &= equal_to(int_set<N>{i}, int_set<N>{j});
@@ -193,7 +204,7 @@ auto equal_to() noexcept
 template<int N>
 auto not_equal_to() noexcept
 {
-        auto check = true;
+        auto check = not_equal_to(int_set<N>{}, int_set<N>{});
         for (auto i = 0; i < N; ++i) {
                 for (auto j = 0; j < N; ++j) {
                         check &= not_equal_to(int_set<N>{i}, int_set<N>{j});
@@ -205,7 +216,7 @@ auto not_equal_to() noexcept
 template<int N>
 auto less() noexcept
 {
-        auto check = true;
+        auto check = less(int_set<N>{}, int_set<N>{});
         for (auto i = 0; i < N; ++i) {
                 for (auto j = 0; j < N; ++j) {
                         check &= less(int_set<N>{i}, int_set<N>{j});
@@ -215,9 +226,45 @@ auto less() noexcept
 }
 
 template<int N>
+auto greater() noexcept
+{
+        auto check = greater(int_set<N>{}, int_set<N>{});
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= greater(int_set<N>{i}, int_set<N>{j});
+                }
+        }
+        return check;
+}
+
+template<int N>
+auto greater_equal() noexcept
+{
+        auto check = greater_equal(int_set<N>{}, int_set<N>{});
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= greater_equal(int_set<N>{i}, int_set<N>{j});
+                }
+        }
+        return check;
+}
+
+template<int N>
+auto less_equal() noexcept
+{
+        auto check = less_equal(int_set<N>{}, int_set<N>{});
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= less_equal(int_set<N>{i}, int_set<N>{j});
+                }
+        }
+        return check;
+}
+
+template<int N>
 auto is_subset_of_() noexcept
 {
-        auto check = true;
+        auto check = is_subset_of_(int_set<N>{}, int_set<N>{});
         for (auto i = 0; i < N; ++i) {
                 for (auto j = 0; j < N; ++j) {
                         check &= is_subset_of_(int_set<N>{i}, int_set<N>{j});
@@ -227,12 +274,36 @@ auto is_subset_of_() noexcept
 }
 
 template<int N>
+auto is_superset_of_() noexcept
+{
+        auto check = is_superset_of_(int_set<N>{}, int_set<N>{});
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= is_superset_of_(int_set<N>{i}, int_set<N>{j});
+                }
+        }
+        return check;
+}
+
+template<int N>
 auto is_proper_subset_of_() noexcept
 {
-        auto check = true;
+        auto check = is_proper_subset_of_(int_set<N>{}, int_set<N>{});
         for (auto i = 0; i < N; ++i) {
                 for (auto j = 0; j < N; ++j) {
                         check &= is_proper_subset_of_(int_set<N>{i}, int_set<N>{j});
+                }
+        }
+        return check;
+}
+
+template<int N>
+auto is_proper_superset_of_() noexcept
+{
+        auto check = is_proper_superset_of_(int_set<N>{}, int_set<N>{});
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = 0; j < N; ++j) {
+                        check &= is_proper_superset_of_(int_set<N>{i}, int_set<N>{j});
                 }
         }
         return check;
@@ -278,6 +349,17 @@ auto empty_() noexcept
                 check &= empty_(~(~int_set<N>{} << i));
         }
         check &= empty_(~int_set<N>{});
+        return check;
+}
+
+template<int N>
+auto non_member_empty() noexcept
+{
+        auto check = true;
+        for (auto i = 0; i < N; ++i) {
+                check &= non_member_empty(~(~int_set<N>{} << i));
+        }
+        check &= non_member_empty(~int_set<N>{});
         return check;
 }
 

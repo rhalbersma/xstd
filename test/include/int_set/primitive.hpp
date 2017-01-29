@@ -304,6 +304,19 @@ auto size_(int_set<N> const& b) noexcept
         return value == expected;
 }
 
+template<int N>
+auto non_member_size(int_set<N> const& b) noexcept
+{
+        // arrange
+        auto expected = b.size();
+
+        // act
+        auto const value = size(b);
+
+        // assert
+        return value == expected;
+}
+
 // [bitset.members]/35
 template<int N>
 auto max_size(int_set<N> const& b) noexcept
@@ -367,6 +380,45 @@ auto less(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 }
 
 template<int N>
+auto greater(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        // arrange
+        auto expected = rhs < lhs;
+
+        // act
+        auto const value = lhs > rhs;
+
+        // assert
+        return value == expected;
+}
+
+template<int N>
+auto greater_equal(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        // arrange
+        auto expected = !(lhs < rhs);
+
+        // act
+        auto const value = lhs >= rhs;
+
+        // assert
+        return value == expected;
+}
+
+template<int N>
+auto less_equal(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        // arrange
+        auto expected = !(rhs < lhs);
+
+        // act
+        auto const value = lhs <= rhs;
+
+        // assert
+        return value == expected;
+}
+
+template<int N>
 auto is_subset_of_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         // arrange
@@ -383,6 +435,19 @@ auto is_subset_of_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 }
 
 template<int N>
+auto is_superset_of_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        // arrange
+        auto expected = is_subset_of(rhs, lhs);
+
+        // act
+        auto const value = is_superset_of(lhs, rhs);
+
+        // assert
+        return value == expected;
+}
+
+template<int N>
 auto is_proper_subset_of_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         // arrange
@@ -390,6 +455,19 @@ auto is_proper_subset_of_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 
         // act
         auto const value = is_proper_subset_of(lhs, rhs);
+
+        // assert
+        return value == expected;
+}
+
+template<int N>
+auto is_proper_superset_of_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+{
+        // arrange
+        auto const expected = is_proper_subset_of(rhs, lhs);
+
+        // act
+        auto const value = is_proper_superset_of(lhs, rhs);
 
         // assert
         return value == expected;
@@ -454,6 +532,19 @@ auto empty_(int_set<N> const& b) noexcept
 
         // act
         auto const value = b.empty();
+
+        // assert
+        return value == expected;
+}
+
+template<int N>
+auto non_member_empty(int_set<N> const& b) noexcept
+{
+        // arrange
+        auto const expected = b.empty();
+
+        // act
+        auto const value = empty(b);
 
         // assert
         return value == expected;

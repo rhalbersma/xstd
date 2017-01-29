@@ -1,21 +1,21 @@
 #pragma once
-#include <algorithm>                    // all_of, copy_backward, copy_n, equal, fill_n, lexicographical_compare, swap_ranges
-#include <cassert>                      // assert
-#include <climits>                      // CHAR_BIT
-#include <cstdint>                      // uint64_t
-#include <functional>                   // less
-#include <initializer_list>             // initializer_list
-#include <iterator>                     // begin, bidirectional_iterator_tag, cbegin, cend, crbegin, crend, end, next, prev, rbegin, reverse_iterator
-#include <limits>                       // digits
-#include <numeric>                      // accumulate
-#include <tuple>                        // tie
-#include <type_traits>                  // is_integral, is_pod, is_unsigned
+#include <algorithm>            // all_of, copy_backward, copy_n, equal, fill_n, lexicographical_compare, swap_ranges
+#include <cassert>              // assert
+#include <climits>              // CHAR_BIT
+#include <cstdint>              // uint64_t
+#include <functional>           // less
+#include <initializer_list>     // initializer_list
+#include <iterator>             // begin, bidirectional_iterator_tag, cbegin, cend, crbegin, crend, end, next, prev, rbegin, reverse_iterator
+#include <limits>               // digits
+#include <numeric>              // accumulate
+#include <tuple>                // tie
+#include <type_traits>          // is_integral, is_pod, is_unsigned
 
 namespace xstd {
 namespace builtin {
 namespace detail {
 
-// GCC / Clang have support for extended 128-bit integers.
+// gcc / Clang have support for extended 128-bit integers.
 // Uset get<0> and get<1> to extract the lower and upper 64-bit integers.
 
 template<int N>
@@ -25,7 +25,7 @@ constexpr auto get(__uint128_t x) noexcept
         return static_cast<uint64_t>(x >> (N * 64));
 }
 
-// GCC / Clang have built-in functions for Count Trailing Zeros
+// gcc / Clang have built-in functions for Count Trailing Zeros
 // for unsigned, unsigned long and unsigned long long.
 // For zero input, the result is undefined.
 
@@ -56,7 +56,7 @@ struct ctznz
         }
 };
 
-// GCC / Clang have built-in functions for Count Leading Zeros
+// gcc / Clang have built-in functions for Count Leading Zeros
 // for unsigned, unsigned long and unsigned long long.
 // For zero input, the result is undefined
 
@@ -87,7 +87,7 @@ struct clznz
         }
 };
 
-// GCC / Clang have built-in functions for Population Count
+// gcc / Clang have built-in functions for Population Count
 // for unsigned, unsigned long and unsigned long long.
 
 struct popcount
@@ -352,21 +352,14 @@ public:
                 constexpr auto increment() // Throws: Nothing.
                 {
                         assert(0 <= m_index); assert(m_index < N);
-                        if constexpr (num_words == 0) {
-                                return;
-                        } else if constexpr (num_words == 1) {
+                        static_assert(num_words != 0);
+                        if constexpr (num_words == 1) {
                                 if (++m_index == N) {
                                         ++m_word;
                                         return;
                                 }
-                                if (auto const word = *m_word >> m_index) {
-                                        m_index += builtin::ctznz(word);
-                                        return;
-                                } else {
-                                        ++m_word;
-                                        m_index = N;
-                                }
-                                assert(0 < m_index && m_index <= N);
+                                m_index += builtin::ctznz(*m_word >> m_index);
+                                assert(0 < m_index && m_index < N);
                         } else if constexpr (num_words >= 2) {
                                 if (++m_index == N) {
                                         ++m_word;
@@ -400,20 +393,15 @@ public:
                 constexpr auto decrement() // Throws: Nothing.
                 {
                         assert(0 < m_index); assert(m_index <= N);
-                        if constexpr (num_words == 0) {
-                                return;
-                        } else if constexpr (num_words == 1) {
+                        static_assert(num_words != 0);
+                        if constexpr (num_words == 1) {
                                 if (--m_index == 0) {
                                         return;
                                 }
                                 if (m_index == N - 1) {
                                         --m_word;
                                 }
-                                if (auto const word = *m_word << (word_size - 1 - m_index)) {
-                                        m_index -= builtin::clznz(word);
-                                } else {
-                                        m_index = 0;
-                                }
+                                m_index -= builtin::clznz(*m_word << (word_size - 1 - m_index));
                                 assert(m_index < N);
                         } else if constexpr (num_words >= 2) {
                                 if (--m_index == 0) {
@@ -439,9 +427,6 @@ public:
                                         }
                                         --m_word;
                                 }
-                                ++m_word;
-                                m_index = 0;
-                                assert(m_index < N);
                         }
                 }
 
