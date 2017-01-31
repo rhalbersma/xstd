@@ -55,15 +55,6 @@ target_compile_options(int_set INTERFACE
 )
 
 # c++14 compatible
-target_compile_features(limits INTERFACE
-    cxx_alias_templates
-    cxx_constexpr
-    cxx_noexcept
-    cxx_return_type_deduction
-    cxx_variable_templates
-)
-
-# c++14 compatible
 target_compile_features(type_traits INTERFACE
     cxx_constexpr
     cxx_noexcept
