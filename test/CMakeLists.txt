@@ -2,7 +2,8 @@
 # use the Boost.Test unit testing framework
 ###############################################################
 
-find_package(Boost 1.60.0 REQUIRED COMPONENTS unit_test_framework)
+find_package(Boost 1.58.0 REQUIRED COMPONENTS unit_test_framework)
+include_directories(SYSTEM ${Boost_INCLUDE_DIRS})
 
 ###############################################################
 # common compiler and linker flags
@@ -39,15 +40,15 @@ list(APPEND cxx_compile_options_boost_test
 
 list(APPEND cxx_compile_options_optimization 
     -g
-    -O3
-    #--coverage      
+    -O0
+    --coverage      
     -flto 
     -march=native 
     -mtune=native
 )
 
 list(APPEND cxx_linker_optimization_flags
-    #--coverage
+    --coverage
     -flto 
     -fuse-ld=gold
 )
