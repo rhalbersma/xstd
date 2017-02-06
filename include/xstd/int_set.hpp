@@ -352,14 +352,21 @@ public:
                 constexpr auto increment() // Throws: Nothing.
                 {
                         assert(0 <= m_index); assert(m_index < N);
-                        static_assert(num_words != 0);
-                        if constexpr (num_words == 1) {
+                        if constexpr (num_words == 0) {
+                                return;
+                        } else if constexpr (num_words == 1) {
                                 if (++m_index == N) {
                                         ++m_word;
                                         return;
                                 }
-                                m_index += builtin::ctznz(*m_word >> m_index);
-                                assert(0 < m_index && m_index < N);
+                                if (auto const word = *m_word >> m_index) {
+                                        m_index += builtin::ctznz(word);
+                                        return;
+                                } else {
+                                        ++m_word;
+                                        m_index = N;
+                                }
+                                assert(0 < m_index && m_index <= N);
                         } else if constexpr (num_words >= 2) {
                                 if (++m_index == N) {
                                         ++m_word;
@@ -393,15 +400,20 @@ public:
                 constexpr auto decrement() // Throws: Nothing.
                 {
                         assert(0 < m_index); assert(m_index <= N);
-                        static_assert(num_words != 0);
-                        if constexpr (num_words == 1) {
+                        if constexpr (num_words == 0) {
+                                return;
+                        } else if constexpr (num_words == 1) {
                                 if (--m_index == 0) {
                                         return;
                                 }
                                 if (m_index == N - 1) {
                                         --m_word;
                                 }
-                                m_index -= builtin::clznz(*m_word << (word_size - 1 - m_index));
+                                if (auto const word = *m_word << (word_size - 1 - m_index)) {
+                                        m_index -= builtin::clznz(word);
+                                } else {
+                                        m_index = 0;
+                                }
                                 assert(m_index < N);
                         } else if constexpr (num_words >= 2) {
                                 if (--m_index == 0) {
@@ -427,6 +439,9 @@ public:
                                         }
                                         --m_word;
                                 }
+                                ++m_word;
+                                m_index = 0;
+                                assert(m_index < N);
                         }
                 }
 

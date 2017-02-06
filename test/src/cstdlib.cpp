@@ -47,8 +47,7 @@ BOOST_AUTO_TEST_CASE(Abs)
 {
         BOOST_CHECK_EQUAL(xstd::abs(-2), 2);
         BOOST_CHECK_EQUAL(xstd::abs(-1), 1);
-        BOOST_CHECK_EQUAL(xstd::abs(-0), 0);
-        BOOST_CHECK_EQUAL(xstd::abs(+0), 0);
+        BOOST_CHECK_EQUAL(xstd::abs( 0), 0);
         BOOST_CHECK_EQUAL(xstd::abs(+1), 1);
         BOOST_CHECK_EQUAL(xstd::abs(+2), 2);
 }
@@ -57,10 +56,9 @@ BOOST_AUTO_TEST_CASE(Signum)
 {
         BOOST_CHECK_EQUAL(xstd::signum(-2), -1);
         BOOST_CHECK_EQUAL(xstd::signum(-1), -1);
-        BOOST_CHECK_EQUAL(xstd::signum(-0), 0);
-        BOOST_CHECK_EQUAL(xstd::signum(+0), 0);
-        BOOST_CHECK_EQUAL(xstd::signum(+1), 1);
-        BOOST_CHECK_EQUAL(xstd::signum(+2), 1);
+        BOOST_CHECK_EQUAL(xstd::signum( 0),  0);
+        BOOST_CHECK_EQUAL(xstd::signum(+1),  1);
+        BOOST_CHECK_EQUAL(xstd::signum(+2),  1);
 }
 
 // http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf
