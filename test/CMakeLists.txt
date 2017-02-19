@@ -41,14 +41,14 @@ list(APPEND cxx_compile_options_boost_test
 list(APPEND cxx_compile_options_optimization 
     -g
     -O3
-    #--coverage      
+    --coverage      
     -flto 
     -march=native 
     -mtune=native
 )
 
 list(APPEND cxx_linker_optimization_flags
-    #--coverage
+    --coverage
     -flto 
     -fuse-ld=gold
 )

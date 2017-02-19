@@ -1018,8 +1018,8 @@ auto intersects(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
                 return lhs.m_words[0] & rhs.m_words[0];
         } else if constexpr (num_words >= 2) {
                 using std::cbegin; using std::cend;
-                return !std::equal(cbegin(lhs.m_words), cend(lhs.m_words), cbegin(rhs.m_words), cend(rhs.m_words), [](auto const w1, auto const w2) {
-                        return !(w1 & w2);
+                return !std::equal(cbegin(lhs.m_words), cend(lhs.m_words), cbegin(rhs.m_words), cend(rhs.m_words), [](auto const wL, auto const wR) {
+                        return !(wL & wR);
                 });
         }
 }
@@ -1040,8 +1040,8 @@ auto is_subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
                 return !(lhs.m_words[0] & ~rhs.m_words[0]);
         } else if constexpr (num_words >= 2) {
                 using std::cbegin; using std::cend;
-                return std::equal(cbegin(lhs.m_words), cend(lhs.m_words), cbegin(rhs.m_words), cend(rhs.m_words), [](auto const w1, auto const w2) {
-                        return !(w1 & ~w2);
+                return std::equal(cbegin(lhs.m_words), cend(lhs.m_words), cbegin(rhs.m_words), cend(rhs.m_words), [](auto const wL, auto const wR) {
+                        return !(wL & ~wR);
                 });
         }
 }
