@@ -142,47 +142,47 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
 {
         auto constexpr N = T::max_size();
 
-        BOOST_CHECK(cons_default<N>());
+        prim::cons_default<N>();
 
-        BOOST_CHECK(bitand_assign<N>());
-        BOOST_CHECK(bitor_assign<N>());
-        BOOST_CHECK(xor_assign<N>());
-        BOOST_CHECK(minus_assign<N>());
-        BOOST_CHECK(shift_left_assign<N>());
-        BOOST_CHECK(shift_right_assign<N>());
-        BOOST_CHECK(fill<N>());
-        BOOST_CHECK(insert<N>());
-        BOOST_CHECK(clear<N>());
-        BOOST_CHECK(erase<N>());
-        BOOST_CHECK(compl_<N>());
-        BOOST_CHECK(flip_all<N>());
-        BOOST_CHECK(flip_one<N>());
+        bitand_assign<N>();
+        bitor_assign<N>();
+        xor_assign<N>();
+        minus_assign<N>();
+        shift_left_assign<N>();
+        shift_right_assign<N>();
+        fill<N>();
+        insert<N>();
+        clear<N>();
+        erase<N>();
+        compl_<N>();
+        flip_all<N>();
+        flip_one<N>();
 
-        BOOST_CHECK(size_<N>());
-        BOOST_CHECK(non_member_size<N>());
-        BOOST_CHECK(max_size<N>());
-        BOOST_CHECK(equal_to<N>());
-        BOOST_CHECK(not_equal_to<N>());
-        BOOST_CHECK(less<N>());
-        BOOST_CHECK(greater<N>());
-        BOOST_CHECK(greater_equal<N>());
-        BOOST_CHECK(less_equal<N>());
-        BOOST_CHECK(is_subset_of_<N>());
-        BOOST_CHECK(is_superset_of_<N>());
-        BOOST_CHECK(is_proper_subset_of_<N>());
-        BOOST_CHECK(is_proper_superset_of_<N>());
-        BOOST_CHECK(test<N>());
-        BOOST_CHECK(full<N>());
-        BOOST_CHECK(not_empty<N>());
-        BOOST_CHECK(empty_<N>());
-        BOOST_CHECK(non_member_empty<N>());
-        BOOST_CHECK(shift_left<N>());
-        BOOST_CHECK(shift_right<N>());
+        size_<N>();
+        non_member_size<N>();
+        max_size<N>();
+        equal_to<N>();
+        not_equal_to<N>();
+        less<N>();
+        greater<N>();
+        greater_equal<N>();
+        less_equal<N>();
+        is_subset_of_<N>();
+        is_superset_of_<N>();
+        is_proper_subset_of_<N>();
+        is_proper_superset_of_<N>();
+        test<N>();
+        full<N>();
+        not_empty<N>();
+        empty_<N>();
+        non_member_empty<N>();
+        shift_left<N>();
+        shift_right<N>();
 
-        BOOST_CHECK(bitand_<N>());
-        BOOST_CHECK(bitor_<N>());
-        BOOST_CHECK(xor_<N>());
-        BOOST_CHECK(minus<N>());
+        bitand_<N>();
+        bitor_<N>();
+        xor_<N>();
+        minus<N>();
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(ValueInitializationConstructsEmpty, T, SetTypes)
