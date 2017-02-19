@@ -11,7 +11,6 @@ add_library(cstddef     INTERFACE)
 add_library(cstdint     INTERFACE)
 add_library(cstdlib     INTERFACE)
 add_library(int_set     INTERFACE)
-add_library(limits      INTERFACE)
 add_library(type_traits INTERFACE)
 
 ###############################################################
@@ -20,7 +19,6 @@ target_include_directories(cstddef     INTERFACE include)
 target_include_directories(cstdint     INTERFACE include)
 target_include_directories(cstdlib     INTERFACE include)
 target_include_directories(int_set     INTERFACE include)
-target_include_directories(limits      INTERFACE include)
 target_include_directories(type_traits INTERFACE include)
 
 ###############################################################
