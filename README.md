@@ -1,6 +1,8 @@
 Extensions to the C++ Standard Library
 ======================================
 
+[![Language](https://img.shields.io/badge/language-C++-blue.svg)](https://isocpp.org/)  [![Standard](https://img.shields.io/badge/c%2B%2B-17-blue.svg)](https://en.wikipedia.org/wiki/C%2B%2B#Standardization) [![License](https://img.shields.io/badge/license-Boost-blue.svg)](https://opensource.org/licenses/BSL-1.0) 
+
 **Additions to existing headers**
 
 `<cstddef>`: User-Defined Literals for `size_t` (proposed as [N4254](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4254.html) and [P0330R0](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0330r0.pdf)).
