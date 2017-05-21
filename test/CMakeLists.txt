@@ -82,7 +82,7 @@ foreach(t ${tests})
     
     target_compile_options(test.${t} PRIVATE 
         ${cxx_compile_options_warnings}
-        #${cxx_compile_options_boost_test}
+        ${cxx_compile_options_boost_test}
         ${cxx_compile_options_optimization}     
     )
     
