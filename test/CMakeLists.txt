@@ -73,7 +73,7 @@ foreach(t ${tests})
     target_link_libraries(test.${t} PRIVATE
         ${t} 
         ${Boost_LIBRARIES}
-        ${cxx_linker_optimization_flags}    
+        ${cxx_linker_optimization_flags}
     )
     
     target_compile_definitions(test.${t} PRIVATE 
@@ -82,7 +82,7 @@ foreach(t ${tests})
     
     target_compile_options(test.${t} PRIVATE 
         ${cxx_compile_options_warnings}
-        ${cxx_compile_options_boost_test}
+        #${cxx_compile_options_boost_test}
         ${cxx_compile_options_optimization}     
     )
     

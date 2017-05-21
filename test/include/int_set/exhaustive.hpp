@@ -20,25 +20,25 @@ constexpr auto all_singlet_pairs(Test test)
 template<int N>
 constexpr auto bitand_assign() noexcept
 {
-        all_singlet_pairs<N>(prim::bitand_assign<N>);
+        all_singlet_pairs<N>(prim::bitand_assign{});
 }
 
 template<int N>
 constexpr auto bitor_assign() noexcept
 {
-        all_singlet_pairs<N>(prim::bitor_assign<N>);
+        all_singlet_pairs<N>(prim::bitor_assign{});
 }
 
 template<int N>
 constexpr auto xor_assign() noexcept
 {
-        all_singlet_pairs<N>(prim::xor_assign<N>);
+        all_singlet_pairs<N>(prim::xor_assign{});
 }
 
 template<int N>
 constexpr auto minus_assign() noexcept
 {
-        all_singlet_pairs<N>(prim::minus_assign<N>);
+        all_singlet_pairs<N>(prim::minus_assign{});
 }
 
 template<int N>
@@ -156,61 +156,61 @@ auto max_size() noexcept
 template<int N>
 auto equal_to() noexcept
 {
-        all_singlet_pairs<N>(prim::equal_to<N>);
+        all_singlet_pairs<N>(prim::equal_to{});
 }
 
 template<int N>
 auto not_equal_to() noexcept
 {
-        all_singlet_pairs<N>(prim::not_equal_to<N>);
+        all_singlet_pairs<N>(prim::not_equal_to{});
 }
 
 template<int N>
 auto less() noexcept
 {
-        all_singlet_pairs<N>(prim::less<N>);
+        all_singlet_pairs<N>(prim::less{});
 }
 
 template<int N>
 auto greater() noexcept
 {
-        all_singlet_pairs<N>(prim::greater<N>);
+        all_singlet_pairs<N>(prim::greater{});
 }
 
 template<int N>
 auto greater_equal() noexcept
 {
-        all_singlet_pairs<N>(prim::greater_equal<N>);
+        all_singlet_pairs<N>(prim::greater_equal{});
 }
 
 template<int N>
 auto less_equal() noexcept
 {
-        all_singlet_pairs<N>(prim::less_equal<N>);
+        all_singlet_pairs<N>(prim::less_equal{});
 }
 
 template<int N>
 auto is_subset_of_() noexcept
 {
-        all_singlet_pairs<N>(prim::is_subset_of_<N>);
+        all_singlet_pairs<N>(prim::is_subset_of_{});
 }
 
 template<int N>
 auto is_superset_of_() noexcept
 {
-        all_singlet_pairs<N>(prim::is_superset_of_<N>);
+        all_singlet_pairs<N>(prim::is_superset_of_{});
 }
 
 template<int N>
 auto is_proper_subset_of_() noexcept
 {
-        all_singlet_pairs<N>(prim::is_proper_subset_of_<N>);
+        all_singlet_pairs<N>(prim::is_proper_subset_of_{});
 }
 
 template<int N>
 auto is_proper_superset_of_() noexcept
 {
-        all_singlet_pairs<N>(prim::is_proper_superset_of_<N>);
+        all_singlet_pairs<N>(prim::is_proper_superset_of_{});
 }
 
 template<int N>
@@ -284,25 +284,25 @@ auto shift_right() noexcept
 template<int N>
 constexpr auto bitand_() noexcept
 {
-        all_singlet_pairs<N>(prim::bitand_<N>);
+        all_singlet_pairs<N>(prim::bitand_{});
 }
 
 template<int N>
 constexpr auto bitor_() noexcept
 {
-        all_singlet_pairs<N>(prim::bitor_<N>);
+        all_singlet_pairs<N>(prim::bitor_{});
 }
 
 template<int N>
 constexpr auto xor_() noexcept
 {
-        all_singlet_pairs<N>(prim::xor_<N>);
+        all_singlet_pairs<N>(prim::xor_{});
 }
 
 template<int N>
 constexpr auto minus() noexcept
 {
-        all_singlet_pairs<N>(prim::minus<N>);
+        all_singlet_pairs<N>(prim::minus{});
 }
 
 }       // namespace xstd

@@ -17,75 +17,87 @@ constexpr auto cons_default() noexcept
 // 20.9.2 bitset members [bitset.members]
 
 // [bitset.members]/1
-template<int N>
-constexpr auto bitand_assign(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+struct bitand_assign 
 {
-        auto const prev = lhs;
-        auto next = lhs;
+	template<int N>
+	constexpr auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
+	{
+		auto const prev = lhs;
+		auto next = lhs;
 
-        next &= rhs;
+		next &= rhs;
 
-        for (auto i = 0; i < N; ++i) {
-                if (!rhs.test(i)) {
-                        BOOST_CHECK(!next.test(i));
-                } else {
-                        BOOST_CHECK_EQUAL(next.test(i), prev.test(i));
-                }
-        }
-}
+		for (auto i = 0; i < N; ++i) {
+		        if (!rhs.test(i)) {
+		                BOOST_CHECK(!next.test(i));
+		        } else {
+		                BOOST_CHECK_EQUAL(next.test(i), prev.test(i));
+		        }
+		}
+	}
+};
 
 // [bitset.members]/3
-template<int N>
-constexpr auto bitor_assign(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+struct bitor_assign
 {
-        auto const prev = lhs;
-        auto next = lhs;
+	template<int N>
+	constexpr auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
+	{
+		auto const prev = lhs;
+		auto next = lhs;
 
-        next |= rhs;
+		next |= rhs;
 
-        for (auto i = 0; i < N; ++i) {
-                if (rhs.test(i)) {
-                        BOOST_CHECK(next.test(i));
-                } else {
-                        BOOST_CHECK_EQUAL(next.test(i), prev.test(i));
-                }
-        }
-}
+		for (auto i = 0; i < N; ++i) {
+		        if (rhs.test(i)) {
+		                BOOST_CHECK(next.test(i));
+		        } else {
+		                BOOST_CHECK_EQUAL(next.test(i), prev.test(i));
+		        }
+		}
+	}
+};
 
 // [bitset.members]/5
-template<int N>
-constexpr auto xor_assign(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+struct xor_assign
 {
-        auto const prev = lhs;
-        auto next = lhs;
+	template<int N>
+	constexpr auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
+	{
+		auto const prev = lhs;
+		auto next = lhs;
 
-        next ^= rhs;
+		next ^= rhs;
 
-        for (auto i = 0; i < N; ++i) {
-                if (rhs.test(i)) {
-                        BOOST_CHECK_EQUAL(next.test(i), !prev.test(i));
-                } else {
-                        BOOST_CHECK_EQUAL(next.test(i),  prev.test(i));
-                }
-        }
-}
+		for (auto i = 0; i < N; ++i) {
+		        if (rhs.test(i)) {
+		                BOOST_CHECK_EQUAL(next.test(i), !prev.test(i));
+		        } else {
+		                BOOST_CHECK_EQUAL(next.test(i),  prev.test(i));
+		        }
+		}
+	}
+};
 
-template<int N>
-constexpr auto minus_assign(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+struct minus_assign 
 {
-        auto const prev = lhs;
-        auto next = lhs;
+	template<int N>
+	constexpr auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
+	{
+		auto const prev = lhs;
+		auto next = lhs;
 
-        next -= rhs;
+		next -= rhs;
 
-        for (auto i = 0; i < N; ++i) {
-                if (rhs.test(i)) {
-                        BOOST_CHECK(!next.test(i));
-                } else {
-                        BOOST_CHECK_EQUAL(next.test(i), prev.test(i));
-                }
-        }
-}
+		for (auto i = 0; i < N; ++i) {
+		        if (rhs.test(i)) {
+		                BOOST_CHECK(!next.test(i));
+		        } else {
+		                BOOST_CHECK_EQUAL(next.test(i), prev.test(i));
+		        }
+		}
+	}
+};
 
 // [bitset.members]/7
 template<int N>
@@ -186,11 +198,10 @@ template<int N>
 constexpr auto compl_(int_set<N> const& is) noexcept
 {
         auto expected = is;
+
         expected.flip();
 
-        auto const value = ~is;
-
-        BOOST_CHECK(value == expected);
+        BOOST_CHECK(~is == expected);
 }
 
 // [bitset.members]/23
@@ -230,13 +241,12 @@ template<int N>
 auto size_(int_set<N> const& is) noexcept
 {
         auto expected = 0;
+
         for (auto i = 0; i < N; ++i) {
                 expected += is.test(i);
         }
 
-        auto const value = is.size();
-
-        BOOST_CHECK_EQUAL(value, expected);
+        BOOST_CHECK_EQUAL(is.size(), expected);
 }
 
 template<int N>
@@ -253,88 +263,115 @@ auto max_size(int_set<N> const& is) noexcept
 }
 
 // [bitset.members]/36
-template<int N>
-auto equal_to(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+struct equal_to
 {
-        auto expected = true;
-        for (auto i = 0; i < N; ++i) {
-                expected &= lhs.test(i) == rhs.test(i);
-        }
+	template<int N>
+	auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
+	{
+		auto expected = true;
 
-        auto const value = lhs == rhs;
+		for (auto i = 0; i < N; ++i) {
+		        expected &= lhs.test(i) == rhs.test(i);
+		}
 
-        BOOST_CHECK_EQUAL(value, expected);
-}
+		BOOST_CHECK_EQUAL(lhs == rhs, expected);
+	}
+};
 
 // [bitset.members]/37
-template<int N>
-auto not_equal_to(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+struct not_equal_to
 {
-        BOOST_CHECK_EQUAL(lhs != rhs, !(lhs == rhs));
-}
+	template<int N>
+	auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
+	{
+		BOOST_CHECK_EQUAL(lhs != rhs, !(lhs == rhs));
+	}
+};
 
-template<int N>
-auto less(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+struct less
 {
-        auto expected = false;
-        for (auto i = N - 1; i >= 0; --i) {
-                if (!lhs.test(i) && rhs.test(i)) { expected = true; break; }
-                if (!rhs.test(i) && lhs.test(i)) {                  break; }
-        }
+	template<int N>
+	auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
+	{
+		auto expected = false;
 
-        auto const value = lhs < rhs;
+		for (auto i = N - 1; i >= 0; --i) {
+		        if (!lhs.test(i) && rhs.test(i)) { expected = true; break; }
+		        if (!rhs.test(i) && lhs.test(i)) {                  break; }
+		}
 
-        BOOST_CHECK_EQUAL(value, expected);
-}
+		BOOST_CHECK_EQUAL(lhs < rhs, expected);
+	}
+};
 
-template<int N>
-auto greater(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+struct greater
 {
-        BOOST_CHECK_EQUAL(lhs > rhs, rhs < lhs);
-}
+	template<int N>
+	auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
+	{
+		BOOST_CHECK_EQUAL(lhs > rhs, rhs < lhs);
+	}
+};
 
-template<int N>
-auto greater_equal(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+struct greater_equal
 {
-        BOOST_CHECK_EQUAL(lhs >= rhs, !(lhs < rhs));
-}
+	template<int N>
+	auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
+	{
+		BOOST_CHECK_EQUAL(lhs >= rhs, !(lhs < rhs));
+	}
+};
 
-template<int N>
-auto less_equal(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+struct less_equal
 {
-        BOOST_CHECK_EQUAL(lhs <= rhs, !(rhs < lhs));
-}
+	template<int N>
+	auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
+	{
+		BOOST_CHECK_EQUAL(lhs <= rhs, !(rhs < lhs));
+	}
+};
 
-template<int N>
-auto is_subset_of_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+struct is_subset_of_
 {
-        auto expected = true;
-        for (auto i = 0; i < N; ++i) {
-                expected &= !lhs.test(i) || rhs.test(i);
-        }
+	template<int N>
+	auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
+	{
+		auto expected = true;
 
-        auto const value = is_subset_of(lhs, rhs);
+		for (auto i = 0; i < N; ++i) {
+		        expected &= !lhs.test(i) || rhs.test(i);
+		}
 
-        BOOST_CHECK_EQUAL(value, expected);
-}
+		BOOST_CHECK_EQUAL(is_subset_of(lhs, rhs), expected);
+	}
+};
 
-template<int N>
-auto is_superset_of_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+struct is_superset_of_
 {
-        BOOST_CHECK_EQUAL(is_superset_of(lhs, rhs), is_subset_of(rhs, lhs));
-}
+	template<int N>
+	auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
+	{
+		BOOST_CHECK_EQUAL(is_superset_of(lhs, rhs), is_subset_of(rhs, lhs));
+	}
+};
 
-template<int N>
-auto is_proper_subset_of_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+struct is_proper_subset_of_
 {
-        BOOST_CHECK_EQUAL(is_proper_subset_of(lhs, rhs), is_subset_of(lhs, rhs) && !is_subset_of(rhs, lhs));
-}
+	template<int N>
+	auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
+	{
+		BOOST_CHECK_EQUAL(is_proper_subset_of(lhs, rhs), is_subset_of(lhs, rhs) && !is_subset_of(rhs, lhs));
+	}
+};
 
-template<int N>
-auto is_proper_superset_of_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+struct is_proper_superset_of_
 {
-        BOOST_CHECK_EQUAL(is_proper_superset_of(lhs, rhs), is_proper_subset_of(rhs, lhs));
-}
+	template<int N>
+	auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
+	{
+		BOOST_CHECK_EQUAL(is_proper_superset_of(lhs, rhs), is_proper_subset_of(rhs, lhs));
+	}
+};
 
 // [bitset.members]/39
 template<int N>
@@ -385,11 +422,10 @@ template<int N>
 auto shift_left(int_set<N> const& is, int n)
 {
         auto expected = is;
+
         expected <<= n;
 
-        auto const value = is << n;
-
-        BOOST_CHECK(value == expected);
+        BOOST_CHECK(is << n == expected);
 }
 
 // [bitset.members]/44
@@ -397,61 +433,68 @@ template<int N>
 auto shift_right(int_set<N> const& is, int n)
 {
         auto expected = is;
+
         expected >>= n;
 
-        auto const value = is >> n;
-
-        BOOST_CHECK(value == expected);
+        BOOST_CHECK(is >> n == expected);
 }
 
 // 20.9.4 bitset operators [bitset.operators]
 
 // [bitset.operators]/1
-template<int N>
-constexpr auto bitand_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+struct bitand_
 {
-        auto expected = lhs;
-        expected &= rhs;
+	template<int N>
+	constexpr auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
+	{
+		auto expected = lhs;
 
-        auto const value = lhs & rhs;
+		expected &= rhs;
 
-        BOOST_CHECK(value == expected);
-}
+		BOOST_CHECK((lhs & rhs) == expected);
+	}
+};
 
 // [bitset.operators]/2
-template<int N>
-constexpr auto bitor_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+struct bitor_
 {
-        auto expected = lhs;
-        expected |= rhs;
+	template<int N>
+	constexpr auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
+	{
+		auto expected = lhs;
 
-        auto const value = lhs | rhs;
+		expected |= rhs;
 
-        BOOST_CHECK(value == expected);
-}
+		BOOST_CHECK((lhs | rhs) == expected);
+	}
+};
 
 // [bitset.operators]/3
-template<int N>
-constexpr auto xor_(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+struct xor_
 {
-        auto expected = lhs;
-        expected ^= rhs;
+	template<int N>
+	constexpr auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
+	{
+		auto expected = lhs;
 
-        auto const value = lhs ^ rhs;
+		expected ^= rhs;
 
-        BOOST_CHECK(value == expected);
-}
+		BOOST_CHECK((lhs ^ rhs) == expected);
+	}
+};
 
-template<int N>
-constexpr auto minus(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+struct minus
 {
-        auto expected = lhs;
-        expected -= rhs;
+	template<int N>
+	constexpr auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
+	{
+		auto expected = lhs;
 
-        auto const value = lhs - rhs;
+		expected -= rhs;
 
-        BOOST_CHECK(value == expected);
-}
+		BOOST_CHECK(lhs - rhs == expected);
+	}
+};
 
 }       // namespace prim
 }       // namespace xstd

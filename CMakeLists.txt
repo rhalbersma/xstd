@@ -41,11 +41,13 @@ target_compile_features(cstdlib INTERFACE
     cxx_relaxed_constexpr
 )
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 # enable 128-bit support
 target_compile_definitions(int_set INTERFACE
     __GLIBCXX_TYPE_INT_N_0=__int128
     __GLIBCXX_BITSIZE_INT_N_0=128
 )
+endif()
 
 # CMake does not (yet) have c++1z compile features
 target_compile_options(int_set INTERFACE
