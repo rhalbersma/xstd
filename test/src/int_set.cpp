@@ -5,7 +5,7 @@
 #include <boost/range/algorithm/adjacent_find.hpp>      // adjacent_find
 #include <boost/range/algorithm_ext/is_sorted.hpp>      // is_sorted
 #include <boost/range/end.hpp>                          // end
-#include <boost/test/unit_test.hpp>                     // BOOST_AUTO_TEST_SUITE, BOOST_CHECK, BOOST_AUTO_TEST_SUITE_END
+#include <boost/test/included/unit_test.hpp>                     // BOOST_AUTO_TEST_SUITE, BOOST_CHECK, BOOST_AUTO_TEST_SUITE_END
 #include <boost/test/test_case_template.hpp>            // BOOST_AUTO_TEST_CASE_TEMPLATE
 #include <functional>                                   // greater, greater_equal, less, less_equal
 #include <initializer_list>                             // initializer_list

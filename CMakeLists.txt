@@ -2,7 +2,7 @@
 # project settings
 ###############################################################
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.8)
 project(xstd CXX)
 
 ###############################################################
@@ -15,43 +15,28 @@ add_library(type_traits INTERFACE)
 
 ###############################################################
 
-target_include_directories(cstddef     INTERFACE include)
-target_include_directories(cstdint     INTERFACE include)
-target_include_directories(cstdlib     INTERFACE include)
-target_include_directories(int_set     INTERFACE include)
-target_include_directories(type_traits INTERFACE include)
+set(project_include_dir
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+	$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
+)
+
+target_include_directories(cstddef     INTERFACE ${project_include_dir})
+target_include_directories(cstdint     INTERFACE ${project_include_dir})
+target_include_directories(cstdlib     INTERFACE ${project_include_dir})
+target_include_directories(int_set     INTERFACE ${project_include_dir})
+target_include_directories(type_traits INTERFACE ${project_include_dir})
 
 ###############################################################
 
-# c++11 compatible
-target_compile_features(cstddef INTERFACE
-    cxx_constexpr
-    cxx_inline_namespaces
-    cxx_user_literals
-)
+target_compile_features(cstddef     INTERFACE cxx_constexpr cxx_inline_namespaces cxx_user_literals)
+target_compile_features(cstdint     INTERFACE cxx_alias_templates)
+target_compile_features(cstdlib     INTERFACE cxx_noexcept cxx_relaxed_constexpr)
+target_compile_features(int_set     INTERFACE cxx_std_17)
+target_compile_features(type_traits INTERFACE cxx_constexpr cxx_noexcept cxx_return_type_deduction)
 
-# c++11 compatible
-target_compile_features(cstdint INTERFACE
-    cxx_alias_templates
-)
+###############################################################
 
-# c++14 compatible
-target_compile_features(cstdlib INTERFACE
-    cxx_noexcept
-    cxx_relaxed_constexpr
-)
-
-# c++17 compatible
-target_compile_features(int_set INTERFACE
-    cxx_std_17
-)
-
-# c++14 compatible
-target_compile_features(type_traits INTERFACE
-    cxx_constexpr
-    cxx_noexcept
-    cxx_return_type_deduction
-)
+#TODO: install()
 
 ###############################################################
 # enable unit testing

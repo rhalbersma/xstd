@@ -1,5 +1,5 @@
 #include <xstd/cstdlib.hpp>             // truncated_div, floored_div, euclidean_div
-#include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_SUITE_END
+#include <boost/test/included/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_SUITE_END
 #include <algorithm>                    // transform
 #include <array>                        // array
 #include <cstdlib>                      // div, div_t
