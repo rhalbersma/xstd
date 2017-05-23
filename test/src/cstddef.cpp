@@ -1,5 +1,5 @@
 #include <xstd/cstddef.hpp>             // _zu, size_t
-#include <boost/test/included/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_CASE, BOOST_CHECK_EQUAL, BOOST_AUTO_TEST_SUITE_END
+#include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_CASE, BOOST_CHECK_EQUAL, BOOST_AUTO_TEST_SUITE_END
 #include <type_traits>                  // is_same
 
 BOOST_AUTO_TEST_SUITE(CStdDef)

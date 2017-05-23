@@ -9,7 +9,8 @@
 #include <limits>               // digits
 #include <numeric>              // accumulate
 #include <tuple>                // tie
-#include <type_traits>          // is_integral, is_pod, is_unsigned
+#include <type_traits>          // is_integral, is_pod, is_unsigned, is_nothrow_swappable
+#include <utility>		// move
 
 namespace xstd {
 namespace builtin {
@@ -192,12 +193,12 @@ class int_set
 
         static constexpr auto static_assert_type_traits() noexcept
         {
-                static_assert(std::is_pod<int_set>{});
+                static_assert(std::is_pod_v<int_set>);
         }
 
         using word_type = unsigned long long;
-        static_assert(std::is_unsigned<word_type>{});
-        static_assert(std::is_integral<word_type>{});
+        static_assert(std::is_unsigned_v<word_type>);
+        static_assert(std::is_integral_v<word_type>);
 
         static constexpr auto word_size = std::numeric_limits<word_type>::digits;
         static constexpr auto num_words = (N - 1 + word_size) / word_size;
@@ -317,7 +318,10 @@ public:
 
                 friend constexpr auto operator==(const_iterator lhs, const_iterator rhs) noexcept
                 {
-                        return lhs.tied() == rhs.tied();
+                	constexpr auto tied = [](auto const& it) {
+	                        return std::tie(it.m_word, it.m_index);
+        	        };
+                        return tied(lhs) == tied(rhs);
                 }
 
                 friend constexpr auto operator!=(const_iterator lhs, const_iterator rhs) noexcept
@@ -444,11 +448,6 @@ public:
                                 assert(m_index < N);
                         }
                 }
-
-                constexpr auto tied() const noexcept
-                {
-                        return std::tie(m_word, m_index);
-                }
         };
 
         using reference              = const_reference;
@@ -474,7 +473,7 @@ public:
                 int_set(ilist.begin(), ilist.end())
         {}
 
-        constexpr int_set& operator=(std::initializer_list<value_type> ilist) // Throws: Nothing.
+        constexpr auto& operator=(std::initializer_list<value_type> ilist) // Throws: Nothing.
         {
                 insert(ilist);
                 return *this;
@@ -551,7 +550,7 @@ public:
                 } else if (num_words >= 2) {
                         // std::accumulate is not constexpr as of C++17
                         auto sum = 0;
-                        for (auto const word : m_words) {
+                        for (auto&& word : m_words) {
                                 sum += builtin::popcount(word);
                         }
                         return sum;
@@ -584,7 +583,7 @@ public:
 
         auto& fill() noexcept
         {
-                /*m_words.*/fill(mask_all);
+                fill(mask_all);
                 sanitize();
                 assert(full());
                 return *this;
@@ -611,8 +610,7 @@ public:
                 }
         }
 
-        // TODO: libstdc++ 6.2 does not provide is_nothrow_swappable
-        auto swap(int_set& other) noexcept // (num_words == 0 || is_nothrow_swappable<value_type>{})
+        auto swap(int_set& other) noexcept(num_words == 0 || std::is_nothrow_swappable_v<value_type>)
         {
                 if constexpr (num_words == 1) {
                         using std::swap;
@@ -648,7 +646,7 @@ public:
                 if constexpr (num_words == 1) {
                         m_words[0] = ~m_words[0];
                 } else if constexpr (num_words >= 2) {
-                        for (auto& word : m_words) {
+                        for (auto&& word : m_words) {
                                 word = ~word;
                         }
                 }
@@ -767,45 +765,45 @@ public:
         }
 
         template<class UnaryFunction>
-        constexpr auto for_each(UnaryFunction f) const
+        constexpr auto for_each(UnaryFunction fun) const
         {
                 if constexpr (num_words == 1) {
                         for (auto word = m_words[0]; word;) {
                                 auto const first = builtin::bsfnz(word);
-                                f(first);
+                                fun(first);
                                 word ^= word_mask(first);
                         }
                 } else if constexpr (num_words >= 2) {
                         for (auto i = 0, offset = 0; i < num_words; ++i, offset += word_size) {
-                                for (auto word = m_words[i]; word;) {
+                                for (auto&& word = m_words[i]; word; /* update inside loop */) {
                                         auto const first = builtin::bsfnz(word);
-                                        f(offset + first);
+                                        fun(offset + first);
                                         word ^= word_mask(first);
                                 }
                         }
                 }
-                return std::move(f);
+                return std::move(fun);
         }
 
         template<class UnaryFunction>
-        constexpr auto reverse_for_each(UnaryFunction f) const
+        constexpr auto reverse_for_each(UnaryFunction fun) const
         {
                 if constexpr (num_words == 1) {
-                        for (auto word = m_words[0]; word;) {
+                        for (auto&& word = m_words[0]; word;) {
                                 auto const last = builtin::bsrnz(word);
-                                f(last);
+                                fun(last);
                                 word ^= word_mask(last);
                         }
                 } else if constexpr (num_words >= 2) {
                         for (auto i = num_words - 1, offset = (size() - 1) * word_size; i >= 0; --i, offset -= word_size) {
-                                for (auto word = m_words[i]; word;) {
+                                for (auto&& word = m_words[i]; word; /* update inside loop */) {
                                         auto const last = builtin::bsrnz(word);
-                                        f(offset + last);
+                                        fun(offset + last);
                                         word ^= word_mask(last);
                                 }
                         }
                 }
-                return std::move(f);
+                return std::move(fun);
         }
 
 private:
@@ -870,7 +868,12 @@ auto operator==(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
                 return true;
         } else if constexpr (num_words == 1) {
                 return lhs.m_words[0] == rhs.m_words[0];
-        } else if constexpr (num_words >= 2) {
+	} else if constexpr (num_words == 2) {
+		constexpr auto tied = [](auto const& is) { 
+			return std::tie(is.m_words[0], is.m_words[1]); 
+		};
+		return tied(lhs) == tied(rhs);
+        } else if constexpr (num_words > 2) {
                 using std::cbegin; using std::cend;
                 return std::equal(cbegin(lhs.m_words), cend(lhs.m_words), cbegin(rhs.m_words), cend(rhs.m_words));
         }
@@ -890,7 +893,12 @@ auto operator<(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
                 return false;
         } else if constexpr (num_words == 1) {
                 return lhs.m_words[0] < rhs.m_words[0];
-        } else if constexpr (num_words >= 2) {
+	} else if constexpr (num_words == 2) {
+		constexpr auto tied = [](auto const& is) { 
+			return std::tie(is.m_words[0], is.m_words[1]); 
+		};
+		return tied(lhs) < tied(rhs);
+        } else if constexpr (num_words > 2) {
                 using std::crbegin; using std::crend;
                 return std::lexicographical_compare(crbegin(lhs.m_words), crend(lhs.m_words), crbegin(rhs.m_words), crend(rhs.m_words));
         }

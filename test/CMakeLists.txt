@@ -2,9 +2,9 @@
 # use the Boost.Test unit test framework
 ###############################################################
 
-find_package(Boost 1.64.0 REQUIRED COMPONENTS unit_test_framework)
-
-add_library(boost INTERFACE IMPORTED)
+find_package(Boost 1.64.0 REQUIRED COMPONENTS 
+        unit_test_framework
+)
 
 list(APPEND cxx_compile_definitions_boost_test 
         BOOST_TEST_DYN_LINK 
@@ -33,6 +33,11 @@ list(APPEND cxx_compile_options_warnings_general
                 -Wall
                 -Wextra
                 -Wpedantic
+                -Wconversion                
+                -Wshadow
+                -Wsign-compare 
+                -Wsign-conversion 
+                -Wsign-promo                
         >
         -Werror 
         -pedantic-errors  
@@ -40,7 +45,7 @@ list(APPEND cxx_compile_options_warnings_general
 
 list(APPEND cxx_compile_options_optimization 
         -g
-        -O3
+        -O0
         -flto 
         -march=native 
         -mtune=native
@@ -70,7 +75,7 @@ foreach(t ${tests})
 
         target_link_libraries(test.${t} PRIVATE
                 ${t} 
-                boost
+                ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
                 ${cxx_linker_optimization_flags}
         )
 
