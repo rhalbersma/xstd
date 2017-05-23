@@ -768,7 +768,7 @@ public:
         constexpr auto for_each(UnaryFunction fun) const
         {
                 if constexpr (num_words == 1) {
-                        for (auto word = m_words[0]; word;) {
+                        for (auto word = m_words[0]; word; /* update inside loop */) {
                                 auto const first = builtin::bsfnz(word);
                                 fun(first);
                                 word ^= word_mask(first);
@@ -789,7 +789,7 @@ public:
         constexpr auto reverse_for_each(UnaryFunction fun) const
         {
                 if constexpr (num_words == 1) {
-                        for (auto&& word = m_words[0]; word;) {
+                        for (auto&& word = m_words[0]; word; /* update inside loop */) {
                                 auto const last = builtin::bsrnz(word);
                                 fun(last);
                                 word ^= word_mask(last);
