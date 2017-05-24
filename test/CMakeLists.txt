@@ -27,7 +27,7 @@ list(APPEND cxx_compile_options_warnings_general
                 -Weverything 
                 -Wno-c++98-compat 
                 -Wno-c++98-compat-pedantic      
-                -Wno-padded
+                -Wno-error=padded
         >
         $<$<CXX_COMPILER_ID:GNU>:
                 -Wall
@@ -45,7 +45,7 @@ list(APPEND cxx_compile_options_warnings_general
 
 list(APPEND cxx_compile_options_optimization 
         -g
-        -O0
+        -O3
         -flto 
         -march=native 
         -mtune=native
@@ -66,11 +66,13 @@ list(APPEND tests
         int_set
 )
 
+set(test_include_dir ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 foreach(t ${tests})
         add_executable(test.${t} src/${t}.cpp)
 
         target_include_directories(test.${t} PRIVATE
-                include
+                ${test_include_dir}
         )
 
         target_link_libraries(test.${t} PRIVATE

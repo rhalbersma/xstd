@@ -775,7 +775,7 @@ public:
                         }
                 } else if constexpr (num_words >= 2) {
                         for (auto i = 0, offset = 0; i < num_words; ++i, offset += word_size) {
-                                for (auto&& word = m_words[i]; word; /* update inside loop */) {
+                                for (auto word = m_words[i]; word; /* update inside loop */) {
                                         auto const first = builtin::bsfnz(word);
                                         fun(offset + first);
                                         word ^= word_mask(first);
@@ -789,14 +789,14 @@ public:
         constexpr auto reverse_for_each(UnaryFunction fun) const
         {
                 if constexpr (num_words == 1) {
-                        for (auto&& word = m_words[0]; word; /* update inside loop */) {
+                        for (auto word = m_words[0]; word; /* update inside loop */) {
                                 auto const last = builtin::bsrnz(word);
                                 fun(last);
                                 word ^= word_mask(last);
                         }
                 } else if constexpr (num_words >= 2) {
                         for (auto i = num_words - 1, offset = (size() - 1) * word_size; i >= 0; --i, offset -= word_size) {
-                                for (auto&& word = m_words[i]; word; /* update inside loop */) {
+                                for (auto word = m_words[i]; word; /* update inside loop */) {
                                         auto const last = builtin::bsrnz(word);
                                         fun(offset + last);
                                         word ^= word_mask(last);

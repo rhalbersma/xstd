@@ -2,8 +2,13 @@
 # project settings
 ###############################################################
 
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.5)
 project(xstd CXX)
+
+set(project_include_dir
+	$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+	$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
+)
 
 ###############################################################
 
@@ -14,11 +19,6 @@ add_library(int_set     INTERFACE)
 add_library(type_traits INTERFACE)
 
 ###############################################################
-
-set(project_include_dir
-	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-	$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
-)
 
 target_include_directories(cstddef     INTERFACE ${project_include_dir})
 target_include_directories(cstdint     INTERFACE ${project_include_dir})
