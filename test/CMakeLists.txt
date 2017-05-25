@@ -81,7 +81,7 @@ foreach(t ${tests})
                 ${cxx_linker_optimization_flags}
         )
 
-        target_compile_definitions(test.${t} PRIVATE 
+        target_compile_definitions(test.${t} PRIVATE
                 ${cxx_compile_definitions_boost_test}
         )
 
