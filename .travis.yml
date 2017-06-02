@@ -9,6 +9,11 @@ addons:
     - ubuntu-toolchain-r-test
     packages:
     - g++-7
+    - libboost-test-dev
+
+install:
+  - sudo update-alternatives --remove-all g++
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 10
 
 script: 
   - (mkdir build && cd build && cmake ..)
