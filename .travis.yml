@@ -21,7 +21,7 @@ install:
 - tar xzf cmake-3.8.2.tar.gz
 - cd cmake-3.8.2/
 - ./bootstrap
-- make --quiet -j10
+- make
 - sudo make install
 
 before_script:
@@ -29,5 +29,8 @@ before_script:
 
 script: 
 - cd ${TRAVIS_BUILD_DIR}
-- (mkdir build && cd build && cmake .. && make)
+- mkdir build
+- cd build 
+- cmake .. 
+- make
 - ctest
