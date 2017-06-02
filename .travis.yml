@@ -11,10 +11,9 @@ addons:
     - g++-7
     - libboost-test-dev
 
-install:
-  - sudo update-alternatives --remove-all g++
-  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 10
+before_script:
+- sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 90
 
 script: 
-  - (mkdir build && cd build && cmake ..)
-  - ctest
+- (mkdir build && cd build && cmake ..)
+- ctest
