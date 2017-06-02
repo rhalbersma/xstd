@@ -11,9 +11,6 @@ namespace detail {
 template<class T, int N>
 constexpr auto is_representable_v = N <= (std::numeric_limits<T>::max() + 1);
 
-template<class T, int N>
-using is_representable_t = std::bool_constant<is_representable_v<T, N>>;
-
 template<int, class = void>
 struct uint;
 
