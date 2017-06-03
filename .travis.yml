@@ -8,15 +8,15 @@ addons:
 
 matrix:
   include:
-    -os: linux
+    - os: linux
       addons:
         apt:
           sources:
           - ubuntu-toolchain-r-test
           packages:
           - g++-7
-      env: CXX_COMPILER='g++-7'
-    -os: linux
+      env: MATRIX_EVAL="CXX_COMPILER=g++-7"
+    - os: linux
       addons:
         apt:
           sources:
@@ -24,7 +24,7 @@ matrix:
             key_url: 'http://apt.llvm.org/llvm-snapshot.gpg.key'   
           packages:
           - clang-5.0
-      env: CXX_COMPILER='clang++-5.0'    
+      env: MATRIX_EVAL="CXX_COMPILER=clang++-5.0"    
 
 install:
 
