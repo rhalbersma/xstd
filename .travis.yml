@@ -1,11 +1,6 @@
 dist: trusty
 language: cpp
 
-addons:
-  apt:
-    packages:
-    - libboost-test-dev
-
 matrix:
   include:
     - os: linux
@@ -15,7 +10,8 @@ matrix:
           - ubuntu-toolchain-r-test
           packages:
           - g++-7
-      env: MATRIX_EVAL="CXX_COMPILER=g++-7"
+          - libboost-test-dev
+      env: MATRIX_EVAL="GCC_VERSION=7"
     - os: linux
       addons:
         apt:
@@ -24,10 +20,18 @@ matrix:
             key_url: 'http://apt.llvm.org/llvm-snapshot.gpg.key'   
           packages:
           - clang-5.0
-      env: MATRIX_EVAL="CXX_COMPILER=clang++-5.0"    
+          - libboost-test-dev
+      env: MATRIX_EVAL="CLANG_VERSION=3.7"    
+
+before_install:
+- eval "${MATRIX_EVAL}"
 
 install:
-
+- |
+  if [[ -n "$GCC_VERSION"   ]]; then export CXX=g++-$GCC_VERSION;       fi
+  if [[ -n "$CLANG_VERSION" ]]; then export CXX=clang++-$CLANG_VERSION; fi
+  JOBS=2
+  
 ################################################################################
 # All the dependencies are installed in ${TRAVIS_BUILD_DIR}/deps/
 ################################################################################
@@ -43,11 +47,14 @@ install:
   mkdir cmake && travis_retry wget --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
   export PATH=${DEPS_DIR}/cmake/bin:${PATH}ll
   cmake --version
- 
-script: 
+
+before_script:
 - |
   cd ${TRAVIS_BUILD_DIR}
   mkdir build && cd build
   cmake .. 
-  make
+ 
+script: 
+- |
+  make -j${JOBS}
   ctest
