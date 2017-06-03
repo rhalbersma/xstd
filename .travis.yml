@@ -21,7 +21,7 @@ matrix:
           packages:
           - clang-5.0
           - libboost-test-dev
-      env: MATRIX_EVAL="CLANG_VERSION=3.7"    
+      env: MATRIX_EVAL="CLANG_VERSION=5.0"    
 
 before_install:
 - eval "${MATRIX_EVAL}"
