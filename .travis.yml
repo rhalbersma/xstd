@@ -1,26 +1,22 @@
 dist: trusty
 language: cpp
 
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty main'
+      key_url: 'http://apt.llvm.org/llvm-snapshot.gpg.key'   
+    packages:
+    - clang-5.0
+    - g++-7
+    - libboost-test-dev
+
 matrix:
   include:
     - os: linux
-      addons:
-        apt:
-          sources:
-          - ubuntu-toolchain-r-test
-          packages:
-          - g++-7
-          - libboost-test-dev
       env: MATRIX_EVAL="GCC_VERSION=7"
     - os: linux
-      addons:
-        apt:
-          sources:
-          - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty main'
-            key_url: 'http://apt.llvm.org/llvm-snapshot.gpg.key'   
-          packages:
-          - clang-5.0
-          - libboost-test-dev
       env: MATRIX_EVAL="CLANG_VERSION=5.0"    
 
 before_install:
