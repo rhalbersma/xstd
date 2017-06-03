@@ -10,7 +10,7 @@ matrix:
   include:
     -os: linux
       compiler: gcc
-      addons:
+      addons: &gcc7
         apt:
           sources:
           - ubuntu-toolchain-r-test
@@ -19,7 +19,7 @@ matrix:
       env: CXX_COMPILER='g++-7'
     -os: linux
       compiler: clang
-      addons:
+      addons: &clang5
         apt:
           sources:
           - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty main'
