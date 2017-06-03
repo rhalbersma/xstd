@@ -1,5 +1,11 @@
+os: linux
 dist: trusty
 language: cpp
+env:
+- CXX_COMPILER=g++-7       BUILD_TYPE=Debug
+- CXX_COMPILER=g++-7       BUILD_TYPE=Release
+- CXX_COMPILER=clang++-5.0 BUILD_TYPE=Debug    
+- CXX_COMPILER=clang++-5.0 BUILD_TYPE=Release   
 
 addons:
   apt:
@@ -13,17 +19,6 @@ addons:
     - lldb-5.0 
     - lld-5.0
     - libboost-test-dev
-
-matrix:
-  include:
-    - os: linux
-      env: CXX_COMPILER=g++-7 BUILD_TYPE=Debug
-    - os: linux
-      env: CXX_COMPILER=g++-7 BUILD_TYPE=Release
-    - os: linux
-      env: CXX_COMPILER=clang++-5.0 BUILD_TYPE=Debug    
-    - os: linux
-      env: CXX_COMPILER=clang++-5.0 BUILD_TYPE=Release   
 
 install:
   
@@ -40,20 +35,8 @@ install:
 - |
   CMAKE_URL="http://www.cmake.org/files/v3.8/cmake-3.8.2-Linux-x86_64.tar.gz"
   mkdir cmake && travis_retry wget --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
-  export PATH=${DEPS_DIR}/cmake/bin:${PATH}ll
+  export PATH=${DEPS_DIR}/cmake/bin:${PATH}
   cmake --version
-#  if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
-#    wget https://cmake.org/files/v3.8/cmake-3.8.2-Linux-x86_64.sh
-#    chmod +x cmake-3.8.2-Linux-x86_64.sh
-#    sudo ./cmake-3.8.2-Linux-x86_64.sh --prefix=/usr/local --skip-license
-#  fi
-#  if [[ "${TRAVIS_OS_NAME}" == "osx" ]]; then
-#    wget https://cmake.org/files/v3.8/cmake-3.8.2-Darwin-x86_64.dmg
-#    sudo hdiutil attach cmake-3.8.2-Darwin-x86_64.dmg
-#    cd /Volumes/cmake-3.8.2/
-#    sudo installer -pkg cmake-3.8.2.pkg -target /
-#    sudo hdiutil detach /Volumes/cmake-3.8.2/.
-#  fi
   
 before_script:
 - |
