@@ -8,8 +8,10 @@ addons:
     - sourceline: 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty main'
       key_url: 'http://apt.llvm.org/llvm-snapshot.gpg.key'   
     packages:
-    - clang-5.0
     - g++-7
+    - clang-5.0 
+    - lldb-5.0 
+    - lld-5.0
     - libboost-test-dev
 
 matrix:
