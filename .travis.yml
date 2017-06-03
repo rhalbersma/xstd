@@ -1,9 +1,5 @@
-os: linux
 dist: trusty
 language: cpp
-compiler: 
-- gcc
-- clang
 
 addons:
   apt:
@@ -15,6 +11,15 @@ addons:
     - g++-7
     - clang-5.0
     - libboost-test-dev
+
+matrix:
+  include:
+    -os: linux
+      compiler: gcc
+      env: CXX_COMPILER='g++-7'
+    -os: linux
+      compiler: clang
+      env: CXX_COMPILER='clang++-5.0'    
 
 install:
 
@@ -34,17 +39,6 @@ install:
   export PATH=${DEPS_DIR}/cmake/bin:${PATH}ll
   cmake --version
  
-before_script:
-- |
-  sudo update-alternatives --install /usr/bin/g++     g++     /usr/bin/g++-7       90
-  sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-5.0 90
-  sudo update-alternatives --display g++
-  sudo update-alternatives --display clang++
-  sudo update-alternatives --auto g++
-  sudo update-alternatives --auto clang++
-  g++ --version
-  clang++ --version
-
 script: 
 - |
   cd ${TRAVIS_BUILD_DIR}
