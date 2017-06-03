@@ -35,8 +35,11 @@ install:
   cmake --version
  
 before_script:
-- sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 90
-- sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-5.0 90
+- |
+  sudo update-alternatives --install /usr/bin/g++     g++     /usr/bin/g++-7       90
+  sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-5.0 90
+  g++ --version
+  clang++ --version
 
 script: 
 - |
