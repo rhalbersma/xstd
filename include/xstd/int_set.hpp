@@ -12,6 +12,8 @@
 #include <type_traits>          // is_integral, is_pod, is_unsigned, is_nothrow_swappable
 #include <utility>		// move
 
+#define PP_STL_CONSTEXPR_INCOMPLETE
+
 namespace xstd {
 namespace builtin {
 namespace detail {
@@ -181,10 +183,10 @@ constexpr auto bsr(T x)
 template<int>
 class int_set;
 
-template<int N> auto operator==  (int_set<N> const&, int_set<N> const&) noexcept;
-template<int N> auto operator<   (int_set<N> const&, int_set<N> const&) noexcept;
-template<int N> auto intersects  (int_set<N> const&, int_set<N> const&) noexcept;
-template<int N> auto is_subset_of(int_set<N> const&, int_set<N> const&) noexcept;
+template<int N> PP_STL_CONSTEXPR_INCOMPLETE auto operator==  (int_set<N> const&, int_set<N> const&) noexcept;
+template<int N> PP_STL_CONSTEXPR_INCOMPLETE auto operator<   (int_set<N> const&, int_set<N> const&) noexcept;
+template<int N> PP_STL_CONSTEXPR_INCOMPLETE auto intersects  (int_set<N> const&, int_set<N> const&) noexcept;
+template<int N> PP_STL_CONSTEXPR_INCOMPLETE auto is_subset_of(int_set<N> const&, int_set<N> const&) noexcept;
 
 template<int N>
 class int_set
@@ -494,12 +496,12 @@ public:
         constexpr auto crbegin() const noexcept { return const_reverse_iterator{rbegin()}; }
         constexpr auto crend()   const noexcept { return const_reverse_iterator{rend()};   }
 
-        auto data() const noexcept
+        constexpr auto data() const noexcept
         {
                 return &m_words[0];
         }
 
-        auto empty() const noexcept
+        PP_STL_CONSTEXPR_INCOMPLETE auto empty() const noexcept
         {
                 if constexpr (num_words == 0) {
                         return true;
@@ -513,7 +515,7 @@ public:
                 }
         }
 
-        auto full() const noexcept
+        PP_STL_CONSTEXPR_INCOMPLETE auto full() const noexcept
         {
                 if constexpr (excess_bits == 0) {
                         if constexpr (num_words == 0) {
@@ -581,7 +583,7 @@ public:
                 insert(ilist.begin(), ilist.end());
         }
 
-        auto& fill() noexcept
+        PP_STL_CONSTEXPR_INCOMPLETE auto& fill() noexcept
         {
                 fill(mask_all);
                 sanitize();
@@ -610,7 +612,7 @@ public:
                 }
         }
 
-        auto swap(int_set& other) noexcept(num_words == 0 || std::is_nothrow_swappable_v<value_type>)
+        PP_STL_CONSTEXPR_INCOMPLETE auto swap(int_set& other) noexcept(num_words == 0 || std::is_nothrow_swappable_v<value_type>)
         {
                 if constexpr (num_words == 1) {
                         using std::swap;
@@ -621,7 +623,7 @@ public:
                 }
         }
 
-        auto clear() noexcept
+        PP_STL_CONSTEXPR_INCOMPLETE auto clear() noexcept
         {
                 fill(mask_none);
                 assert(empty());
@@ -702,7 +704,7 @@ public:
                 return *this;
         }
 
-        auto& operator<<=(size_type const n) // Throws: Nothing.
+        PP_STL_CONSTEXPR_INCOMPLETE auto& operator<<=(size_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
@@ -733,7 +735,7 @@ public:
                 return *this;
         }
 
-        auto& operator>>=(size_type const n) // Throws: Nothing.
+        PP_STL_CONSTEXPR_INCOMPLETE auto& operator>>=(size_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
@@ -811,7 +813,7 @@ private:
         static constexpr auto mask_one  =  static_cast<word_type>(1);
         static constexpr auto mask_all  = ~static_cast<word_type>(0);
 
-        auto fill(word_type const& u) noexcept
+        PP_STL_CONSTEXPR_INCOMPLETE auto fill(word_type const& u) noexcept
         {
                 if constexpr (num_words == 1) {
                         m_words[0] = u;
@@ -854,14 +856,14 @@ private:
                 }
         }
 
-        friend auto operator==    <>(int_set const&, int_set const&) noexcept;
-        friend auto operator<     <>(int_set const&, int_set const&) noexcept;
-        friend auto intersects    <>(int_set const&, int_set const&) noexcept;
-        friend auto is_subset_of  <>(int_set const&, int_set const&) noexcept;
+        friend PP_STL_CONSTEXPR_INCOMPLETE auto operator==    <>(int_set const&, int_set const&) noexcept;
+        friend PP_STL_CONSTEXPR_INCOMPLETE auto operator<     <>(int_set const&, int_set const&) noexcept;
+        friend PP_STL_CONSTEXPR_INCOMPLETE auto intersects    <>(int_set const&, int_set const&) noexcept;
+        friend PP_STL_CONSTEXPR_INCOMPLETE auto is_subset_of  <>(int_set const&, int_set const&) noexcept;
 };
 
 template<int N>
-auto operator==(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+PP_STL_CONSTEXPR_INCOMPLETE auto operator==(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         static constexpr auto num_words = int_set<N>::num_words;
         if constexpr (num_words == 0) {
@@ -880,13 +882,13 @@ auto operator==(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 }
 
 template<int N>
-auto operator!=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+PP_STL_CONSTEXPR_INCOMPLETE auto operator!=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         return !(lhs == rhs);
 }
 
 template<int N>
-auto operator<(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+PP_STL_CONSTEXPR_INCOMPLETE auto operator<(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         static constexpr auto num_words = int_set<N>::num_words;
         if constexpr (num_words == 0) {
@@ -905,25 +907,25 @@ auto operator<(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 }
 
 template<int N>
-auto operator>(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+PP_STL_CONSTEXPR_INCOMPLETE auto operator>(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         return rhs < lhs;
 }
 
 template<int N>
-auto operator>=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+PP_STL_CONSTEXPR_INCOMPLETE auto operator>=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         return !(lhs < rhs);
 }
 
 template<int N>
-auto operator<=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+PP_STL_CONSTEXPR_INCOMPLETE auto operator<=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         return !(rhs < lhs);
 }
 
 template<int N>
-auto swap(int_set<N>& lhs, int_set<N>& rhs) noexcept(noexcept(lhs.swap(rhs)))
+PP_STL_CONSTEXPR_INCOMPLETE auto swap(int_set<N>& lhs, int_set<N>& rhs) noexcept(noexcept(lhs.swap(rhs)))
 {
         lhs.swap(rhs);
 }
@@ -959,14 +961,14 @@ constexpr auto operator-(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 }
 
 template<int N>
-auto operator<<(int_set<N> const& lhs, int const n) // Throws: Nothing.
+PP_STL_CONSTEXPR_INCOMPLETE auto operator<<(int_set<N> const& lhs, int const n) // Throws: Nothing.
 {
         assert(0 <= n); assert(n < N);
         auto nrv{lhs}; nrv <<= n; return nrv;
 }
 
 template<int N>
-auto operator>>(int_set<N> const& lhs, int const n) // Throws: Nothing.
+PP_STL_CONSTEXPR_INCOMPLETE auto operator>>(int_set<N> const& lhs, int const n) // Throws: Nothing.
 {
         assert(0 <= n); assert(n < N);
         auto nrv{lhs}; nrv >>= n; return nrv;
@@ -1003,21 +1005,21 @@ constexpr auto set_difference(int_set<N> const& lhs, int_set<N> const& rhs) noex
 }
 
 template<int N>
-auto set_transform_plus(int_set<N> const& lhs, int const n) // Throws: Nothing.
+PP_STL_CONSTEXPR_INCOMPLETE auto set_transform_plus(int_set<N> const& lhs, int const n) // Throws: Nothing.
 {
         assert(0 <= n); assert(n < N);
         return lhs << n;
 }
 
 template<int N>
-auto set_transform_minus(int_set<N> const& lhs, int const n) // Throws: Nothing.
+PP_STL_CONSTEXPR_INCOMPLETE auto set_transform_minus(int_set<N> const& lhs, int const n) // Throws: Nothing.
 {
         assert(0 <= n); assert(n < N);
         return lhs >> n;
 }
 
 template<int N>
-auto intersects(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+PP_STL_CONSTEXPR_INCOMPLETE auto intersects(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         static constexpr auto num_words = int_set<N>::num_words;
         if constexpr (num_words == 0) {
@@ -1033,13 +1035,13 @@ auto intersects(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 }
 
 template<int N>
-auto disjoint(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+PP_STL_CONSTEXPR_INCOMPLETE auto disjoint(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         return !intersects(lhs, rhs);
 }
 
 template<int N>
-auto is_subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+PP_STL_CONSTEXPR_INCOMPLETE auto is_subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         static constexpr auto num_words = int_set<N>::num_words;
         if constexpr (num_words == 0) {
@@ -1055,19 +1057,19 @@ auto is_subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 }
 
 template<int N>
-auto is_superset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+PP_STL_CONSTEXPR_INCOMPLETE auto is_superset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         return is_subset_of(rhs, lhs);
 }
 
 template<int N>
-auto is_proper_subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+PP_STL_CONSTEXPR_INCOMPLETE auto is_proper_subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         return is_subset_of(lhs, rhs) && !is_subset_of(rhs, lhs);
 }
 
 template<int N>
-auto is_proper_superset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+PP_STL_CONSTEXPR_INCOMPLETE auto is_proper_superset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         return is_superset_of(lhs, rhs) && !is_superset_of(rhs, lhs);
 }
@@ -1184,3 +1186,6 @@ constexpr auto data(int_set<N> const& is)
 }
 
 }       // namespace xstd
+
+#undef PP_STL_CONSTEXPR_INCOMPLETE
+
