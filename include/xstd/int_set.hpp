@@ -193,7 +193,7 @@ class int_set
 {
         static_assert(0 <= N);
 
-        static constexpr auto static_assert_type_traits() noexcept
+        constexpr static auto static_assert_type_traits() noexcept
         {
                 static_assert(std::is_pod_v<int_set>);
         }
@@ -202,10 +202,10 @@ class int_set
         static_assert(std::is_unsigned_v<word_type>);
         static_assert(std::is_integral_v<word_type>);
 
-        static constexpr auto word_size = std::numeric_limits<word_type>::digits;
-        static constexpr auto num_words = (N - 1 + word_size) / word_size;
-        static constexpr auto num_bits = num_words * word_size;
-        static constexpr auto excess_bits = num_bits - N;
+        constexpr static auto word_size = std::numeric_limits<word_type>::digits;
+        constexpr static auto num_words = (N - 1 + word_size) / word_size;
+        constexpr static auto num_bits = num_words * word_size;
+        constexpr static auto excess_bits = num_bits - N;
 
         word_type m_words[num_words ? num_words : 1];
 public:
@@ -559,8 +559,8 @@ public:
                 }
         }
 
-        static constexpr auto max_size() noexcept { return N;  }
-        static constexpr auto capacity() noexcept { return num_bits; }
+        constexpr static auto max_size() noexcept { return N;  }
+        constexpr static auto capacity() noexcept { return num_bits; }
 
         constexpr auto& insert(value_type const n) // Throws: Nothing.
         {
@@ -809,9 +809,9 @@ public:
         }
 
 private:
-        static constexpr auto mask_none =  static_cast<word_type>(0);
-        static constexpr auto mask_one  =  static_cast<word_type>(1);
-        static constexpr auto mask_all  = ~static_cast<word_type>(0);
+        constexpr static auto mask_none =  static_cast<word_type>(0);
+        constexpr static auto mask_one  =  static_cast<word_type>(1);
+        constexpr static auto mask_all  = ~static_cast<word_type>(0);
 
         PP_STL_CONSTEXPR_INCOMPLETE auto fill(word_type const& u) noexcept
         {
@@ -823,7 +823,7 @@ private:
                 }
         }
 
-        static constexpr auto which(value_type const n) // Throws: Nothing.
+        constexpr static auto which(value_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
@@ -833,7 +833,7 @@ private:
                 }
         }
 
-        static constexpr auto where(value_type const n) // Throws: Nothing.
+        constexpr static auto where(value_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
@@ -843,7 +843,7 @@ private:
                 }
         }
 
-        static constexpr auto word_mask(value_type const n) // Throws: Nothing.
+        constexpr static auto word_mask(value_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < word_size);
                 return mask_one << n;
@@ -865,7 +865,7 @@ private:
 template<int N>
 PP_STL_CONSTEXPR_INCOMPLETE auto operator==(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        static constexpr auto num_words = int_set<N>::num_words;
+        constexpr auto num_words = int_set<N>::num_words;
         if constexpr (num_words == 0) {
                 return true;
         } else if constexpr (num_words == 1) {
@@ -890,7 +890,7 @@ PP_STL_CONSTEXPR_INCOMPLETE auto operator!=(int_set<N> const& lhs, int_set<N> co
 template<int N>
 PP_STL_CONSTEXPR_INCOMPLETE auto operator<(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        static constexpr auto num_words = int_set<N>::num_words;
+        constexpr auto num_words = int_set<N>::num_words;
         if constexpr (num_words == 0) {
                 return false;
         } else if constexpr (num_words == 1) {
@@ -1021,7 +1021,7 @@ PP_STL_CONSTEXPR_INCOMPLETE auto set_transform_minus(int_set<N> const& lhs, int 
 template<int N>
 PP_STL_CONSTEXPR_INCOMPLETE auto intersects(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        static constexpr auto num_words = int_set<N>::num_words;
+        constexpr static auto num_words = int_set<N>::num_words;
         if constexpr (num_words == 0) {
                 return false;
         } else if constexpr (num_words == 1) {
@@ -1043,7 +1043,7 @@ PP_STL_CONSTEXPR_INCOMPLETE auto disjoint(int_set<N> const& lhs, int_set<N> cons
 template<int N>
 PP_STL_CONSTEXPR_INCOMPLETE auto is_subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        static constexpr auto num_words = int_set<N>::num_words;
+        constexpr static auto num_words = int_set<N>::num_words;
         if constexpr (num_words == 0) {
                 return true;
         } else if constexpr (num_words == 1) {
