@@ -2,7 +2,7 @@
 # use the Boost.Test unit test framework
 ###############################################################
 
-find_package(Boost 1.54.0 REQUIRED COMPONENTS 
+find_package(Boost 1.64.0 REQUIRED COMPONENTS 
         unit_test_framework
 )
 
