@@ -256,7 +256,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(IsStrictlyIncreasing, T, SetTypes2)
         BOOST_CHECK(boost::adjacent_find(b           , std::greater_equal<>{}) == boost:: end(b));
         BOOST_CHECK(boost::adjacent_find(b | reversed, std::   less_equal<>{}) == boost::rend(b));
 }
-
+/*
 BOOST_AUTO_TEST_CASE_TEMPLATE(ForwardIterationTraversesRange, T, SetTypes2)
 {
         // arrange
@@ -304,5 +304,5 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(ReverseBackwardIterationTraversesRange, T, SetType
         // assert
         BOOST_CHECK(it.base() == end(b));
 }
-
+*/
 BOOST_AUTO_TEST_SUITE_END()
