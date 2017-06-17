@@ -7,10 +7,6 @@ env:
 - CXX_COMPILER=clang++-5.0 BUILD_TYPE=Debug    
 - CXX_COMPILER=clang++-5.0 BUILD_TYPE=Release   
 
-cache:
-  directories:
-    - ${TRAVIS_BUILD_DIR}/../deps/boost-1.64.0
-
 before_install:
 - |
   sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
