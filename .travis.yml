@@ -7,6 +7,10 @@ env:
 - CXX_COMPILER=clang++-5.0 BUILD_TYPE=Debug    
 - CXX_COMPILER=clang++-5.0 BUILD_TYPE=Release   
 
+cache:
+  directories:
+    - ${TRAVIS_BUILD_DIR}/../deps/boost-1.64.0
+
 before_install:
 - |
   sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
@@ -41,8 +45,8 @@ install:
 - |
   cd ${DEPS_DIR}
   BOOST_URL="https://dl.bintray.com/boostorg/release/1.64.0/source/boost_1_64_0.tar.bz2"
-  mkdir boost && travis_retry wget --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xj -C boost
-  cd boost && ./bootstrap.sh --with-libraries=test && sudo ./b2 -d0 install
+  mkdir boost-1.64.0 && travis_retry wget --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xj -C boost-1.64.0
+  cd boost-1.64.0 && ./bootstrap.sh --with-libraries=test && sudo ./b2 -d0 install
 
 ################################################################################
 # Install the latest CMake
