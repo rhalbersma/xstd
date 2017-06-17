@@ -63,3 +63,4 @@ script:
 - |
   make -j2
   ctest
+  test/test.int_set --report_level=detailed
