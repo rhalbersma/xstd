@@ -1,6 +1,7 @@
 Extensions to the C++ Standard Library
 ======================================
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/f4e1f0eb7cbd471b8f40489ddc3d5100)](https://www.codacy.com/app/rhalbersma/xstd?utm_source=github.com&utm_medium=referral&utm_content=rhalbersma/xstd&utm_campaign=badger)
 [![Language](https://img.shields.io/badge/language-C++-blue.svg)](https://isocpp.org/) 
 [![Standard](https://img.shields.io/badge/c%2B%2B-17-blue.svg)](https://en.wikipedia.org/wiki/C%2B%2B#Standardization) 
 [![License](https://img.shields.io/badge/license-Boost-blue.svg)](https://opensource.org/licenses/BSL-1.0) 
