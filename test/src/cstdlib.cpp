@@ -32,11 +32,11 @@ BOOST_AUTO_TEST_CASE(IsPowerOfTwo)
         BOOST_CHECK(xstd::is_power_of_2(4));
         BOOST_CHECK(xstd::is_power_of_2(8));
 
-        BOOST_CHECK(!xstd::is_power_of_2(0));
-        BOOST_CHECK(!xstd::is_power_of_2(3));
-        BOOST_CHECK(!xstd::is_power_of_2(5));
-        BOOST_CHECK(!xstd::is_power_of_2(6));
-        BOOST_CHECK(!xstd::is_power_of_2(~0u));
+        BOOST_CHECK(not xstd::is_power_of_2(0));
+        BOOST_CHECK(not xstd::is_power_of_2(3));
+        BOOST_CHECK(not xstd::is_power_of_2(5));
+        BOOST_CHECK(not xstd::is_power_of_2(6));
+        BOOST_CHECK(not xstd::is_power_of_2(~0u));
 }
 
 BOOST_AUTO_TEST_CASE(AlignOn)

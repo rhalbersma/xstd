@@ -46,7 +46,7 @@ constexpr bool operator==(div_t const& lhs, div_t const& rhs) noexcept
 
 constexpr bool operator!=(div_t const& lhs, div_t const& rhs) noexcept
 {
-        return !(lhs == rhs);
+        return not (lhs == rhs);
 }
 
 // C++ Standard [expr.mul]/4

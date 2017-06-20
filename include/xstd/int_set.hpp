@@ -334,7 +334,7 @@ public:
 
                 friend constexpr auto operator!=(const_iterator lhs, const_iterator rhs) noexcept
                 {
-                        return !(lhs == rhs);
+                        return not (lhs == rhs);
                 }
         private:
                 constexpr auto find_first() noexcept
@@ -601,7 +601,7 @@ public:
         {
                 assert(0 <= n); assert(n < N);
                 m_words[which(n)] &= ~word_mask(where(n));
-                assert(!test(n));
+                assert(not test(n));
                 return *this;
         }
 
@@ -890,7 +890,7 @@ PP_STL_CONSTEXPR_INCOMPLETE auto operator==(int_set<N> const& lhs, int_set<N> co
 template<int N>
 PP_STL_CONSTEXPR_INCOMPLETE auto operator!=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        return !(lhs == rhs);
+        return not (lhs == rhs);
 }
 
 template<int N>
@@ -921,13 +921,13 @@ PP_STL_CONSTEXPR_INCOMPLETE auto operator>(int_set<N> const& lhs, int_set<N> con
 template<int N>
 PP_STL_CONSTEXPR_INCOMPLETE auto operator>=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        return !(lhs < rhs);
+        return not (lhs < rhs);
 }
 
 template<int N>
 PP_STL_CONSTEXPR_INCOMPLETE auto operator<=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        return !(rhs < lhs);
+        return not (rhs < lhs);
 }
 
 template<int N>
@@ -1034,8 +1034,8 @@ PP_STL_CONSTEXPR_INCOMPLETE auto intersects(int_set<N> const& lhs, int_set<N> co
                 return lhs.m_words[0] & rhs.m_words[0];
         } else if constexpr (num_words >= 2) {
                 using std::cbegin; using std::cend;
-                return !std::equal(cbegin(lhs.m_words), cend(lhs.m_words), cbegin(rhs.m_words), cend(rhs.m_words), [](auto const wL, auto const wR) {
-                        return !(wL & wR);
+                return not std::equal(cbegin(lhs.m_words), cend(lhs.m_words), cbegin(rhs.m_words), cend(rhs.m_words), [](auto const wL, auto const wR) {
+                        return not (wL & wR);
                 });
         }
 }
@@ -1043,7 +1043,7 @@ PP_STL_CONSTEXPR_INCOMPLETE auto intersects(int_set<N> const& lhs, int_set<N> co
 template<int N>
 PP_STL_CONSTEXPR_INCOMPLETE auto disjoint(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        return !intersects(lhs, rhs);
+        return not intersects(lhs, rhs);
 }
 
 template<int N>
@@ -1053,11 +1053,11 @@ PP_STL_CONSTEXPR_INCOMPLETE auto is_subset_of(int_set<N> const& lhs, int_set<N> 
         if constexpr (num_words == 0) {
                 return true;
         } else if constexpr (num_words == 1) {
-                return !(lhs.m_words[0] & ~rhs.m_words[0]);
+                return not (lhs.m_words[0] & ~rhs.m_words[0]);
         } else if constexpr (num_words >= 2) {
                 using std::cbegin; using std::cend;
                 return std::equal(cbegin(lhs.m_words), cend(lhs.m_words), cbegin(rhs.m_words), cend(rhs.m_words), [](auto const wL, auto const wR) {
-                        return !(wL & ~wR);
+                        return not (wL & ~wR);
                 });
         }
 }
@@ -1071,13 +1071,13 @@ PP_STL_CONSTEXPR_INCOMPLETE auto is_superset_of(int_set<N> const& lhs, int_set<N
 template<int N>
 PP_STL_CONSTEXPR_INCOMPLETE auto is_proper_subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        return is_subset_of(lhs, rhs) && !is_subset_of(rhs, lhs);
+        return is_subset_of(lhs, rhs) && not is_subset_of(rhs, lhs);
 }
 
 template<int N>
 PP_STL_CONSTEXPR_INCOMPLETE auto is_proper_superset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        return is_superset_of(lhs, rhs) && !is_superset_of(rhs, lhs);
+        return is_superset_of(lhs, rhs) && not is_superset_of(rhs, lhs);
 }
 
 template<class HashAlgorithm, int N>

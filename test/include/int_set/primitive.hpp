@@ -34,8 +34,8 @@ struct bitand_assign
                 next &= rhs;
 
                 for (auto i = 0; i < N; ++i) {
-                        if (!rhs.test(i)) {
-                                BOOST_CHECK(!next.test(i));
+                        if (not rhs.test(i)) {
+                                BOOST_CHECK(not next.test(i));
                         } else {
                                 BOOST_CHECK_EQUAL(next.test(i), prev.test(i));
                         }
@@ -77,7 +77,7 @@ struct xor_assign
 
                 for (auto i = 0; i < N; ++i) {
                         if (rhs.test(i)) {
-                                BOOST_CHECK_EQUAL(next.test(i), !prev.test(i));
+                                BOOST_CHECK_EQUAL(next.test(i), not prev.test(i));
                         } else {
                                 BOOST_CHECK_EQUAL(next.test(i),  prev.test(i));
                         }
@@ -97,7 +97,7 @@ struct minus_assign
 
                 for (auto i = 0; i < N; ++i) {
                         if (rhs.test(i)) {
-                                BOOST_CHECK(!next.test(i));
+                                BOOST_CHECK(not next.test(i));
                         } else {
                                 BOOST_CHECK_EQUAL(next.test(i), prev.test(i));
                         }
@@ -116,7 +116,7 @@ auto shift_left_assign(int_set<N> const& is, int const pos)
 
         for (auto I = 0; I < N; ++I) {
                 if (I < pos) {
-                        BOOST_CHECK(!next.test(I));
+                        BOOST_CHECK(not next.test(I));
                 } else {
                         BOOST_CHECK_EQUAL(next.test(I), prev.test(I - pos));
                 }
@@ -134,7 +134,7 @@ auto shift_right_assign(int_set<N> const& is, int const pos)
 
         for (auto I = 0; I < N; ++I) {
                 if (pos >= N - I) {
-                        BOOST_CHECK(!next.test(I));
+                        BOOST_CHECK(not next.test(I));
                 } else {
                         BOOST_CHECK_EQUAL(next.test(I), prev.test(I + pos));
                 }
@@ -192,7 +192,7 @@ constexpr auto erase(int_set<N> const& is, int const pos)
 
         for (auto i = 0; i < N; ++i) {
                 if (i == pos) {
-                        BOOST_CHECK(!next.test(i));
+                        BOOST_CHECK(not next.test(i));
                 } else {
                         BOOST_CHECK_EQUAL(next.test(i), prev.test(i));
                 }
@@ -290,7 +290,7 @@ struct not_equal_to
         template<int N>
         auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
         {
-                BOOST_CHECK_EQUAL(lhs != rhs, !(lhs == rhs));
+                BOOST_CHECK_EQUAL(lhs != rhs, not (lhs == rhs));
         }
 };
 
@@ -302,8 +302,8 @@ struct less
                 auto expected = false;
 
                 for (auto i = N - 1; i >= 0; --i) {
-                        if (!lhs.test(i) && rhs.test(i)) { expected = true; break; }
-                        if (!rhs.test(i) && lhs.test(i)) {                  break; }
+                        if (not lhs.test(i) && rhs.test(i)) { expected = true; break; }
+                        if (not rhs.test(i) && lhs.test(i)) {                  break; }
                 }
 
                 BOOST_CHECK_EQUAL(lhs < rhs, expected);
@@ -324,7 +324,7 @@ struct greater_equal
         template<int N>
         auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
         {
-                BOOST_CHECK_EQUAL(lhs >= rhs, !(lhs < rhs));
+                BOOST_CHECK_EQUAL(lhs >= rhs, not (lhs < rhs));
         }
 };
 
@@ -333,7 +333,7 @@ struct less_equal
         template<int N>
         auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
         {
-                BOOST_CHECK_EQUAL(lhs <= rhs, !(rhs < lhs));
+                BOOST_CHECK_EQUAL(lhs <= rhs, not (rhs < lhs));
         }
 };
 
@@ -345,7 +345,7 @@ struct is_subset_of_
                 auto expected = true;
 
                 for (auto i = 0; i < N; ++i) {
-                        expected &= !lhs.test(i) || rhs.test(i);
+                        expected &= not lhs.test(i) || rhs.test(i);
                 }
 
                 BOOST_CHECK_EQUAL(is_subset_of(lhs, rhs), expected);
@@ -366,7 +366,7 @@ struct is_proper_subset_of_
         template<int N>
         auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
         {
-                BOOST_CHECK_EQUAL(is_proper_subset_of(lhs, rhs), is_subset_of(lhs, rhs) && !is_subset_of(rhs, lhs));
+                BOOST_CHECK_EQUAL(is_proper_subset_of(lhs, rhs), is_subset_of(lhs, rhs) && not is_subset_of(rhs, lhs));
         }
 };
 
@@ -391,7 +391,7 @@ auto test(int const pos) noexcept
                 if (i == pos) {
                         BOOST_CHECK( is.test(i));
                 } else {
-                        BOOST_CHECK(!is.test(i));
+                        BOOST_CHECK(not is.test(i));
                 }
         }
 }
@@ -407,7 +407,7 @@ auto full(int_set<N> const& is) noexcept
 template<int N>
 auto not_empty(int_set<N> const& is) noexcept
 {
-        BOOST_CHECK_EQUAL(!is.empty(), is.size() != 0);
+        BOOST_CHECK_EQUAL(not is.empty(), is.size() != 0);
 }
 
 // [bitset.members]/42
