@@ -16,7 +16,7 @@
 #include <numeric>              // accumulate
 #include <tuple>                // tie
 #include <type_traits>          // is_integral, is_pod, is_unsigned, is_nothrow_swappable
-#include <utility>                // move
+#include <utility>              // move
 
 #define PP_STL_CONSTEXPR_INCOMPLETE
 
