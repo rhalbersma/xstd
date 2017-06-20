@@ -749,7 +749,9 @@ public:
                 if constexpr (num_words == 1) {
                         m_words[0] >>= n;
                 } else if constexpr (num_words >= 2) {
-                        if (n == 0) return *this;
+                        if (n == 0) {
+                                return *this;
+                        }
 
                         auto const n_block = n / word_size;
                         auto const R_shift = n % word_size;

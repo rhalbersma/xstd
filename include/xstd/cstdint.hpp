@@ -21,25 +21,33 @@ template<int, class = void>
 struct uint;
 
 template<int N>
-struct uint<N, std::enable_if_t<is_representable_v<uint8_t, N>>>
+struct uint<N, std::enable_if_t<
+        is_representable_v<uint8_t, N>
+>>
 {
         using type = uint8_t;
 };
 
 template<int N>
-struct uint<N, std::enable_if_t<is_representable_v<uint16_t, N> && not is_representable_v<uint8_t, N>>>
+struct uint<N, std::enable_if_t<
+        is_representable_v<uint16_t, N> && not is_representable_v<uint8_t, N>
+>>
 {
         using type = uint16_t;
 };
 
 template<int N>
-struct uint<N, std::enable_if_t<is_representable_v<uint32_t, N> && not is_representable_v<uint16_t, N>>>
+struct uint<N, std::enable_if_t<
+        is_representable_v<uint32_t, N> && not is_representable_v<uint16_t, N>
+>>
 {
         using type = uint32_t;
 };
 
 template<int N>
-struct uint<N, std::enable_if_t<is_representable_v<uint64_t, N> && not is_representable_v<uint32_t, N>>>
+struct uint<N, std::enable_if_t<
+        is_representable_v<uint64_t, N> && not is_representable_v<uint32_t, N>
+>>
 {
         using type = uint64_t;
 };
@@ -48,25 +56,33 @@ template<int, class = void>
 struct uint_fast;
 
 template<int N>
-struct uint_fast<N, std::enable_if_t<is_representable_v<uint8_t, N>>>
+struct uint_fast<N, std::enable_if_t<
+        is_representable_v<uint8_t, N>
+>>
 {
         using type = uint_fast8_t;
 };
 
 template<int N>
-struct uint_fast<N, std::enable_if_t<is_representable_v<uint16_t, N> && not is_representable_v<uint8_t, N>>>
+struct uint_fast<N, std::enable_if_t<
+        is_representable_v<uint16_t, N> && not is_representable_v<uint8_t, N>
+>>
 {
         using type = uint_fast16_t;
 };
 
 template<int N>
-struct uint_fast<N, std::enable_if_t<is_representable_v<uint32_t, N> && not is_representable_v<uint16_t, N>>>
+struct uint_fast<N, std::enable_if_t<
+        is_representable_v<uint32_t, N> && not is_representable_v<uint16_t, N>
+>>
 {
         using type = uint_fast32_t;
 };
 
 template<int N>
-struct uint_fast<N, std::enable_if_t<is_representable_v<uint64_t, N> && not is_representable_v<uint32_t, N>>>
+struct uint_fast<N, std::enable_if_t<
+        is_representable_v<uint64_t, N> && not is_representable_v<uint32_t, N>
+>>
 {
         using type = uint_fast64_t;
 };
@@ -75,25 +91,33 @@ template<int, class = void>
 struct uint_least;
 
 template<int N>
-struct uint_least<N, std::enable_if_t<is_representable_v<uint8_t, N>>>
+struct uint_least<N, std::enable_if_t<
+        is_representable_v<uint8_t, N>
+>>
 {
         using type = uint_least8_t;
 };
 
 template<int N>
-struct uint_least<N, std::enable_if_t<is_representable_v<uint16_t, N> && not is_representable_v<uint8_t, N>>>
+struct uint_least<N, std::enable_if_t<
+        is_representable_v<uint16_t, N> && not is_representable_v<uint8_t, N>
+>>
 {
         using type = uint_least16_t;
 };
 
 template<int N>
-struct uint_least<N, std::enable_if_t<is_representable_v<uint32_t, N> && not is_representable_v<uint16_t, N>>>
+struct uint_least<N, std::enable_if_t<
+        is_representable_v<uint32_t, N> && not is_representable_v<uint16_t, N>
+>>
 {
         using type = uint_least32_t;
 };
 
 template<int N>
-struct uint_least<N, std::enable_if_t<is_representable_v<uint64_t, N> && not is_representable_v<uint32_t, N>>>
+struct uint_least<N, std::enable_if_t<
+        is_representable_v<uint64_t, N> && not is_representable_v<uint32_t, N>
+>>
 {
         using type = uint_least64_t;
 };
