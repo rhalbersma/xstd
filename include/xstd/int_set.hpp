@@ -1,4 +1,10 @@
 #pragma once
+
+//          Copyright Rein Halbersma 2014-2017.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
 #include <algorithm>            // all_of, copy_backward, copy_n, equal, fill_n, lexicographical_compare, swap_ranges
 #include <cassert>              // assert
 #include <climits>              // CHAR_BIT
@@ -10,7 +16,7 @@
 #include <numeric>              // accumulate
 #include <tuple>                // tie
 #include <type_traits>          // is_integral, is_pod, is_unsigned, is_nothrow_swappable
-#include <utility>		// move
+#include <utility>                // move
 
 #define PP_STL_CONSTEXPR_INCOMPLETE
 
@@ -320,9 +326,9 @@ public:
 
                 friend constexpr auto operator==(const_iterator lhs, const_iterator rhs) noexcept
                 {
-                	constexpr auto tied = [](auto const& it) {
-	                        return std::tie(it.m_word, it.m_index);
-        	        };
+                        constexpr auto tied = [](auto const& it) {
+                                return std::tie(it.m_word, it.m_index);
+                        };
                         return tied(lhs) == tied(rhs);
                 }
 
@@ -870,11 +876,11 @@ PP_STL_CONSTEXPR_INCOMPLETE auto operator==(int_set<N> const& lhs, int_set<N> co
                 return true;
         } else if constexpr (num_words == 1) {
                 return lhs.m_words[0] == rhs.m_words[0];
-	} else if constexpr (num_words == 2) {
-		constexpr auto tied = [](auto const& is) { 
-			return std::tie(is.m_words[0], is.m_words[1]); 
-		};
-		return tied(lhs) == tied(rhs);
+        } else if constexpr (num_words == 2) {
+                constexpr auto tied = [](auto const& is) {
+                        return std::tie(is.m_words[0], is.m_words[1]);
+                };
+                return tied(lhs) == tied(rhs);
         } else if constexpr (num_words > 2) {
                 using std::cbegin; using std::cend;
                 return std::equal(cbegin(lhs.m_words), cend(lhs.m_words), cbegin(rhs.m_words), cend(rhs.m_words));
@@ -895,11 +901,11 @@ PP_STL_CONSTEXPR_INCOMPLETE auto operator<(int_set<N> const& lhs, int_set<N> con
                 return false;
         } else if constexpr (num_words == 1) {
                 return lhs.m_words[0] < rhs.m_words[0];
-	} else if constexpr (num_words == 2) {
-		constexpr auto tied = [](auto const& is) { 
-			return std::tie(is.m_words[0], is.m_words[1]); 
-		};
-		return tied(lhs) < tied(rhs);
+        } else if constexpr (num_words == 2) {
+                constexpr auto tied = [](auto const& is) {
+                        return std::tie(is.m_words[0], is.m_words[1]);
+                };
+                return tied(lhs) < tied(rhs);
         } else if constexpr (num_words > 2) {
                 using std::crbegin; using std::crend;
                 return std::lexicographical_compare(crbegin(lhs.m_words), crend(lhs.m_words), crbegin(rhs.m_words), crend(rhs.m_words));
