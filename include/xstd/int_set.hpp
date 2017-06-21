@@ -189,10 +189,10 @@ constexpr auto bsr(T x)
 template<int>
 class int_set;
 
-template<int N> PP_STL_CONSTEXPR_INCOMPLETE auto operator==  (int_set<N> const&, int_set<N> const&) noexcept;
-template<int N> PP_STL_CONSTEXPR_INCOMPLETE auto operator<   (int_set<N> const&, int_set<N> const&) noexcept;
-template<int N> PP_STL_CONSTEXPR_INCOMPLETE auto intersects  (int_set<N> const&, int_set<N> const&) noexcept;
-template<int N> PP_STL_CONSTEXPR_INCOMPLETE auto is_subset_of(int_set<N> const&, int_set<N> const&) noexcept;
+template<int N> PP_STL_CONSTEXPR_INCOMPLETE auto operator==  (int_set<N> const& /* lhs */, int_set<N> const& /* rhs */) noexcept;
+template<int N> PP_STL_CONSTEXPR_INCOMPLETE auto operator<   (int_set<N> const& /* lhs */, int_set<N> const& /* rhs */) noexcept;
+template<int N> PP_STL_CONSTEXPR_INCOMPLETE auto intersects  (int_set<N> const& /* lhs */, int_set<N> const& /* rhs */) noexcept;
+template<int N> PP_STL_CONSTEXPR_INCOMPLETE auto is_subset_of(int_set<N> const& /* lhs */, int_set<N> const& /* rhs */) noexcept;
 
 template<int N>
 class int_set
@@ -866,10 +866,10 @@ private:
                 }
         }
 
-        friend PP_STL_CONSTEXPR_INCOMPLETE auto operator==    <>(int_set const&, int_set const&) noexcept;
-        friend PP_STL_CONSTEXPR_INCOMPLETE auto operator<     <>(int_set const&, int_set const&) noexcept;
-        friend PP_STL_CONSTEXPR_INCOMPLETE auto intersects    <>(int_set const&, int_set const&) noexcept;
-        friend PP_STL_CONSTEXPR_INCOMPLETE auto is_subset_of  <>(int_set const&, int_set const&) noexcept;
+        friend PP_STL_CONSTEXPR_INCOMPLETE auto operator==    <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
+        friend PP_STL_CONSTEXPR_INCOMPLETE auto operator<     <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
+        friend PP_STL_CONSTEXPR_INCOMPLETE auto intersects    <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
+        friend PP_STL_CONSTEXPR_INCOMPLETE auto is_subset_of  <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
 };
 
 template<int N>

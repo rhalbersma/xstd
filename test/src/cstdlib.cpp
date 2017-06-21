@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_CASE(StdDiv)
         }};
 
         // act
-        std::array<xstd::div_t, 8> std_res;
+        std::array<xstd::div_t, 8> std_res{};
         std::transform(input.cbegin(), input.cend(), std_res.begin(), [](auto const& p) -> xstd::div_t {
                 auto const d = std::div(p.first, p.second);
                 return { d.quot, d.rem };
@@ -107,7 +107,7 @@ BOOST_AUTO_TEST_CASE(TruncatedDiv)
         }};
 
         // act
-        std::array<xstd::div_t, 8> truncated_res;
+        std::array<xstd::div_t, 8> truncated_res{};
         std::transform(input.cbegin(), input.cend(), truncated_res.begin(), [](auto const& p) {
                 return xstd::truncated_div(p.first, p.second);
         });
@@ -129,7 +129,7 @@ BOOST_AUTO_TEST_CASE(FlooredDiv)
         }};
 
         // act
-        std::array<xstd::div_t, 8> floored_res;
+        std::array<xstd::div_t, 8> floored_res{};
         std::transform(input.cbegin(), input.cend(), floored_res.begin(), [](auto const& p) {
                 return xstd::floored_div(p.first, p.second);
         });
@@ -151,7 +151,7 @@ BOOST_AUTO_TEST_CASE(EuclideanDiv)
         }};
 
         // act
-        std::array<xstd::div_t, 8> euclidean_res;
+        std::array<xstd::div_t, 8> euclidean_res{};
         std::transform(input.cbegin(), input.cend(), euclidean_res.begin(), [](auto const& p) {
                 return xstd::euclidean_div(p.first, p.second);
         });
