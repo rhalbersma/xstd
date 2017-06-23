@@ -64,8 +64,10 @@ set(cxx_linker_optimization_flags
 
 set(tests 
         cstddef 
-        cstdlib 
+        cstdint
+        cstdlib        
         int_set
+        type_traits
 )
 
 set(test_include_dir ${CMAKE_CURRENT_SOURCE_DIR}/include)
