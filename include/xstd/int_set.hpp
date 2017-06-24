@@ -825,7 +825,7 @@ private:
         constexpr static auto mask_none =  static_cast<word_type>(0);
         constexpr static auto mask_all  = ~static_cast<word_type>(0);
 
-        PP_STL_CONSTEXPR_INCOMPLETE auto fill(word_type const w) noexcept
+        PP_STL_CONSTEXPR_INCOMPLETE auto fill(word_type const w [[maybe_unused]]) noexcept
         {
                 if constexpr (num_words == 1) {
                         m_words[0] = w;
