@@ -6,8 +6,10 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <algorithm>            // all_of, copy_backward, copy_n, equal, fill_n, lexicographical_compare, swap_ranges
+#include <array>                // array
 #include <cassert>              // assert
 #include <climits>              // CHAR_BIT
+#include <cstddef>              // size_t
 #include <cstdint>              // uint64_t
 #include <functional>           // less
 #include <initializer_list>     // initializer_list
@@ -127,63 +129,64 @@ struct popcount
 
 }       // namespace detail
 
-template<class T>
-constexpr auto ctznz(T x)
+template<class WordT>
+constexpr auto ctznz(WordT x)
 {
         assert(x != 0);
         return detail::ctznz{}(x);
 }
 
-template<class T>
-constexpr auto clznz(T x)
+template<class WordT>
+constexpr auto clznz(WordT x)
 {
         assert(x != 0);
         return detail::clznz{}(x);
 }
 
-template<class T>
-constexpr auto popcount(T x) noexcept
+template<class WordT>
+constexpr auto popcount(WordT x) noexcept
 {
         return detail::popcount{}(x);
 }
 
-template<class T>
-constexpr auto bsfnz(T x)
+template<class WordT>
+constexpr auto bsfnz(WordT x)
 {
         assert(x != 0);
         return ctznz(x);
 }
 
-template<class T>
-constexpr auto bsrnz(T x)
+template<class WordT>
+constexpr auto bsrnz(WordT x)
 {
         assert(x != 0);
-        return std::numeric_limits<T>::digits - 1 - clznz(x);
+        return std::numeric_limits<WordT>::digits - 1 - clznz(x);
 }
 
-template<class T>
-constexpr auto ctz(T x) noexcept
+template<class WordT>
+constexpr auto ctz(WordT x) noexcept
 {
-        return x ? ctznz(x) : std::numeric_limits<T>::digits;
+        return x ? ctznz(x) : std::numeric_limits<WordT>::digits;
 }
 
-template<class T>
-constexpr auto clz(T x) noexcept
+template<class WordT>
+constexpr auto clz(WordT x) noexcept
 {
-        return x ? clznz(x) : std::numeric_limits<T>::digits;
+        return x ? clznz(x) : std::numeric_limits<WordT>::digits;
 }
 
-template<class T>
-constexpr auto bsf(T x)
+template<class WordT>
+constexpr auto bsf(WordT x)
 {
         return ctz(x);
 }
 
-template<class T>
-constexpr auto bsr(T x)
+template<class WordT>
+constexpr auto bsr(WordT x)
 {
-        return std::numeric_limits<T>::digits - 1 - clz(x);
+        return std::numeric_limits<WordT>::digits - 1 - clz(x);
 }
+
 }       // namespace builtin
 
 template<int>
@@ -515,7 +518,7 @@ public:
                         return m_words[0] == mask_none;
                 } else if constexpr (num_words >= 2) {
                         using std::cbegin; using std::cend;
-                        return std::all_of(cbegin(m_words), cend(m_words), [](auto const word){
+                        return std::all_of(cbegin(m_words), cend(m_words), [](auto const word) {
                                 return word == mask_none;
                         });
                 }
@@ -530,7 +533,7 @@ public:
                                 return m_words[0] == mask_all;
                         } else if constexpr (num_words >= 2) {
                                 using std::cbegin; using std::cend;
-                                return std::all_of(cbegin(m_words), cend(m_words), [](auto const word){
+                                return std::all_of(cbegin(m_words), cend(m_words), [](auto const word) {
                                         return word == mask_all;
                                 });
                         }
@@ -541,7 +544,7 @@ public:
                         } else if constexpr (num_words >= 2) {
                                 using std::cbegin; using std::cend;
                                 return
-                                        std::all_of(cbegin(m_words), std::prev(cend(m_words)), [](auto const word){
+                                        std::all_of(cbegin(m_words), std::prev(cend(m_words)), [](auto const word) {
                                                 return word == mask_all;
                                         }) && (m_words[num_words - 1] == mask_all >> excess_bits);
                                 ;
@@ -820,16 +823,23 @@ public:
 
 private:
         constexpr static auto mask_none =  static_cast<word_type>(0);
-        constexpr static auto mask_one  =  static_cast<word_type>(1);
         constexpr static auto mask_all  = ~static_cast<word_type>(0);
 
-        PP_STL_CONSTEXPR_INCOMPLETE auto fill(word_type const& u) noexcept
+        PP_STL_CONSTEXPR_INCOMPLETE auto fill(word_type const w) noexcept
         {
                 if constexpr (num_words == 1) {
-                        m_words[0] = u;
+                        m_words[0] = w;
                 } else if constexpr (num_words >= 2) {
                         using std::begin;
-                        std::fill_n(begin(m_words), num_words, u);
+                        std::fill_n(begin(m_words), num_words, w);
+                }
+        }
+
+        constexpr auto sanitize() noexcept
+        {
+                if constexpr (excess_bits != 0) {
+                        constexpr auto mask_sane = mask_all >> excess_bits;
+                        m_words[num_words - 1] &= mask_sane;
                 }
         }
 
@@ -853,17 +863,18 @@ private:
                 }
         }
 
+        constexpr static auto word_mask_table = []() {
+                std::array<word_type, word_size> table{};
+                for (auto n = 0; n < word_size; ++n) {
+                        table[static_cast<std::size_t>(n)] = static_cast<word_type>(1) << n;
+                }
+                return table;
+        }();
+
         constexpr static auto word_mask(value_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < word_size);
-                return mask_one << n;
-        }
-
-        constexpr auto sanitize() noexcept
-        {
-                if constexpr (excess_bits != 0) {
-                        m_words[num_words - 1] &= mask_all >> excess_bits;
-                }
+                return word_mask_table[static_cast<std::size_t>(n)];
         }
 
         friend PP_STL_CONSTEXPR_INCOMPLETE auto operator==    <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
