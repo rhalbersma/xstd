@@ -864,7 +864,7 @@ private:
         }
 
         constexpr static auto word_mask_table = []() {
-                std::array<word_type, word_size> table{};
+                auto table = std::array<word_type, word_size>{};
                 for (auto n = 0; n < word_size; ++n) {
                         table[static_cast<std::size_t>(n)] = static_cast<word_type>(1) << n;
                 }
