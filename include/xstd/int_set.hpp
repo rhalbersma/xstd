@@ -5,17 +5,15 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <algorithm>            // all_of, copy_backward, copy_n, equal, fill_n, lexicographical_compare, swap_ranges
+#include <algorithm>            // all_of, copy_backward, copy_n, equal, fill_n, lexicographical_compare
 #include <array>                // array
 #include <cassert>              // assert
-#include <climits>              // CHAR_BIT
 #include <cstddef>              // size_t
 #include <cstdint>              // uint64_t
 #include <functional>           // less
 #include <initializer_list>     // initializer_list
-#include <iterator>             // begin, bidirectional_iterator_tag, cbegin, cend, crbegin, crend, end, next, prev, rbegin, reverse_iterator
+#include <iterator>             // bidirectional_iterator_tag, reverse_iterator
 #include <limits>               // digits
-#include <numeric>              // accumulate
 #include <tuple>                // tie
 #include <type_traits>          // is_integral, is_pod, is_unsigned, is_nothrow_swappable
 #include <utility>              // move
@@ -542,7 +540,7 @@ public:
                                 return m_words[0] == mask_sane;
                         } else if constexpr (num_words >= 2) {
                                 return
-                                        std::all_of(m_words.cbegin(), std::prev(m_words.cend()), [](auto const word) {
+                                        std::all_of(m_words.cbegin(), m_words.cend() - 1, [](auto const word) {
                                                 return word == mask_all;
                                         }) && (m_words.back() == mask_sane);
                                 ;
@@ -716,7 +714,7 @@ public:
                         auto const L_shift = n % word_size;
 
                         if (L_shift == 0) {
-                                std::copy_backward(m_words.begin(), std::prev(m_words.end(), n_block), m_words.end());
+                                std::copy_backward(m_words.begin(), m_words.end() - n_block, m_words.end());
                         } else {
                                 auto const R_shift = word_size - L_shift;
 
@@ -746,7 +744,7 @@ public:
                         auto const R_shift = n % word_size;
 
                         if (R_shift == 0) {
-                                std::copy_n(std::next(m_words.begin(), n_block), num_words - n_block, m_words.begin());
+                                std::copy_n(m_words.begin() + n_block, num_words - n_block, m_words.begin());
                         } else {
                                 auto const L_shift = word_size - R_shift;
 
@@ -1079,7 +1077,7 @@ PP_STL_CONSTEXPR_INCOMPLETE auto is_proper_superset_of(int_set<N> const& lhs, in
 template<class HashAlgorithm, int N>
 auto hash_append(HashAlgorithm& h, int_set<N> const& is)
 {
-        h(is.data(), is.capacity() /  CHAR_BIT);
+        h(is.data(), is.capacity() /  std::numeric_limits<unsigned char>::digits);
 }
 
 template<int N>
@@ -1190,4 +1188,3 @@ constexpr auto data(int_set<N> const& is)
 }       // namespace xstd
 
 #undef PP_STL_CONSTEXPR_INCOMPLETE
-
