@@ -190,7 +190,19 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
         minus<N>();
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(ValueInitializationConstructsEmpty, T, SetTypes)
+using SetTypes3 = boost::mpl::vector
+<
+        int_set<  0>,
+        int_set< 32>,
+        int_set< 64>,
+        int_set< 96>,
+        int_set<128>,
+        int_set<256>,
+        int_set<384>,
+        int_set<512>
+>;
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(ValueInitializationConstructsEmpty, T, SetTypes3)
 {
         T b{};
 
