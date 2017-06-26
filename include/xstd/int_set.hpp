@@ -366,9 +366,7 @@ public:
                 constexpr auto increment() // Throws: Nothing.
                 {
                         assert(0 <= m_index); assert(m_index < N);
-                        if constexpr (num_words == 0) {
-                                return;
-                        } else if constexpr (num_words == 1) {
+                        if constexpr (num_words == 1) {
                                 if (++m_index == N) {
                                         ++m_word;
                                         return;
@@ -414,9 +412,7 @@ public:
                 constexpr auto decrement() // Throws: Nothing.
                 {
                         assert(0 < m_index); assert(m_index <= N);
-                        if constexpr (num_words == 0) {
-                                return;
-                        } else if constexpr (num_words == 1) {
+                        if constexpr (num_words == 1) {
                                 if (--m_index == 0) {
                                         return;
                                 }
@@ -863,12 +859,7 @@ PP_STL_CONSTEXPR_INCOMPLETE auto operator==(int_set<N> const& lhs, int_set<N> co
                 return true;
         } else if constexpr (num_words == 1) {
                 return lhs.m_words[0] == rhs.m_words[0];
-        } else if constexpr (num_words == 2) {
-                constexpr auto tied = [](auto const& is) {
-                        return std::tie(is.m_words[0], is.m_words[1]);
-                };
-                return tied(lhs) == tied(rhs);
-        } else if constexpr (num_words > 2) {
+        } else if constexpr (num_words >= 2) {
                 return lhs.m_words == rhs.m_words;
         }
 }
@@ -887,12 +878,7 @@ PP_STL_CONSTEXPR_INCOMPLETE auto operator<(int_set<N> const& lhs, int_set<N> con
                 return false;
         } else if constexpr (num_words == 1) {
                 return lhs.m_words[0] < rhs.m_words[0];
-        } else if constexpr (num_words == 2) {
-                constexpr auto tied = [](auto const& is) {
-                        return std::tie(is.m_words[1], is.m_words[0]);
-                };
-                return tied(lhs) < tied(rhs);
-        } else if constexpr (num_words > 2) {
+        } else if constexpr (num_words >= 2) {
                 return std::lexicographical_compare(
                         lhs.m_words.crbegin(), lhs.m_words.crend(),
                         rhs.m_words.crbegin(), rhs.m_words.crend()
