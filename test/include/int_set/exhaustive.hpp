@@ -14,8 +14,12 @@ namespace xstd {
 template<int N, class Test>
 constexpr auto all_singlet_pairs(Test test)
 {
+        auto const i0 = int_set<N>{};
+        test(i0, i0);
         for (auto i = 0; i < N; ++i) {
                 auto const i1 = int_set<N>{i};
+                test(i0, i1);
+                test(i1, i0);
                 for (auto j = 0; j < N; ++j) {
                         auto const j1 = int_set<N>{j};
                         test(i1, j1);
