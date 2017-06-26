@@ -342,15 +342,11 @@ public:
         private:
                 constexpr auto find_first() noexcept
                 {
-                        if constexpr (num_words == 0) {
-                                return N;
-                        } else if constexpr (num_words == 1) {
+                        if constexpr (num_words == 1) {
                                 if (auto const word = *m_word) {
                                         return builtin::ctznz(word);
-                                } else {
-                                        ++m_word;
-                                        return N;
                                 }
+                                ++m_word;
                         } else if constexpr (num_words >= 2) {
                                 for (auto i = 0; i < num_words; ++i) {
                                         if (auto const word = *m_word) {
@@ -359,8 +355,8 @@ public:
                                         }
                                         ++m_word;
                                 }
-                                return N;
                         }
+                        return N;
                 }
 
                 constexpr auto increment() // Throws: Nothing.
