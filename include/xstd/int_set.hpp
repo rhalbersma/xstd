@@ -15,7 +15,7 @@
 #include <iterator>             // bidirectional_iterator_tag, reverse_iterator
 #include <limits>               // digits
 #include <tuple>                // tie
-#include <type_traits>          // is_integral, is_pod, is_unsigned, is_nothrow_swappable
+#include <type_traits>          // conditional_t, is_integral_v, is_nothrow_swappable_v, is_pod_v, is_unsigned_v
 #include <utility>              // move
 
 #define PP_STL_CONSTEXPR_INCOMPLETE
@@ -205,7 +205,7 @@ class int_set
                 static_assert(std::is_pod_v<int_set>);
         }
 
-        using word_type = unsigned long long;
+        using word_type = std::conditional_t<N <= 64, uint64_t, __uint128_t>;
         static_assert(std::is_unsigned_v<word_type>);
         static_assert(std::is_integral_v<word_type>);
 
@@ -811,7 +811,7 @@ private:
                 }
         }
 
-        constexpr static auto which(value_type const n) // Throws: Nothing.
+        constexpr static auto which(value_type const n [[maybe_unused]]) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
