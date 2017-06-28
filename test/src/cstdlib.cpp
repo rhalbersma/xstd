@@ -11,18 +11,6 @@
 #include <iosfwd>                       // basic_ostream
 #include <utility>                      // pair
 
-namespace xstd {
-
-// BOOST_CHECK_EQUAL_COLLECTIONS requires streamable types
-template<class CharT, class Traits>
-std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& ostr, div_t const& d)
-{
-        ostr << "[" << d.quot << "," << d.rem << "]";
-        return ostr;
-}
-
-}       // namespace xstd
-
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
 BOOST_AUTO_TEST_CASE(IsPowerOfTwo)
