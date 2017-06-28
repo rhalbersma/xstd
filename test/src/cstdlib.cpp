@@ -13,7 +13,7 @@
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
-BOOST_AUTO_TEST_CASE(IsPowerOfTwo)
+BOOST_AUTO_TEST_CASE(IsPowerOf2)
 {
         BOOST_CHECK(xstd::is_power_of_2(1));
         BOOST_CHECK(xstd::is_power_of_2(2));

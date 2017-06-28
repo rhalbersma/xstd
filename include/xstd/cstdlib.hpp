@@ -38,10 +38,10 @@ struct div_t { int quot, rem; };
 
 constexpr bool operator==(div_t const& lhs, div_t const& rhs) noexcept
 {
-        return
-                std::tie(lhs.quot, lhs.rem) ==
-                std::tie(rhs.quot, rhs.rem)
-        ;
+        constexpr auto tied = [](auto const& d) {
+                return std::tie(d.quot, d.rem);
+        };
+        return tied(lhs) == tied(rhs);
 }
 
 constexpr bool operator!=(div_t const& lhs, div_t const& rhs) noexcept

@@ -30,7 +30,7 @@ target_include_directories(type_traits INTERFACE ${project_include_dir})
 
 target_compile_features(cstddef     INTERFACE cxx_constexpr cxx_inline_namespaces cxx_user_literals)
 target_compile_features(cstdint     INTERFACE cxx_std_17)
-target_compile_features(cstdlib     INTERFACE cxx_noexcept cxx_relaxed_constexpr)
+target_compile_features(cstdlib     INTERFACE cxx_std_17)
 target_compile_features(int_set     INTERFACE cxx_std_17)
 target_compile_features(type_traits INTERFACE cxx_std_17)
 

@@ -27,7 +27,6 @@ set(cxx_compile_options_warnings_general
                 -Weverything 
                 -Wno-c++98-compat 
                 -Wno-c++98-compat-pedantic      
-                -Wno-error=padded
         >
         $<$<CXX_COMPILER_ID:GNU>:
                 -Wall
@@ -36,11 +35,12 @@ set(cxx_compile_options_warnings_general
                 -Wconversion                
                 -Wshadow
                 -Wsign-compare 
+				-Wsign-conversion              
                 -Wsign-promo
-                -Wno-error=sign-conversion              
         >
         -Werror 
         -pedantic-errors  
+        -Wno-error=padded
 )  
 
 set(cxx_compile_options_optimization 
