@@ -40,22 +40,22 @@ constexpr auto get(__uint128_t x) noexcept
 
 struct ctznz
 {
-        constexpr auto operator()(unsigned x) const
+        constexpr auto operator()(unsigned x) const // Throws: Nothing.
         {
                 return __builtin_ctz(x);
         }
 
-        constexpr auto operator()(unsigned long x) const
+        constexpr auto operator()(unsigned long x) const // Throws: Nothing.
         {
                 return __builtin_ctzl(x);
         }
 
-        constexpr auto operator()(unsigned long long x) const
+        constexpr auto operator()(unsigned long long x) const // Throws: Nothing.
         {
                 return __builtin_ctzll(x);
         }
 
-        constexpr auto operator()(__uint128_t x) const
+        constexpr auto operator()(__uint128_t x) const // Throws: Nothing.
         {
                 if (auto const lower = get<0>(x)) {
                         return __builtin_ctzll(lower);
@@ -71,22 +71,22 @@ struct ctznz
 
 struct clznz
 {
-        constexpr auto operator()(unsigned x) const
+        constexpr auto operator()(unsigned x) const // Throws: Nothing.
         {
                 return __builtin_clz(x);
         }
 
-        constexpr auto operator()(unsigned long x) const
+        constexpr auto operator()(unsigned long x) const // Throws: Nothing.
         {
                 return __builtin_clzl(x);
         }
 
-        constexpr auto operator()(unsigned long long x) const
+        constexpr auto operator()(unsigned long long x) const // Throws: Nothing.
         {
                 return __builtin_clzll(x);
         }
 
-        constexpr auto operator()(__uint128_t x) const
+        constexpr auto operator()(__uint128_t x) const // Throws: Nothing.
         {
                 if (auto const upper = get<1>(x)) {
                         return __builtin_clzll(upper);
@@ -205,7 +205,7 @@ class int_set
                 static_assert(std::is_pod_v<int_set>);
         }
 
-        using word_type = std::conditional_t<N <= 64, uint64_t, __uint128_t>;
+        using word_type = __uint128_t;//std::conditional_t<N <= 64, uint64_t, __uint128_t>;
         static_assert(std::is_unsigned_v<word_type>);
         static_assert(std::is_integral_v<word_type>);
 
