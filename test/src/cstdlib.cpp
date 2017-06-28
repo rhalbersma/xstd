@@ -29,8 +29,9 @@ BOOST_AUTO_TEST_CASE(IsPowerOfTwo)
 
 BOOST_AUTO_TEST_CASE(AlignOn)
 {
-        for (std::size_t address = 0; address < 1024; ++address) {
-                for (std::size_t alignment = 1; alignment < 1024; alignment *= 2) {
+        constexpr auto N = 1LL << 10;
+        for (std::size_t address = 0; address < N; ++address) {
+                for (std::size_t alignment = 1; alignment < N; alignment *= 2) {
                         BOOST_CHECK_EQUAL(xstd::align_on(address, alignment) % alignment, 0);
                 }
         }
@@ -64,21 +65,18 @@ auto const input = std::array<std::pair<int, int>, 8>
 
 BOOST_AUTO_TEST_CASE(StdDiv)
 {
-        // arrange
         auto const std_div = std::array<xstd::div_t, 8>
         {{
                 {+2, +2}, {-2, +2}, {-2, -2}, {+2, -2},
                 { 0, +1}, { 0, +1}, { 0, -1}, { 0, -1}
         }};
 
-        // act
         std::array<xstd::div_t, 8> std_res{};
         std::transform(input.cbegin(), input.cend(), std_res.begin(), [](auto const& p) -> xstd::div_t {
                 auto const d = std::div(p.first, p.second);
                 return { d.quot, d.rem };
         });
 
-        // assert
         BOOST_CHECK_EQUAL_COLLECTIONS(
                 std_res.cbegin(), std_res.cend(),
                 std_div.cbegin(), std_div.cend()
@@ -87,20 +85,17 @@ BOOST_AUTO_TEST_CASE(StdDiv)
 
 BOOST_AUTO_TEST_CASE(TruncatedDiv)
 {
-        // arrange
         auto const truncated_div = std::array<xstd::div_t, 8>
         {{
                 {+2, +2}, {-2, +2}, {-2, -2}, {+2, -2},
                 { 0, +1}, { 0, +1}, { 0, -1}, { 0, -1}
         }};
 
-        // act
         std::array<xstd::div_t, 8> truncated_res{};
         std::transform(input.cbegin(), input.cend(), truncated_res.begin(), [](auto const& p) {
                 return xstd::truncated_div(p.first, p.second);
         });
 
-        // assert
         BOOST_CHECK_EQUAL_COLLECTIONS(
                 truncated_res.cbegin(), truncated_res.cend(),
                 truncated_div.cbegin(), truncated_div.cend()
@@ -109,20 +104,17 @@ BOOST_AUTO_TEST_CASE(TruncatedDiv)
 
 BOOST_AUTO_TEST_CASE(FlooredDiv)
 {
-        // arrange
         auto const floored_div = std::array<xstd::div_t, 8>
         {{
                 {+2, +2}, {-3, -1}, {-3, +1}, {+2, -2},
                 { 0, +1}, {-1, -1}, {-1, +1}, { 0, -1}
         }};
 
-        // act
         std::array<xstd::div_t, 8> floored_res{};
         std::transform(input.cbegin(), input.cend(), floored_res.begin(), [](auto const& p) {
                 return xstd::floored_div(p.first, p.second);
         });
 
-        // assert
         BOOST_CHECK_EQUAL_COLLECTIONS(
                 floored_res.cbegin(), floored_res.cend(),
                 floored_div.cbegin(), floored_div.cend()
@@ -131,20 +123,17 @@ BOOST_AUTO_TEST_CASE(FlooredDiv)
 
 BOOST_AUTO_TEST_CASE(EuclideanDiv)
 {
-        // arrange
         auto const euclidean_div = std::array<xstd::div_t, 8>
         {{
                 {+2, +2}, {-2, +2}, {-3, +1}, {+3, +1},
                 { 0, +1}, { 0, +1}, {-1, +1}, {+1, +1}
         }};
 
-        // act
         std::array<xstd::div_t, 8> euclidean_res{};
         std::transform(input.cbegin(), input.cend(), euclidean_res.begin(), [](auto const& p) {
                 return xstd::euclidean_div(p.first, p.second);
         });
 
-        // assert
         BOOST_CHECK_EQUAL_COLLECTIONS(
                 euclidean_res.cbegin(), euclidean_res.cend(),
                 euclidean_div.cbegin(), euclidean_div.cend()
