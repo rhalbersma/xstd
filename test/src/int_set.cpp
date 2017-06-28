@@ -238,6 +238,18 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(DereferencingSingletBeginIteratorEqualsIndex, T, S
         }
 }
 
+BOOST_AUTO_TEST_CASE_TEMPLATE(IncrementingSingletBeginIteratorEqualsEndIterator, T, SetTypes3)
+{
+        constexpr auto N = T::max_size();
+        for (auto i = 0; i < N; ++i) {
+                auto const i1 = T{i};
+                auto first = i1.begin();
+                auto const last = ++first;
+
+                BOOST_CHECK(last == i1.end());
+        }
+}
+
 /*
 using SetTypes2 = boost::mpl::vector
 <
