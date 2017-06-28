@@ -209,21 +209,35 @@ using SetTypes3 = boost::mpl::vector
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(ValueInitializationConstructsEmpty, T, SetTypes3)
 {
-        T b{};
+        auto const i0 = T{};
 
-        BOOST_CHECK(b.empty());
-        BOOST_CHECK_EQUAL(b.size(), 0);
+        BOOST_CHECK(i0.empty());
+        BOOST_CHECK_EQUAL(i0.size(), 0);
 
-        BOOST_CHECK(b.begin() == b.end());
-        BOOST_CHECK(b.cbegin() == b.cend());
-        BOOST_CHECK(b.rbegin() == b.rend());
-        BOOST_CHECK(b.crbegin() == b.crend());
+        BOOST_CHECK(i0.begin() == i0.end());
+        BOOST_CHECK(i0.cbegin() == i0.cend());
+        BOOST_CHECK(i0.rbegin() == i0.rend());
+        BOOST_CHECK(i0.crbegin() == i0.crend());
 
-        BOOST_CHECK(begin(b) == end(b));
-        BOOST_CHECK(cbegin(b) == cend(b));
-        BOOST_CHECK(rbegin(b) == rend(b));
-        BOOST_CHECK(crbegin(b) == crend(b));
+        BOOST_CHECK(begin(i0) == end(i0));
+        BOOST_CHECK(cbegin(i0) == cend(i0));
+        BOOST_CHECK(rbegin(i0) == rend(i0));
+        BOOST_CHECK(crbegin(i0) == crend(i0));
 }
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(DereferencingSingletBeginIteratorEqualsIndex, T, SetTypes3)
+{
+        constexpr auto N = T::max_size();
+        for (auto i = 0; i < N; ++i) {
+                auto const i1 = T{i};
+                auto const it = i1.begin();
+                auto const ref = *it;
+
+                BOOST_CHECK(&ref == it);
+                BOOST_CHECK(ref == i);
+        }
+}
+
 /*
 using SetTypes2 = boost::mpl::vector
 <

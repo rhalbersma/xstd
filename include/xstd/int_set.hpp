@@ -230,34 +230,40 @@ public:
         {
                 constexpr auto assert_invariants() const noexcept
                 {
-                        assert(0 <= m_index); assert(m_index < N);
+                        assert(0 <= m_value); assert(m_value < N);
                 }
 
                 word_type const& m_word;
-                size_type const m_index;
-        public:
-                const_reference() = delete;
-                const_reference(const_reference const&) = default;
-                const_reference& operator=(const_reference const&) = delete;
-                const_reference& operator=(value_type const) = delete;
+                value_type const m_value;
 
-                constexpr const_reference(word_type const& w, size_type const i) noexcept
+        public:
+                ~const_reference() = default;
+                const_reference(const_reference const&) = default;
+                const_reference(const_reference&&) = default;
+                const_reference& operator=(const_reference const&) = delete;
+                const_reference& operator=(const_reference&&) = delete;
+
+                const_reference() = delete;
+
+                constexpr const_reference(word_type const& w, value_type const v) noexcept
                 :
                         m_word{w},
-                        m_index{i}
+                        m_value{v}
                 {
                         assert_invariants();
                 }
 
+                const_reference& operator=(value_type const) = delete;
+
                 /* implicit */ constexpr operator value_type() const noexcept
                 {
-                        return m_index;
+                        return m_value;
                 }
 
                 constexpr auto operator&() const noexcept
                         -> const_iterator
                 {
-                        return { &m_word, m_index };
+                        return { &m_word, m_value };
                 }
         };
 
@@ -273,6 +279,7 @@ public:
 
                 word_type const* m_word;
                 size_type m_index;
+
         public:
                 using difference_type   = int_set::difference_type;
                 using value_type        = int_set::value_type;
@@ -330,10 +337,7 @@ public:
 
                 friend constexpr auto operator==(const_iterator lhs, const_iterator rhs) noexcept
                 {
-                        constexpr auto tied = [](auto const& it) {
-                                return std::tie(it.m_word, it.m_index);
-                        };
-                        return tied(lhs) == tied(rhs);
+                        return lhs.m_index == rhs.m_index;
                 }
 
                 friend constexpr auto operator!=(const_iterator lhs, const_iterator rhs) noexcept
