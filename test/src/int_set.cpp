@@ -193,13 +193,18 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
 using SetTypes3 = boost::mpl::vector
 <
         int_set<  0>,
+        int_set<  1>,
+        int_set< 31>,
         int_set< 32>,
+        int_set< 33>,
+        int_set< 63>,
         int_set< 64>,
-        int_set< 96>,
+        int_set< 65>,
+        int_set<127>,
         int_set<128>,
-        int_set<256>,
-        int_set<384>,
-        int_set<512>
+        int_set<129>,
+        int_set<255>,
+        int_set<256>
 >;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(ValueInitializationConstructsEmpty, T, SetTypes3)

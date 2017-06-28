@@ -57,7 +57,7 @@ struct ctznz
 
         constexpr auto operator()(__uint128_t x) const // Throws: Nothing.
         {
-                if (auto const lower = get<0>(x)) {
+                if (auto const lower = get<0>(x); lower) {
                         return __builtin_ctzll(lower);
                 } else {
                         return __builtin_ctzll(get<1>(x)) + 64;
@@ -285,8 +285,9 @@ public:
                 explicit constexpr const_iterator(word_type const* w) // Throws: Nothing.
                 :
                         m_word{w},
-                        m_index{find_first()}
+                        m_index{0}
                 {
+                        find_first();
                         assert_invariants();
                 }
 
@@ -342,21 +343,51 @@ public:
         private:
                 constexpr auto find_first() noexcept
                 {
-                        if constexpr (num_words == 1) {
-                                if (auto const word = *m_word) {
-                                        return builtin::ctznz(word);
-                                }
-                                ++m_word;
-                        } else if constexpr (num_words >= 2) {
-                                for (auto i = 0; i < num_words; ++i) {
-                                        if (auto const word = *m_word) {
-                                                assert(i * word_size + builtin::bsfnz(word) < N);
-                                                return i * word_size + builtin::bsfnz(word);
+                        assert(0 == m_index);
+                        if constexpr (excess_bits == 0) {
+                                if constexpr (num_words == 1) {
+                                        if (auto const word = *m_word; word) {
+                                                m_index += builtin::ctznz(word);
+                                                assert(0 <= m_index); assert(m_index < N);
+                                                return;
                                         }
                                         ++m_word;
+                                        m_index += word_size;
+                                } else if constexpr (num_words >= 2) {
+                                        for (auto i = 0; i < num_words; ++i, ++m_word, m_index += word_size) {
+                                                if (auto const word = *m_word; word) {
+                                                        m_index += builtin::ctznz(word);
+                                                        assert(i * word_size <= m_index); assert(m_index < N);
+                                                        return;
+                                                }
+                                        }
                                 }
+                        } else {
+                                static_assert(num_words > 0);
+                                if constexpr (num_words == 1) {
+                                        if (auto const word = *m_word; word) {
+                                                m_index += builtin::ctznz(word);
+                                                assert(0 <= m_index); assert(m_index < N);
+                                                return;
+                                        }
+                                } else if constexpr (num_words >= 2) {
+                                        for (auto i = 0; i < num_words - 1; ++i, ++m_word, m_index += word_size) {
+                                                if (auto const word = *m_word; word) {
+                                                        m_index += builtin::ctznz(word);
+                                                        assert(i * word_size <= m_index); assert(m_index < N);
+                                                        return;
+                                                }
+                                        }
+                                        if (auto const word = *m_word; word) {
+                                                m_index += builtin::ctznz(word);
+                                                assert((num_words - 1) * word_size <= m_index); assert(m_index < N);
+                                                return;
+                                        }
+                                }
+                                ++m_word;
+                                m_index = N;
                         }
-                        return N;
+                        assert(m_index == N);
                 }
 
                 constexpr auto increment() // Throws: Nothing.
@@ -367,7 +398,7 @@ public:
                                         ++m_word;
                                         return;
                                 }
-                                if (auto const word = *m_word >> m_index) {
+                                if (auto const word = *m_word >> m_index; word) {
                                         m_index += builtin::ctznz(word);
                                         return;
                                 } else {
@@ -385,7 +416,7 @@ public:
                                 if (index == 0) {
                                         ++m_word;
                                 }
-                                if (auto const word = *m_word >> index) {
+                                if (auto const word = *m_word >> index; word) {
                                         m_index += builtin::ctznz(word);
                                         assert(m_index < N);
                                         return;
@@ -393,7 +424,7 @@ public:
                                 ++m_word;
 
                                 for (auto i = which(m_index) + 1; i < num_words; ++i) {
-                                        if (auto const word = *m_word) {
+                                        if (auto const word = *m_word; word) {
                                                 m_index = i * word_size + builtin::bsfnz(word);
                                                 assert(m_index < N);
                                                 return;
@@ -527,7 +558,7 @@ public:
                                 });
                         }
                 } else {
-                        static_assert(num_words != 0);
+                        static_assert(num_words > 0);
                         if constexpr (num_words == 1) {
                                 return m_words[0] == mask_sane;
                         } else if constexpr (num_words >= 2) {
