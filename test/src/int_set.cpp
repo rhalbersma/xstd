@@ -224,7 +224,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(ValueInitializationConstructsEmpty, T, SetTypes3)
         BOOST_CHECK(rbegin(b) == rend(b));
         BOOST_CHECK(crbegin(b) == crend(b));
 }
-
+/*
 using SetTypes2 = boost::mpl::vector
 <
         int_set< 50>,   // draughts
@@ -278,7 +278,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(IsStrictlyIncreasing, T, SetTypes2)
         BOOST_CHECK(boost::adjacent_find(b           , std::greater_equal<>{}) == boost:: end(b));
         BOOST_CHECK(boost::adjacent_find(b | reversed, std::   less_equal<>{}) == boost::rend(b));
 }
-/*
+
 BOOST_AUTO_TEST_CASE_TEMPLATE(ForwardIterationTraversesRange, T, SetTypes2)
 {
         // arrange
