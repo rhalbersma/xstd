@@ -49,11 +49,10 @@ constexpr bool operator!=(div_t const& lhs, div_t const& rhs) noexcept
         return not (lhs == rhs);
 }
 
-// BOOST_CHECK_EQUAL_COLLECTIONS requires streamable types
 template<class CharT, class Traits>
 std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& ostr, div_t const& d)
 {
-        ostr << "[" << d.quot << "," << d.rem << "]";
+        ostr << '[' << d.quot << ',' << d.rem << ']';
         return ostr;
 }
 
