@@ -268,7 +268,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(IncrementingSingletBeginIteratorEqualsEndIterator,
                 { auto first = crbegin(i1); first++; BOOST_CHECK(first == crend(i1)); }
         }
 }
-/*
+
 BOOST_AUTO_TEST_CASE_TEMPLATE(DecrementingSingletEndIteratorEqualsBeginIterator, T, SetTypes3)
 {
         constexpr auto N = T::max_size();
@@ -278,36 +278,36 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(DecrementingSingletEndIteratorEqualsBeginIterator,
 
                 BOOST_CHECK(i1.size() == 1);
 
-                BOOST_CHECK(--i1.begin() == i1.end());
-                BOOST_CHECK(--ci1.begin() == ci1.end());
-                BOOST_CHECK(--i1.rbegin() == i1.rend());
-                BOOST_CHECK(--ci1.rbegin() == ci1.rend());
-                BOOST_CHECK(--i1.cbegin() == i1.cend());
-                BOOST_CHECK(--i1.crbegin() == i1.crend());
+                BOOST_CHECK(--i1.end() == i1.begin());
+                BOOST_CHECK(--ci1.end() == ci1.begin());
+                BOOST_CHECK(--i1.rend() == i1.rbegin());
+                BOOST_CHECK(--ci1.rend() == ci1.rbegin());
+                BOOST_CHECK(--i1.cend() == i1.cbegin());
+                BOOST_CHECK(--i1.crend() == i1.crbegin());
 
-                BOOST_CHECK(--begin(i1) == end(i1));
-                BOOST_CHECK(--begin(ci1) == end(ci1));
-                BOOST_CHECK(--rbegin(i1) == rend(i1));
-                BOOST_CHECK(--rbegin(ci1) == rend(ci1));
-                BOOST_CHECK(--cbegin(i1) == cend(i1));
-                BOOST_CHECK(--crbegin(i1) == crend(i1));
+                BOOST_CHECK(--end(i1) == begin(i1));
+                BOOST_CHECK(--end(ci1) == begin(ci1));
+                BOOST_CHECK(--rend(i1) == rbegin(i1));
+                BOOST_CHECK(--rend(ci1) == rbegin(ci1));
+                BOOST_CHECK(--cend(i1) == cbegin(i1));
+                BOOST_CHECK(--crend(i1) == crbegin(i1));
 
-                { auto first = i1.begin(); first--; BOOST_CHECK(first == i1.end()); }
-                { auto first = ci1.begin(); first--; BOOST_CHECK(first == ci1.end()); }
-                { auto first = i1.rbegin(); first--; BOOST_CHECK(first == i1.rend()); }
-                { auto first = ci1.rbegin(); first--; BOOST_CHECK(first == ci1.rend()); }
-                { auto first = i1.cbegin(); first--; BOOST_CHECK(first == i1.cend()); }
-                { auto first = i1.crbegin(); first--; BOOST_CHECK(first == i1.crend()); }
+                { auto first = i1.end(); first--; BOOST_CHECK(first == i1.begin()); }
+                { auto first = ci1.end(); first--; BOOST_CHECK(first == ci1.begin()); }
+                { auto first = i1.rend(); first--; BOOST_CHECK(first == i1.rbegin()); }
+                { auto first = ci1.rend(); first--; BOOST_CHECK(first == ci1.rbegin()); }
+                { auto first = i1.cend(); first--; BOOST_CHECK(first == i1.cbegin()); }
+                { auto first = i1.crend(); first--; BOOST_CHECK(first == i1.crbegin()); }
 
-                { auto first = begin(i1); first--; BOOST_CHECK(first == end(i1)); }
-                { auto first = begin(ci1); first--; BOOST_CHECK(first == end(ci1)); }
-                { auto first = rbegin(i1); first--; BOOST_CHECK(first == rend(i1)); }
-                { auto first = rbegin(ci1); first--; BOOST_CHECK(first == rend(ci1)); }
-                { auto first = cbegin(i1); first--; BOOST_CHECK(first == cend(i1)); }
-                { auto first = crbegin(i1); first--; BOOST_CHECK(first == crend(i1)); }
+                { auto first = end(i1); first--; BOOST_CHECK(first == begin(i1)); }
+                { auto first = end(ci1); first--; BOOST_CHECK(first == begin(ci1)); }
+                { auto first = rend(i1); first--; BOOST_CHECK(first == rbegin(i1)); }
+                { auto first = rend(ci1); first--; BOOST_CHECK(first == rbegin(ci1)); }
+                { auto first = cend(i1); first--; BOOST_CHECK(first == cbegin(i1)); }
+                { auto first = crend(i1); first--; BOOST_CHECK(first == crbegin(i1)); }
         }
 }
-*/
+
 BOOST_AUTO_TEST_CASE_TEMPLATE(DereferencingSingletBeginIteratorEqualsIndex, T, SetTypes3)
 {
         constexpr auto N = T::max_size();
