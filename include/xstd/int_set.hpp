@@ -368,13 +368,7 @@ public:
                                 }
                         } else {
                                 static_assert(num_words > 0);
-                                if constexpr (num_words == 1) {
-                                        if (auto const word = *m_word; word) {
-                                                m_index += builtin::ctznz(word);
-                                                assert(0 <= m_index); assert(m_index < N);
-                                                return;
-                                        }
-                                } else if constexpr (num_words >= 2) {
+                                if constexpr (num_words >= 2) {
                                         for (auto i = 0; i < num_words - 1; ++i, ++m_word, m_index += word_size) {
                                                 if (auto const word = *m_word; word) {
                                                         m_index += builtin::ctznz(word);
@@ -382,11 +376,11 @@ public:
                                                         return;
                                                 }
                                         }
-                                        if (auto const word = *m_word; word) {
-                                                m_index += builtin::ctznz(word);
-                                                assert((num_words - 1) * word_size <= m_index); assert(m_index < N);
-                                                return;
-                                        }
+                                }
+                                if (auto const word = *m_word; word) {
+                                        m_index += builtin::ctznz(word);
+                                        assert((num_words - 1) * word_size <= m_index); assert(m_index < N);
+                                        return;
                                 }
                                 ++m_word;
                                 m_index = N;

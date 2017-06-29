@@ -209,22 +209,105 @@ using SetTypes3 = boost::mpl::vector
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(ValueInitializationConstructsEmpty, T, SetTypes3)
 {
-        auto const i0 = T{};
+        auto i0 = T{};
+        auto const ci0 = T{};
 
         BOOST_CHECK(i0.empty());
         BOOST_CHECK_EQUAL(i0.size(), 0);
 
         BOOST_CHECK(i0.begin() == i0.end());
-        BOOST_CHECK(i0.cbegin() == i0.cend());
+        BOOST_CHECK(ci0.begin() == ci0.end());
         BOOST_CHECK(i0.rbegin() == i0.rend());
+        BOOST_CHECK(ci0.rbegin() == ci0.rend());
+        BOOST_CHECK(i0.cbegin() == i0.cend());
         BOOST_CHECK(i0.crbegin() == i0.crend());
 
         BOOST_CHECK(begin(i0) == end(i0));
-        BOOST_CHECK(cbegin(i0) == cend(i0));
+        BOOST_CHECK(begin(ci0) == end(ci0));
         BOOST_CHECK(rbegin(i0) == rend(i0));
+        BOOST_CHECK(rbegin(ci0) == rend(ci0));
+        BOOST_CHECK(cbegin(i0) == cend(i0));
         BOOST_CHECK(crbegin(i0) == crend(i0));
 }
 
+BOOST_AUTO_TEST_CASE_TEMPLATE(IncrementingSingletBeginIteratorEqualsEndIterator, T, SetTypes3)
+{
+        constexpr auto N = T::max_size();
+        for (auto i = 0; i < N; ++i) {
+                auto i1 = T{i};
+                auto const ci1 = T{i};
+
+                BOOST_CHECK(i1.size() == 1);
+
+                BOOST_CHECK(++i1.begin() == i1.end());
+                BOOST_CHECK(++ci1.begin() == ci1.end());
+                BOOST_CHECK(++i1.rbegin() == i1.rend());
+                BOOST_CHECK(++ci1.rbegin() == ci1.rend());
+                BOOST_CHECK(++i1.cbegin() == i1.cend());
+                BOOST_CHECK(++i1.crbegin() == i1.crend());
+
+                BOOST_CHECK(++begin(i1) == end(i1));
+                BOOST_CHECK(++begin(ci1) == end(ci1));
+                BOOST_CHECK(++rbegin(i1) == rend(i1));
+                BOOST_CHECK(++rbegin(ci1) == rend(ci1));
+                BOOST_CHECK(++cbegin(i1) == cend(i1));
+                BOOST_CHECK(++crbegin(i1) == crend(i1));
+
+                { auto first = i1.begin(); first++; BOOST_CHECK(first == i1.end()); }
+                { auto first = ci1.begin(); first++; BOOST_CHECK(first == ci1.end()); }
+                { auto first = i1.rbegin(); first++; BOOST_CHECK(first == i1.rend()); }
+                { auto first = ci1.rbegin(); first++; BOOST_CHECK(first == ci1.rend()); }
+                { auto first = i1.cbegin(); first++; BOOST_CHECK(first == i1.cend()); }
+                { auto first = i1.crbegin(); first++; BOOST_CHECK(first == i1.crend()); }
+
+                { auto first = begin(i1); first++; BOOST_CHECK(first == end(i1)); }
+                { auto first = begin(ci1); first++; BOOST_CHECK(first == end(ci1)); }
+                { auto first = rbegin(i1); first++; BOOST_CHECK(first == rend(i1)); }
+                { auto first = rbegin(ci1); first++; BOOST_CHECK(first == rend(ci1)); }
+                { auto first = cbegin(i1); first++; BOOST_CHECK(first == cend(i1)); }
+                { auto first = crbegin(i1); first++; BOOST_CHECK(first == crend(i1)); }
+        }
+}
+/*
+BOOST_AUTO_TEST_CASE_TEMPLATE(DecrementingSingletEndIteratorEqualsBeginIterator, T, SetTypes3)
+{
+        constexpr auto N = T::max_size();
+        for (auto i = 0; i < N; ++i) {
+                auto i1 = T{i};
+                auto const ci1 = T{i};
+
+                BOOST_CHECK(i1.size() == 1);
+
+                BOOST_CHECK(--i1.begin() == i1.end());
+                BOOST_CHECK(--ci1.begin() == ci1.end());
+                BOOST_CHECK(--i1.rbegin() == i1.rend());
+                BOOST_CHECK(--ci1.rbegin() == ci1.rend());
+                BOOST_CHECK(--i1.cbegin() == i1.cend());
+                BOOST_CHECK(--i1.crbegin() == i1.crend());
+
+                BOOST_CHECK(--begin(i1) == end(i1));
+                BOOST_CHECK(--begin(ci1) == end(ci1));
+                BOOST_CHECK(--rbegin(i1) == rend(i1));
+                BOOST_CHECK(--rbegin(ci1) == rend(ci1));
+                BOOST_CHECK(--cbegin(i1) == cend(i1));
+                BOOST_CHECK(--crbegin(i1) == crend(i1));
+
+                { auto first = i1.begin(); first--; BOOST_CHECK(first == i1.end()); }
+                { auto first = ci1.begin(); first--; BOOST_CHECK(first == ci1.end()); }
+                { auto first = i1.rbegin(); first--; BOOST_CHECK(first == i1.rend()); }
+                { auto first = ci1.rbegin(); first--; BOOST_CHECK(first == ci1.rend()); }
+                { auto first = i1.cbegin(); first--; BOOST_CHECK(first == i1.cend()); }
+                { auto first = i1.crbegin(); first--; BOOST_CHECK(first == i1.crend()); }
+
+                { auto first = begin(i1); first--; BOOST_CHECK(first == end(i1)); }
+                { auto first = begin(ci1); first--; BOOST_CHECK(first == end(ci1)); }
+                { auto first = rbegin(i1); first--; BOOST_CHECK(first == rend(i1)); }
+                { auto first = rbegin(ci1); first--; BOOST_CHECK(first == rend(ci1)); }
+                { auto first = cbegin(i1); first--; BOOST_CHECK(first == cend(i1)); }
+                { auto first = crbegin(i1); first--; BOOST_CHECK(first == crend(i1)); }
+        }
+}
+*/
 BOOST_AUTO_TEST_CASE_TEMPLATE(DereferencingSingletBeginIteratorEqualsIndex, T, SetTypes3)
 {
         constexpr auto N = T::max_size();
@@ -235,18 +318,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(DereferencingSingletBeginIteratorEqualsIndex, T, S
 
                 BOOST_CHECK(&ref == it);
                 BOOST_CHECK(ref == i);
-        }
-}
-
-BOOST_AUTO_TEST_CASE_TEMPLATE(IncrementingSingletBeginIteratorEqualsEndIterator, T, SetTypes3)
-{
-        constexpr auto N = T::max_size();
-        for (auto i = 0; i < N; ++i) {
-                auto const i1 = T{i};
-                auto first = i1.begin();
-                auto const last = ++first;
-
-                BOOST_CHECK(last == i1.end());
         }
 }
 
