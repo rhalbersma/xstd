@@ -274,9 +274,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(IncrementingSingletBeginIteratorEqualsEndIterator,
                         auto const cis2 = is2;
 
                         for (auto first = is2.begin(), last = is2.end(); first != last; ++first) { BOOST_CHECK_EQUAL(true, true); }
-                        for (auto first = cis2.begin(), last = is2.end(); first != last; ++first) { BOOST_CHECK_EQUAL(true, true); }
+                        for (auto first = cis2.begin(), last = cis2.end(); first != last; ++first) { BOOST_CHECK_EQUAL(true, true); }
                         for (auto first = is2.rbegin(), last = is2.rend(); first != last; ++first) { BOOST_CHECK_EQUAL(true, true); }
-                        for (auto first = cis2.rbegin(), last = is2.rend(); first != last; ++first) { BOOST_CHECK_EQUAL(true, true); }
+                        for (auto first = cis2.rbegin(), last = cis2.rend(); first != last; ++first) { BOOST_CHECK_EQUAL(true, true); }
                         for (auto first = is2.cbegin(), last = is2.cend(); first != last; ++first) { BOOST_CHECK_EQUAL(true, true); }
                         for (auto first = is2.crbegin(), last = is2.crend(); first != last; ++first) { BOOST_CHECK_EQUAL(true, true); }
                 }
@@ -327,9 +327,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(DecrementingSingletEndIteratorEqualsBeginIterator,
                         auto const cis2 = is2;
 
                         for (auto last = is2.end(), first = is2.begin(); last != first; --last) { BOOST_CHECK_EQUAL(true, true); }
-                        for (auto last = cis2.end(), first = is2.begin(); last != first; --last) { BOOST_CHECK_EQUAL(true, true); }
+                        for (auto last = cis2.end(), first = cis2.begin(); last != first; --last) { BOOST_CHECK_EQUAL(true, true); }
                         for (auto last = is2.rend(), first = is2.rbegin(); last != first; --last) { BOOST_CHECK_EQUAL(true, true); }
-                        for (auto last = cis2.rend(), first = is2.rbegin(); last != first; --last) { BOOST_CHECK_EQUAL(true, true); }
+                        for (auto last = cis2.rend(), first = cis2.rbegin(); last != first; --last) { BOOST_CHECK_EQUAL(true, true); }
                         for (auto last = is2.cend(), first = is2.cbegin(); last != first; --last) { BOOST_CHECK_EQUAL(true, true); }
                         for (auto last = is2.crend(), first = is2.crbegin(); last != first; --last) { BOOST_CHECK_EQUAL(true, true); }
                 }
