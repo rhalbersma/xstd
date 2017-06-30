@@ -18,6 +18,8 @@
 #include <type_traits>          // conditional_t, is_integral_v, is_nothrow_swappable_v, is_pod_v, is_unsigned_v
 #include <utility>              // move
 
+#include <iostream>
+
 #define PP_STL_CONSTEXPR_INCOMPLETE
 
 namespace xstd {
@@ -274,7 +276,7 @@ public:
                         if constexpr (num_words > 0) {
                                 assert(m_word != nullptr);
                         }
-                        assert(0 <= m_index); assert(m_index <= N);
+                        assert(0 <= m_index); assert(m_index <= num_bits);
                 }
 
                 word_type const* m_word;
@@ -292,9 +294,8 @@ public:
                 explicit constexpr const_iterator(word_type const* w) // Throws: Nothing.
                 :
                         m_word{w},
-                        m_index{0}
+                        m_index{find_first()}
                 {
-                        find_first();
                         assert_invariants();
                 }
 
@@ -337,6 +338,7 @@ public:
 
                 friend constexpr auto operator==(const_iterator lhs, const_iterator rhs) noexcept
                 {
+                        assert(lhs.m_word == rhs.m_word);
                         return lhs.m_index == rhs.m_index;
                 }
 
@@ -344,130 +346,85 @@ public:
                 {
                         return not (lhs == rhs);
                 }
+
+                template<class CharT, class Traits>
+                friend std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& ostr, const_iterator it)
+                {
+                        ostr << '[' << it.m_index << ']';
+                        return ostr;
+                }
+
         private:
                 constexpr auto find_first() noexcept
                 {
-                        assert(0 == m_index);
-                        if constexpr (excess_bits == 0) {
-                                if constexpr (num_words == 1) {
-                                        if (auto const word = *m_word; word) {
-                                                m_index += builtin::ctznz(word);
-                                                assert(0 <= m_index); assert(m_index < N);
-                                                return;
-                                        }
-                                        ++m_word;
-                                        m_index += word_size;
-                                } else if constexpr (num_words >= 2) {
-                                        for (auto i = 0; i < num_words; ++i, ++m_word, m_index += word_size) {
-                                                if (auto const word = *m_word; word) {
-                                                        m_index += builtin::ctznz(word);
-                                                        assert(i * word_size <= m_index); assert(m_index < N);
-                                                        return;
-                                                }
+                        if constexpr (num_words == 0) {
+                                return 0;
+                        } else if constexpr (num_words == 1) {
+                                return builtin::ctz(*m_word);
+                        } else if constexpr (num_words >= 2) {
+                                auto offset = 0;
+                                for (auto i = 0; i < num_words; ++i, offset += word_size) {
+                                        if (auto const word = m_word[i]; word) {
+                                                offset += builtin::ctznz(word);
+                                                break;
                                         }
                                 }
-                        } else {
-                                static_assert(num_words > 0);
-                                if constexpr (num_words >= 2) {
-                                        for (auto i = 0; i < num_words - 1; ++i, ++m_word, m_index += word_size) {
-                                                if (auto const word = *m_word; word) {
-                                                        m_index += builtin::ctznz(word);
-                                                        assert(i * word_size <= m_index); assert(m_index < N);
-                                                        return;
-                                                }
-                                        }
-                                }
-                                if (auto const word = *m_word; word) {
-                                        m_index += builtin::ctznz(word);
-                                        assert((num_words - 1) * word_size <= m_index); assert(m_index < N);
-                                        return;
-                                }
-                                ++m_word;
-                                m_index = N;
+                                return offset;
                         }
-                        assert(m_index == N);
                 }
 
                 constexpr auto increment() // Throws: Nothing.
                 {
                         assert(0 <= m_index); assert(m_index < N);
+                        if (++m_index == num_bits) { return; }
                         if constexpr (num_words == 1) {
-                                if (++m_index == N) {
-                                        ++m_word;
-                                        return;
-                                }
+                                assert(0 < m_index); assert(m_index < word_size);
                                 if (auto const word = *m_word >> m_index; word) {
                                         m_index += builtin::ctznz(word);
                                         return;
-                                } else {
-                                        ++m_word;
-                                        m_index = N;
                                 }
-                                assert(0 < m_index && m_index <= N);
+                                m_index = word_size;
                         } else if constexpr (num_words >= 2) {
-                                if (++m_index == N) {
-                                        ++m_word;
-                                        return;
-                                }
-
-                                auto const index = where(m_index);
-                                if (index == 0) {
-                                        ++m_word;
-                                }
-                                if (auto const word = *m_word >> index; word) {
-                                        m_index += builtin::ctznz(word);
-                                        assert(m_index < N);
-                                        return;
-                                }
-                                ++m_word;
-
-                                for (auto i = which(m_index) + 1; i < num_words; ++i) {
-                                        if (auto const word = *m_word; word) {
-                                                m_index = i * word_size + builtin::bsfnz(word);
-                                                assert(m_index < N);
+                                auto i = which(m_index);
+                                assert(0 <= i); assert(i < num_words);
+                                if (auto const offset = where(m_index); offset) {
+                                        if (auto const word = m_word[i] >> offset; word) {
+                                                m_index += builtin::ctznz(word);
                                                 return;
                                         }
-                                        ++m_word;
+                                        ++i;
+                                        m_index += word_size - offset;
                                 }
-                                m_index = N;
-                                assert(0 < m_index && m_index <= N);
+                                for (; i < num_words; ++i, m_index += word_size) {
+                                        if (auto const word = m_word[i]; word) {
+                                                m_index += builtin::ctznz(word);
+                                                return;
+                                        }
+                                }
                         }
+                        assert(m_index == num_bits);
                 }
 
                 constexpr auto decrement() // Throws: Nothing.
                 {
-                        assert(0 < m_index); assert(m_index <= N);
+                        assert(0 < m_index); assert(m_index <= num_bits);
+                        --m_index;
                         if constexpr (num_words == 1) {
-                                if (--m_index == 0) {
-                                        return;
-                                }
-                                if (m_index == N - 1) {
-                                        --m_word;
-                                }
-                                if (auto const word = *m_word << (word_size - 1 - m_index)) {
-                                        m_index -= builtin::clznz(word);
-                                }
-                                assert(m_index < N);
+                                m_index -= builtin::clznz(*m_word << (word_size - 1 - m_index));
                         } else if constexpr (num_words >= 2) {
-                                if (--m_index == 0) {
-                                        return;
+                                auto i = which(m_index);
+                                assert(0 <= i); assert(i < num_words);
+                                if (auto const offset = where(m_index); offset != word_size - 1) {
+                                        if (auto const word = m_word[i] << (word_size - 1 - offset); word) {
+                                                m_index -= builtin::clznz(word);
+                                                return;
+                                        }
+                                        --i;
+                                        m_index -= offset + 1;
                                 }
-
-                                auto const index = where(m_index);
-                                if (index == word_size - 1 || m_index == N - 1) {
-                                        --m_word;
-                                }
-                                if (auto const word = *m_word << (word_size - 1 - index)) {
-                                        m_index -= builtin::clznz(word);
-                                        assert(m_index < N);
-                                        return;
-                                }
-                                --m_word;
-
-                                for (auto i = which(m_index) - 1; i >= 0; --i) {
-                                        if (auto const word = *m_word) {
-                                                m_index = i * word_size + builtin::bsrnz(word);
-                                                assert(m_index < N);
+                                for (; i >= 0; --i, m_index -= word_size) {
+                                        if (auto const word = m_word[i]; word) {
+                                                m_index -= builtin::clznz(word);
                                                 return;
                                         }
                                 }
@@ -506,8 +463,8 @@ public:
 
         constexpr auto begin()         noexcept { return       iterator{m_words.begin()}; }
         constexpr auto begin()   const noexcept { return const_iterator{m_words.begin()}; }
-        constexpr auto end()           noexcept { return       iterator{m_words.end(), N}; }
-        constexpr auto end()     const noexcept { return const_iterator{m_words.end(), N}; }
+        constexpr auto end()           noexcept { return       iterator{m_words.begin(), num_bits}; }
+        constexpr auto end()     const noexcept { return const_iterator{m_words.begin(), num_bits}; }
 
         constexpr auto rbegin()        noexcept { return       reverse_iterator{end()}; }
         constexpr auto rbegin()  const noexcept { return const_reverse_iterator{end()}; }
@@ -579,7 +536,7 @@ public:
                 }
         }
 
-        constexpr static auto max_size() noexcept { return N;  }
+        constexpr static auto max_size() noexcept { return N; }
         constexpr static auto capacity() noexcept { return num_bits; }
 
         constexpr auto& insert(value_type const n) // Throws: Nothing.
@@ -832,7 +789,7 @@ private:
 
         constexpr static auto which(value_type const n [[maybe_unused]]) // Throws: Nothing.
         {
-                assert(0 <= n); assert(n < N);
+                assert(0 <= n); assert(n < num_bits);
                 if constexpr (num_words == 1) {
                         return 0;
                 } else {
@@ -842,7 +799,7 @@ private:
 
         constexpr static auto where(value_type const n) // Throws: Nothing.
         {
-                assert(0 <= n); assert(n < N);
+                assert(0 <= n); assert(n < num_bits);
                 if constexpr (num_words == 1) {
                         return n;
                 } else {
