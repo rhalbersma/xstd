@@ -210,7 +210,7 @@ using SetTypes3 = boost::mpl::vector
 BOOST_AUTO_TEST_CASE_TEMPLATE(ValueInitializationConstructsEmpty, T, SetTypes3)
 {
         auto i0 = T{};
-        auto const ci0 = T{};
+        auto const ci0 = i0;
 
         BOOST_CHECK(i0.empty());
         BOOST_CHECK_EQUAL(i0.size(), 0);
@@ -235,7 +235,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(IncrementingSingletBeginIteratorEqualsEndIterator,
         constexpr auto N = T::max_size();
         for (auto i = 0; i < N; ++i) {
                 auto i1 = T{i};
-                auto const ci1 = T{i};
+                auto const ci1 = i1;
 
                 BOOST_CHECK(i1.size() == 1);
 
@@ -267,6 +267,20 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(IncrementingSingletBeginIteratorEqualsEndIterator,
                 { auto first = cbegin(i1); first++; BOOST_CHECK(first == cend(i1)); }
                 { auto first = crbegin(i1); first++; BOOST_CHECK(first == crend(i1)); }
         }
+
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = i + 1; j < N; ++j) {
+                        auto const is2 = T{i, j};
+                        auto const cis2 = is2;
+
+                        for (auto first = is2.begin(), last = is2.end(); first != last; ++first) { BOOST_CHECK_EQUAL(true, true); }
+                        for (auto first = cis2.begin(), last = is2.end(); first != last; ++first) { BOOST_CHECK_EQUAL(true, true); }
+                        for (auto first = is2.rbegin(), last = is2.rend(); first != last; ++first) { BOOST_CHECK_EQUAL(true, true); }
+                        for (auto first = cis2.rbegin(), last = is2.rend(); first != last; ++first) { BOOST_CHECK_EQUAL(true, true); }
+                        for (auto first = is2.cbegin(), last = is2.cend(); first != last; ++first) { BOOST_CHECK_EQUAL(true, true); }
+                        for (auto first = is2.crbegin(), last = is2.crend(); first != last; ++first) { BOOST_CHECK_EQUAL(true, true); }
+                }
+        }
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(DecrementingSingletEndIteratorEqualsBeginIterator, T, SetTypes3)
@@ -274,7 +288,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(DecrementingSingletEndIteratorEqualsBeginIterator,
         constexpr auto N = T::max_size();
         for (auto i = 0; i < N; ++i) {
                 auto i1 = T{i};
-                auto const ci1 = T{i};
+                auto const ci1 = i1;
 
                 BOOST_CHECK(i1.size() == 1);
 
