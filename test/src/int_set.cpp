@@ -306,19 +306,33 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(DecrementingSingletEndIteratorEqualsBeginIterator,
                 BOOST_CHECK(--cend(i1) == cbegin(i1));
                 BOOST_CHECK(--crend(i1) == crbegin(i1));
 
-                { auto first = i1.end(); first--; BOOST_CHECK(first == i1.begin()); }
-                { auto first = ci1.end(); first--; BOOST_CHECK(first == ci1.begin()); }
-                { auto first = i1.rend(); first--; BOOST_CHECK(first == i1.rbegin()); }
-                { auto first = ci1.rend(); first--; BOOST_CHECK(first == ci1.rbegin()); }
-                { auto first = i1.cend(); first--; BOOST_CHECK(first == i1.cbegin()); }
-                { auto first = i1.crend(); first--; BOOST_CHECK(first == i1.crbegin()); }
+                { auto last = i1.end(); last--; BOOST_CHECK(last == i1.begin()); }
+                { auto last = ci1.end(); last--; BOOST_CHECK(last == ci1.begin()); }
+                { auto last = i1.rend(); last--; BOOST_CHECK(last == i1.rbegin()); }
+                { auto last = ci1.rend(); last--; BOOST_CHECK(last == ci1.rbegin()); }
+                { auto last = i1.cend(); last--; BOOST_CHECK(last == i1.cbegin()); }
+                { auto last = i1.crend(); last--; BOOST_CHECK(last == i1.crbegin()); }
 
-                { auto first = end(i1); first--; BOOST_CHECK(first == begin(i1)); }
-                { auto first = end(ci1); first--; BOOST_CHECK(first == begin(ci1)); }
-                { auto first = rend(i1); first--; BOOST_CHECK(first == rbegin(i1)); }
-                { auto first = rend(ci1); first--; BOOST_CHECK(first == rbegin(ci1)); }
-                { auto first = cend(i1); first--; BOOST_CHECK(first == cbegin(i1)); }
-                { auto first = crend(i1); first--; BOOST_CHECK(first == crbegin(i1)); }
+                { auto last = end(i1); last--; BOOST_CHECK(last == begin(i1)); }
+                { auto last = end(ci1); last--; BOOST_CHECK(last == begin(ci1)); }
+                { auto last = rend(i1); last--; BOOST_CHECK(last == rbegin(i1)); }
+                { auto last = rend(ci1); last--; BOOST_CHECK(last == rbegin(ci1)); }
+                { auto last = cend(i1); last--; BOOST_CHECK(last == cbegin(i1)); }
+                { auto last = crend(i1); last--; BOOST_CHECK(last == crbegin(i1)); }
+        }
+
+        for (auto i = 0; i < N; ++i) {
+                for (auto j = i + 1; j < N; ++j) {
+                        auto const is2 = T{i, j};
+                        auto const cis2 = is2;
+
+                        for (auto last = is2.end(), first = is2.begin(); last != first; --last) { BOOST_CHECK_EQUAL(true, true); }
+                        for (auto last = cis2.end(), first = is2.begin(); last != first; --last) { BOOST_CHECK_EQUAL(true, true); }
+                        for (auto last = is2.rend(), first = is2.rbegin(); last != first; --last) { BOOST_CHECK_EQUAL(true, true); }
+                        for (auto last = cis2.rend(), first = is2.rbegin(); last != first; --last) { BOOST_CHECK_EQUAL(true, true); }
+                        for (auto last = is2.cend(), first = is2.cbegin(); last != first; --last) { BOOST_CHECK_EQUAL(true, true); }
+                        for (auto last = is2.crend(), first = is2.crbegin(); last != first; --last) { BOOST_CHECK_EQUAL(true, true); }
+                }
         }
 }
 
