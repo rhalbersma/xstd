@@ -632,7 +632,7 @@ public:
                 if constexpr (num_words == 0) {
                         return false;
                 } if constexpr (num_words == 1) {
-                        return m_data & word_mask(n));
+                        return m_data & word_mask(n);
                 } else if constexpr (num_words >= 2) {
                         return m_data[which(n)] & word_mask(where(n));
                 }
