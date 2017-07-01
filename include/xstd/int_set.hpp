@@ -5,17 +5,17 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <algorithm>            // all_of, copy_backward, copy_n, equal, fill_n, lexicographical_compare
+#include <algorithm>            // all_of, copy_backward, copy_n, equal, fill_n, lexicographical_compare, max, swap_ranges
 #include <array>                // array
 #include <cassert>              // assert
 #include <cstddef>              // size_t
 #include <cstdint>              // uint64_t
 #include <functional>           // less
 #include <initializer_list>     // initializer_list
-#include <iterator>             // bidirectional_iterator_tag, reverse_iterator
+#include <iterator>             // bidirectional_iterator_tag, crbegin, crend, rbegin, reverse_iterator
 #include <limits>               // digits
 #include <type_traits>          // conditional_t, is_integral_v, is_nothrow_swappable_v, is_pod_v, is_unsigned_v
-#include <utility>              // move
+#include <utility>              // move, swap
 
 #define PP_STL_CONSTEXPR_INCOMPLETE
 
@@ -213,7 +213,8 @@ class int_set
         constexpr static auto num_bits = num_words * word_size;
         constexpr static auto excess_bits = num_bits - N;
 
-        std::array<word_type, num_words> m_words;
+        using data_type = std::conditional_t<num_words == 1, word_type, word_type[std::max(num_words, 1)]>;
+        data_type m_data;
 public:
         using key_type        = int;
         using key_compare     = std::less<>;
@@ -278,9 +279,7 @@ public:
         private:
                 constexpr auto assert_invariants() const noexcept
                 {
-                        if constexpr (num_words > 0) {
-                                assert(m_word != nullptr);
-                        }
+                        assert(m_word != nullptr);
                         assert(0 <= m_value); assert(m_value < N || num_bits == m_value);
                 }
 
@@ -435,7 +434,7 @@ public:
         template<class InputIterator>
         constexpr int_set(InputIterator first, InputIterator last) // Throws: Nothing.
         :
-                m_words{}
+                m_data{}
         {
                 insert(first, last);
         }
@@ -451,10 +450,10 @@ public:
                 return *this;
         }
 
-        constexpr auto begin()         noexcept { return       iterator{m_words.begin()}; }
-        constexpr auto begin()   const noexcept { return const_iterator{m_words.begin()}; }
-        constexpr auto end()           noexcept { return       iterator{m_words.begin(), num_bits}; }
-        constexpr auto end()     const noexcept { return const_iterator{m_words.begin(), num_bits}; }
+        constexpr auto begin()         noexcept { return       iterator{data()}; }
+        constexpr auto begin()   const noexcept { return const_iterator{data()}; }
+        constexpr auto end()           noexcept { return       iterator{data(), num_bits}; }
+        constexpr auto end()     const noexcept { return const_iterator{data(), num_bits}; }
 
         constexpr auto rbegin()        noexcept { return       reverse_iterator{end()}; }
         constexpr auto rbegin()  const noexcept { return const_reverse_iterator{end()}; }
@@ -468,7 +467,11 @@ public:
 
         constexpr auto data() const noexcept
         {
-                return m_words.data();
+                if constexpr (num_words == 1) {
+                        return &m_data;
+                } else {
+                        return m_data;
+                }
         }
 
         PP_STL_CONSTEXPR_INCOMPLETE auto empty() const noexcept
@@ -476,9 +479,9 @@ public:
                 if constexpr (num_words == 0) {
                         return true;
                 } else if constexpr (num_words == 1) {
-                        return m_words[0] == mask_none;
+                        return m_data == mask_none;
                 } else if constexpr (num_words >= 2) {
-                        return std::all_of(m_words.cbegin(), m_words.cend(), [](auto const word) {
+                        return std::all_of(m_data, m_data + num_words, [](auto const word) {
                                 return word == mask_none;
                         });
                 }
@@ -490,21 +493,21 @@ public:
                         if constexpr (num_words == 0) {
                                 return true;
                         } else if constexpr (num_words == 1) {
-                                return m_words[0] == mask_all;
+                                return m_data == mask_all;
                         } else if constexpr (num_words >= 2) {
-                                return std::all_of(m_words.cbegin(), m_words.cend(), [](auto const word) {
+                                return std::all_of(m_data, m_data + num_words, [](auto const word) {
                                         return word == mask_all;
                                 });
                         }
                 } else {
                         static_assert(num_words > 0);
                         if constexpr (num_words == 1) {
-                                return m_words[0] == mask_sane;
+                                return m_data == mask_sane;
                         } else if constexpr (num_words >= 2) {
                                 return
-                                        std::all_of(m_words.cbegin(), m_words.cend() - 1, [](auto const word) {
+                                        std::all_of(m_data, m_data + num_words - 1, [](auto const word) {
                                                 return word == mask_all;
-                                        }) && (m_words.back() == mask_sane);
+                                        }) && (m_data[num_words - 1] == mask_sane);
                                 ;
                         }
                 }
@@ -515,11 +518,11 @@ public:
                 if constexpr (num_words == 0) {
                         return 0;
                 } else if constexpr (num_words == 1) {
-                        return builtin::popcount(m_words[0]);
+                        return builtin::popcount(m_data);
                 } else if (num_words >= 2) {
                         // std::accumulate is not constexpr as of C++17
                         auto sum = 0;
-                        for (auto&& word : m_words) {
+                        for (auto&& word : m_data) {
                                 sum += builtin::popcount(word);
                         }
                         return sum;
@@ -532,7 +535,11 @@ public:
         constexpr auto& insert(value_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
-                m_words[static_cast<std::size_t>(which(n))] |= word_mask(where(n));
+                if constexpr (num_words == 1) {
+                        m_data |= word_mask(n);
+                } else if constexpr (num_words >= 2) {
+                        m_data[which(n)] |= word_mask(where(n));
+                }
                 assert(test(n));
                 return *this;
         }
@@ -540,8 +547,8 @@ public:
         template<class InputIterator>
         constexpr auto insert(InputIterator first, InputIterator last) // Throws: Nothing.
         {
-                for (auto it = first; it != last; ++it) {
-                        insert(*it);
+                while (first != last) {
+                        insert(*first++);
                 }
         }
 
@@ -552,7 +559,11 @@ public:
 
         PP_STL_CONSTEXPR_INCOMPLETE auto& fill() noexcept
         {
-                m_words.fill(mask_all);
+                if constexpr (num_words == 1) {
+                        m_data = mask_all;
+                } else if constexpr (num_words >= 2) {
+                        std::fill_n(m_data, num_words, mask_all);
+                }
                 sanitize_back();
                 assert(full());
                 return *this;
@@ -561,7 +572,11 @@ public:
         constexpr auto& erase(value_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
-                m_words[static_cast<std::size_t>(which(n))] &= ~word_mask(where(n));
+                if constexpr (num_words == 1) {
+                        m_data &= ~word_mask(n);
+                } else if constexpr (num_words >= 2) {
+                        m_data[which(n)] &= ~word_mask(where(n));
+                }
                 assert(not test(n));
                 return *this;
         }
@@ -574,41 +589,61 @@ public:
         template<class InputIterator>
         constexpr auto erase(InputIterator first, InputIterator last) // Throws: Nothing.
         {
-                for (auto it = first; it != last; ++it) {
-                        erase(*it);
+                while (first != last) {
+                        erase(*first++);
                 }
         }
 
         PP_STL_CONSTEXPR_INCOMPLETE auto swap(int_set& other) noexcept(num_words == 0 || std::is_nothrow_swappable_v<value_type>)
         {
-                m_words.swap(other.m_words);
+                if constexpr (num_words == 1) {
+                        using std::swap;
+                        swap(m_data, other.m_data);
+                } else if constexpr (num_words >= 2) {
+                        std::swap_ranges(m_data, m_data + num_words, other.m_data);
+                }
         }
 
         PP_STL_CONSTEXPR_INCOMPLETE auto clear() noexcept
         {
-                m_words.fill(mask_none);
+                if constexpr (num_words == 1) {
+                        m_data = mask_none;
+                } else if constexpr (num_words >= 2) {
+                        std::fill_n(m_data, num_words, mask_none);
+                }
                 assert(empty());
         }
 
         constexpr auto& flip(value_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
-                m_words[static_cast<std::size_t>(which(n))] ^= word_mask(where(n));
+                if constexpr (num_words == 1) {
+                        m_data ^= word_mask(n);
+                } else if constexpr (num_words >= 2) {
+                        m_data[which(n)] ^= word_mask(where(n));
+                }
                 return *this;
         }
 
         constexpr auto test(value_type const n) const // Throws: Nothing.
+                -> bool
         {
                 assert(0 <= n); assert(n < N);
-                return (m_words[static_cast<std::size_t>(which(n))] & word_mask(where(n))) != mask_none;
+                if constexpr (num_words == 0) {
+                        return false;
+                } if constexpr (num_words == 1) {
+                        return m_data & word_mask(n));
+                } else if constexpr (num_words >= 2) {
+                        return m_data[which(n)] & word_mask(where(n));
+                }
         }
 
         constexpr auto& flip() noexcept
         {
                 if constexpr (num_words == 1) {
-                        m_words[0] = ~m_words[0];
+                        m_data = ~m_data;
                 } else if constexpr (num_words >= 2) {
-                        for (auto&& word : m_words) {
+                        for (auto&& word : m_data) {
                                 word = ~word;
                         }
                 }
@@ -619,10 +654,10 @@ public:
         constexpr auto& operator&=(int_set const& other) noexcept
         {
                 if constexpr (num_words == 1) {
-                        m_words[0] &= other.m_words[0];
+                        m_data &= other.m_data;
                 } else if constexpr (num_words >= 2) {
                         for (auto i = 0; i < num_words; ++i) {
-                                m_words[static_cast<std::size_t>(i)] &= other.m_words[static_cast<std::size_t>(i)];
+                                m_data[i] &= other.m_data[i];
                         }
                 }
                 return *this;
@@ -631,10 +666,10 @@ public:
         constexpr auto& operator|=(int_set const& other) noexcept
         {
                 if constexpr (num_words == 1) {
-                        m_words[0] |= other.m_words[0];
+                        m_data |= other.m_data;
                 } else if constexpr (num_words >= 2) {
                         for (auto i = 0; i < num_words; ++i) {
-                                m_words[static_cast<std::size_t>(i)] |= other.m_words[static_cast<std::size_t>(i)];
+                                m_data[i] |= other.m_data[i];
                         }
                 }
                 return *this;
@@ -643,10 +678,10 @@ public:
         constexpr auto& operator^=(int_set const& other) noexcept
         {
                 if constexpr (num_words == 1) {
-                        m_words[0] ^= other.m_words[0];
+                        m_data ^= other.m_data;
                 } else if constexpr (num_words >= 2) {
                         for (auto i = 0; i < num_words; ++i) {
-                                m_words[static_cast<std::size_t>(i)] ^= other.m_words[static_cast<std::size_t>(i)];
+                                m_data[i] ^= other.m_data[i];
                         }
                 }
                 return *this;
@@ -655,10 +690,10 @@ public:
         constexpr auto& operator-=(int_set const& other) noexcept
         {
                 if constexpr (num_words == 1) {
-                        m_words[0] &= ~other.m_words[0];
+                        m_data &= ~other.m_data;
                 } else if constexpr (num_words >= 2) {
                         for (auto i = 0; i < num_words; ++i) {
-                                m_words[static_cast<std::size_t>(i)] &= ~other.m_words[static_cast<std::size_t>(i)];
+                                m_data[i] &= ~other.m_data[i];
                         }
                 }
                 return *this;
@@ -668,7 +703,7 @@ public:
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
-                        m_words[0] <<= n;
+                        m_data <<= n;
                 } else if constexpr (num_words >= 2) {
                         if (n == 0) { return *this; }
 
@@ -676,19 +711,19 @@ public:
                         auto const L_shift = n % word_size;
 
                         if (L_shift == 0) {
-                                std::copy_backward(m_words.begin(), m_words.end() - n_block, m_words.end());
+                                std::copy_backward(m_data, m_data + num_words - n_block, m_data + num_words);
                         } else {
                                 auto const R_shift = word_size - L_shift;
 
                                 for (auto i = num_words - 1; i > n_block; --i) {
-                                        m_words[static_cast<std::size_t>(i)] =
-                                                (m_words[static_cast<std::size_t>(i - n_block    )] << L_shift) |
-                                                (m_words[static_cast<std::size_t>(i - n_block - 1)] >> R_shift)
+                                        m_data[i] =
+                                                (m_data[i - n_block    ] << L_shift) |
+                                                (m_data[i - n_block - 1] >> R_shift)
                                         ;
                                 }
-                                m_words[static_cast<std::size_t>(n_block)] = m_words.front() << L_shift;
+                                m_data[n_block] = m_data[0] << L_shift;
                         }
-                        std::fill_n(m_words.begin(), n_block, mask_none);
+                        std::fill_n(m_data, n_block, mask_none);
                 }
                 sanitize_back();
                 return *this;
@@ -698,7 +733,7 @@ public:
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
-                        m_words[0] >>= n;
+                        m_data >>= n;
                 } else if constexpr (num_words >= 2) {
                         if (n == 0) { return *this; }
 
@@ -706,19 +741,20 @@ public:
                         auto const R_shift = n % word_size;
 
                         if (R_shift == 0) {
-                                std::copy_n(m_words.begin() + n_block, num_words - n_block, m_words.begin());
+                                std::copy_n(m_data + n_block, num_words - n_block, m_data);
                         } else {
                                 auto const L_shift = word_size - R_shift;
 
                                 for (auto i = 0; i < num_words - 1 - n_block; ++i) {
-                                        m_words[static_cast<std::size_t>(i)] =
-                                                (m_words[static_cast<std::size_t>(i + n_block    )] >> R_shift) |
-                                                (m_words[static_cast<std::size_t>(i + n_block + 1)] << L_shift)
+                                        m_data[i] =
+                                                (m_data[i + n_block    ] >> R_shift) |
+                                                (m_data[i + n_block + 1] << L_shift)
                                         ;
                                 }
-                                m_words[static_cast<std::size_t>(num_words - 1 - n_block)] = m_words.back() >> R_shift;
+                                m_data[num_words - 1 - n_block] = m_data[num_words - 1] >> R_shift;
                         }
-                        std::fill_n(m_words.rbegin(), n_block, mask_none);
+                        using std::rbegin;
+                        std::fill_n(rbegin(m_data), n_block, mask_none);
                 }
                 return *this;
         }
@@ -727,14 +763,14 @@ public:
         constexpr auto for_each(UnaryFunction fun) const
         {
                 if constexpr (num_words == 1) {
-                        for (auto word = m_words[0]; word; /* update inside loop */) {
+                        for (auto word = m_data; word; /* update inside loop */) {
                                 auto const first = builtin::bsfnz(word);
                                 fun(first);
                                 word ^= word_mask(first);
                         }
                 } else if constexpr (num_words >= 2) {
                         for (auto i = 0, offset = 0; i < num_words; ++i, offset += word_size) {
-                                for (auto word = m_words[static_cast<std::size_t>(i)]; word; /* update inside loop */) {
+                                for (auto word = m_data[i]; word; /* update inside loop */) {
                                         auto const first = builtin::bsfnz(word);
                                         fun(offset + first);
                                         word ^= word_mask(first);
@@ -748,14 +784,14 @@ public:
         constexpr auto reverse_for_each(UnaryFunction fun) const
         {
                 if constexpr (num_words == 1) {
-                        for (auto word = m_words[0]; word; /* update inside loop */) {
+                        for (auto word = m_data; word; /* update inside loop */) {
                                 auto const last = builtin::bsrnz(word);
                                 fun(last);
                                 word ^= word_mask(last);
                         }
                 } else if constexpr (num_words >= 2) {
                         for (auto i = num_words - 1, offset = (size() - 1) * word_size; i >= 0; --i, offset -= word_size) {
-                                for (auto word = m_words[static_cast<std::size_t>(i)]; word; /* update inside loop */) {
+                                for (auto word = m_data[i]; word; /* update inside loop */) {
                                         auto const last = builtin::bsrnz(word);
                                         fun(offset + last);
                                         word ^= word_mask(last);
@@ -773,28 +809,27 @@ private:
         constexpr auto sanitize_back() noexcept
         {
                 if constexpr (excess_bits != 0) {
-                        m_words.back() &= mask_sane;
+                        static_assert(num_words > 0);
+                        if constexpr (num_words == 1) {
+                                m_data &= mask_sane;
+                        } else if constexpr (num_words >= 2) {
+                                m_data[num_words - 1] &= mask_sane;
+                        }
                 }
         }
 
-        constexpr static auto which(value_type const n [[maybe_unused]]) // Throws: Nothing.
+        constexpr static auto which(value_type const n) // Throws: Nothing.
         {
+                static_assert(num_words >= 2);
                 assert(0 <= n); assert(n < num_bits);
-                if constexpr (num_words == 1) {
-                        return 0;
-                } else {
-                        return n / word_size;
-                }
+                return n / word_size;
         }
 
         constexpr static auto where(value_type const n) // Throws: Nothing.
         {
+                static_assert(num_words >= 2);
                 assert(0 <= n); assert(n < num_bits);
-                if constexpr (num_words == 1) {
-                        return n;
-                } else {
-                        return n % word_size;
-                }
+                return n % word_size;
         }
 
         constexpr static auto word_mask_table = []() {
@@ -811,10 +846,10 @@ private:
                 return word_mask_table[static_cast<std::size_t>(n)];
         }
 
-        friend PP_STL_CONSTEXPR_INCOMPLETE auto operator==    <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
-        friend PP_STL_CONSTEXPR_INCOMPLETE auto operator<     <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
-        friend PP_STL_CONSTEXPR_INCOMPLETE auto intersects    <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
-        friend PP_STL_CONSTEXPR_INCOMPLETE auto is_subset_of  <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
+        friend PP_STL_CONSTEXPR_INCOMPLETE auto operator==   <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
+        friend PP_STL_CONSTEXPR_INCOMPLETE auto operator<    <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
+        friend PP_STL_CONSTEXPR_INCOMPLETE auto intersects   <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
+        friend PP_STL_CONSTEXPR_INCOMPLETE auto is_subset_of <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
 };
 
 template<int N>
@@ -824,9 +859,12 @@ PP_STL_CONSTEXPR_INCOMPLETE auto operator==(int_set<N> const& lhs, int_set<N> co
         if constexpr (num_words == 0) {
                 return true;
         } else if constexpr (num_words == 1) {
-                return lhs.m_words[0] == rhs.m_words[0];
+                return lhs.m_data == rhs.m_data;
         } else if constexpr (num_words >= 2) {
-                return lhs.m_words == rhs.m_words;
+                return std::equal(
+                        lhs.m_data, lhs.m_data + num_words,
+                        rhs.m_data, rhs.m_data + num_words
+                );
         }
 }
 
@@ -843,11 +881,12 @@ PP_STL_CONSTEXPR_INCOMPLETE auto operator<(int_set<N> const& lhs, int_set<N> con
         if constexpr (num_words == 0) {
                 return false;
         } else if constexpr (num_words == 1) {
-                return lhs.m_words[0] < rhs.m_words[0];
+                return lhs.m_data < rhs.m_data;
         } else if constexpr (num_words >= 2) {
+                using std::crbegin; using std::crend;
                 return std::lexicographical_compare(
-                        lhs.m_words.crbegin(), lhs.m_words.crend(),
-                        rhs.m_words.crbegin(), rhs.m_words.crend()
+                        crbegin(lhs.m_data), crend(lhs.m_data),
+                        crbegin(rhs.m_data), crend(rhs.m_data)
                 );
         }
 }
@@ -971,11 +1010,11 @@ PP_STL_CONSTEXPR_INCOMPLETE auto intersects(int_set<N> const& lhs, int_set<N> co
         if constexpr (num_words == 0) {
                 return false;
         } else if constexpr (num_words == 1) {
-                return lhs.m_words[0] & rhs.m_words[0];
+                return lhs.m_data & rhs.m_data;
         } else if constexpr (num_words >= 2) {
                 return not std::equal(
-                        lhs.m_words.cbegin(), lhs.m_words.cend(),
-                        rhs.m_words.cbegin(), rhs.m_words.cend(),
+                        lhs.m_data, lhs.m_data + num_words,
+                        rhs.m_data, rhs.m_data + num_words,
                         [](auto const wL, auto const wR) {
                                 return not (wL & wR);
                         }
@@ -996,11 +1035,11 @@ PP_STL_CONSTEXPR_INCOMPLETE auto is_subset_of(int_set<N> const& lhs, int_set<N> 
         if constexpr (num_words == 0) {
                 return true;
         } else if constexpr (num_words == 1) {
-                return not (lhs.m_words[0] & ~rhs.m_words[0]);
+                return not (lhs.m_data & ~rhs.m_data);
         } else if constexpr (num_words >= 2) {
                 return std::equal(
-                        lhs.m_words.cbegin(), lhs.m_words.cend(),
-                        rhs.m_words.cbegin(), rhs.m_words.cend(),
+                        lhs.m_data, lhs.m_data + num_words,
+                        rhs.m_data, rhs.m_data + num_words,
                         [](auto const wL, auto const wR) {
                                 return not (wL & ~wR);
                         }
