@@ -629,11 +629,9 @@ public:
                 -> bool
         {
                 assert(0 <= n); assert(n < N);
-                if constexpr (num_words == 0) {
-                        __builtin_unreachable(); return false;
-                } if constexpr (num_words == 1) {
+                if constexpr (num_words == 1) {
                         return m_data & word_mask(n);
-                } else if constexpr (num_words >= 2) {
+                } else {
                         return m_data[which(n)] & word_mask(where(n));
                 }
         }
@@ -820,14 +818,14 @@ private:
 
         constexpr static auto which(value_type const n) // Throws: Nothing.
         {
-                static_assert(num_words >= 2);
+                static_assert(num_words != 1);
                 assert(0 <= n); assert(n < num_bits);
                 return n / word_size;
         }
 
         constexpr static auto where(value_type const n) // Throws: Nothing.
         {
-                static_assert(num_words >= 2);
+                static_assert(num_words != 1);
                 assert(0 <= n); assert(n < num_bits);
                 return n % word_size;
         }
