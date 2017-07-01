@@ -532,12 +532,12 @@ public:
         constexpr static auto max_size() noexcept { return N; }
         constexpr static auto capacity() noexcept { return num_bits; }
 
-        constexpr auto& insert(value_type const n [[maybe_unused]]) // Throws: Nothing.
+        constexpr auto& insert(value_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
                         m_data |= word_mask(n);
-                } else if constexpr (num_words >= 2) {
+                } else {
                         m_data[which(n)] |= word_mask(where(n));
                 }
                 assert(test(n));
@@ -569,12 +569,12 @@ public:
                 return *this;
         }
 
-        constexpr auto& erase(value_type const n [[maybe_unused]]) // Throws: Nothing.
+        constexpr auto& erase(value_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
                         m_data &= ~word_mask(n);
-                } else if constexpr (num_words >= 2) {
+                } else {
                         m_data[which(n)] &= ~word_mask(where(n));
                 }
                 assert(not test(n));
@@ -614,18 +614,18 @@ public:
                 assert(empty());
         }
 
-        constexpr auto& flip(value_type const n [[maybe_unused]]) // Throws: Nothing.
+        constexpr auto& flip(value_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
                         m_data ^= word_mask(n);
-                } else if constexpr (num_words >= 2) {
+                } else {
                         m_data[which(n)] ^= word_mask(where(n));
                 }
                 return *this;
         }
 
-        constexpr auto test(value_type const n [[maybe_unused]]) const // Throws: Nothing.
+        constexpr auto test(value_type const n) const // Throws: Nothing.
                 -> bool
         {
                 assert(0 <= n); assert(n < N);
