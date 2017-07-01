@@ -140,7 +140,8 @@ using SetTypes = boost::mpl::vector
         int_set<  1>,
         int_set< 64>,
         int_set< 65>,
-        int_set<128>
+        int_set<128>,
+        int_set<256>
 >;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)

@@ -14,11 +14,8 @@
 #include <initializer_list>     // initializer_list
 #include <iterator>             // bidirectional_iterator_tag, reverse_iterator
 #include <limits>               // digits
-#include <tuple>                // tie
 #include <type_traits>          // conditional_t, is_integral_v, is_nothrow_swappable_v, is_pod_v, is_unsigned_v
 #include <utility>              // move
-
-#include <iostream>
 
 #define PP_STL_CONSTEXPR_INCOMPLETE
 
@@ -207,7 +204,7 @@ class int_set
                 static_assert(std::is_pod_v<int_set>);
         }
 
-        using word_type = __uint128_t;//std::conditional_t<N <= 64, uint64_t, __uint128_t>;
+        using word_type = std::conditional_t<N <= 64, uint64_t, __uint128_t>;
         static_assert(std::is_unsigned_v<word_type>);
         static_assert(std::is_integral_v<word_type>);
 
@@ -271,17 +268,6 @@ public:
 
         class const_iterator
         {
-                constexpr auto assert_invariants() const noexcept
-                {
-                        if constexpr (num_words > 0) {
-                                assert(m_word != nullptr);
-                        }
-                        assert(0 <= m_index); assert(m_index <= num_bits);
-                }
-
-                word_type const* m_word;
-                size_type m_index;
-
         public:
                 using difference_type   = int_set::difference_type;
                 using value_type        = int_set::value_type;
@@ -289,20 +275,33 @@ public:
                 using reference         = const_reference;
                 using iterator_category = std::bidirectional_iterator_tag;
 
+        private:
+                constexpr auto assert_invariants() const noexcept
+                {
+                        if constexpr (num_words > 0) {
+                                assert(m_word != nullptr);
+                        }
+                        assert(0 <= m_value); assert(m_value < N || num_bits == m_value);
+                }
+
+                word_type const* m_word;
+                value_type m_value;
+
+        public:
                 const_iterator() = default;
 
                 explicit constexpr const_iterator(word_type const* w) // Throws: Nothing.
                 :
                         m_word{w},
-                        m_index{find_first()}
+                        m_value{find_first()}
                 {
                         assert_invariants();
                 }
 
-                constexpr const_iterator(word_type const* w, size_type const i) // Throws: Nothing.
+                constexpr const_iterator(word_type const* w, value_type const v) // Throws: Nothing.
                 :
                         m_word{w},
-                        m_index{i}
+                        m_value{v}
                 {
                         assert_invariants();
                 }
@@ -310,8 +309,8 @@ public:
                 constexpr auto operator*() const // Throws: Nothing.
                         -> const_reference
                 {
-                        assert(0 <= m_index); assert(m_index < N);
-                        return { *m_word, m_index };
+                        assert(0 <= m_value); assert(m_value < N);
+                        return { *m_word, m_value };
                 }
 
                 constexpr auto& operator++() // Throws: Nothing.
@@ -339,19 +338,12 @@ public:
                 friend constexpr auto operator==(const_iterator lhs, const_iterator rhs) noexcept
                 {
                         assert(lhs.m_word == rhs.m_word);
-                        return lhs.m_index == rhs.m_index;
+                        return lhs.m_value == rhs.m_value;
                 }
 
                 friend constexpr auto operator!=(const_iterator lhs, const_iterator rhs) noexcept
                 {
                         return not (lhs == rhs);
-                }
-
-                template<class CharT, class Traits>
-                friend std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& ostr, const_iterator it)
-                {
-                        ostr << '[' << it.m_index << ']';
-                        return ostr;
                 }
 
         private:
@@ -375,60 +367,58 @@ public:
 
                 constexpr auto increment() // Throws: Nothing.
                 {
-                        assert(0 <= m_index); assert(m_index < N);
-                        if (++m_index == num_bits) { return; }
+                        assert(m_value < N);
+                        if (num_bits == ++m_value) { return; }
                         if constexpr (num_words == 1) {
-                                assert(0 < m_index); assert(m_index < word_size);
-                                if (auto const word = *m_word >> m_index; word) {
-                                        m_index += builtin::ctznz(word);
+                                if (auto const word = *m_word >> m_value; word) {
+                                        m_value += builtin::ctznz(word);
                                         return;
                                 }
-                                m_index = word_size;
+                                m_value = word_size;
                         } else if constexpr (num_words >= 2) {
-                                auto i = which(m_index);
-                                assert(0 <= i); assert(i < num_words);
-                                if (auto const offset = where(m_index); offset) {
+                                auto i = which(m_value);
+                                if (auto const offset = where(m_value); offset) {
                                         if (auto const word = m_word[i] >> offset; word) {
-                                                m_index += builtin::ctznz(word);
+                                                m_value += builtin::ctznz(word);
                                                 return;
                                         }
                                         ++i;
-                                        m_index += word_size - offset;
+                                        m_value += word_size - offset;
                                 }
-                                for (; i < num_words; ++i, m_index += word_size) {
+                                for (/* initialized before loop */; i < num_words; ++i, m_value += word_size) {
                                         if (auto const word = m_word[i]; word) {
-                                                m_index += builtin::ctznz(word);
+                                                m_value += builtin::ctznz(word);
                                                 return;
                                         }
                                 }
                         }
-                        assert(m_index == num_bits);
+                        assert(num_bits == m_value);
                 }
 
                 constexpr auto decrement() // Throws: Nothing.
                 {
-                        assert(0 < m_index); assert(m_index <= num_bits);
-                        --m_index;
+                        assert(0 < m_value);
+                        --m_value;
                         if constexpr (num_words == 1) {
-                                m_index -= builtin::clznz(*m_word << (word_size - 1 - m_index));
+                                m_value -= builtin::clznz(*m_word << (word_size - 1 - m_value));
                         } else if constexpr (num_words >= 2) {
-                                auto i = which(m_index);
-                                assert(0 <= i); assert(i < num_words);
-                                if (auto const offset = where(m_index); offset != word_size - 1) {
+                                auto i = which(m_value);
+                                if (auto const offset = where(m_value); offset != word_size - 1) {
                                         if (auto const word = m_word[i] << (word_size - 1 - offset); word) {
-                                                m_index -= builtin::clznz(word);
+                                                m_value -= builtin::clznz(word);
                                                 return;
                                         }
                                         --i;
-                                        m_index -= offset + 1;
+                                        m_value -= offset + 1;
                                 }
-                                for (; i >= 0; --i, m_index -= word_size) {
+                                for (/* initialized before loop */; i >= 0; --i, m_value -= word_size) {
                                         if (auto const word = m_word[i]; word) {
-                                                m_index -= builtin::clznz(word);
+                                                m_value -= builtin::clznz(word);
                                                 return;
                                         }
                                 }
                         }
+                        assert(0 <= m_value); assert(m_value < N);
                 }
         };
 
