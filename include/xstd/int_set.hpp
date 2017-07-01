@@ -630,7 +630,7 @@ public:
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 0) {
-                        return false;
+                        __builtin_unreachable(); return false;
                 } if constexpr (num_words == 1) {
                         return m_data & word_mask(n);
                 } else if constexpr (num_words >= 2) {
