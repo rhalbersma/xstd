@@ -7,6 +7,7 @@
 
 #include <xstd/int_set.hpp>             // int_set
 #include <boost/test/unit_test.hpp>     // BOOST_CHECK, BOOST_CHECK_EQUAL
+#include <initializer_list>             // initializer_list
 
 namespace xstd {
 namespace prim {
@@ -196,6 +197,32 @@ constexpr auto erase(int_set<N> const& is, int const pos)
                 } else {
                         BOOST_CHECK_EQUAL(next.test(i), prev.test(i));
                 }
+        }
+}
+
+template<int N, class InputIterator>
+constexpr auto erase(int_set<N> const& is, InputIterator first, InputIterator last)
+{
+        auto const prev = is;
+        auto next = prev;
+
+        next.erase(first, last);
+
+        while (first != last) {
+                BOOST_CHECK(not next.test(*first++));
+        }
+}
+
+template<int N>
+constexpr auto erase(int_set<N> const& is, std::initializer_list<int> ilist)
+{
+        auto const prev = is;
+        auto next = prev;
+
+        next.erase(ilist);
+
+        for (auto&& elem : ilist) {
+                BOOST_CHECK(not next.test(elem));
         }
 }
 

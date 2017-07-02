@@ -103,7 +103,21 @@ template<int N>
 constexpr auto erase() noexcept
 {
         for (auto i = 0; i < N; ++i) {
-                prim::erase(int_set<N>{i}, i);
+                auto i1 = int_set<N>{i};
+                prim::erase(i1, i);
+        }
+
+        auto i0 = int_set<N>{};
+        prim::erase(i0, i0.begin(), i0.end());
+        for (auto i = 0; i < N; ++i) {
+                auto i1 = int_set<N>{i};
+                prim::erase(i1, i1.begin(), i1.end());
+        }
+
+        for (auto i = 0; i < N; ++i) {
+                auto const ilist{i};
+                auto i1 = int_set<N>{ilist};
+                prim::erase(i1, ilist);
         }
 }
 

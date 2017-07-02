@@ -141,6 +141,8 @@ using SetTypes = boost::mpl::vector
         int_set< 64>,
         int_set< 65>,
         int_set<128>,
+        int_set<129>,
+        int_set<255>,
         int_set<256>
 >;
 

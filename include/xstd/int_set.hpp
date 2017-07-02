@@ -184,6 +184,16 @@ constexpr auto bsr(WordT x) noexcept
         return std::numeric_limits<WordT>::digits - 1 - clz(x);
 }
 
+template<class WordT>
+constexpr auto word_mask_table = []() {
+        constexpr auto N = std::numeric_limits<WordT>::digits;
+        auto table = std::array<WordT, N>{};
+        for (auto n = 0; n < N; ++n) {
+                table[static_cast<std::size_t>(n)] = static_cast<WordT>(1) << n;
+        }
+        return table;
+}();
+
 }       // namespace builtin
 
 template<int>
@@ -444,10 +454,18 @@ public:
                 int_set(ilist.begin(), ilist.end())
         {}
 
+
+        template<class InputIterator>
+        constexpr auto& assign(InputIterator first, InputIterator last) // Throws: Nothing.
+        {
+                clear();
+                insert(first, last);
+                return *this;
+        }
+
         constexpr auto& operator=(std::initializer_list<value_type> ilist) // Throws: Nothing.
         {
-                insert(ilist);
-                return *this;
+                return assign(ilist.begin(), ilist.end());
         }
 
         constexpr auto begin()         noexcept { return       iterator{data()}; }
@@ -500,14 +518,14 @@ public:
                                 });
                         }
                 } else {
-                        static_assert(num_words > 0);
                         if constexpr (num_words == 1) {
                                 return m_data == mask_sane;
-                        } else if constexpr (num_words >= 2) {
+                        } else {
+                                static_assert(num_words >= 2);
                                 return
                                         std::all_of(m_data, m_data + num_words - 1, [](auto const word) {
                                                 return word == mask_all;
-                                        }) && (m_data[num_words - 1] == mask_sane);
+                                        }) && m_data[num_words - 1] == mask_sane;
                                 ;
                         }
                 }
@@ -545,16 +563,17 @@ public:
         }
 
         template<class InputIterator>
-        constexpr auto insert(InputIterator first, InputIterator last) // Throws: Nothing.
+        constexpr auto& insert(InputIterator first, InputIterator last) // Throws: Nothing.
         {
                 while (first != last) {
                         insert(*first++);
                 }
+                return *this;
         }
 
-        constexpr auto insert(std::initializer_list<value_type> ilist) // Throws: Nothing.
+        constexpr auto& insert(std::initializer_list<value_type> ilist) // Throws: Nothing.
         {
-                insert(ilist.begin(), ilist.end());
+                return insert(ilist.begin(), ilist.end());
         }
 
         PP_STL_CONSTEXPR_INCOMPLETE auto& fill() noexcept
@@ -581,17 +600,23 @@ public:
                 return *this;
         }
 
-        constexpr auto erase(const_iterator it) // Throws: Nothing.
+        constexpr auto& erase(const_iterator it) // Throws: Nothing.
         {
-                erase(*it);
+                return erase(*it);
         }
 
         template<class InputIterator>
-        constexpr auto erase(InputIterator first, InputIterator last) // Throws: Nothing.
+        constexpr auto& erase(InputIterator first, InputIterator last) // Throws: Nothing.
         {
                 while (first != last) {
                         erase(*first++);
                 }
+                return *this;
+        }
+
+        constexpr auto& erase(std::initializer_list<value_type> ilist) // Throws: Nothing.
+        {
+                return erase(ilist.begin(), ilist.end());
         }
 
         PP_STL_CONSTEXPR_INCOMPLETE auto swap(int_set& other) noexcept(num_words == 0 || std::is_nothrow_swappable_v<value_type>)
@@ -807,10 +832,10 @@ private:
         constexpr auto sanitize_back() noexcept
         {
                 if constexpr (excess_bits != 0) {
-                        static_assert(num_words > 0);
                         if constexpr (num_words == 1) {
                                 m_data &= mask_sane;
-                        } else if constexpr (num_words >= 2) {
+                        } else {
+                                static_assert(num_words >= 2);
                                 m_data[num_words - 1] &= mask_sane;
                         }
                 }
@@ -830,18 +855,10 @@ private:
                 return n % word_size;
         }
 
-        constexpr static auto word_mask_table = []() {
-                auto table = std::array<word_type, word_size>{};
-                for (auto n = 0; n < word_size; ++n) {
-                        table[static_cast<std::size_t>(n)] = static_cast<word_type>(1) << n;
-                }
-                return table;
-        }();
-
         constexpr static auto word_mask(value_type const n) // Throws: Nothing.
         {
-                assert(0 <= n); assert(n < word_size);
-                return word_mask_table[static_cast<std::size_t>(n)];
+                assert(0 <= n); assert(n < N);
+                return builtin::word_mask_table<word_type>[static_cast<std::size_t>(n)];
         }
 
         friend PP_STL_CONSTEXPR_INCOMPLETE auto operator==   <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
