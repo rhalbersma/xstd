@@ -20,7 +20,6 @@
 #define PP_STL_CONSTEXPR_INCOMPLETE
 
 namespace xstd {
-namespace builtin {
 namespace detail {
 
 // GCC / Clang have support for extended 128-bit integers.
@@ -33,6 +32,8 @@ constexpr auto get(__uint128_t x) noexcept
         return static_cast<uint64_t>(x >> (N * 64));
 }
 
+namespace builtin {
+
 // GCC / Clang have built-in functions for Count Trailing Zeros
 // for unsigned, unsigned long and unsigned long long.
 // For zero input, the result is undefined.
@@ -41,21 +42,25 @@ struct ctznz
 {
         constexpr auto operator()(unsigned x) const // Throws: Nothing.
         {
+                assert(x != 0);
                 return __builtin_ctz(x);
         }
 
         constexpr auto operator()(unsigned long x) const // Throws: Nothing.
         {
+                assert(x != 0);
                 return __builtin_ctzl(x);
         }
 
         constexpr auto operator()(unsigned long long x) const // Throws: Nothing.
         {
+                assert(x != 0);
                 return __builtin_ctzll(x);
         }
 
         constexpr auto operator()(__uint128_t x) const // Throws: Nothing.
         {
+                assert(x != 0);
                 if (auto const lower = get<0>(x); lower) {
                         return __builtin_ctzll(lower);
                 } else {
@@ -72,21 +77,25 @@ struct clznz
 {
         constexpr auto operator()(unsigned x) const // Throws: Nothing.
         {
+                assert(x != 0);
                 return __builtin_clz(x);
         }
 
         constexpr auto operator()(unsigned long x) const // Throws: Nothing.
         {
+                assert(x != 0);
                 return __builtin_clzl(x);
         }
 
         constexpr auto operator()(unsigned long long x) const // Throws: Nothing.
         {
+                assert(x != 0);
                 return __builtin_clzll(x);
         }
 
         constexpr auto operator()(__uint128_t x) const // Throws: Nothing.
         {
+                assert(x != 0);
                 if (auto const upper = get<1>(x)) {
                         return __builtin_clzll(upper);
                 } else {
@@ -124,26 +133,26 @@ struct popcount
         }
 };
 
-}       // namespace detail
+}       // namespace builtin
 
 template<class WordT>
 constexpr auto ctznz(WordT x) // Throws: Nothing.
 {
         assert(x != 0);
-        return detail::ctznz{}(x);
+        return builtin::ctznz{}(x);
 }
 
 template<class WordT>
 constexpr auto clznz(WordT x) // Throws: Nothing.
 {
         assert(x != 0);
-        return detail::clznz{}(x);
+        return builtin::clznz{}(x);
 }
 
 template<class WordT>
 constexpr auto popcount(WordT x) noexcept
 {
-        return detail::popcount{}(x);
+        return builtin::popcount{}(x);
 }
 
 template<class WordT>
@@ -185,7 +194,7 @@ constexpr auto bsr(WordT x) noexcept
 }
 
 template<class WordT>
-constexpr auto word_mask_table = []() {
+constexpr auto bit1 = []() {
         constexpr auto N = std::numeric_limits<WordT>::digits;
         auto table = std::array<WordT, N>{};
         for (auto n = 0; n < N; ++n) {
@@ -194,7 +203,10 @@ constexpr auto word_mask_table = []() {
         return table;
 }();
 
-}       // namespace builtin
+template<class WordT> constexpr auto zero =  static_cast<WordT>(0);
+template<class WordT> constexpr auto ones = ~static_cast<WordT>(0);
+
+}       // namespace detail
 
 template<int>
 class int_set;
@@ -361,12 +373,12 @@ public:
                         if constexpr (num_words == 0) {
                                 return 0;
                         } else if constexpr (num_words == 1) {
-                                return builtin::ctz(*m_word);
+                                return detail::ctz(*m_word);
                         } else if constexpr (num_words >= 2) {
                                 auto offset = 0;
                                 for (auto i = 0; i < num_words; ++i, offset += word_size) {
                                         if (auto const word = m_word[i]; word) {
-                                                offset += builtin::ctznz(word);
+                                                offset += detail::ctznz(word);
                                                 break;
                                         }
                                 }
@@ -380,7 +392,7 @@ public:
                         if (num_bits == ++m_value) { return; }
                         if constexpr (num_words == 1) {
                                 if (auto const word = *m_word >> m_value; word) {
-                                        m_value += builtin::ctznz(word);
+                                        m_value += detail::ctznz(word);
                                         return;
                                 }
                                 m_value = word_size;
@@ -388,7 +400,7 @@ public:
                                 auto i = which(m_value);
                                 if (auto const offset = where(m_value); offset) {
                                         if (auto const word = m_word[i] >> offset; word) {
-                                                m_value += builtin::ctznz(word);
+                                                m_value += detail::ctznz(word);
                                                 return;
                                         }
                                         ++i;
@@ -396,7 +408,7 @@ public:
                                 }
                                 for (/* initialized before loop */; i < num_words; ++i, m_value += word_size) {
                                         if (auto const word = m_word[i]; word) {
-                                                m_value += builtin::ctznz(word);
+                                                m_value += detail::ctznz(word);
                                                 return;
                                         }
                                 }
@@ -409,12 +421,12 @@ public:
                         assert(0 < m_value);
                         --m_value;
                         if constexpr (num_words == 1) {
-                                m_value -= builtin::clznz(*m_word << (word_size - 1 - m_value));
+                                m_value -= detail::clznz(*m_word << (word_size - 1 - m_value));
                         } else if constexpr (num_words >= 2) {
                                 auto i = which(m_value);
                                 if (auto const offset = where(m_value); offset != word_size - 1) {
                                         if (auto const word = m_word[i] << (word_size - 1 - offset); word) {
-                                                m_value -= builtin::clznz(word);
+                                                m_value -= detail::clznz(word);
                                                 return;
                                         }
                                         --i;
@@ -422,7 +434,7 @@ public:
                                 }
                                 for (/* initialized before loop */; i >= 0; --i, m_value -= word_size) {
                                         if (auto const word = m_word[i]; word) {
-                                                m_value -= builtin::clznz(word);
+                                                m_value -= detail::clznz(word);
                                                 return;
                                         }
                                 }
@@ -454,18 +466,10 @@ public:
                 int_set(ilist.begin(), ilist.end())
         {}
 
-
-        template<class InputIterator>
-        constexpr auto& assign(InputIterator first, InputIterator last) // Throws: Nothing.
-        {
-                clear();
-                insert(first, last);
-                return *this;
-        }
-
         constexpr auto& operator=(std::initializer_list<value_type> ilist) // Throws: Nothing.
         {
-                return assign(ilist.begin(), ilist.end());
+                insert(ilist.begin(), ilist.end());
+                return *this;
         }
 
         constexpr auto begin()         noexcept { return       iterator{data()}; }
@@ -497,10 +501,10 @@ public:
                 if constexpr (num_words == 0) {
                         return true;
                 } else if constexpr (num_words == 1) {
-                        return m_data == mask_none;
+                        return m_data == detail::zero<word_type>;
                 } else if constexpr (num_words >= 2) {
                         return std::all_of(m_data, m_data + num_words, [](auto const word) {
-                                return word == mask_none;
+                                return word == detail::zero<word_type>;
                         });
                 }
         }
@@ -511,21 +515,21 @@ public:
                         if constexpr (num_words == 0) {
                                 return true;
                         } else if constexpr (num_words == 1) {
-                                return m_data == mask_all;
+                                return m_data == detail::ones<word_type>;
                         } else if constexpr (num_words >= 2) {
                                 return std::all_of(m_data, m_data + num_words, [](auto const word) {
-                                        return word == mask_all;
+                                        return word == detail::ones<word_type>;
                                 });
                         }
                 } else {
                         if constexpr (num_words == 1) {
-                                return m_data == mask_sane;
+                                return m_data == sane;
                         } else {
                                 static_assert(num_words >= 2);
                                 return
                                         std::all_of(m_data, m_data + num_words - 1, [](auto const word) {
-                                                return word == mask_all;
-                                        }) && m_data[num_words - 1] == mask_sane;
+                                                return word == detail::ones<word_type>;
+                                        }) && m_data[num_words - 1] == sane;
                                 ;
                         }
                 }
@@ -536,12 +540,12 @@ public:
                 if constexpr (num_words == 0) {
                         return 0;
                 } else if constexpr (num_words == 1) {
-                        return builtin::popcount(m_data);
+                        return detail::popcount(m_data);
                 } else if (num_words >= 2) {
                         // std::accumulate is not constexpr as of C++17
                         auto sum = 0;
                         for (auto&& word : m_data) {
-                                sum += builtin::popcount(word);
+                                sum += detail::popcount(word);
                         }
                         return sum;
                 }
@@ -554,34 +558,34 @@ public:
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
-                        m_data |= word_mask(n);
+                        m_data |= bit1(n);
                 } else {
-                        m_data[which(n)] |= word_mask(where(n));
+                        assert(num_words >= 2);
+                        m_data[which(n)] |= bit1(where(n));
                 }
                 assert(test(n));
                 return *this;
         }
 
         template<class InputIterator>
-        constexpr auto& insert(InputIterator first, InputIterator last) // Throws: Nothing.
+        constexpr auto insert(InputIterator first, InputIterator last) // Throws: Nothing.
         {
                 while (first != last) {
                         insert(*first++);
                 }
-                return *this;
         }
 
-        constexpr auto& insert(std::initializer_list<value_type> ilist) // Throws: Nothing.
+        constexpr auto insert(std::initializer_list<value_type> ilist) // Throws: Nothing.
         {
-                return insert(ilist.begin(), ilist.end());
+                insert(ilist.begin(), ilist.end());
         }
 
         PP_STL_CONSTEXPR_INCOMPLETE auto& fill() noexcept
         {
                 if constexpr (num_words == 1) {
-                        m_data = mask_all;
+                        m_data = detail::ones<word_type>;
                 } else if constexpr (num_words >= 2) {
-                        std::fill_n(m_data, num_words, mask_all);
+                        std::fill_n(m_data, num_words, detail::ones<word_type>);
                 }
                 sanitize_back();
                 assert(full());
@@ -592,9 +596,10 @@ public:
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
-                        m_data &= ~word_mask(n);
+                        m_data &= ~bit1(n);
                 } else {
-                        m_data[which(n)] &= ~word_mask(where(n));
+                        assert(num_words >= 2);
+                        m_data[which(n)] &= ~bit1(where(n));
                 }
                 assert(not test(n));
                 return *this;
@@ -606,17 +611,16 @@ public:
         }
 
         template<class InputIterator>
-        constexpr auto& erase(InputIterator first, InputIterator last) // Throws: Nothing.
+        constexpr auto erase(InputIterator first, InputIterator last) // Throws: Nothing.
         {
                 while (first != last) {
                         erase(*first++);
                 }
-                return *this;
         }
 
-        constexpr auto& erase(std::initializer_list<value_type> ilist) // Throws: Nothing.
+        constexpr auto erase(std::initializer_list<value_type> ilist) // Throws: Nothing.
         {
-                return erase(ilist.begin(), ilist.end());
+                erase(ilist.begin(), ilist.end());
         }
 
         PP_STL_CONSTEXPR_INCOMPLETE auto swap(int_set& other) noexcept(num_words == 0 || std::is_nothrow_swappable_v<value_type>)
@@ -632,9 +636,9 @@ public:
         PP_STL_CONSTEXPR_INCOMPLETE auto clear() noexcept
         {
                 if constexpr (num_words == 1) {
-                        m_data = mask_none;
+                        m_data = detail::zero<word_type>;
                 } else if constexpr (num_words >= 2) {
-                        std::fill_n(m_data, num_words, mask_none);
+                        std::fill_n(m_data, num_words, detail::zero<word_type>);
                 }
                 assert(empty());
         }
@@ -643,9 +647,10 @@ public:
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
-                        m_data ^= word_mask(n);
+                        m_data ^= bit1(n);
                 } else {
-                        m_data[which(n)] ^= word_mask(where(n));
+                        assert(num_words >= 2);
+                        m_data[which(n)] ^= bit1(where(n));
                 }
                 return *this;
         }
@@ -655,9 +660,10 @@ public:
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
-                        return m_data & word_mask(n);
+                        return m_data & bit1(n);
                 } else {
-                        return m_data[which(n)] & word_mask(where(n));
+                        assert(num_words >= 2);
+                        return m_data[which(n)] & bit1(where(n));
                 }
         }
 
@@ -746,7 +752,7 @@ public:
                                 }
                                 m_data[n_block] = m_data[0] << L_shift;
                         }
-                        std::fill_n(m_data, n_block, mask_none);
+                        std::fill_n(m_data, n_block, detail::zero<word_type>);
                 }
                 sanitize_back();
                 return *this;
@@ -777,7 +783,7 @@ public:
                                 m_data[num_words - 1 - n_block] = m_data[num_words - 1] >> R_shift;
                         }
                         using std::rbegin;
-                        std::fill_n(rbegin(m_data), n_block, mask_none);
+                        std::fill_n(rbegin(m_data), n_block, detail::zero<word_type>);
                 }
                 return *this;
         }
@@ -787,16 +793,16 @@ public:
         {
                 if constexpr (num_words == 1) {
                         for (auto word = m_data; word; /* update inside loop */) {
-                                auto const first = builtin::bsfnz(word);
+                                auto const first = detail::bsfnz(word);
                                 fun(first);
-                                word ^= word_mask(first);
+                                word ^= bit1(first);
                         }
                 } else if constexpr (num_words >= 2) {
                         for (auto i = 0, offset = 0; i < num_words; ++i, offset += word_size) {
                                 for (auto word = m_data[i]; word; /* update inside loop */) {
-                                        auto const first = builtin::bsfnz(word);
+                                        auto const first = detail::bsfnz(word);
                                         fun(offset + first);
-                                        word ^= word_mask(first);
+                                        word ^= bit1(first);
                                 }
                         }
                 }
@@ -808,16 +814,16 @@ public:
         {
                 if constexpr (num_words == 1) {
                         for (auto word = m_data; word; /* update inside loop */) {
-                                auto const last = builtin::bsrnz(word);
+                                auto const last = detail::bsrnz(word);
                                 fun(last);
-                                word ^= word_mask(last);
+                                word ^= bit1(last);
                         }
                 } else if constexpr (num_words >= 2) {
                         for (auto i = num_words - 1, offset = (size() - 1) * word_size; i >= 0; --i, offset -= word_size) {
                                 for (auto word = m_data[i]; word; /* update inside loop */) {
-                                        auto const last = builtin::bsrnz(word);
+                                        auto const last = detail::bsrnz(word);
                                         fun(offset + last);
-                                        word ^= word_mask(last);
+                                        word ^= bit1(last);
                                 }
                         }
                 }
@@ -825,18 +831,16 @@ public:
         }
 
 private:
-        constexpr static auto mask_none =  static_cast<word_type>(0);
-        constexpr static auto mask_all  = ~static_cast<word_type>(0);
-        constexpr static auto mask_sane = mask_all >> excess_bits;
+        constexpr static auto sane = detail::ones<word_type> >> excess_bits;
 
         constexpr auto sanitize_back() noexcept
         {
                 if constexpr (excess_bits != 0) {
                         if constexpr (num_words == 1) {
-                                m_data &= mask_sane;
+                                m_data &= sane;
                         } else {
                                 static_assert(num_words >= 2);
-                                m_data[num_words - 1] &= mask_sane;
+                                m_data[num_words - 1] &= sane;
                         }
                 }
         }
@@ -855,10 +859,10 @@ private:
                 return n % word_size;
         }
 
-        constexpr static auto word_mask(value_type const n) // Throws: Nothing.
+        constexpr static auto bit1(value_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
-                return builtin::word_mask_table<word_type>[static_cast<std::size_t>(n)];
+                return detail::bit1<word_type>[static_cast<std::size_t>(n)];
         }
 
         friend PP_STL_CONSTEXPR_INCOMPLETE auto operator==   <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;

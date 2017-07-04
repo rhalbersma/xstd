@@ -10,8 +10,8 @@
 #include <boost/range/algorithm/adjacent_find.hpp>      // adjacent_find
 #include <boost/range/algorithm_ext/is_sorted.hpp>      // is_sorted
 #include <boost/range/end.hpp>                          // end
-#include <boost/test/unit_test.hpp>                     // BOOST_AUTO_TEST_SUITE, BOOST_CHECK, BOOST_AUTO_TEST_SUITE_END
 #include <boost/test/test_case_template.hpp>            // BOOST_AUTO_TEST_CASE_TEMPLATE
+#include <boost/test/unit_test.hpp>                     // BOOST_AUTO_TEST_SUITE, BOOST_CHECK, BOOST_AUTO_TEST_SUITE_END
 #include <functional>                                   // greater, greater_equal, less, less_equal
 #include <initializer_list>                             // initializer_list
 #include <iterator>                                     // begin, end, cbegin, cend, distance
@@ -19,11 +19,7 @@
 
 BOOST_AUTO_TEST_SUITE(Builtin)
 
-template<class T> constexpr auto mask_none =  static_cast<T>(0);
-template<class T> constexpr auto mask_one  =  static_cast<T>(1);
-template<class T> constexpr auto mask_all  = ~static_cast<T>(0);
-
-// the gcc intrinsics are defined for the following types
+// the GCC/Clang intrinsics are defined for the following types
 using UnsignedIntegerTypes = boost::mpl::vector
 <
         unsigned,
@@ -32,99 +28,99 @@ using UnsignedIntegerTypes = boost::mpl::vector
         __uint128_t
 >;
 
-using namespace xstd::builtin;
+using namespace xstd;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(CountTrailingZerosNonZero, T, UnsignedIntegerTypes)
 {
-        BOOST_CHECK_EQUAL(ctznz(mask_all<T>), 0);
+        BOOST_CHECK_EQUAL(detail::ctznz(detail::ones<T>), 0);
 
         for (auto i = 0; i < std::numeric_limits<T>::digits; ++i) {
-                auto const b = mask_one<T> << i;
-                BOOST_CHECK_EQUAL(ctznz(b), i);
+                auto const b = detail::bit1<T>[i];
+                BOOST_CHECK_EQUAL(detail::ctznz(b), i);
         }
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(CountLeadingZerosNonZero, T, UnsignedIntegerTypes)
 {
-        BOOST_CHECK_EQUAL(clznz(mask_all<T>), 0);
+        BOOST_CHECK_EQUAL(detail::clznz(detail::ones<T>), 0);
 
         for (auto i = 0; i < std::numeric_limits<T>::digits; ++i) {
-                auto const b = mask_one<T> << i;
-                BOOST_CHECK_EQUAL(clznz(b), std::numeric_limits<T>::digits - 1 - i);
+                auto const b = detail::bit1<T>[i];
+                BOOST_CHECK_EQUAL(detail::clznz(b), std::numeric_limits<T>::digits - 1 - i);
         }
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(Popcount, T, UnsignedIntegerTypes)
 {
         for (auto i = 0; i < std::numeric_limits<T>::digits; ++i) {
-                auto const b = ~(mask_all<T> << i);
-                BOOST_CHECK_EQUAL(popcount(b), i);
+                auto const b = ~(detail::ones<T> << i);
+                BOOST_CHECK_EQUAL(detail::popcount(b), i);
         }
 
-        BOOST_CHECK_EQUAL(popcount(mask_all<T>), std::numeric_limits<T>::digits);
+        BOOST_CHECK_EQUAL(detail::popcount(detail::ones<T>), std::numeric_limits<T>::digits);
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(BitScanForwardNonZero, T, UnsignedIntegerTypes)
 {
-        BOOST_CHECK_EQUAL(bsfnz(mask_all<T>), 0);
+        BOOST_CHECK_EQUAL(detail::bsfnz(detail::ones<T>), 0);
 
         for (auto i = 0; i < std::numeric_limits<T>::digits; ++i) {
-                auto const b = mask_one<T> << i;
-                BOOST_CHECK_EQUAL(bsfnz(b), i);
+                auto const b = detail::bit1<T>[i];
+                BOOST_CHECK_EQUAL(detail::bsfnz(b), i);
         }
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(BitScanReverseNonZero, T, UnsignedIntegerTypes)
 {
-        BOOST_CHECK_EQUAL(bsrnz(mask_all<T>), std::numeric_limits<T>::digits - 1);
+        BOOST_CHECK_EQUAL(detail::bsrnz(detail::ones<T>), std::numeric_limits<T>::digits - 1);
 
         for (auto i = 0; i < std::numeric_limits<T>::digits; ++i) {
-                auto const b = mask_one<T> << i;
-                BOOST_CHECK_EQUAL(bsrnz(b), i);
+                auto const b = detail::bit1<T>[i];
+                BOOST_CHECK_EQUAL(detail::bsrnz(b), i);
         }
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(CountTrailingZeros, T, UnsignedIntegerTypes)
 {
-        BOOST_CHECK_EQUAL(ctz(mask_none<T>), std::numeric_limits<T>::digits);
-        BOOST_CHECK_EQUAL(ctz(mask_all<T>), 0);
+        BOOST_CHECK_EQUAL(detail::ctz(detail::zero<T>), std::numeric_limits<T>::digits);
+        BOOST_CHECK_EQUAL(detail::ctz(detail::ones<T>), 0);
 
         for (auto i = 0; i < std::numeric_limits<T>::digits; ++i) {
-                auto const b = mask_one<T> << i;
-                BOOST_CHECK_EQUAL(ctz(b), i);
+                auto const b = detail::bit1<T>[i];
+                BOOST_CHECK_EQUAL(detail::ctz(b), i);
         }
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(CountLeadingZeros, T, UnsignedIntegerTypes)
 {
-        BOOST_CHECK_EQUAL(clz(mask_none<T>), std::numeric_limits<T>::digits);
-        BOOST_CHECK_EQUAL(clz(mask_all<T>), 0);
+        BOOST_CHECK_EQUAL(detail::clz(detail::zero<T>), std::numeric_limits<T>::digits);
+        BOOST_CHECK_EQUAL(detail::clz(detail::ones<T>), 0);
 
         for (auto i = 0; i < std::numeric_limits<T>::digits; ++i) {
-                auto const b = mask_one<T> << i;
-                BOOST_CHECK_EQUAL(clz(b), std::numeric_limits<T>::digits - 1 - i);
+                auto const b = detail::bit1<T>[i];
+                BOOST_CHECK_EQUAL(detail::clz(b), std::numeric_limits<T>::digits - 1 - i);
         }
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(BitScanForward, T, UnsignedIntegerTypes)
 {
-        BOOST_CHECK_EQUAL(bsf(mask_none<T>), std::numeric_limits<T>::digits);
-        BOOST_CHECK_EQUAL(bsf(mask_all<T>), 0);
+        BOOST_CHECK_EQUAL(detail::bsf(detail::zero<T>), std::numeric_limits<T>::digits);
+        BOOST_CHECK_EQUAL(detail::bsf(detail::ones<T>), 0);
 
         for (auto i = 0; i < std::numeric_limits<T>::digits; ++i) {
-                auto const b = mask_one<T> << i;
-                BOOST_CHECK_EQUAL(bsf(b), i);
+                auto const b = detail::bit1<T>[i];
+                BOOST_CHECK_EQUAL(detail::bsf(b), i);
         }
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(BitScanReverse, T, UnsignedIntegerTypes)
 {
-        BOOST_CHECK_EQUAL(bsr(mask_none<T>), -1);
-        BOOST_CHECK_EQUAL(bsr(mask_all<T>), std::numeric_limits<T>::digits - 1);
+        BOOST_CHECK_EQUAL(detail::bsr(detail::zero<T>), -1);
+        BOOST_CHECK_EQUAL(detail::bsr(detail::ones<T>), std::numeric_limits<T>::digits - 1);
 
         for (auto i = 0; i < std::numeric_limits<T>::digits; ++i) {
-                auto const b = mask_one<T> << i;
-                BOOST_CHECK_EQUAL(bsr(b), i);
+                auto const b = detail::bit1<T>[i];
+                BOOST_CHECK_EQUAL(detail::bsr(b), i);
         }
 }
 
