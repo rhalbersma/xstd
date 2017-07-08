@@ -12,27 +12,9 @@ set(project_include_dir
 
 ###############################################################
 
-add_library(cstddef     INTERFACE)
-add_library(cstdint     INTERFACE)
-add_library(cstdlib     INTERFACE)
-add_library(int_set     INTERFACE)
-add_library(type_traits INTERFACE)
-
-###############################################################
-
-target_include_directories(cstddef     INTERFACE ${project_include_dir})
-target_include_directories(cstdint     INTERFACE ${project_include_dir})
-target_include_directories(cstdlib     INTERFACE ${project_include_dir})
-target_include_directories(int_set     INTERFACE ${project_include_dir})
-target_include_directories(type_traits INTERFACE ${project_include_dir})
-
-###############################################################
-
-target_compile_features(cstddef     INTERFACE cxx_constexpr cxx_inline_namespaces cxx_user_literals)
-target_compile_features(cstdint     INTERFACE cxx_std_17)
-target_compile_features(cstdlib     INTERFACE cxx_std_17)
-target_compile_features(int_set     INTERFACE cxx_std_17)
-target_compile_features(type_traits INTERFACE cxx_std_17)
+add_library(xstd INTERFACE)
+target_include_directories(xstd INTERFACE ${project_include_dir})
+target_compile_features(xstd INTERFACE cxx_std_17)
 
 ###############################################################
 

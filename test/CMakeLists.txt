@@ -62,38 +62,37 @@ set(cxx_linker_optimization_flags
 # define test executables
 ###############################################################
 
-set(tests 
-        cstddef 
-        cstdint
-        cstdlib        
-        int_set
-        type_traits
-)
-
 set(test_include_dir ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(test_source_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)
+file(GLOB_RECURSE targets RELATIVE ${test_source_dir} *.cpp)
 
-foreach(t ${tests})
-        add_executable(test.${t} src/${t}.cpp)
+foreach(t ${targets})
+		get_filename_component(target_path ${t} PATH)
+		get_filename_component(target_name_we ${t} NAME_WE)
+		string(REPLACE "/" "." target_id ${target_path}/${target_name_we})
+		string(REGEX REPLACE "^[.]" "" target_id ${target_id})
 
-        target_include_directories(test.${t} PRIVATE
+		add_executable(${target_id} src/${t})
+	
+        target_include_directories(${target_id} PRIVATE
                 ${test_include_dir}
         )
 
-        target_link_libraries(test.${t} PRIVATE
-                ${t} 
+        target_link_libraries(${target_id} PRIVATE
+                xstd 
                 ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
                 ${cxx_linker_optimization_flags}
         )
 
-        target_compile_definitions(test.${t} PRIVATE
+        target_compile_definitions(${target_id} PRIVATE 
                 ${cxx_compile_definitions_boost_test}
         )
 
-        target_compile_options(test.${t} PRIVATE 
+        target_compile_options(${target_id} PRIVATE 
                 ${cxx_compile_options_warnings_general}
                 ${cxx_compile_options_warnings_boost_test}
                 ${cxx_compile_options_optimization}     
         )
 
-        add_test(test.${t} test.${t})
+        add_test(${target_id} ${target_id})  
 endforeach()

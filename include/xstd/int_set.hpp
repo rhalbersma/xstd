@@ -96,7 +96,7 @@ struct clznz
         constexpr auto operator()(__uint128_t x) const // Throws: Nothing.
         {
                 assert(x != 0);
-                if (auto const upper = get<1>(x)) {
+                if (auto const upper = get<1>(x); upper) {
                         return __builtin_clzll(upper);
                 } else {
                         return __builtin_clzll(get<0>(x)) + 64;
@@ -194,7 +194,7 @@ constexpr auto bsr(WordT x) noexcept
 }
 
 template<class WordT>
-constexpr auto bit1 = []() {
+constexpr auto bit1_table = []() {
         constexpr auto N = std::numeric_limits<WordT>::digits;
         auto table = std::array<WordT, N>{};
         for (auto n = 0; n < N; ++n) {
@@ -202,6 +202,13 @@ constexpr auto bit1 = []() {
         }
         return table;
 }();
+
+template<class WordT>
+auto bit1(int n) // Throws: Nothing.
+{
+        assert(0 <= n); assert(n < std::numeric_limits<WordT>::digits>);
+        return bit1_table<WordT>[static_cast<std::size_t>(n)];
+}
 
 template<class WordT> constexpr auto zero =  static_cast<WordT>(0);
 template<class WordT> constexpr auto ones = ~static_cast<WordT>(0);
@@ -558,10 +565,10 @@ public:
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
-                        m_data |= bit1(n);
+                        m_data |= detail::bit1<word_type>(n);
                 } else {
                         assert(num_words >= 2);
-                        m_data[which(n)] |= bit1(where(n));
+                        m_data[which(n)] |= detail::bit1<word_type>(where(n));
                 }
                 assert(test(n));
                 return *this;
@@ -596,10 +603,10 @@ public:
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
-                        m_data &= ~bit1(n);
+                        m_data &= ~detail::bit1<word_type>(n);
                 } else {
                         assert(num_words >= 2);
-                        m_data[which(n)] &= ~bit1(where(n));
+                        m_data[which(n)] &= ~detail::bit1<word_type>(where(n));
                 }
                 assert(not test(n));
                 return *this;
@@ -647,10 +654,10 @@ public:
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
-                        m_data ^= bit1(n);
+                        m_data ^= detail::bit1<word_type>(n);
                 } else {
                         assert(num_words >= 2);
-                        m_data[which(n)] ^= bit1(where(n));
+                        m_data[which(n)] ^= detail::bit1<word_type>(where(n));
                 }
                 return *this;
         }
@@ -660,10 +667,10 @@ public:
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
-                        return m_data & bit1(n);
+                        return m_data & detail::bit1<word_type>(n);
                 } else {
                         assert(num_words >= 2);
-                        return m_data[which(n)] & bit1(where(n));
+                        return m_data[which(n)] & detail::bit1<word_type>(where(n));
                 }
         }
 
@@ -795,14 +802,14 @@ public:
                         for (auto word = m_data; word; /* update inside loop */) {
                                 auto const first = detail::bsfnz(word);
                                 fun(first);
-                                word ^= bit1(first);
+                                word ^= detail::bit1<word_type>(first);
                         }
                 } else if constexpr (num_words >= 2) {
                         for (auto i = 0, offset = 0; i < num_words; ++i, offset += word_size) {
                                 for (auto word = m_data[i]; word; /* update inside loop */) {
                                         auto const first = detail::bsfnz(word);
                                         fun(offset + first);
-                                        word ^= bit1(first);
+                                        word ^= detail::bit1<word_type>(first);
                                 }
                         }
                 }
@@ -816,14 +823,14 @@ public:
                         for (auto word = m_data; word; /* update inside loop */) {
                                 auto const last = detail::bsrnz(word);
                                 fun(last);
-                                word ^= bit1(last);
+                                word ^= detail::bit1<word_type>(last);
                         }
                 } else if constexpr (num_words >= 2) {
                         for (auto i = num_words - 1, offset = (size() - 1) * word_size; i >= 0; --i, offset -= word_size) {
                                 for (auto word = m_data[i]; word; /* update inside loop */) {
                                         auto const last = detail::bsrnz(word);
                                         fun(offset + last);
-                                        word ^= bit1(last);
+                                        word ^= detail::bit1<word_type>(last);
                                 }
                         }
                 }
@@ -857,12 +864,6 @@ private:
                 static_assert(num_words != 1);
                 assert(0 <= n); assert(n < num_bits);
                 return n % word_size;
-        }
-
-        constexpr static auto bit1(value_type const n) // Throws: Nothing.
-        {
-                assert(0 <= n); assert(n < N);
-                return detail::bit1<word_type>[static_cast<std::size_t>(n)];
         }
 
         friend PP_STL_CONSTEXPR_INCOMPLETE auto operator==   <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
