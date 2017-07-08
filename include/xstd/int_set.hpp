@@ -204,7 +204,7 @@ constexpr auto bit1_table = []() {
 }();
 
 template<class WordT>
-auto bit1(int n) // Throws: Nothing.
+constexpr auto bit1(int n) // Throws: Nothing.
 {
         assert(0 <= n); assert(n < std::numeric_limits<WordT>::digits);
         return bit1_table<WordT>[static_cast<std::size_t>(n)];
@@ -227,11 +227,6 @@ template<int N>
 class int_set
 {
         static_assert(0 <= N);
-
-        constexpr static auto static_assert_type_traits() noexcept
-        {
-                static_assert(std::is_pod_v<int_set>);
-        }
 
         using word_type = std::conditional_t<N <= 64, uint64_t, __uint128_t>;
         static_assert(std::is_unsigned_v<word_type>);
@@ -371,7 +366,7 @@ public:
 
                 friend constexpr auto operator!=(const_iterator lhs, const_iterator rhs) noexcept
                 {
-                        return not (lhs == rhs);
+                        return !(lhs == rhs);
                 }
 
         private:
@@ -542,7 +537,7 @@ public:
                 }
         }
 
-        constexpr auto size() const noexcept
+        constexpr auto count() const noexcept
         {
                 if constexpr (num_words == 0) {
                         return 0;
@@ -561,6 +556,11 @@ public:
         constexpr static auto max_size() noexcept { return N; }
         constexpr static auto capacity() noexcept { return num_bits; }
 
+        [[deprecated]] auto none() const noexcept { return empty(); }
+        [[deprecated]] auto any() const noexcept { return !empty(); }
+        [[deprecated]] auto all() const noexcept { return full(); }
+        [[deprecated]] constexpr auto size() const noexcept { return max_size(); }
+
         constexpr auto& insert(value_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
@@ -570,7 +570,7 @@ public:
                         assert(num_words >= 2);
                         m_data[which(n)] |= detail::bit1<word_type>(where(n));
                 }
-                assert(test(n));
+                assert(contains(n));
                 return *this;
         }
 
@@ -608,7 +608,7 @@ public:
                         assert(num_words >= 2);
                         m_data[which(n)] &= ~detail::bit1<word_type>(where(n));
                 }
-                assert(not test(n));
+                assert(!contains(n));
                 return *this;
         }
 
@@ -650,7 +650,7 @@ public:
                 assert(empty());
         }
 
-        constexpr auto& flip(value_type const n) // Throws: Nothing.
+        constexpr auto& toggle(value_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
@@ -662,7 +662,20 @@ public:
                 return *this;
         }
 
-        constexpr auto test(value_type const n) const // Throws: Nothing.
+        constexpr auto& toggle() noexcept
+        {
+                if constexpr (num_words == 1) {
+                        m_data = ~m_data;
+                } else if constexpr (num_words >= 2) {
+                        for (auto&& word : m_data) {
+                                word = ~word;
+                        }
+                }
+                sanitize_back();
+                return *this;
+        }
+
+        constexpr auto contains(value_type const n) const // Throws: Nothing.
                 -> bool
         {
                 assert(0 <= n); assert(n < N);
@@ -674,17 +687,56 @@ public:
                 }
         }
 
-        constexpr auto& flip() noexcept
+        [[deprecated]] auto& set(std::size_t pos, bool val = true)
         {
-                if constexpr (num_words == 1) {
-                        m_data = ~m_data;
-                } else if constexpr (num_words >= 2) {
-                        for (auto&& word : m_data) {
-                                word = ~word;
-                        }
+                if (pos > static_cast<std::size_t>(N)) {
+                        throw std::out_of_range{"int_set::set<N>::set(): index out of range"};
                 }
-                sanitize_back();
-                return *this;
+                return val ? insert(static_cast<int>(pos)) : erase(static_cast<int>(pos));
+        }
+
+        [[deprecated]] auto& set() noexcept
+        {
+                return fill();
+        }
+
+        [[deprecated]] auto& reset(std::size_t pos, bool val = true)
+        {
+                if (pos > static_cast<std::size_t>(N)) {
+                        throw std::out_of_range{"int_set::set<N>::reset(): index out of range"};
+                }
+                return val ? erase(static_cast<int>(pos)) : insert(static_cast<int>(pos));
+        }
+
+        [[deprecated]] auto& reset() noexcept
+        {
+                return clear();
+        }
+
+        [[deprecated]] auto& flip(std::size_t pos)
+        {
+                if (pos > static_cast<std::size_t>(N)) {
+                        throw std::out_of_range{"int_set::set<N>::flip(): index out of range"};
+                }
+                return toggle(static_cast<int>(pos));
+        }
+
+        [[deprecated]] auto& flip() noexcept
+        {
+                return toggle();
+        }
+
+        [[deprecated]] constexpr auto operator[](std::size_t pos) const // Throws: Nothing.
+        {
+                return contains(static_cast<int>(pos));
+        }
+
+        [[deprecated]] auto test(std::size_t pos) const
+        {
+                if (pos > static_cast<std::size_t>(N)) {
+                        throw std::out_of_range{"int_set::set<N>::contains(): index out of range"};
+                }
+                return contains(static_cast<int>(pos));
         }
 
         constexpr auto& operator&=(int_set const& other) noexcept
@@ -826,7 +878,7 @@ public:
                                 word ^= detail::bit1<word_type>(last);
                         }
                 } else if constexpr (num_words >= 2) {
-                        for (auto i = num_words - 1, offset = (size() - 1) * word_size; i >= 0; --i, offset -= word_size) {
+                        for (auto i = num_words - 1, offset = (num_words - 1) * word_size; i >= 0; --i, offset -= word_size) {
                                 for (auto word = m_data[i]; word; /* update inside loop */) {
                                         auto const last = detail::bsrnz(word);
                                         fun(offset + last);
@@ -891,7 +943,7 @@ PP_STL_CONSTEXPR_INCOMPLETE auto operator==(int_set<N> const& lhs, int_set<N> co
 template<int N>
 PP_STL_CONSTEXPR_INCOMPLETE auto operator!=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        return not (lhs == rhs);
+        return !(lhs == rhs);
 }
 
 template<int N>
@@ -920,13 +972,13 @@ PP_STL_CONSTEXPR_INCOMPLETE auto operator>(int_set<N> const& lhs, int_set<N> con
 template<int N>
 PP_STL_CONSTEXPR_INCOMPLETE auto operator>=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        return not (lhs < rhs);
+        return !(lhs < rhs);
 }
 
 template<int N>
 PP_STL_CONSTEXPR_INCOMPLETE auto operator<=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        return not (rhs < lhs);
+        return !(rhs < lhs);
 }
 
 template<int N>
@@ -938,7 +990,7 @@ PP_STL_CONSTEXPR_INCOMPLETE auto swap(int_set<N>& lhs, int_set<N>& rhs) noexcept
 template<int N>
 constexpr auto operator~(int_set<N> const& lhs) noexcept
 {
-        auto nrv{lhs}; nrv.flip(); return nrv;
+        auto nrv{lhs}; nrv.toggle(); return nrv;
 }
 
 template<int N>
@@ -1032,11 +1084,11 @@ PP_STL_CONSTEXPR_INCOMPLETE auto intersects(int_set<N> const& lhs, int_set<N> co
         } else if constexpr (num_words == 1) {
                 return lhs.m_data & rhs.m_data;
         } else if constexpr (num_words >= 2) {
-                return not std::equal(
+                return !std::equal(
                         lhs.m_data, lhs.m_data + num_words,
                         rhs.m_data, rhs.m_data + num_words,
                         [](auto const wL, auto const wR) {
-                                return not (wL & wR);
+                                return !(wL & wR);
                         }
                 );
         }
@@ -1045,7 +1097,7 @@ PP_STL_CONSTEXPR_INCOMPLETE auto intersects(int_set<N> const& lhs, int_set<N> co
 template<int N>
 PP_STL_CONSTEXPR_INCOMPLETE auto disjoint(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        return not intersects(lhs, rhs);
+        return !intersects(lhs, rhs);
 }
 
 template<int N>
@@ -1055,13 +1107,13 @@ PP_STL_CONSTEXPR_INCOMPLETE auto is_subset_of(int_set<N> const& lhs, int_set<N> 
         if constexpr (num_words == 0) {
                 return true;
         } else if constexpr (num_words == 1) {
-                return not (lhs.m_data & ~rhs.m_data);
+                return !(lhs.m_data & ~rhs.m_data);
         } else if constexpr (num_words >= 2) {
                 return std::equal(
                         lhs.m_data, lhs.m_data + num_words,
                         rhs.m_data, rhs.m_data + num_words,
                         [](auto const wL, auto const wR) {
-                                return not (wL & ~wR);
+                                return !(wL & ~wR);
                         }
                 );
         }
@@ -1076,13 +1128,13 @@ PP_STL_CONSTEXPR_INCOMPLETE auto is_superset_of(int_set<N> const& lhs, int_set<N
 template<int N>
 PP_STL_CONSTEXPR_INCOMPLETE auto is_proper_subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        return is_subset_of(lhs, rhs) && not is_subset_of(rhs, lhs);
+        return is_subset_of(lhs, rhs) && !is_subset_of(rhs, lhs);
 }
 
 template<int N>
 PP_STL_CONSTEXPR_INCOMPLETE auto is_proper_superset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
-        return is_superset_of(lhs, rhs) && not is_superset_of(rhs, lhs);
+        return is_superset_of(lhs, rhs) && !is_superset_of(rhs, lhs);
 }
 
 template<class HashAlgorithm, int N>
@@ -1176,10 +1228,10 @@ constexpr auto crend(int_set<N> const& is)
 }
 
 template<int N>
-constexpr auto size(int_set<N> const& is)
-        -> decltype(is.size())
+constexpr auto count(int_set<N> const& is)
+        -> decltype(is.count())
 {
-        return is.size();
+        return is.count();
 }
 
 template<int N>

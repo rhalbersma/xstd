@@ -38,45 +38,43 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
 
         prim::cons_default<N>();
 
-        bitand_assign<N>();
-        bitor_assign<N>();
-        xor_assign<N>();
-        minus_assign<N>();
-        shift_left_assign<N>();
-        shift_right_assign<N>();
+        op_bitand_assign<N>();
+        op_bitor_assign<N>();
+        op_xor_assign<N>();
+        op_minus_assign<N>();
+        op_shift_left_assign<N>();
+        op_shift_right_assign<N>();
         fill<N>();
         insert<N>();
         clear<N>();
         erase<N>();
-        compl_<N>();
-        flip_all<N>();
-        flip_one<N>();
+        op_compl<N>();
+        toggle_all<N>();
+        toggle_one<N>();
 
-        size_<N>();
-        non_member_size<N>();
+        count_<N>();
         max_size<N>();
-        equal_to<N>();
-        not_equal_to<N>();
-        less<N>();
-        greater<N>();
-        greater_equal<N>();
-        less_equal<N>();
+        op_equal_to<N>();
+        op_not_equal_to<N>();
+        op_less<N>();
+        op_greater<N>();
+        op_greater_equal<N>();
+        op_less_equal<N>();
         is_subset_of_<N>();
         is_superset_of_<N>();
         is_proper_subset_of_<N>();
         is_proper_superset_of_<N>();
-        test<N>();
+        contains<N>();
         full<N>();
         not_empty<N>();
         empty_<N>();
-        non_member_empty<N>();
-        shift_left<N>();
-        shift_right<N>();
+        op_shift_left<N>();
+        op_shift_right<N>();
 
-        bitand_<N>();
-        bitor_<N>();
-        xor_<N>();
-        minus<N>();
+        op_bitand<N>();
+        op_bitor<N>();
+        op_xor<N>();
+        op_minus<N>();
 }
 
 using SetTypes3 = boost::mpl::vector
@@ -102,7 +100,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(ValueInitializationConstructsEmpty, T, SetTypes3)
         auto const ci0 = i0;
 
         BOOST_CHECK(i0.empty());
-        BOOST_CHECK_EQUAL(i0.size(), 0);
+        BOOST_CHECK_EQUAL(i0.count(), 0);
 
         BOOST_CHECK(i0.begin() == i0.end());
         BOOST_CHECK(ci0.begin() == ci0.end());
@@ -126,7 +124,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(IncrementingSingletBeginIteratorEqualsEndIterator,
                 auto i1 = T{i};
                 auto const ci1 = i1;
 
-                BOOST_CHECK(i1.size() == 1);
+                BOOST_CHECK(i1.count() == 1);
 
                 BOOST_CHECK(++i1.begin() == i1.end());
                 BOOST_CHECK(++ci1.begin() == ci1.end());
@@ -179,7 +177,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(DecrementingSingletEndIteratorEqualsBeginIterator,
                 auto i1 = T{i};
                 auto const ci1 = i1;
 
-                BOOST_CHECK(i1.size() == 1);
+                BOOST_CHECK(i1.count() == 1);
 
                 BOOST_CHECK(--i1.end() == i1.begin());
                 BOOST_CHECK(--ci1.end() == ci1.begin());
@@ -269,10 +267,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(DistanceBeginEndEqualsSize, T, SetTypes2)
         // TODO: in C++17, std::distance will be constexpr
         auto const b = T{ 0, 1, T::max_size() - 2, T::max_size() - 1 };
 
-        BOOST_CHECK_EQUAL(std::distance(  begin(b),   end(b)), b.size());
-        BOOST_CHECK_EQUAL(std::distance( cbegin(b),  cend(b)), b.size());
-        BOOST_CHECK_EQUAL(std::distance( rbegin(b),  rend(b)), b.size());
-        BOOST_CHECK_EQUAL(std::distance(crbegin(b), crend(b)), b.size());
+        BOOST_CHECK_EQUAL(std::distance(  begin(b),   end(b)), b.count());
+        BOOST_CHECK_EQUAL(std::distance( cbegin(b),  cend(b)), b.count());
+        BOOST_CHECK_EQUAL(std::distance( rbegin(b),  rend(b)), b.count());
+        BOOST_CHECK_EQUAL(std::distance(crbegin(b), crend(b)), b.count());
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(IsSorted, T, SetTypes2)

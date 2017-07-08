@@ -30,7 +30,7 @@ struct uint<N, std::enable_if_t<
 
 template<int N>
 struct uint<N, std::enable_if_t<
-        is_representable_v<uint16_t, N> && not is_representable_v<uint8_t, N>
+        is_representable_v<uint16_t, N> && !is_representable_v<uint8_t, N>
 >>
 {
         using type = uint16_t;
@@ -38,7 +38,7 @@ struct uint<N, std::enable_if_t<
 
 template<int N>
 struct uint<N, std::enable_if_t<
-        is_representable_v<uint32_t, N> && not is_representable_v<uint16_t, N>
+        is_representable_v<uint32_t, N> && !is_representable_v<uint16_t, N>
 >>
 {
         using type = uint32_t;
@@ -46,7 +46,7 @@ struct uint<N, std::enable_if_t<
 
 template<int N>
 struct uint<N, std::enable_if_t<
-        is_representable_v<uint64_t, N> && not is_representable_v<uint32_t, N>
+        is_representable_v<uint64_t, N> && !is_representable_v<uint32_t, N>
 >>
 {
         using type = uint64_t;
@@ -65,7 +65,7 @@ struct uint_fast<N, std::enable_if_t<
 
 template<int N>
 struct uint_fast<N, std::enable_if_t<
-        is_representable_v<uint16_t, N> && not is_representable_v<uint8_t, N>
+        is_representable_v<uint16_t, N> && !is_representable_v<uint8_t, N>
 >>
 {
         using type = uint_fast16_t;
@@ -73,7 +73,7 @@ struct uint_fast<N, std::enable_if_t<
 
 template<int N>
 struct uint_fast<N, std::enable_if_t<
-        is_representable_v<uint32_t, N> && not is_representable_v<uint16_t, N>
+        is_representable_v<uint32_t, N> && !is_representable_v<uint16_t, N>
 >>
 {
         using type = uint_fast32_t;
@@ -81,7 +81,7 @@ struct uint_fast<N, std::enable_if_t<
 
 template<int N>
 struct uint_fast<N, std::enable_if_t<
-        is_representable_v<uint64_t, N> && not is_representable_v<uint32_t, N>
+        is_representable_v<uint64_t, N> && !is_representable_v<uint32_t, N>
 >>
 {
         using type = uint_fast64_t;
@@ -100,7 +100,7 @@ struct uint_least<N, std::enable_if_t<
 
 template<int N>
 struct uint_least<N, std::enable_if_t<
-        is_representable_v<uint16_t, N> && not is_representable_v<uint8_t, N>
+        is_representable_v<uint16_t, N> && !is_representable_v<uint8_t, N>
 >>
 {
         using type = uint_least16_t;
@@ -108,7 +108,7 @@ struct uint_least<N, std::enable_if_t<
 
 template<int N>
 struct uint_least<N, std::enable_if_t<
-        is_representable_v<uint32_t, N> && not is_representable_v<uint16_t, N>
+        is_representable_v<uint32_t, N> && !is_representable_v<uint16_t, N>
 >>
 {
         using type = uint_least32_t;
@@ -116,7 +116,7 @@ struct uint_least<N, std::enable_if_t<
 
 template<int N>
 struct uint_least<N, std::enable_if_t<
-        is_representable_v<uint64_t, N> && not is_representable_v<uint32_t, N>
+        is_representable_v<uint64_t, N> && !is_representable_v<uint32_t, N>
 >>
 {
         using type = uint_least64_t;

@@ -46,7 +46,7 @@ constexpr bool operator==(div_t const& lhs, div_t const& rhs) noexcept
 
 constexpr bool operator!=(div_t const& lhs, div_t const& rhs) noexcept
 {
-        return not (lhs == rhs);
+        return !(lhs == rhs);
 }
 
 template<class CharT, class Traits>

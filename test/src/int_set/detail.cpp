@@ -122,8 +122,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Bit1, T, UnsignedIntegerTypes)
                 auto const b = detail::bit1<T>(i);
                 BOOST_CHECK_EQUAL(detail::popcount(b), 1);
 
-                // __uint128_t does not have an overloaded streaming output operator<<
-                // BOOST_CHECK_EQUAL will confuse it with the bitwise left-shift operator<<
+                // __uint128_t does not have output streaming operator<< required for BOOST_CHECK_EQUAL
                 BOOST_CHECK(b == static_cast<T>(1) << i);
         }
 }

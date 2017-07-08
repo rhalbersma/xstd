@@ -28,48 +28,48 @@ constexpr auto all_singlet_pairs(Test test)
 }
 
 template<int N>
-constexpr auto bitand_assign() noexcept
+constexpr auto op_bitand_assign() noexcept
 {
-        all_singlet_pairs<N>(prim::bitand_assign{});
+        all_singlet_pairs<N>(prim::op_bitand_assign{});
 }
 
 template<int N>
-constexpr auto bitor_assign() noexcept
+constexpr auto op_bitor_assign() noexcept
 {
-        all_singlet_pairs<N>(prim::bitor_assign{});
+        all_singlet_pairs<N>(prim::op_bitor_assign{});
 }
 
 template<int N>
-constexpr auto xor_assign() noexcept
+constexpr auto op_xor_assign() noexcept
 {
-        all_singlet_pairs<N>(prim::xor_assign{});
+        all_singlet_pairs<N>(prim::op_xor_assign{});
 }
 
 template<int N>
-constexpr auto minus_assign() noexcept
+constexpr auto op_minus_assign() noexcept
 {
-        all_singlet_pairs<N>(prim::minus_assign{});
+        all_singlet_pairs<N>(prim::op_minus_assign{});
 }
 
 template<int N>
-auto shift_left_assign() noexcept
+auto op_shift_left_assign() noexcept
 {
         for (auto i = 0; i < N; ++i) {
                 auto const i1 = int_set<N>{i};
-                prim::shift_left_assign(i1, 0);
-                prim::shift_left_assign(i1, N - 1 - i);
-                prim::shift_left_assign(i1, N - 1);
+                prim::op_shift_left_assign(i1, 0);
+                prim::op_shift_left_assign(i1, N - 1 - i);
+                prim::op_shift_left_assign(i1, N - 1);
         }
 }
 
 template<int N>
-auto shift_right_assign() noexcept
+auto op_shift_right_assign() noexcept
 {
         for (auto i = 0; i < N; ++i) {
                 auto const i1 = int_set<N>{i};
-                prim::shift_right_assign(i1, 0);
-                prim::shift_right_assign(i1, i);
-                prim::shift_right_assign(i1, N - 1);
+                prim::op_shift_right_assign(i1, 0);
+                prim::op_shift_right_assign(i1, i);
+                prim::op_shift_right_assign(i1, N - 1);
         }
 }
 
@@ -122,50 +122,41 @@ constexpr auto erase() noexcept
 }
 
 template<int N>
-constexpr auto compl_() noexcept
+constexpr auto op_compl() noexcept
 {
         for (auto i = 0; i < N; ++i) {
-                prim::compl_(~(~int_set<N>{} << i));
+                prim::op_compl(~(~int_set<N>{} << i));
         }
-        prim::compl_(~int_set<N>{});
+        prim::op_compl(~int_set<N>{});
 }
 
 template<int N>
-constexpr auto flip_all() noexcept
+constexpr auto toggle_all() noexcept
 {
         for (auto i = 0; i < N; ++i) {
-                prim::flip_all(~(~int_set<N>{} << i));
+                prim::toggle_all(~(~int_set<N>{} << i));
         }
-        prim::flip_all(~int_set<N>{});
+        prim::toggle_all(~int_set<N>{});
 }
 
 template<int N>
-constexpr auto flip_one() noexcept
+constexpr auto toggle_one() noexcept
 {
         auto const i0 = int_set<N>{};
         for (auto i = 0; i < N; ++i) {
                 auto const i1 = int_set<N>{i};
-                prim::flip_one(i0, i);
-                prim::flip_one(i1, i);
+                prim::toggle_one(i0, i);
+                prim::toggle_one(i1, i);
         }
 }
 
 template<int N>
-auto size_() noexcept
+auto count_() noexcept
 {
         for (auto i = 0; i < N; ++i) {
-                prim::size_(~(~int_set<N>{} << i));
+                prim::count_(~(~int_set<N>{} << i));
         }
-        prim::size_(~int_set<N>{});
-}
-
-template<int N>
-auto non_member_size() noexcept
-{
-        for (auto i = 0; i < N; ++i) {
-                prim::non_member_size(~(~int_set<N>{} << i));
-        }
-        prim::non_member_size(~int_set<N>{});
+        prim::count_(~int_set<N>{});
 }
 
 template<int N>
@@ -178,39 +169,39 @@ auto max_size() noexcept
 }
 
 template<int N>
-auto equal_to() noexcept
+auto op_equal_to() noexcept
 {
-        all_singlet_pairs<N>(prim::equal_to{});
+        all_singlet_pairs<N>(prim::op_equal_to{});
 }
 
 template<int N>
-auto not_equal_to() noexcept
+auto op_not_equal_to() noexcept
 {
-        all_singlet_pairs<N>(prim::not_equal_to{});
+        all_singlet_pairs<N>(prim::op_not_equal_to{});
 }
 
 template<int N>
-auto less() noexcept
+auto op_less() noexcept
 {
-        all_singlet_pairs<N>(prim::less{});
+        all_singlet_pairs<N>(prim::op_less{});
 }
 
 template<int N>
-auto greater() noexcept
+auto op_greater() noexcept
 {
-        all_singlet_pairs<N>(prim::greater{});
+        all_singlet_pairs<N>(prim::op_greater{});
 }
 
 template<int N>
-auto greater_equal() noexcept
+auto op_greater_equal() noexcept
 {
-        all_singlet_pairs<N>(prim::greater_equal{});
+        all_singlet_pairs<N>(prim::op_greater_equal{});
 }
 
 template<int N>
-auto less_equal() noexcept
+auto op_less_equal() noexcept
 {
-        all_singlet_pairs<N>(prim::less_equal{});
+        all_singlet_pairs<N>(prim::op_less_equal{});
 }
 
 template<int N>
@@ -238,10 +229,10 @@ auto is_proper_superset_of_() noexcept
 }
 
 template<int N>
-constexpr auto test() noexcept
+constexpr auto contains() noexcept
 {
         for (auto i = 0; i < N; ++i) {
-                prim::test<N>(i);
+                prim::contains<N>(i);
         }
 }
 
@@ -272,61 +263,52 @@ auto empty_() noexcept
         prim::empty_(~int_set<N>{});
 }
 
-template<int N>
-auto non_member_empty() noexcept
-{
-        for (auto i = 0; i < N; ++i) {
-                prim::non_member_empty(~(~int_set<N>{} << i));
-        }
-        prim::non_member_empty(~int_set<N>{});
-}
-
 // operators
 
 template<int N>
-auto shift_left() noexcept
+auto op_shift_left() noexcept
 {
         for (auto i = 0; i < N; ++i) {
                 auto const i1 = int_set<N>{i};
-                prim::shift_left(i1, 0);
-                prim::shift_left(i1, N - 1 - i);
-                prim::shift_left(i1, N - 1);
+                prim::op_shift_left(i1, 0);
+                prim::op_shift_left(i1, N - 1 - i);
+                prim::op_shift_left(i1, N - 1);
         }
 }
 
 template<int N>
-auto shift_right() noexcept
+auto op_shift_right() noexcept
 {
         for (auto i = 0; i < N; ++i) {
                 auto const i1 = int_set<N>{i};
-                prim::shift_right(i1, 0);
-                prim::shift_right(i1, i);
-                prim::shift_right(i1, N - 1);
+                prim::op_shift_right(i1, 0);
+                prim::op_shift_right(i1, i);
+                prim::op_shift_right(i1, N - 1);
         }
 }
 
 template<int N>
-constexpr auto bitand_() noexcept
+constexpr auto op_bitand() noexcept
 {
-        all_singlet_pairs<N>(prim::bitand_{});
+        all_singlet_pairs<N>(prim::op_bitand{});
 }
 
 template<int N>
-constexpr auto bitor_() noexcept
+constexpr auto op_bitor() noexcept
 {
-        all_singlet_pairs<N>(prim::bitor_{});
+        all_singlet_pairs<N>(prim::op_bitor{});
 }
 
 template<int N>
-constexpr auto xor_() noexcept
+constexpr auto op_xor() noexcept
 {
-        all_singlet_pairs<N>(prim::xor_{});
+        all_singlet_pairs<N>(prim::op_xor{});
 }
 
 template<int N>
-constexpr auto minus() noexcept
+constexpr auto op_minus() noexcept
 {
-        all_singlet_pairs<N>(prim::minus{});
+        all_singlet_pairs<N>(prim::op_minus{});
 }
 
 }       // namespace xstd
