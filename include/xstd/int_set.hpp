@@ -206,7 +206,7 @@ constexpr auto bit1_table = []() {
 template<class WordT>
 auto bit1(int n) // Throws: Nothing.
 {
-        assert(0 <= n); assert(n < std::numeric_limits<WordT>::digits>);
+        assert(0 <= n); assert(n < std::numeric_limits<WordT>::digits);
         return bit1_table<WordT>[static_cast<std::size_t>(n)];
 }
 
