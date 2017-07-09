@@ -53,6 +53,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
         toggle_one<N>();
 
         count_<N>();
+        for_each_<N>();
+        reverse_for_each_<N>();
         max_size<N>();
         op_equal_to<N>();
         op_not_equal_to<N>();

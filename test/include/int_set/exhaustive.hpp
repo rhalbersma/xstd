@@ -160,6 +160,24 @@ auto count_() noexcept
 }
 
 template<int N>
+auto for_each_() noexcept
+{
+        for (auto i = 0; i < N; ++i) {
+                prim::for_each_(~(~int_set<N>{} << i));
+        }
+        prim::for_each_(~int_set<N>{});
+}
+
+template<int N>
+auto reverse_for_each_() noexcept
+{
+        for (auto i = 0; i < N; ++i) {
+                prim::reverse_for_each_(~(~int_set<N>{} << i));
+        }
+        prim::reverse_for_each_(~int_set<N>{});
+}
+
+template<int N>
 auto max_size() noexcept
 {
         for (auto i = 0; i < N; ++i) {

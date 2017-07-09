@@ -8,6 +8,7 @@
 #include <xstd/int_set.hpp>             // int_set
 #include <boost/test/unit_test.hpp>     // BOOST_CHECK, BOOST_CHECK_EQUAL
 #include <initializer_list>             // initializer_list
+#include <iterator>                     // distance
 
 namespace xstd {
 namespace prim {
@@ -235,6 +236,7 @@ constexpr auto op_compl(int_set<N> const& is) noexcept
         expected.toggle();
 
         BOOST_CHECK(~is == expected);
+        BOOST_CHECK(set_complement(is) == expected);
 }
 
 // [bitset.members]/23
@@ -281,6 +283,28 @@ auto count_(int_set<N> const& is) noexcept
 
         BOOST_CHECK_EQUAL(is.count(), expected);
         BOOST_CHECK_EQUAL(count(is), is.count());
+}
+
+template<int N>
+auto for_each_(int_set<N> const& is) noexcept
+{
+        auto expected = 0;
+
+        is.for_each([&](auto) { ++expected; });
+
+        BOOST_CHECK_EQUAL(is.count(), expected);
+        BOOST_CHECK_EQUAL(std::distance(is.begin(), is.end()), expected);
+}
+
+template<int N>
+auto reverse_for_each_(int_set<N> const& is) noexcept
+{
+        auto expected = 0;
+
+        is.reverse_for_each([&](auto) { ++expected; });
+
+        BOOST_CHECK_EQUAL(is.count(), expected);
+        BOOST_CHECK_EQUAL(std::distance(is.rbegin(), is.rend()), expected);
 }
 
 // [bitset.members]/35
@@ -475,6 +499,7 @@ struct op_bitand
                 expected &= rhs;
 
                 BOOST_CHECK((lhs & rhs) == expected);
+                BOOST_CHECK(set_intersection(lhs, rhs) == expected);
         }
 };
 
@@ -489,6 +514,7 @@ struct op_bitor
                 expected |= rhs;
 
                 BOOST_CHECK((lhs | rhs) == expected);
+                BOOST_CHECK(set_union(lhs, rhs) == expected);
         }
 };
 
@@ -503,6 +529,7 @@ struct op_xor
                 expected ^= rhs;
 
                 BOOST_CHECK((lhs ^ rhs) == expected);
+                BOOST_CHECK(set_symmetric_difference(lhs, rhs) == expected);
         }
 };
 
@@ -516,6 +543,7 @@ struct op_minus
                 expected -= rhs;
 
                 BOOST_CHECK(lhs - rhs == expected);
+                BOOST_CHECK(set_difference(lhs, rhs) == expected);
         }
 };
 

@@ -1064,20 +1064,6 @@ constexpr auto set_difference(int_set<N> const& lhs, int_set<N> const& rhs) noex
 }
 
 template<int N>
-PP_STL_CONSTEXPR_INCOMPLETE auto set_transform_plus(int_set<N> const& lhs, int const n) // Throws: Nothing.
-{
-        assert(0 <= n); assert(n < N);
-        return lhs << n;
-}
-
-template<int N>
-PP_STL_CONSTEXPR_INCOMPLETE auto set_transform_minus(int_set<N> const& lhs, int const n) // Throws: Nothing.
-{
-        assert(0 <= n); assert(n < N);
-        return lhs >> n;
-}
-
-template<int N>
 PP_STL_CONSTEXPR_INCOMPLETE auto intersects(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         constexpr static auto num_words = int_set<N>::num_words;
