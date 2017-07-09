@@ -600,7 +600,6 @@ public:
                 if constexpr (num_words == 1) {
                         m_data |= detail::bit1<word_type>(n);
                 } else {
-                        assert(num_words >= 2);
                         m_data[which(n)] |= detail::bit1<word_type>(where(n));
                 }
                 assert(contains(n));
@@ -638,7 +637,6 @@ public:
                 if constexpr (num_words == 1) {
                         m_data &= ~detail::bit1<word_type>(n);
                 } else {
-                        assert(num_words >= 2);
                         m_data[which(n)] &= ~detail::bit1<word_type>(where(n));
                 }
                 assert(!contains(n));
@@ -689,7 +687,6 @@ public:
                 if constexpr (num_words == 1) {
                         m_data ^= detail::bit1<word_type>(n);
                 } else {
-                        assert(num_words >= 2);
                         m_data[which(n)] ^= detail::bit1<word_type>(where(n));
                 }
                 return *this;
@@ -715,7 +712,6 @@ public:
                 if constexpr (num_words == 1) {
                         return m_data & detail::bit1<word_type>(n);
                 } else {
-                        assert(num_words >= 2);
                         return m_data[which(n)] & detail::bit1<word_type>(where(n));
                 }
         }
@@ -880,6 +876,12 @@ public:
                 return *this;
         }
 
+        template<class HashAlgorithm>
+        friend auto hash_append(HashAlgorithm& h, int_set const& is)
+        {
+                h(is.data(), is.capacity() /  std::numeric_limits<unsigned char>::digits);
+        }
+
 private:
         constexpr static auto sane = detail::ones<word_type> >> excess_bits;
 
@@ -922,12 +924,6 @@ private:
         friend PP_STL_CONSTEXPR_INCOMPLETE auto operator<    <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
         friend PP_STL_CONSTEXPR_INCOMPLETE auto intersects   <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
         friend PP_STL_CONSTEXPR_INCOMPLETE auto is_subset_of <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
-
-        template<class HashAlgorithm>
-        friend auto hash_append(HashAlgorithm& h, int_set const& is)
-        {
-                h(is.data(), is.capacity() /  std::numeric_limits<unsigned char>::digits);
-        }
 };
 
 template<int N>
