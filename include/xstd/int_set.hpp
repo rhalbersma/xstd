@@ -489,13 +489,46 @@ public:
         constexpr auto crbegin() const noexcept { return const_reverse_iterator{rbegin()}; }
         constexpr auto crend()   const noexcept { return const_reverse_iterator{rend()};   }
 
-        constexpr auto data() const noexcept
+        template<class UnaryFunction>
+        constexpr auto for_each(UnaryFunction fun) const
         {
                 if constexpr (num_words == 1) {
-                        return &m_data;
-                } else {
-                        return m_data;
+                        for (auto word = m_data; word; /* update inside loop */) {
+                                auto const first = detail::bsfnz(word);
+                                fun(first);
+                                word ^= detail::bit1<word_type>(first);
+                        }
+                } else if constexpr (num_words >= 2) {
+                        for (auto i = 0, offset = 0; i < num_words; ++i, offset += word_size) {
+                                for (auto word = m_data[i]; word; /* update inside loop */) {
+                                        auto const first = detail::bsfnz(word);
+                                        fun(offset + first);
+                                        word ^= detail::bit1<word_type>(first);
+                                }
+                        }
                 }
+                return std::move(fun);
+        }
+
+        template<class UnaryFunction>
+        constexpr auto reverse_for_each(UnaryFunction fun) const
+        {
+                if constexpr (num_words == 1) {
+                        for (auto word = m_data; word; /* update inside loop */) {
+                                auto const last = detail::bsrnz(word);
+                                fun(last);
+                                word ^= detail::bit1<word_type>(last);
+                        }
+                } else if constexpr (num_words >= 2) {
+                        for (auto i = num_words - 1, offset = (num_words - 1) * word_size; i >= 0; --i, offset -= word_size) {
+                                for (auto word = m_data[i]; word; /* update inside loop */) {
+                                        auto const last = detail::bsrnz(word);
+                                        fun(offset + last);
+                                        word ^= detail::bit1<word_type>(last);
+                                }
+                        }
+                }
+                return std::move(fun);
         }
 
         PP_STL_CONSTEXPR_INCOMPLETE auto empty() const noexcept
@@ -847,48 +880,6 @@ public:
                 return *this;
         }
 
-        template<class UnaryFunction>
-        constexpr auto for_each(UnaryFunction fun) const
-        {
-                if constexpr (num_words == 1) {
-                        for (auto word = m_data; word; /* update inside loop */) {
-                                auto const first = detail::bsfnz(word);
-                                fun(first);
-                                word ^= detail::bit1<word_type>(first);
-                        }
-                } else if constexpr (num_words >= 2) {
-                        for (auto i = 0, offset = 0; i < num_words; ++i, offset += word_size) {
-                                for (auto word = m_data[i]; word; /* update inside loop */) {
-                                        auto const first = detail::bsfnz(word);
-                                        fun(offset + first);
-                                        word ^= detail::bit1<word_type>(first);
-                                }
-                        }
-                }
-                return std::move(fun);
-        }
-
-        template<class UnaryFunction>
-        constexpr auto reverse_for_each(UnaryFunction fun) const
-        {
-                if constexpr (num_words == 1) {
-                        for (auto word = m_data; word; /* update inside loop */) {
-                                auto const last = detail::bsrnz(word);
-                                fun(last);
-                                word ^= detail::bit1<word_type>(last);
-                        }
-                } else if constexpr (num_words >= 2) {
-                        for (auto i = num_words - 1, offset = (num_words - 1) * word_size; i >= 0; --i, offset -= word_size) {
-                                for (auto word = m_data[i]; word; /* update inside loop */) {
-                                        auto const last = detail::bsrnz(word);
-                                        fun(offset + last);
-                                        word ^= detail::bit1<word_type>(last);
-                                }
-                        }
-                }
-                return std::move(fun);
-        }
-
 private:
         constexpr static auto sane = detail::ones<word_type> >> excess_bits;
 
@@ -901,6 +892,15 @@ private:
                                 static_assert(num_words >= 2);
                                 m_data[num_words - 1] &= sane;
                         }
+                }
+        }
+
+        constexpr auto data() const noexcept
+        {
+                if constexpr (num_words == 1) {
+                        return &m_data;
+                } else {
+                        return m_data;
                 }
         }
 
@@ -922,6 +922,12 @@ private:
         friend PP_STL_CONSTEXPR_INCOMPLETE auto operator<    <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
         friend PP_STL_CONSTEXPR_INCOMPLETE auto intersects   <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
         friend PP_STL_CONSTEXPR_INCOMPLETE auto is_subset_of <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
+
+        template<class HashAlgorithm>
+        friend auto hash_append(HashAlgorithm& h, int_set const& is)
+        {
+                h(is.data(), is.capacity() /  std::numeric_limits<unsigned char>::digits);
+        }
 };
 
 template<int N>
@@ -1137,12 +1143,6 @@ PP_STL_CONSTEXPR_INCOMPLETE auto is_proper_superset_of(int_set<N> const& lhs, in
         return is_superset_of(lhs, rhs) && !is_superset_of(rhs, lhs);
 }
 
-template<class HashAlgorithm, int N>
-auto hash_append(HashAlgorithm& h, int_set<N> const& is)
-{
-        h(is.data(), is.capacity() /  std::numeric_limits<unsigned char>::digits);
-}
-
 template<int N>
 constexpr auto begin(int_set<N>& is)
         -> decltype(is.begin())
@@ -1227,6 +1227,18 @@ constexpr auto crend(int_set<N> const& is)
         return xstd::rend(is);
 }
 
+template<int N, class UnaryFunction>
+constexpr auto for_each(int_set<N> const& is, UnaryFunction fun)
+{
+        return is.for_each(fun);
+}
+
+template<int N, class UnaryFunction>
+constexpr auto reverse_for_each(int_set<N> const& is, UnaryFunction fun)
+{
+        return is.reverse_for_each(fun);
+}
+
 template<int N>
 constexpr auto count(int_set<N> const& is)
         -> decltype(is.count())
@@ -1239,13 +1251,6 @@ constexpr auto empty(int_set<N> const& is)
         -> decltype(is.empty())
 {
         return is.empty();
-}
-
-template<int N>
-constexpr auto data(int_set<N> const& is)
-        -> decltype(is.data())
-{
-        return is.data();
 }
 
 }       // namespace xstd
