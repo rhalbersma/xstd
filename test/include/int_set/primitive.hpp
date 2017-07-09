@@ -236,7 +236,7 @@ constexpr auto op_compl(int_set<N> const& is) noexcept
         expected.toggle();
 
         BOOST_CHECK(~is == expected);
-        BOOST_CHECK(set_complement(is) == expected);
+        BOOST_CHECK(set_complement(is) == ~is);
 }
 
 // [bitset.members]/23
@@ -503,7 +503,7 @@ struct op_bitand
                 expected &= rhs;
 
                 BOOST_CHECK((lhs & rhs) == expected);
-                BOOST_CHECK(set_intersection(lhs, rhs) == expected);
+                BOOST_CHECK(set_intersection(lhs, rhs) == (lhs & rhs));
         }
 };
 
@@ -518,7 +518,7 @@ struct op_bitor
                 expected |= rhs;
 
                 BOOST_CHECK((lhs | rhs) == expected);
-                BOOST_CHECK(set_union(lhs, rhs) == expected);
+                BOOST_CHECK(set_union(lhs, rhs) == (lhs | rhs));
         }
 };
 
@@ -533,7 +533,7 @@ struct op_xor
                 expected ^= rhs;
 
                 BOOST_CHECK((lhs ^ rhs) == expected);
-                BOOST_CHECK(set_symmetric_difference(lhs, rhs) == expected);
+                BOOST_CHECK(set_symmetric_difference(lhs, rhs) == (lhs ^ rhs));
         }
 };
 
@@ -547,7 +547,7 @@ struct op_minus
                 expected -= rhs;
 
                 BOOST_CHECK(lhs - rhs == expected);
-                BOOST_CHECK(set_difference(lhs, rhs) == expected);
+                BOOST_CHECK(set_difference(lhs, rhs) == lhs - rhs);
         }
 };
 
