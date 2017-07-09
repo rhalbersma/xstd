@@ -312,6 +312,7 @@ template<int N>
 auto max_size(int_set<N> const& is) noexcept
 {
         BOOST_CHECK_EQUAL(is.max_size(), N);
+        BOOST_CHECK_EQUAL(is.size(), is.max_size());
 }
 
 // [bitset.members]/36
@@ -447,6 +448,7 @@ template<int N>
 auto full(int_set<N> const& is) noexcept
 {
         BOOST_CHECK_EQUAL(is.full(), is.count() == is.max_size());
+        BOOST_CHECK_EQUAL(is.all(), is.full());
 }
 
 // [bitset.members]/41
@@ -454,6 +456,7 @@ template<int N>
 auto not_empty(int_set<N> const& is) noexcept
 {
         BOOST_CHECK_EQUAL(!is.empty(), is.count() != 0);
+        BOOST_CHECK_EQUAL(is.any(), !is.empty());
 }
 
 // [bitset.members]/42
@@ -462,6 +465,7 @@ auto empty_(int_set<N> const& is) noexcept
 {
         BOOST_CHECK_EQUAL(is.empty(), is.count() == 0);
         BOOST_CHECK_EQUAL(empty(is), is.empty());
+        BOOST_CHECK_EQUAL(is.none(), is.empty());
 }
 
 // [bitset.members]/43

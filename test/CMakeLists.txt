@@ -41,6 +41,7 @@ set(cxx_compile_options_warnings_general
         -Werror
         -pedantic-errors
         -Wno-error=padded
+        -Wno-error=deprecated
 )  
 
 set(cxx_compile_options_optimization 
