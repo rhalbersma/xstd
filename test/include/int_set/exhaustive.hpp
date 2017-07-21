@@ -197,12 +197,12 @@ auto reverse_for_each_() noexcept
 }
 
 template<int N>
-auto max_size() noexcept
+auto size() noexcept
 {
         for (auto i = 0; i < N; ++i) {
-                prim::max_size(~(~int_set<N>{} << i));
+                prim::size{}(~(~int_set<N>{} << i));
         }
-        prim::max_size(~int_set<N>{});
+        prim::size{}(~int_set<N>{});
 }
 
 template<int N>
@@ -266,38 +266,38 @@ auto is_proper_superset_of_() noexcept
 }
 
 template<int N>
-constexpr auto contains() noexcept
+constexpr auto test() noexcept
 {
         for (auto i = 0; i < N; ++i) {
-                prim::contains<N>(i);
+                prim::test<N>(i);
         }
 }
 
 template<int N>
-auto full() noexcept
+auto all() noexcept
 {
         for (auto i = 0; i < N; ++i) {
-                prim::full(~(~int_set<N>{} << i));
+                prim::all(~(~int_set<N>{} << i));
         }
-        prim::full(~int_set<N>{});
+        prim::all(~int_set<N>{});
 }
 
 template<int N>
-auto not_empty() noexcept
+auto any() noexcept
 {
         for (auto i = 0; i < N; ++i) {
-                prim::not_empty(~(~int_set<N>{} << i));
+                prim::any(~(~int_set<N>{} << i));
         }
-        prim::not_empty(~int_set<N>{});
+        prim::any(~int_set<N>{});
 }
 
 template<int N>
-auto empty_() noexcept
+auto none() noexcept
 {
         for (auto i = 0; i < N; ++i) {
-                prim::empty_(~(~int_set<N>{} << i));
+                prim::none(~(~int_set<N>{} << i));
         }
-        prim::empty_(~int_set<N>{});
+        prim::none(~int_set<N>{});
 }
 
 // operators

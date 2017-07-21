@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
         count_<N>();
         for_each_<N>();
         reverse_for_each_<N>();
-        max_size<N>();
+        size<N>();
         op_equal_to<N>();
         op_not_equal_to<N>();
         op_less<N>();
@@ -66,10 +66,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
         is_superset_of_<N>();
         is_proper_subset_of_<N>();
         is_proper_superset_of_<N>();
-        contains<N>();
-        full<N>();
-        not_empty<N>();
-        empty_<N>();
+        test<N>();
+        all<N>();
+        any<N>();
+        none<N>();
         op_shift_left<N>();
         op_shift_right<N>();
 
