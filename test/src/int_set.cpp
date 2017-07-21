@@ -34,49 +34,44 @@ using SetTypes = boost::mpl::vector
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
 {
-        auto constexpr N = T::max_size();
+        constructor<T>();
 
-        prim::cons_default<N>();
+        op_bitand_assign<T>();
+        op_bitor_assign<T>();
+        op_xor_assign<T>();
+        op_minus_assign<T>();
+        op_shift_left_assign<T>();
+        op_shift_right_assign<T>();
+        set<T>();
+        reset<T>();
+        op_compl<T>();
+        flip<T>();
 
-        op_bitand_assign<N>();
-        op_bitor_assign<N>();
-        op_xor_assign<N>();
-        op_minus_assign<N>();
-        op_shift_left_assign<N>();
-        op_shift_right_assign<N>();
-        fill<N>();
-        insert<N>();
-        clear<N>();
-        erase<N>();
-        op_compl<N>();
-        toggle_all<N>();
-        toggle_one<N>();
+        count_<T>();
+        for_each_<T>();
+        reverse_for_each_<T>();
+        size<T>();
+        op_equal_to<T>();
+        op_not_equal_to<T>();
+        op_less<T>();
+        op_greater<T>();
+        op_greater_equal<T>();
+        op_less_equal<T>();
+        is_subset_of_<T>();
+        is_superset_of_<T>();
+        is_proper_subset_of_<T>();
+        is_proper_superset_of_<T>();
+        test<T>();
+        all<T>();
+        any<T>();
+        none<T>();
+        op_shift_left<T>();
+        op_shift_right<T>();
 
-        count_<N>();
-        for_each_<N>();
-        reverse_for_each_<N>();
-        size<N>();
-        op_equal_to<N>();
-        op_not_equal_to<N>();
-        op_less<N>();
-        op_greater<N>();
-        op_greater_equal<N>();
-        op_less_equal<N>();
-        is_subset_of_<N>();
-        is_superset_of_<N>();
-        is_proper_subset_of_<N>();
-        is_proper_superset_of_<N>();
-        test<N>();
-        all<N>();
-        any<N>();
-        none<N>();
-        op_shift_left<N>();
-        op_shift_right<N>();
-
-        op_bitand<N>();
-        op_bitor<N>();
-        op_xor<N>();
-        op_minus<N>();
+        op_bitand<T>();
+        op_bitor<T>();
+        op_xor<T>();
+        op_minus<T>();
 }
 
 using SetTypes3 = boost::mpl::vector

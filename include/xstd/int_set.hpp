@@ -703,19 +703,18 @@ public:
         }
 
         constexpr auto contains(value_type const n) const // Throws: Nothing.
-                -> bool
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
-                        return m_data & detail::bit1<word_type>(n);
+                        return (m_data & detail::bit1<word_type>(n)) != zero;
                 } else {
-                        return m_data[which(n)] & detail::bit1<word_type>(where(n));
+                        return (m_data[which(n)] & detail::bit1<word_type>(where(n))) != zero;
                 }
         }
 
         [[deprecated]] auto& set(std::size_t pos, bool val = true)
         {
-                if (pos > static_cast<std::size_t>(N)) {
+                if (pos >= static_cast<std::size_t>(N)) {
                         throw std::out_of_range{"int_set<N>::set(): index out of range"};
                 }
                 return val ? insert(static_cast<int>(pos)) : erase(static_cast<int>(pos));
@@ -728,7 +727,7 @@ public:
 
         [[deprecated]] auto& reset(std::size_t pos, bool val = true)
         {
-                if (pos > static_cast<std::size_t>(N)) {
+                if (pos >= static_cast<std::size_t>(N)) {
                         throw std::out_of_range{"int_set<N>::reset(): index out of range"};
                 }
                 return val ? erase(static_cast<int>(pos)) : insert(static_cast<int>(pos));
@@ -736,12 +735,13 @@ public:
 
         [[deprecated]] auto& reset() noexcept
         {
-                return clear();
+                clear();
+                return *this;
         }
 
         [[deprecated]] auto& flip(std::size_t pos)
         {
-                if (pos > static_cast<std::size_t>(N)) {
+                if (pos >= static_cast<std::size_t>(N)) {
                         throw std::out_of_range{"int_set<N>::flip(): index out of range"};
                 }
                 return toggle(static_cast<int>(pos));
@@ -759,7 +759,7 @@ public:
 
         [[deprecated]] auto test(std::size_t pos) const
         {
-                if (pos > static_cast<std::size_t>(N)) {
+                if (pos >= static_cast<std::size_t>(N)) {
                         throw std::out_of_range{"int_set<N>::test(): index out of range"};
                 }
                 return contains(static_cast<int>(pos));

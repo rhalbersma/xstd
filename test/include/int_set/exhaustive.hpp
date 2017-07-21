@@ -7,353 +7,326 @@
 
 #include <int_set/primitive.hpp>        // primitive tests
 #include <xstd/int_set.hpp>             // int_set
+#include <type_traits>                  // decay_t
 
 namespace xstd {
 
-template<int N, class Test>
-constexpr auto all_counts(Test test)
+template<class IntSet, class UnaryFunction>
+constexpr auto all_values(UnaryFunction fun)
 {
-        for (auto i = 0; i < N; ++i) {
-                auto const ii = ~(~int_set<N>{} << i);
-                test(ii);
+        constexpr auto N = IntSet{}.size();
+        using SizeType = std::decay_t<decltype(N)>;
+        for (auto i = SizeType{0}; i < N; ++i) {
+                fun(i);
         }
-        auto const iN = ~int_set<N>{};
-        test(iN);
 }
 
-template<int N, class Test>
-constexpr auto all_singlets(Test test)
+template<class IntSet, class UnaryFunction>
+constexpr auto all_counts(UnaryFunction fun)
 {
-        for (auto i = 0; i < N; ++i) {
-                auto const i1 = int_set<N>{i};
-                test(i1);
+        constexpr auto N = IntSet{}.size();
+        using SizeType = std::decay_t<decltype(N)>;
+        for (auto i = SizeType{0}; i < N; ++i) {
+                auto const ii = ~(~IntSet{} << i);
+                fun(ii);
+        }
+        auto const iN = ~IntSet{};
+        fun(iN);
+}
+
+template<class IntSet, class UnaryFunction>
+constexpr auto all_singlets(UnaryFunction fun)
+{
+        constexpr auto N = IntSet{}.size();
+        using SizeType = std::decay_t<decltype(N)>;
+        for (auto i = SizeType{0}; i < N; ++i) {
+                auto const i1 = IntSet{i};
+                fun(i1);
         }
 }
 
 // NOTE: this test is O(N^2)
-template<int N, class Test>
-constexpr auto all_singlet_pairs(Test test)
+template<class IntSet, class BinaryFunction>
+constexpr auto all_singlet_pairs(BinaryFunction fun)
 {
-        auto const i0 = int_set<N>{};
-        test(i0, i0);
-        for (auto i = 0; i < N; ++i) {
-                auto const i1 = int_set<N>{i};
-                test(i0, i1);
-                test(i1, i0);
-                for (auto j = 0; j < N; ++j) {
-                        auto const j1 = int_set<N>{j};
-                        test(i1, j1);
+        constexpr auto N = IntSet{}.size();
+        using SizeType = std::decay_t<decltype(N)>;
+        auto const i0 = IntSet{};
+        fun(i0, i0);
+        for (auto i = SizeType{0}; i < N; ++i) {
+                auto const i1 = IntSet{i};
+                fun(i0, i1);
+                fun(i1, i0);
+                for (auto j = SizeType{0}; j < N; ++j) {
+                        auto const j1 = IntSet{j};
+                        fun(i1, j1);
                 }
         }
 }
 
-template<int N>
+template<class T>
+constexpr auto constructor() noexcept
+{
+        prim::constructor<T>{}();
+}
+
+template<class T>
 constexpr auto op_bitand_assign() noexcept
 {
-        all_singlet_pairs<N>(prim::op_bitand_assign{});
+        all_singlet_pairs<T>(prim::op_bitand_assign{});
 }
 
-template<int N>
+template<class T>
 constexpr auto op_bitor_assign() noexcept
 {
-        all_singlet_pairs<N>(prim::op_bitor_assign{});
+        all_singlet_pairs<T>(prim::op_bitor_assign{});
 }
 
-template<int N>
+template<class T>
 constexpr auto op_xor_assign() noexcept
 {
-        all_singlet_pairs<N>(prim::op_xor_assign{});
+        all_singlet_pairs<T>(prim::op_xor_assign{});
 }
 
-template<int N>
+template<class T>
 constexpr auto op_minus_assign() noexcept
 {
-        all_singlet_pairs<N>(prim::op_minus_assign{});
+        all_singlet_pairs<T>(prim::op_minus_assign{});
 }
 
-template<int N>
+template<class T>
 auto op_shift_left_assign() noexcept
 {
-        for (auto i = 0; i < N; ++i) {
-                auto const i1 = int_set<N>{i};
-                prim::op_shift_left_assign(i1, 0);
-                prim::op_shift_left_assign(i1, N - 1 - i);
-                prim::op_shift_left_assign(i1, N - 1);
-        }
+        all_values<T>([](auto const pos){
+                all_counts<T>([&](auto const& ii){
+                        prim::op_shift_left_assign{}(ii, pos);
+                });
+                all_singlets<T>([&](auto const& i1){
+                        prim::op_shift_left_assign{}(i1, pos);
+                });
+        });
 }
 
-template<int N>
+template<class T>
 auto op_shift_right_assign() noexcept
 {
-        for (auto i = 0; i < N; ++i) {
-                auto const i1 = int_set<N>{i};
-                prim::op_shift_right_assign(i1, 0);
-                prim::op_shift_right_assign(i1, i);
-                prim::op_shift_right_assign(i1, N - 1);
-        }
+        all_values<T>([](auto const pos){
+                all_counts<T>([&](auto const& ii){
+                        prim::op_shift_right_assign{}(ii, pos);
+                });
+                all_singlets<T>([&](auto const& i1){
+                        prim::op_shift_right_assign{}(i1, pos);
+                });
+        });
 }
 
-template<int N>
-auto fill() noexcept
+template<class T>
+auto set() noexcept
 {
-        for (auto i = 0; i < N; ++i) {
-                prim::fill(~(~int_set<N>{} << i));
-        }
-        prim::fill(~int_set<N>{});
+        all_counts<T>(prim::set{});
+        all_values<T>([](auto const pos) {
+                prim::set{}(T{}, pos);
+        });
 }
 
-template<int N>
-constexpr auto insert() noexcept
+template<class T>
+auto reset() noexcept
 {
-        for (auto i = 0; i < N; ++i) {
-                prim::insert(int_set<N>{}, i);
-        }
+        all_counts<T>(prim::reset{});
+        all_values<T>([](auto const pos) {
+                prim::reset{}(~T{}, pos);
+        });
 }
 
-template<int N>
-auto clear() noexcept
-{
-        for (auto i = 0; i < N; ++i) {
-                prim::clear(~(~int_set<N>{} << i));
-        }
-        prim::clear(~int_set<N>{});
-}
-
-template<int N>
-constexpr auto erase() noexcept
-{
-        for (auto i = 0; i < N; ++i) {
-                auto i1 = int_set<N>{i};
-                prim::erase(i1, i);
-        }
-
-        auto i0 = int_set<N>{};
-        prim::erase(i0, i0.begin(), i0.end());
-        for (auto i = 0; i < N; ++i) {
-                auto i1 = int_set<N>{i};
-                prim::erase(i1, i1.begin(), i1.end());
-        }
-
-        for (auto i = 0; i < N; ++i) {
-                auto const ilist{i};
-                auto i1 = int_set<N>{ilist};
-                prim::erase(i1, ilist);
-        }
-}
-
-template<int N>
+template<class T>
 constexpr auto op_compl() noexcept
 {
-        all_counts<N>(prim::op_compl{});
-        all_singlets<N>(prim::op_compl{});
-        all_singlet_pairs<N>(prim::op_compl{});
+        all_counts<T>(prim::op_compl{});
+        all_singlets<T>(prim::op_compl{});
+        all_singlet_pairs<T>(prim::op_compl{});
 }
 
-template<int N>
-constexpr auto toggle_all() noexcept
+template<class T>
+constexpr auto flip() noexcept
 {
-        for (auto i = 0; i < N; ++i) {
-                prim::toggle_all(~(~int_set<N>{} << i));
-        }
-        prim::toggle_all(~int_set<N>{});
+        all_counts<T>(prim::flip{});
+        all_values<T>([](auto const pos) {
+                prim::flip{}(T{}, pos);
+                all_singlets<T>([&](auto const& i1) {
+                        prim::flip{}(i1, pos);
+                });
+        });
 }
 
-template<int N>
-constexpr auto toggle_one() noexcept
-{
-        auto const i0 = int_set<N>{};
-        for (auto i = 0; i < N; ++i) {
-                auto const i1 = int_set<N>{i};
-                prim::toggle_one(i0, i);
-                prim::toggle_one(i1, i);
-        }
-}
-
-template<int N>
+template<class T>
 auto count_() noexcept
 {
-        for (auto i = 0; i < N; ++i) {
-                prim::count_(~(~int_set<N>{} << i));
-        }
-        prim::count_(~int_set<N>{});
+        all_counts<T>(prim::count_{});
 }
 
-template<int N>
+template<class T>
 auto for_each_() noexcept
 {
-        for (auto i = 0; i < N; ++i) {
-                prim::for_each_(~(~int_set<N>{} << i));
-        }
-        prim::for_each_(~int_set<N>{});
+        all_counts<T>(prim::for_each_{});
 }
 
-template<int N>
+template<class T>
 auto reverse_for_each_() noexcept
 {
-        for (auto i = 0; i < N; ++i) {
-                prim::reverse_for_each_(~(~int_set<N>{} << i));
-        }
-        prim::reverse_for_each_(~int_set<N>{});
+        all_counts<T>(prim::reverse_for_each_{});
 }
 
-template<int N>
+template<class T>
 auto size() noexcept
 {
-        for (auto i = 0; i < N; ++i) {
-                prim::size{}(~(~int_set<N>{} << i));
-        }
-        prim::size{}(~int_set<N>{});
+        all_counts<T>(prim::size{});
 }
 
-template<int N>
+template<class T>
 auto op_equal_to() noexcept
 {
-        all_singlet_pairs<N>(prim::op_equal_to{});
+        all_singlet_pairs<T>(prim::op_equal_to{});
 }
 
-template<int N>
+template<class T>
 auto op_not_equal_to() noexcept
 {
-        all_singlet_pairs<N>(prim::op_not_equal_to{});
+        all_singlet_pairs<T>(prim::op_not_equal_to{});
 }
 
-template<int N>
+template<class T>
 auto op_less() noexcept
 {
-        all_singlet_pairs<N>(prim::op_less{});
+        all_singlet_pairs<T>(prim::op_less{});
 }
 
-template<int N>
+template<class T>
 auto op_greater() noexcept
 {
-        all_singlet_pairs<N>(prim::op_greater{});
+        all_singlet_pairs<T>(prim::op_greater{});
 }
 
-template<int N>
+template<class T>
 auto op_greater_equal() noexcept
 {
-        all_singlet_pairs<N>(prim::op_greater_equal{});
+        all_singlet_pairs<T>(prim::op_greater_equal{});
 }
 
-template<int N>
+template<class T>
 auto op_less_equal() noexcept
 {
-        all_singlet_pairs<N>(prim::op_less_equal{});
+        all_singlet_pairs<T>(prim::op_less_equal{});
 }
 
-template<int N>
+template<class T>
 auto is_subset_of_() noexcept
 {
-        all_singlet_pairs<N>(prim::is_subset_of_{});
+        all_singlet_pairs<T>(prim::is_subset_of_{});
 }
 
-template<int N>
+template<class T>
 auto is_superset_of_() noexcept
 {
-        all_singlet_pairs<N>(prim::is_superset_of_{});
+        all_singlet_pairs<T>(prim::is_superset_of_{});
 }
 
-template<int N>
+template<class T>
 auto is_proper_subset_of_() noexcept
 {
-        all_singlet_pairs<N>(prim::is_proper_subset_of_{});
+        all_singlet_pairs<T>(prim::is_proper_subset_of_{});
 }
 
-template<int N>
+template<class T>
 auto is_proper_superset_of_() noexcept
 {
-        all_singlet_pairs<N>(prim::is_proper_superset_of_{});
+        all_singlet_pairs<T>(prim::is_proper_superset_of_{});
 }
 
-template<int N>
+template<class T>
 constexpr auto test() noexcept
 {
-        for (auto i = 0; i < N; ++i) {
-                prim::test<N>(i);
-        }
+        prim::test{}(T{});
+        all_values<T>([](auto const pos) {
+                prim::test{}(T{}, pos);
+        });
 }
 
-template<int N>
+template<class T>
 auto all() noexcept
 {
-        for (auto i = 0; i < N; ++i) {
-                prim::all(~(~int_set<N>{} << i));
-        }
-        prim::all(~int_set<N>{});
+        all_counts<T>(prim::all{});
 }
 
-template<int N>
+template<class T>
 auto any() noexcept
 {
-        for (auto i = 0; i < N; ++i) {
-                prim::any(~(~int_set<N>{} << i));
-        }
-        prim::any(~int_set<N>{});
+        all_counts<T>(prim::any{});
 }
 
-template<int N>
+template<class T>
 auto none() noexcept
 {
-        for (auto i = 0; i < N; ++i) {
-                prim::none(~(~int_set<N>{} << i));
-        }
-        prim::none(~int_set<N>{});
+        all_counts<T>(prim::none{});
 }
 
 // operators
 
-template<int N>
+template<class T>
 auto op_shift_left() noexcept
 {
-        for (auto i = 0; i < N; ++i) {
-                auto const i1 = int_set<N>{i};
-                prim::op_shift_left(i1, 0);
-                prim::op_shift_left(i1, N - 1 - i);
-                prim::op_shift_left(i1, N - 1);
-        }
+        all_values<T>([](auto const pos){
+                all_counts<T>([&](auto const& ii){
+                        prim::op_shift_left{}(ii, pos);
+                });
+                all_singlets<T>([&](auto const& i1){
+                        prim::op_shift_left{}(i1, pos);
+                });
+        });
 }
 
-template<int N>
+template<class T>
 auto op_shift_right() noexcept
 {
-        for (auto i = 0; i < N; ++i) {
-                auto const i1 = int_set<N>{i};
-                prim::op_shift_right(i1, 0);
-                prim::op_shift_right(i1, i);
-                prim::op_shift_right(i1, N - 1);
-        }
+        all_values<T>([](auto const pos){
+                all_counts<T>([&](auto const& ii){
+                        prim::op_shift_right{}(ii, pos);
+                });
+                all_singlets<T>([&](auto const& i1){
+                        prim::op_shift_right{}(i1, pos);
+                });
+        });
 }
 
-template<int N>
+template<class T>
 constexpr auto op_bitand() noexcept
 {
-        all_counts<N>(prim::op_bitand{});
-        all_singlets<N>(prim::op_bitand{});
-        all_singlet_pairs<N>(prim::op_bitand{});
+        all_counts<T>(prim::op_bitand{});
+        all_singlets<T>(prim::op_bitand{});
+        all_singlet_pairs<T>(prim::op_bitand{});
 }
 
-template<int N>
+template<class T>
 constexpr auto op_bitor() noexcept
 {
-        all_counts<N>(prim::op_bitor{});
-        all_singlets<N>(prim::op_bitor{});
-        all_singlet_pairs<N>(prim::op_bitor{});
+        all_counts<T>(prim::op_bitor{});
+        all_singlets<T>(prim::op_bitor{});
+        all_singlet_pairs<T>(prim::op_bitor{});
 }
 
-template<int N>
+template<class T>
 constexpr auto op_xor() noexcept
 {
-        all_counts<N>(prim::op_xor{});
-        all_singlets<N>(prim::op_xor{});
-        all_singlet_pairs<N>(prim::op_xor{});
+        all_counts<T>(prim::op_xor{});
+        all_singlets<T>(prim::op_xor{});
+        all_singlet_pairs<T>(prim::op_xor{});
 }
 
-template<int N>
+template<class T>
 constexpr auto op_minus() noexcept
 {
-        all_counts<N>(prim::op_minus{});
-        all_singlets<N>(prim::op_minus{});
-        all_singlet_pairs<N>(prim::op_minus{});
+        all_counts<T>(prim::op_minus{});
+        all_singlets<T>(prim::op_minus{});
+        all_singlet_pairs<T>(prim::op_minus{});
 }
 
 }       // namespace xstd

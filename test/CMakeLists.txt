@@ -36,12 +36,12 @@ set(cxx_compile_options_warnings_general
                 -Wshadow
                 -Wsign-compare 
                 -Wsign-promo
-				-Wno-error=sign-conversion
         >
         -Werror
         -pedantic-errors
-        -Wno-error=padded
-        -Wno-error=deprecated-declarations
+        -Wno-padded
+        -Wno-deprecated-declarations
+		-Wno-sign-conversion
 )  
 
 set(cxx_compile_options_optimization 
