@@ -719,7 +719,7 @@ public:
         [[deprecated]] auto& set(std::size_t pos, bool val = true)
         {
                 if (pos > static_cast<std::size_t>(N)) {
-                        throw std::out_of_range{"int_set::set<N>::set(): index out of range"};
+                        throw std::out_of_range{"int_set<N>::set(): index out of range"};
                 }
                 return val ? insert(static_cast<int>(pos)) : erase(static_cast<int>(pos));
         }
@@ -732,7 +732,7 @@ public:
         [[deprecated]] auto& reset(std::size_t pos, bool val = true)
         {
                 if (pos > static_cast<std::size_t>(N)) {
-                        throw std::out_of_range{"int_set::set<N>::reset(): index out of range"};
+                        throw std::out_of_range{"int_set<N>::reset(): index out of range"};
                 }
                 return val ? erase(static_cast<int>(pos)) : insert(static_cast<int>(pos));
         }
@@ -745,7 +745,7 @@ public:
         [[deprecated]] auto& flip(std::size_t pos)
         {
                 if (pos > static_cast<std::size_t>(N)) {
-                        throw std::out_of_range{"int_set::set<N>::flip(): index out of range"};
+                        throw std::out_of_range{"int_set<N>::flip(): index out of range"};
                 }
                 return toggle(static_cast<int>(pos));
         }
@@ -763,7 +763,7 @@ public:
         [[deprecated]] auto test(std::size_t pos) const
         {
                 if (pos > static_cast<std::size_t>(N)) {
-                        throw std::out_of_range{"int_set::set<N>::contains(): index out of range"};
+                        throw std::out_of_range{"int_set<N>::test(): index out of range"};
                 }
                 return contains(static_cast<int>(pos));
         }
