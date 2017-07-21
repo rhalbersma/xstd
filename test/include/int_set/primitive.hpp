@@ -143,10 +143,13 @@ struct set
                 // [bitset.members]/11
                 auto value = is; value.set();
                 BOOST_CHECK(value.all());
+
+                // [bitset.memers]/13
+                BOOST_CHECK_THROW(value.set(N), std::out_of_range);
         }
 
         template<class SizeType, template<SizeType> class IntSet, SizeType N>
-        constexpr auto operator()(IntSet<N> const& is, SizeType const pos) const
+        auto operator()(IntSet<N> const& is, SizeType const pos) const
         {
                 // [bitset.members]/14
                 auto const prev = is;
@@ -169,10 +172,13 @@ struct reset
                 // [bitset.members]/16
                 auto value = is; value.reset();
                 BOOST_CHECK(value.none());
+
+                // [bitset.memers]/18
+                BOOST_CHECK_THROW(value.reset(N), std::out_of_range);
         }
 
         template<class SizeType, template<SizeType> class IntSet, SizeType N>
-        constexpr auto operator()(IntSet<N> const& is, SizeType const pos) const
+        auto operator()(IntSet<N> const& is, SizeType const pos) const
         {
                 // [bitset.members]/19
                 auto const prev = is;
@@ -187,7 +193,7 @@ struct reset
         }
 
         template<template<auto> class IntSet, auto N, class InputIterator>
-        constexpr auto operator()(IntSet<N> const& is, InputIterator first, InputIterator last) const
+        auto operator()(IntSet<N> const& is, InputIterator first, InputIterator last) const
         {
                 auto const prev = is;
                 auto next = prev; next.erase(first, last);
@@ -233,7 +239,7 @@ struct op_compl
 struct flip
 {
         template<class SizeType, template<SizeType> class IntSet, SizeType N>
-        constexpr auto operator()(IntSet<N> const& is) const noexcept
+        auto operator()(IntSet<N> const& is) const noexcept
         {
                 // [bitset.members]/23
                 auto const prev = is;
@@ -244,10 +250,13 @@ struct flip
 
                 next.flip();
                 BOOST_CHECK(next == prev);
+
+                // [bitset.members]/25
+                BOOST_CHECK_THROW(next.flip(N), std::out_of_range);
         }
 
         template<class SizeType, template<SizeType> class IntSet, SizeType N>
-        constexpr auto operator()(IntSet<N> const& is, SizeType const pos) const
+        auto operator()(IntSet<N> const& is, SizeType const pos) const
         {
                 // [bitset.members]/26
                 auto const prev = is;

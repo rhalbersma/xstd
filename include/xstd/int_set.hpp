@@ -712,12 +712,12 @@ public:
                 }
         }
 
-        [[deprecated]] auto& set(std::size_t pos, bool val = true)
+        [[deprecated]] auto& set(size_type const pos, bool const val = true)
         {
-                if (pos >= static_cast<std::size_t>(N)) {
+                if (pos >= N) {
                         throw std::out_of_range{"int_set<N>::set(): index out of range"};
                 }
-                return val ? insert(static_cast<int>(pos)) : erase(static_cast<int>(pos));
+                return val ? insert(pos) : erase(pos);
         }
 
         [[deprecated]] auto& set() noexcept
@@ -725,12 +725,12 @@ public:
                 return fill();
         }
 
-        [[deprecated]] auto& reset(std::size_t pos, bool val = true)
+        [[deprecated]] auto& reset(size_type const pos, bool const val = true)
         {
-                if (pos >= static_cast<std::size_t>(N)) {
+                if (pos >= N) {
                         throw std::out_of_range{"int_set<N>::reset(): index out of range"};
                 }
-                return val ? erase(static_cast<int>(pos)) : insert(static_cast<int>(pos));
+                return val ? erase(pos) : insert(pos);
         }
 
         [[deprecated]] auto& reset() noexcept
@@ -739,12 +739,12 @@ public:
                 return *this;
         }
 
-        [[deprecated]] auto& flip(std::size_t pos)
+        [[deprecated]] auto& flip(size_type const pos)
         {
-                if (pos >= static_cast<std::size_t>(N)) {
+                if (pos >= N) {
                         throw std::out_of_range{"int_set<N>::flip(): index out of range"};
                 }
-                return toggle(static_cast<int>(pos));
+                return toggle(pos);
         }
 
         [[deprecated]] auto& flip() noexcept
@@ -752,17 +752,17 @@ public:
                 return toggle();
         }
 
-        [[deprecated]] constexpr auto operator[](std::size_t pos) const // Throws: Nothing.
+        [[deprecated]] constexpr auto operator[](size_type const pos) const // Throws: Nothing.
         {
-                return contains(static_cast<int>(pos));
+                return contains(pos);
         }
 
-        [[deprecated]] auto test(std::size_t pos) const
+        [[deprecated]] auto test(size_type const pos) const
         {
-                if (pos >= static_cast<std::size_t>(N)) {
+                if (pos >= N) {
                         throw std::out_of_range{"int_set<N>::test(): index out of range"};
                 }
-                return contains(static_cast<int>(pos));
+                return contains(pos);
         }
 
         constexpr auto& operator&=(int_set const& other) noexcept

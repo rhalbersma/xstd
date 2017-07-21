@@ -147,7 +147,7 @@ constexpr auto op_compl() noexcept
 }
 
 template<class T>
-constexpr auto flip() noexcept
+auto flip() noexcept
 {
         all_counts<T>(prim::flip{});
         all_values<T>([](auto const pos) {
