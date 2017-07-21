@@ -32,6 +32,9 @@ constexpr auto get(__uint128_t x) noexcept
         return static_cast<uint64_t>(x >> (N * 64));
 }
 
+template<class UIntType> constexpr auto zero =  static_cast<UIntType>(0);
+template<class UIntType> constexpr auto ones = ~static_cast<UIntType>(0);
+
 namespace builtin {
 
 // GCC / Clang have built-in functions for Count Trailing Zeros
@@ -61,10 +64,10 @@ struct ctznz
         constexpr auto operator()(__uint128_t x) const // Throws: Nothing.
         {
                 assert(x != 0);
-                if (auto const lower = get<0>(x); lower) {
-                        return __builtin_ctzll(lower);
+                if (auto const lower = get<0>(x); lower != detail::zero<uint64_t>) {
+                        return ctznz{}(lower);
                 } else {
-                        return __builtin_ctzll(get<1>(x)) + 64;
+                        return ctznz{}(get<1>(x)) + 64;
                 }
         }
 };
@@ -96,10 +99,10 @@ struct clznz
         constexpr auto operator()(__uint128_t x) const // Throws: Nothing.
         {
                 assert(x != 0);
-                if (auto const upper = get<1>(x); upper) {
-                        return __builtin_clzll(upper);
+                if (auto const upper = get<1>(x); upper != detail::zero<uint64_t>) {
+                        return clznz{}(upper);
                 } else {
-                        return __builtin_clzll(get<0>(x)) + 64;
+                        return clznz{}(get<0>(x)) + 64;
                 }
         }
 };
@@ -126,92 +129,86 @@ struct popcount
 
         constexpr auto operator()(__uint128_t x) const noexcept
         {
-                return
-                        __builtin_popcountll(get<0>(x)) +
-                        __builtin_popcountll(get<1>(x))
-                ;
+                return popcount{}(get<0>(x)) + popcount{}(get<1>(x));
         }
 };
 
 }       // namespace builtin
 
-template<class WordT>
-constexpr auto ctznz(WordT x) // Throws: Nothing.
+template<class UIntType>
+constexpr auto ctznz(UIntType x) // Throws: Nothing.
 {
         assert(x != 0);
         return builtin::ctznz{}(x);
 }
 
-template<class WordT>
-constexpr auto clznz(WordT x) // Throws: Nothing.
+template<class UIntType>
+constexpr auto clznz(UIntType x) // Throws: Nothing.
 {
         assert(x != 0);
         return builtin::clznz{}(x);
 }
 
-template<class WordT>
-constexpr auto popcount(WordT x) noexcept
+template<class UIntType>
+constexpr auto popcount(UIntType x) noexcept
 {
         return builtin::popcount{}(x);
 }
 
-template<class WordT>
-constexpr auto bsfnz(WordT x) // Throws: Nothing.
+template<class UIntType>
+constexpr auto bsfnz(UIntType x) // Throws: Nothing.
 {
         assert(x != 0);
         return ctznz(x);
 }
 
-template<class WordT>
-constexpr auto bsrnz(WordT x) // Throws: Nothing.
+template<class UIntType>
+constexpr auto bsrnz(UIntType x) // Throws: Nothing.
 {
         assert(x != 0);
-        return std::numeric_limits<WordT>::digits - 1 - clznz(x);
+        return std::numeric_limits<UIntType>::digits - 1 - clznz(x);
 }
 
-template<class WordT>
-constexpr auto ctz(WordT x) noexcept
+template<class UIntType>
+constexpr auto ctz(UIntType x) noexcept
 {
-        return x ? ctznz(x) : std::numeric_limits<WordT>::digits;
+        return x ? ctznz(x) : std::numeric_limits<UIntType>::digits;
 }
 
-template<class WordT>
-constexpr auto clz(WordT x) noexcept
+template<class UIntType>
+constexpr auto clz(UIntType x) noexcept
 {
-        return x ? clznz(x) : std::numeric_limits<WordT>::digits;
+        return x ? clznz(x) : std::numeric_limits<UIntType>::digits;
 }
 
-template<class WordT>
-constexpr auto bsf(WordT x) noexcept
+template<class UIntType>
+constexpr auto bsf(UIntType x) noexcept
 {
         return ctz(x);
 }
 
-template<class WordT>
-constexpr auto bsr(WordT x) noexcept
+template<class UIntType>
+constexpr auto bsr(UIntType x) noexcept
 {
-        return std::numeric_limits<WordT>::digits - 1 - clz(x);
+        return std::numeric_limits<UIntType>::digits - 1 - clz(x);
 }
 
-template<class WordT>
+template<class UIntType>
 constexpr auto bit1_table = []() {
-        constexpr auto N = std::numeric_limits<WordT>::digits;
-        auto table = std::array<WordT, N>{};
+        constexpr auto N = std::numeric_limits<UIntType>::digits;
+        auto table = std::array<UIntType, N>{};
         for (auto n = 0; n < N; ++n) {
-                table[static_cast<std::size_t>(n)] = static_cast<WordT>(1) << n;
+                table[static_cast<std::size_t>(n)] = static_cast<UIntType>(1) << n;
         }
         return table;
 }();
 
-template<class WordT>
+template<class UIntType>
 constexpr auto bit1(int n) // Throws: Nothing.
 {
-        assert(0 <= n); assert(n < std::numeric_limits<WordT>::digits);
-        return bit1_table<WordT>[static_cast<std::size_t>(n)];
+        assert(0 <= n); assert(n < std::numeric_limits<UIntType>::digits);
+        return bit1_table<UIntType>[static_cast<std::size_t>(n)];
 }
-
-template<class WordT> constexpr auto zero =  static_cast<WordT>(0);
-template<class WordT> constexpr auto ones = ~static_cast<WordT>(0);
 
 }       // namespace detail
 
@@ -379,7 +376,7 @@ public:
                         } else if constexpr (num_words >= 2) {
                                 auto offset = 0;
                                 for (auto i = 0; i < num_words; ++i, offset += word_size) {
-                                        if (auto const word = m_word[i]; word) {
+                                        if (auto const word = m_word[i]; word != detail::zero<word_type>) {
                                                 offset += detail::ctznz(word);
                                                 break;
                                         }
@@ -393,15 +390,15 @@ public:
                         assert(m_value < N);
                         if (num_bits == ++m_value) { return; }
                         if constexpr (num_words == 1) {
-                                if (auto const word = *m_word >> m_value; word) {
+                                if (auto const word = *m_word >> m_value; word != detail::zero<word_type>) {
                                         m_value += detail::ctznz(word);
                                         return;
                                 }
                                 m_value = word_size;
                         } else if constexpr (num_words >= 2) {
                                 auto i = which(m_value);
-                                if (auto const offset = where(m_value); offset) {
-                                        if (auto const word = m_word[i] >> offset; word) {
+                                if (auto const offset = where(m_value); offset != 0) {
+                                        if (auto const word = m_word[i] >> offset; word != detail::zero<word_type>) {
                                                 m_value += detail::ctznz(word);
                                                 return;
                                         }
@@ -409,7 +406,7 @@ public:
                                         m_value += word_size - offset;
                                 }
                                 for (/* initialized before loop */; i < num_words; ++i, m_value += word_size) {
-                                        if (auto const word = m_word[i]; word) {
+                                        if (auto const word = m_word[i]; word != detail::zero<word_type>) {
                                                 m_value += detail::ctznz(word);
                                                 return;
                                         }
@@ -427,7 +424,7 @@ public:
                         } else if constexpr (num_words >= 2) {
                                 auto i = which(m_value);
                                 if (auto const offset = where(m_value); offset != word_size - 1) {
-                                        if (auto const word = m_word[i] << (word_size - 1 - offset); word) {
+                                        if (auto const word = m_word[i] << (word_size - 1 - offset); word != detail::zero<word_type>) {
                                                 m_value -= detail::clznz(word);
                                                 return;
                                         }
@@ -435,7 +432,7 @@ public:
                                         m_value -= offset + 1;
                                 }
                                 for (/* initialized before loop */; i >= 0; --i, m_value -= word_size) {
-                                        if (auto const word = m_word[i]; word) {
+                                        if (auto const word = m_word[i]; word != detail::zero<word_type>) {
                                                 m_value -= detail::clznz(word);
                                                 return;
                                         }
