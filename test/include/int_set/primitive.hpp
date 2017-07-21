@@ -262,6 +262,9 @@ constexpr auto toggle_all(int_set<N> const& is) noexcept
         for (auto i = 0; i < N; ++i) {
                 BOOST_CHECK_NE(next.contains(i), prev.contains(i));
         }
+
+        next.flip();
+        BOOST_CHECK(next == prev);
 }
 
 // [bitset.members]/26
@@ -280,6 +283,9 @@ constexpr auto toggle_one(int_set<N> const& is, int const pos)
                         BOOST_CHECK_EQUAL(next.contains(i), prev.contains(i));
                 }
         }
+
+        next.flip(pos);
+        BOOST_CHECK(next == prev);
 }
 
 // [bitset.members]/34
@@ -293,29 +299,33 @@ auto count_(int_set<N> const& is) noexcept
         }
 
         BOOST_CHECK_EQUAL(is.count(), expected);
-        BOOST_CHECK_EQUAL(count(is), is.count());
+        BOOST_CHECK_EQUAL(is.count(), count(is));
 }
 
 template<int N>
 auto for_each_(int_set<N> const& is) noexcept
 {
         auto expected = 0;
-
         is.for_each([&](auto) { ++expected; });
-
         BOOST_CHECK_EQUAL(is.count(), expected);
-        BOOST_CHECK_EQUAL(std::distance(is.begin(), is.end()), expected);
+
+        BOOST_CHECK_EQUAL(is.count(), std::distance(is.begin(), is.end()));
+        BOOST_CHECK_EQUAL(is.count(), std::distance(is.cbegin(), is.cend()));
+        BOOST_CHECK_EQUAL(is.count(), std::distance(begin(is), end(is)));
+        BOOST_CHECK_EQUAL(is.count(), std::distance(cbegin(is), cend(is)));
 }
 
 template<int N>
 auto reverse_for_each_(int_set<N> const& is) noexcept
 {
         auto expected = 0;
-
         is.reverse_for_each([&](auto) { ++expected; });
-
         BOOST_CHECK_EQUAL(is.count(), expected);
-        BOOST_CHECK_EQUAL(std::distance(is.rbegin(), is.rend()), expected);
+
+        BOOST_CHECK_EQUAL(is.count(), std::distance(is.rbegin(), is.rend()));
+        BOOST_CHECK_EQUAL(is.count(), std::distance(is.crbegin(), is.crend()));
+        BOOST_CHECK_EQUAL(is.count(), std::distance(rbegin(is), rend(is)));
+        BOOST_CHECK_EQUAL(is.count(), std::distance(crbegin(is), crend(is)));
 }
 
 // [bitset.members]/35
@@ -323,7 +333,7 @@ template<int N>
 auto max_size(int_set<N> const& is) noexcept
 {
         BOOST_CHECK_EQUAL(is.max_size(), N);
-        BOOST_CHECK_EQUAL(is.size(), is.max_size());
+        BOOST_CHECK_EQUAL(is.max_size(), is.size());
 }
 
 // [bitset.members]/36
@@ -459,7 +469,7 @@ template<int N>
 auto full(int_set<N> const& is) noexcept
 {
         BOOST_CHECK_EQUAL(is.full(), is.count() == is.max_size());
-        BOOST_CHECK_EQUAL(is.all(), is.full());
+        BOOST_CHECK_EQUAL(is.full(), is.all());
 }
 
 // [bitset.members]/41
@@ -467,7 +477,7 @@ template<int N>
 auto not_empty(int_set<N> const& is) noexcept
 {
         BOOST_CHECK_EQUAL(!is.empty(), is.count() != 0);
-        BOOST_CHECK_EQUAL(is.any(), !is.empty());
+        BOOST_CHECK_EQUAL(!is.empty(), is.any());
 }
 
 // [bitset.members]/42
@@ -475,8 +485,8 @@ template<int N>
 auto empty_(int_set<N> const& is) noexcept
 {
         BOOST_CHECK_EQUAL(is.empty(), is.count() == 0);
-        BOOST_CHECK_EQUAL(empty(is), is.empty());
-        BOOST_CHECK_EQUAL(is.none(), is.empty());
+        BOOST_CHECK_EQUAL(is.empty(), is.none());
+        BOOST_CHECK_EQUAL(is.empty(), empty(is));
 }
 
 // [bitset.members]/43

@@ -376,7 +376,7 @@ public:
                         } else if constexpr (num_words >= 2) {
                                 auto offset = 0;
                                 for (auto i = 0; i < num_words; ++i, offset += word_size) {
-                                        if (auto const word = m_word[i]; word != detail::zero<word_type>) {
+                                        if (auto const word = m_word[i]; word != zero) {
                                                 offset += detail::ctznz(word);
                                                 break;
                                         }
@@ -390,7 +390,7 @@ public:
                         assert(m_value < N);
                         if (num_bits == ++m_value) { return; }
                         if constexpr (num_words == 1) {
-                                if (auto const word = *m_word >> m_value; word != detail::zero<word_type>) {
+                                if (auto const word = *m_word >> m_value; word != zero) {
                                         m_value += detail::ctznz(word);
                                         return;
                                 }
@@ -398,7 +398,7 @@ public:
                         } else if constexpr (num_words >= 2) {
                                 auto i = which(m_value);
                                 if (auto const offset = where(m_value); offset != 0) {
-                                        if (auto const word = m_word[i] >> offset; word != detail::zero<word_type>) {
+                                        if (auto const word = m_word[i] >> offset; word != zero) {
                                                 m_value += detail::ctznz(word);
                                                 return;
                                         }
@@ -406,7 +406,7 @@ public:
                                         m_value += word_size - offset;
                                 }
                                 for (/* initialized before loop */; i < num_words; ++i, m_value += word_size) {
-                                        if (auto const word = m_word[i]; word != detail::zero<word_type>) {
+                                        if (auto const word = m_word[i]; word != zero) {
                                                 m_value += detail::ctznz(word);
                                                 return;
                                         }
@@ -424,7 +424,7 @@ public:
                         } else if constexpr (num_words >= 2) {
                                 auto i = which(m_value);
                                 if (auto const offset = where(m_value); offset != word_size - 1) {
-                                        if (auto const word = m_word[i] << (word_size - 1 - offset); word != detail::zero<word_type>) {
+                                        if (auto const word = m_word[i] << (word_size - 1 - offset); word != zero) {
                                                 m_value -= detail::clznz(word);
                                                 return;
                                         }
@@ -432,7 +432,7 @@ public:
                                         m_value -= offset + 1;
                                 }
                                 for (/* initialized before loop */; i >= 0; --i, m_value -= word_size) {
-                                        if (auto const word = m_word[i]; word != detail::zero<word_type>) {
+                                        if (auto const word = m_word[i]; word != zero) {
                                                 m_value -= detail::clznz(word);
                                                 return;
                                         }
@@ -490,14 +490,14 @@ public:
         constexpr auto for_each(UnaryFunction fun) const
         {
                 if constexpr (num_words == 1) {
-                        for (auto word = m_data; word; /* update inside loop */) {
+                        for (auto word = m_data; word != zero; /* update inside loop */) {
                                 auto const first = detail::bsfnz(word);
                                 fun(first);
                                 word ^= detail::bit1<word_type>(first);
                         }
                 } else if constexpr (num_words >= 2) {
                         for (auto i = 0, offset = 0; i < num_words; ++i, offset += word_size) {
-                                for (auto word = m_data[i]; word; /* update inside loop */) {
+                                for (auto word = m_data[i]; word != zero; /* update inside loop */) {
                                         auto const first = detail::bsfnz(word);
                                         fun(offset + first);
                                         word ^= detail::bit1<word_type>(first);
@@ -511,14 +511,14 @@ public:
         constexpr auto reverse_for_each(UnaryFunction fun) const
         {
                 if constexpr (num_words == 1) {
-                        for (auto word = m_data; word; /* update inside loop */) {
+                        for (auto word = m_data; word != zero; /* update inside loop */) {
                                 auto const last = detail::bsrnz(word);
                                 fun(last);
                                 word ^= detail::bit1<word_type>(last);
                         }
                 } else if constexpr (num_words >= 2) {
                         for (auto i = num_words - 1, offset = (num_words - 1) * word_size; i >= 0; --i, offset -= word_size) {
-                                for (auto word = m_data[i]; word; /* update inside loop */) {
+                                for (auto word = m_data[i]; word != zero; /* update inside loop */) {
                                         auto const last = detail::bsrnz(word);
                                         fun(offset + last);
                                         word ^= detail::bit1<word_type>(last);
@@ -533,10 +533,10 @@ public:
                 if constexpr (num_words == 0) {
                         return true;
                 } else if constexpr (num_words == 1) {
-                        return m_data == detail::zero<word_type>;
+                        return m_data == zero;
                 } else if constexpr (num_words >= 2) {
                         return std::all_of(m_data, m_data + num_words, [](auto const word) {
-                                return word == detail::zero<word_type>;
+                                return word == zero;
                         });
                 }
         }
@@ -547,10 +547,10 @@ public:
                         if constexpr (num_words == 0) {
                                 return true;
                         } else if constexpr (num_words == 1) {
-                                return m_data == detail::ones<word_type>;
+                                return m_data == ones;
                         } else if constexpr (num_words >= 2) {
                                 return std::all_of(m_data, m_data + num_words, [](auto const word) {
-                                        return word == detail::ones<word_type>;
+                                        return word == ones;
                                 });
                         }
                 } else {
@@ -560,7 +560,7 @@ public:
                                 static_assert(num_words >= 2);
                                 return
                                         std::all_of(m_data, m_data + num_words - 1, [](auto const word) {
-                                                return word == detail::ones<word_type>;
+                                                return word == ones;
                                         }) && m_data[num_words - 1] == sane;
                                 ;
                         }
@@ -671,9 +671,9 @@ public:
         PP_STL_CONSTEXPR_INCOMPLETE auto clear() noexcept
         {
                 if constexpr (num_words == 1) {
-                        m_data = detail::zero<word_type>;
+                        m_data = zero;
                 } else if constexpr (num_words >= 2) {
-                        std::fill_n(m_data, num_words, detail::zero<word_type>);
+                        std::fill_n(m_data, num_words, zero);
                 }
                 assert(empty());
         }
@@ -837,7 +837,7 @@ public:
                                 }
                                 m_data[n_block] = m_data[0] << L_shift;
                         }
-                        std::fill_n(m_data, n_block, detail::zero<word_type>);
+                        std::fill_n(m_data, n_block, zero);
                 }
                 sanitize_back();
                 return *this;
@@ -868,7 +868,7 @@ public:
                                 m_data[num_words - 1 - n_block] = m_data[num_words - 1] >> R_shift;
                         }
                         using std::rbegin;
-                        std::fill_n(rbegin(m_data), n_block, detail::zero<word_type>);
+                        std::fill_n(rbegin(m_data), n_block, zero);
                 }
                 return *this;
         }
@@ -880,7 +880,9 @@ public:
         }
 
 private:
-        constexpr static auto sane = detail::ones<word_type> >> excess_bits;
+        constexpr static auto zero = detail::zero<word_type>;
+        constexpr static auto ones = detail::ones<word_type>;
+        constexpr static auto sane = ones >> excess_bits;
 
         constexpr auto sanitize_back() noexcept
         {
@@ -1064,16 +1066,17 @@ template<int N>
 PP_STL_CONSTEXPR_INCOMPLETE auto intersects(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         constexpr static auto num_words = int_set<N>::num_words;
+        constexpr static auto zero [[maybe_unused]] = detail::zero<typename int_set<N>::word_type>;
         if constexpr (num_words == 0) {
                 return false;
         } else if constexpr (num_words == 1) {
-                return lhs.m_data & rhs.m_data;
+                return (lhs.m_data & rhs.m_data) != zero;
         } else if constexpr (num_words >= 2) {
                 return !std::equal(
                         lhs.m_data, lhs.m_data + num_words,
                         rhs.m_data, rhs.m_data + num_words,
                         [](auto const wL, auto const wR) {
-                                return !(wL & wR);
+                                return (wL & wR) == zero;
                         }
                 );
         }
@@ -1089,16 +1092,17 @@ template<int N>
 PP_STL_CONSTEXPR_INCOMPLETE auto is_subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         constexpr static auto num_words = int_set<N>::num_words;
+        constexpr static auto zero [[maybe_unused]] = detail::zero<typename int_set<N>::word_type>;
         if constexpr (num_words == 0) {
                 return true;
         } else if constexpr (num_words == 1) {
-                return !(lhs.m_data & ~rhs.m_data);
+                return (lhs.m_data & ~rhs.m_data) == zero;
         } else if constexpr (num_words >= 2) {
                 return std::equal(
                         lhs.m_data, lhs.m_data + num_words,
                         rhs.m_data, rhs.m_data + num_words,
                         [](auto const wL, auto const wR) {
-                                return !(wL & ~wR);
+                                return (wL & ~wR) == zero;
                         }
                 );
         }
