@@ -227,17 +227,28 @@ constexpr auto erase(int_set<N> const& is, std::initializer_list<int> ilist)
         }
 }
 
-// [bitset.members]/21
-template<int N>
-constexpr auto op_compl(int_set<N> const& is) noexcept
+struct op_compl
 {
-        auto expected = is;
+        template<int N>
+        constexpr auto operator()(int_set<N> const& a) const noexcept
+        {
+                // [bitset.members]/21
+                auto expected = a;
+                expected.toggle();
+                BOOST_CHECK(~a == expected);
 
-        expected.toggle();
+                BOOST_CHECK(~a == set_complement(a));
+                BOOST_CHECK(~(~a) == a);                                // idempotent
+        }
 
-        BOOST_CHECK(~is == expected);
-        BOOST_CHECK(set_complement(is) == ~is);
-}
+        template<int N>
+        constexpr auto operator()(int_set<N> const& a, int_set<N> const& b) const noexcept
+        {
+                // De Morgan's Laws
+                BOOST_CHECK(~(a | b) == (~a & ~b));
+                BOOST_CHECK(~(a & b) == (~a | ~b));
+        }
+};
 
 // [bitset.members]/23
 template<int N>
@@ -492,62 +503,117 @@ auto op_shift_right(int_set<N> const& is, int n)
 
 // 20.9.4 bitset operators [bitset.operators]
 
-// [bitset.operators]/1
 struct op_bitand
 {
         template<int N>
-        constexpr auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
+        constexpr auto operator()(int_set<N> const& a) const noexcept
         {
-                auto expected = lhs;
+                BOOST_CHECK((a & a) == a);                              // idempotent
+        }
 
-                expected &= rhs;
+        template<int N>
+        constexpr auto operator()(int_set<N> const& a, int_set<N> const& b) const noexcept
+        {
+                // [bitset.operators]/1
+                auto expected = a;
+                expected &= b;
+                BOOST_CHECK((a & b) == expected);
 
-                BOOST_CHECK((lhs & rhs) == expected);
-                BOOST_CHECK(set_intersection(lhs, rhs) == (lhs & rhs));
+                BOOST_CHECK((a & b) == set_intersection(a, b));
+                BOOST_CHECK((a & b) == (b & a));                        // commutative
+                BOOST_CHECK(is_subset_of(a & b, a));
+                BOOST_CHECK(is_subset_of(a & b, b));
+        }
+
+        template<int N>
+        constexpr auto operator()(int_set<N> const& a, int_set<N> const& b, int_set<N> const& c) const noexcept
+        {
+                BOOST_CHECK(((a & b) & c) == (a & (b & c)));            // associative
+                BOOST_CHECK((a & (b | c)) == ((a & b) | (a & c)));      // distributive
         }
 };
 
-// [bitset.operators]/2
 struct op_bitor
 {
         template<int N>
-        constexpr auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
+        constexpr auto operator()(int_set<N> const& a) const noexcept
         {
-                auto expected = lhs;
+                BOOST_CHECK((a | a) == a);                              // idempotent
+        }
 
-                expected |= rhs;
+        template<int N>
+        constexpr auto operator()(int_set<N> const& a, int_set<N> const& b) const noexcept
+        {
+                // [bitset.operators]/2
+                auto expected = a;
+                expected |= b;
+                BOOST_CHECK((a | b) == expected);
 
-                BOOST_CHECK((lhs | rhs) == expected);
-                BOOST_CHECK(set_union(lhs, rhs) == (lhs | rhs));
+                BOOST_CHECK((a | b) == set_union(a, b));
+                BOOST_CHECK((a | b) == (b | a));                        // commutative
+                BOOST_CHECK(is_subset_of(a, a | b));
+                BOOST_CHECK(is_subset_of(b, a | b));
+        }
+
+        template<int N>
+        constexpr auto operator()(int_set<N> const& a, int_set<N> const& b, int_set<N> const& c) const noexcept
+        {
+                BOOST_CHECK(((a | b) | c) == (a | (b | c)));            // associative
+                BOOST_CHECK((a | (b & c)) == ((a | b) & (a | c)));      // distributive
         }
 };
 
-// [bitset.operators]/3
 struct op_xor
 {
         template<int N>
-        constexpr auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
+        constexpr auto operator()(int_set<N> const& a) const noexcept
         {
-                auto expected = lhs;
+                BOOST_CHECK((a ^ a).empty());                           // nilpotent
+        }
 
-                expected ^= rhs;
+        template<int N>
+        constexpr auto operator()(int_set<N> const& a, int_set<N> const& b) const noexcept
+        {
+                // [bitset.operators]/3
+                auto expected = a;
+                expected ^= b;
+                BOOST_CHECK((a ^ b) == expected);
 
-                BOOST_CHECK((lhs ^ rhs) == expected);
-                BOOST_CHECK(set_symmetric_difference(lhs, rhs) == (lhs ^ rhs));
+                BOOST_CHECK((a ^ b) == set_symmetric_difference(a, b));
+                BOOST_CHECK((a ^ b) == (b ^ a));                        // commutative
+                BOOST_CHECK((a ^ b) == ((a - b) | (b - a)));
+                BOOST_CHECK((a ^ b) == (a | b) - (a & b));
+        }
+
+        template<int N>
+        constexpr auto operator()(int_set<N> const& a, int_set<N> const& b, int_set<N> const& c) const noexcept
+        {
+                BOOST_CHECK(((a ^ b) ^ c) == (a ^ (b ^ c)));            // associative
+                BOOST_CHECK((a & (b ^ c)) == ((a & b) ^ (a & c)));      // distributive
         }
 };
 
 struct op_minus
 {
         template<int N>
-        constexpr auto operator()(int_set<N> const& lhs, int_set<N> const& rhs) const noexcept
+        constexpr auto operator()(int_set<N> const& a) const noexcept
         {
-                auto expected = lhs;
+                BOOST_CHECK((a - a).empty());                           // nilpotent
+        }
 
-                expected -= rhs;
+        template<int N>
+        constexpr auto operator()(int_set<N> const& a, int_set<N> const& b) const noexcept
+        {
+                auto expected = a;
+                expected -= b;
+                BOOST_CHECK(a - b == expected);
 
-                BOOST_CHECK(lhs - rhs == expected);
-                BOOST_CHECK(set_difference(lhs, rhs) == lhs - rhs);
+                BOOST_CHECK(a - b == set_difference(a, b));
+                BOOST_CHECK(a - b == (a & ~b));
+                BOOST_CHECK(a - b == (a | b) - b);
+                BOOST_CHECK(a - b == a - (a & b));
+                BOOST_CHECK(is_subset_of(a - b, a));
+                BOOST_CHECK(disjoint(a - b, b));
         }
 };
 

@@ -10,6 +10,26 @@
 
 namespace xstd {
 
+template<int N, class Test>
+constexpr auto all_counts(Test test)
+{
+        for (auto i = 0; i < N; ++i) {
+                auto const ii = ~(~int_set<N>{} << i);
+                test(ii);
+        }
+        auto const iN = ~int_set<N>{};
+        test(iN);
+}
+
+template<int N, class Test>
+constexpr auto all_singlets(Test test)
+{
+        for (auto i = 0; i < N; ++i) {
+                auto const i1 = int_set<N>{i};
+                test(i1);
+        }
+}
+
 // NOTE: this test is O(N^2)
 template<int N, class Test>
 constexpr auto all_singlet_pairs(Test test)
@@ -124,10 +144,9 @@ constexpr auto erase() noexcept
 template<int N>
 constexpr auto op_compl() noexcept
 {
-        for (auto i = 0; i < N; ++i) {
-                prim::op_compl(~(~int_set<N>{} << i));
-        }
-        prim::op_compl(~int_set<N>{});
+        all_counts<N>(prim::op_compl{});
+        all_singlets<N>(prim::op_compl{});
+        all_singlet_pairs<N>(prim::op_compl{});
 }
 
 template<int N>
@@ -308,24 +327,32 @@ auto op_shift_right() noexcept
 template<int N>
 constexpr auto op_bitand() noexcept
 {
+        all_counts<N>(prim::op_bitand{});
+        all_singlets<N>(prim::op_bitand{});
         all_singlet_pairs<N>(prim::op_bitand{});
 }
 
 template<int N>
 constexpr auto op_bitor() noexcept
 {
+        all_counts<N>(prim::op_bitor{});
+        all_singlets<N>(prim::op_bitor{});
         all_singlet_pairs<N>(prim::op_bitor{});
 }
 
 template<int N>
 constexpr auto op_xor() noexcept
 {
+        all_counts<N>(prim::op_xor{});
+        all_singlets<N>(prim::op_xor{});
         all_singlet_pairs<N>(prim::op_xor{});
 }
 
 template<int N>
 constexpr auto op_minus() noexcept
 {
+        all_counts<N>(prim::op_minus{});
+        all_singlets<N>(prim::op_minus{});
         all_singlet_pairs<N>(prim::op_minus{});
 }
 
