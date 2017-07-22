@@ -726,12 +726,12 @@ public:
                 return fill();
         }
 
-        [[deprecated]] auto& reset(size_type const pos, bool const val = true)
+        [[deprecated]] auto& reset(size_type const pos)
         {
                 if (static_cast<std::size_t>(pos) >= static_cast<std::size_t>(N)) {
                         throw std::out_of_range{"int_set<N>::reset(): index out of range"};
                 }
-                return val ? erase(pos) : insert(pos);
+                return erase(pos);
         }
 
         [[deprecated]] auto& reset() noexcept

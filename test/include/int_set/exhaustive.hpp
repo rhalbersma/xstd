@@ -6,6 +6,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <int_set/primitive.hpp>        // primitive tests
+#include <xstd/bitset.hpp>              // bitset
 #include <xstd/int_set.hpp>             // int_set
 #include <type_traits>                  // decay_t
 
