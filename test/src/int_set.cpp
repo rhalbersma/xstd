@@ -4,7 +4,8 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <int_set/exhaustive.hpp>
-#include <xstd/int_set.hpp>                             // int_set
+#include <xstd/bitset.hpp>
+#include <xstd/int_set.hpp>
 #include <boost/mpl/vector.hpp>                         // vector
 #include <boost/range/adaptor/reversed.hpp>             // reversed
 #include <boost/range/algorithm/adjacent_find.hpp>      // adjacent_find
@@ -12,6 +13,7 @@
 #include <boost/range/end.hpp>                          // end
 #include <boost/test/test_case_template.hpp>            // BOOST_AUTO_TEST_CASE_TEMPLATE
 #include <boost/test/unit_test.hpp>                     // BOOST_AUTO_TEST_SUITE, BOOST_CHECK, BOOST_AUTO_TEST_SUITE_END
+#include <bitset>
 #include <functional>                                   // greater, greater_equal, less, less_equal
 #include <initializer_list>                             // initializer_list
 #include <iterator>                                     // begin, end, cbegin, cend, distance
@@ -22,6 +24,7 @@ using namespace xstd;
 
 using SetTypes = boost::mpl::vector
 <
+        std::bitset<32>,
         int_set<  0>,
         int_set<  1>,
         int_set< 64>,

@@ -5,53 +5,54 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <bitset>
+#include <bitset>       // bitset
+#include <utility>      // move
 
 namespace xstd {
 
-template<int N>
+template<auto N>
 auto operator-(std::bitset<N> const& lhs, std::bitset<N> const& rhs) noexcept
 {
         return lhs & ~rhs;
 }
 
-template<int N>
+template<auto N>
 auto intersects(std::bitset<N> const& lhs, std::bitset<N> const& rhs) noexcept
 {
         return (lhs & rhs).any();
 }
 
-template<int N>
+template<auto N>
 auto disjoint(std::bitset<N> const& lhs, std::bitset<N> const& rhs) noexcept
 {
         return !intersects(lhs, rhs);
 }
 
-template<int N>
+template<auto N>
 auto is_subset_of(std::bitset<N> const& lhs, std::bitset<N> const& rhs) noexcept
 {
         return (lhs & ~rhs).none();
 }
 
-template<int N>
+template<auto N>
 auto is_superset_of(std::bitset<N> const& lhs, std::bitset<N> const& rhs) noexcept
 {
         return is_subset_of(rhs, lhs);
 }
 
-template<int N>
+template<auto N>
 auto is_proper_subset_of(std::bitset<N> const& lhs, std::bitset<N> const& rhs) noexcept
 {
         return is_subset_of(lhs, rhs) && !is_subset_of(rhs, lhs);
 }
 
-template<int N>
+template<auto N>
 auto is_proper_superset_of(std::bitset<N> const& lhs, std::bitset<N> const& rhs) noexcept
 {
         return is_superset_of(lhs, rhs) && !is_superset_of(rhs, lhs);
 }
 
-template<int N, class UnaryFunction>
+template<auto N, class UnaryFunction>
 constexpr auto for_each(std::bitset<N> const& bs, UnaryFunction fun)
 {
         for (auto i = bs._Find_first(); i < N; i = bs._Find_next(i)) {

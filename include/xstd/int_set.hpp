@@ -14,6 +14,7 @@
 #include <initializer_list>     // initializer_list
 #include <iterator>             // bidirectional_iterator_tag, crbegin, crend, rbegin, reverse_iterator
 #include <limits>               // digits
+#include <stdexcept>            // out_of_range
 #include <type_traits>          // conditional_t, is_integral_v, is_nothrow_swappable_v, is_pod_v, is_unsigned_v
 #include <utility>              // move, swap
 
@@ -1033,36 +1034,6 @@ PP_STL_CONSTEXPR_INCOMPLETE auto operator>>(int_set<N> const& lhs, int const n) 
 }
 
 template<int N>
-constexpr auto set_complement(int_set<N> const& lhs) noexcept
-{
-        return ~lhs;
-}
-
-template<int N>
-constexpr auto set_intersection(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
-{
-        return lhs & rhs;
-}
-
-template<int N>
-constexpr auto set_union(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
-{
-        return lhs | rhs;
-}
-
-template<int N>
-constexpr auto set_symmetric_difference(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
-{
-        return lhs ^ rhs;
-}
-
-template<int N>
-constexpr auto set_difference(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
-{
-        return lhs - rhs;
-}
-
-template<int N>
 PP_STL_CONSTEXPR_INCOMPLETE auto intersects(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
 {
         constexpr static auto num_words = int_set<N>::num_words;
@@ -1220,13 +1191,6 @@ template<int N, class UnaryFunction>
 constexpr auto reverse_for_each(int_set<N> const& is, UnaryFunction fun)
 {
         return is.reverse_for_each(fun);
-}
-
-template<int N>
-constexpr auto count(int_set<N> const& is)
-        -> decltype(is.count())
-{
-        return is.count();
 }
 
 template<int N>
