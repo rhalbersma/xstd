@@ -494,14 +494,14 @@ public:
                         for (auto word = m_data; word != zero; /* update inside loop */) {
                                 auto const first = detail::bsfnz(word);
                                 fun(first);
-                                word ^= detail::bit1<word_type>(first);
+                                word ^= bit1(first);
                         }
                 } else if constexpr (num_words >= 2) {
                         for (auto i = 0, offset = 0; i < num_words; ++i, offset += word_size) {
                                 for (auto word = m_data[i]; word != zero; /* update inside loop */) {
                                         auto const first = detail::bsfnz(word);
                                         fun(offset + first);
-                                        word ^= detail::bit1<word_type>(first);
+                                        word ^= bit1(first);
                                 }
                         }
                 }
@@ -515,14 +515,14 @@ public:
                         for (auto word = m_data; word != zero; /* update inside loop */) {
                                 auto const last = detail::bsrnz(word);
                                 fun(last);
-                                word ^= detail::bit1<word_type>(last);
+                                word ^= bit1(last);
                         }
                 } else if constexpr (num_words >= 2) {
                         for (auto i = num_words - 1, offset = (num_words - 1) * word_size; i >= 0; --i, offset -= word_size) {
                                 for (auto word = m_data[i]; word != zero; /* update inside loop */) {
                                         auto const last = detail::bsrnz(word);
                                         fun(offset + last);
-                                        word ^= detail::bit1<word_type>(last);
+                                        word ^= bit1(last);
                                 }
                         }
                 }
@@ -596,9 +596,9 @@ public:
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
-                        m_data |= detail::bit1<word_type>(n);
+                        m_data |= bit1(n);
                 } else {
-                        m_data[which(n)] |= detail::bit1<word_type>(where(n));
+                        m_data[which(n)] |= bit1(where(n));
                 }
                 assert(contains(n));
                 return *this;
@@ -633,9 +633,9 @@ public:
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
-                        m_data &= ~detail::bit1<word_type>(n);
+                        m_data &= ~bit1(n);
                 } else {
-                        m_data[which(n)] &= ~detail::bit1<word_type>(where(n));
+                        m_data[which(n)] &= ~bit1(where(n));
                 }
                 assert(!contains(n));
                 return *this;
@@ -683,9 +683,9 @@ public:
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
-                        m_data ^= detail::bit1<word_type>(n);
+                        m_data ^= bit1(n);
                 } else {
-                        m_data[which(n)] ^= detail::bit1<word_type>(where(n));
+                        m_data[which(n)] ^= bit1(where(n));
                 }
                 return *this;
         }
@@ -707,15 +707,15 @@ public:
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
-                        return (m_data & detail::bit1<word_type>(n)) != zero;
+                        return (m_data & bit1(n)) != zero;
                 } else {
-                        return (m_data[which(n)] & detail::bit1<word_type>(where(n))) != zero;
+                        return (m_data[which(n)] & bit1(where(n))) != zero;
                 }
         }
 
         [[deprecated]] auto& set(size_type const pos, bool const val = true)
         {
-                if (pos >= N) {
+                if (static_cast<std::size_t>(pos) >= static_cast<std::size_t>(N)) {
                         throw std::out_of_range{"int_set<N>::set(): index out of range"};
                 }
                 return val ? insert(pos) : erase(pos);
@@ -728,7 +728,7 @@ public:
 
         [[deprecated]] auto& reset(size_type const pos, bool const val = true)
         {
-                if (pos >= N) {
+                if (static_cast<std::size_t>(pos) >= static_cast<std::size_t>(N)) {
                         throw std::out_of_range{"int_set<N>::reset(): index out of range"};
                 }
                 return val ? erase(pos) : insert(pos);
@@ -742,7 +742,7 @@ public:
 
         [[deprecated]] auto& flip(size_type const pos)
         {
-                if (pos >= N) {
+                if (static_cast<std::size_t>(pos) >= static_cast<std::size_t>(N)) {
                         throw std::out_of_range{"int_set<N>::flip(): index out of range"};
                 }
                 return toggle(pos);
@@ -760,7 +760,7 @@ public:
 
         [[deprecated]] auto test(size_type const pos) const
         {
-                if (pos >= N) {
+                if (static_cast<std::size_t>(pos) >= static_cast<std::size_t>(N)) {
                         throw std::out_of_range{"int_set<N>::test(): index out of range"};
                 }
                 return contains(pos);
@@ -904,6 +904,11 @@ private:
                 } else {
                         return m_data;
                 }
+        }
+
+        constexpr static auto bit1(value_type const n)  // Throws: Nothing.
+        {
+                return detail::bit1<word_type>(n);
         }
 
         constexpr static auto which(value_type const n) // Throws: Nothing.
