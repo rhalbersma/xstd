@@ -76,8 +76,8 @@ struct const_iterator
         template<class IntSet>
         auto operator()(IntSet const& cis) const noexcept
         {
-                auto is = cis;
                 if constexpr (tti::has_const_iterator_v<IntSet>) {
+                        auto is = cis;
                         BOOST_CHECK_EQUAL(std::distance(cis.  begin(), cis.  end()), cis.count());
                         BOOST_CHECK_EQUAL(std::distance( is.  begin(),  is.  end()), cis.count());
                         BOOST_CHECK_EQUAL(std::distance( is. cbegin(),  is. cend()), cis.count());
