@@ -18,7 +18,7 @@ constexpr static auto has_const_iterator_v = false;
 
 template<class T>
 constexpr static auto has_const_iterator_v<
-        T, std::void_t<decltype(T::const_iterator)>
+        T, std::void_t<typename T::const_iterator>
 > = true;
 
 template<class T, class = void>
