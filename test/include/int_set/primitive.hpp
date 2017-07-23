@@ -67,6 +67,10 @@ struct const_reference
                                 BOOST_CHECK(&ref == first);
                                 BOOST_CHECK(is[ref]);
                         }
+
+                        for (auto&& ref : is) {
+                                BOOST_CHECK(is[ref]);
+                        }
                 }
         }
 };
@@ -262,6 +266,26 @@ struct set
                 }
                 BOOST_CHECK(std::addressof(ret) == std::addressof(dst));        // [bitset.members]/15
         }
+
+        template<class IntSet, class InputIterator>
+        auto operator()(IntSet const& is, InputIterator first, InputIterator last) const
+        {
+                auto const src = is;
+                auto dst = src; dst.insert(first, last);
+                while (first != last) {
+                        BOOST_CHECK(dst.contains(*first++));
+                }
+        }
+
+        template<class IntSet, class SizeType>
+        constexpr auto operator()(IntSet const& is, std::initializer_list<SizeType> ilist) const
+        {
+                auto const src = is;
+                auto dst = src; dst.insert(ilist);
+                for (auto&& elem : ilist) {
+                        BOOST_CHECK(dst.contains(elem));
+                }
+        }
 };
 
 struct reset
@@ -394,7 +418,7 @@ struct to_string
         }
 };
 
-struct count_
+struct count
 {
         template<class IntSet>
         auto operator()(IntSet const& is) noexcept
@@ -409,12 +433,12 @@ struct count_
 
 struct size
 {
-        template<template<auto> class IntSet, auto N>
-        auto operator()(IntSet<N> const& is) const noexcept
+        template<class IntSet>
+        auto operator()(IntSet const& is) const noexcept
         {
-                BOOST_CHECK_EQUAL(is.size(), N);                                // [bitset.members]/35
+                BOOST_CHECK_EQUAL(is.size(), IntSet{}.size());                  // [bitset.members]/35
 
-                if constexpr (tti::has_static_member_max_size_v<IntSet<N>>) {
+                if constexpr (tti::has_static_member_max_size_v<IntSet>) {
                         BOOST_CHECK_EQUAL(is.size(), is.max_size());
                 }
         }
@@ -435,8 +459,8 @@ struct op_equal_to
 
 struct op_not_equal_to
 {
-        template<template<auto> class IntSet, auto N>
-        auto operator()(IntSet<N> const& lhs, IntSet<N> const& rhs) const noexcept
+        template<class IntSet>
+        auto operator()(IntSet const& lhs, IntSet const& rhs) const noexcept
         {
                 BOOST_CHECK_EQUAL(lhs != rhs, !(lhs == rhs));                   // [bitset.members]/37
         }

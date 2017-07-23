@@ -7,7 +7,7 @@
 #include <int_set/primitive.hpp>
 #include <xstd/bitset.hpp>
 #include <xstd/int_set.hpp>
-#include <boost/mpl/vector.hpp>         // vector
+#include <boost/mpl/vector.hpp>                 // vector
 #include <boost/test/test_case_template.hpp>    // BOOST_AUTO_TEST_CASE_TEMPLATE
 #include <boost/test/unit_test.hpp>             // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END
 
@@ -17,8 +17,10 @@ using namespace xstd;
 
 using SetTypes = boost::mpl::vector
 <
-        std::bitset<32>,
-        int_set<32>
+        std::bitset<33>,
+            int_set< 0, uint32_t>,
+            int_set< 1, uint32_t>,
+            int_set<33, uint32_t>
 >;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)

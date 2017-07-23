@@ -12,13 +12,13 @@
 #include <cstdint>              // uint64_t
 #include <functional>           // less
 #include <initializer_list>     // initializer_list
+#include <istream>              // basic_istream
 #include <iterator>             // bidirectional_iterator_tag, crbegin, crend, rbegin, reverse_iterator
 #include <limits>               // digits
+#include <ostream>              // basic_ostream
 #include <stdexcept>            // out_of_range
 #include <type_traits>          // conditional_t, is_integral_v, is_nothrow_swappable_v, is_pod_v, is_unsigned_v
 #include <utility>              // move, swap
-
-#define PP_STL_CONSTEXPR_INCOMPLETE
 
 namespace xstd {
 namespace detail {
@@ -213,20 +213,20 @@ constexpr auto bit1(int n) // Throws: Nothing.
 
 }       // namespace detail
 
-template<int>
+template<int, class>
 class int_set;
 
-template<int N> PP_STL_CONSTEXPR_INCOMPLETE auto operator==  (int_set<N> const& /* lhs */, int_set<N> const& /* rhs */) noexcept;
-template<int N> PP_STL_CONSTEXPR_INCOMPLETE auto operator<   (int_set<N> const& /* lhs */, int_set<N> const& /* rhs */) noexcept;
-template<int N> PP_STL_CONSTEXPR_INCOMPLETE auto intersects  (int_set<N> const& /* lhs */, int_set<N> const& /* rhs */) noexcept;
-template<int N> PP_STL_CONSTEXPR_INCOMPLETE auto is_subset_of(int_set<N> const& /* lhs */, int_set<N> const& /* rhs */) noexcept;
+template<int N, class UIntType> auto operator==  (int_set<N, UIntType> const& /* lhs */, int_set<N, UIntType> const& /* rhs */) noexcept;
+template<int N, class UIntType> auto operator<   (int_set<N, UIntType> const& /* lhs */, int_set<N, UIntType> const& /* rhs */) noexcept;
+template<int N, class UIntType> auto intersects  (int_set<N, UIntType> const& /* lhs */, int_set<N, UIntType> const& /* rhs */) noexcept;
+template<int N, class UIntType> auto is_subset_of(int_set<N, UIntType> const& /* lhs */, int_set<N, UIntType> const& /* rhs */) noexcept;
 
-template<int N>
+template<int N, class UIntType = unsigned long long>
 class int_set
 {
         static_assert(0 <= N);
 
-        using word_type = std::conditional_t<N <= 64, uint64_t, __uint128_t>;
+        using word_type = UIntType;
         static_assert(std::is_unsigned_v<word_type>);
         static_assert(std::is_integral_v<word_type>);
 
@@ -536,7 +536,7 @@ public:
                 return std::move(fun);
         }
 
-        PP_STL_CONSTEXPR_INCOMPLETE auto empty() const noexcept
+        auto empty() const noexcept
         {
                 if constexpr (num_words == 0) {
                         return true;
@@ -549,7 +549,7 @@ public:
                 }
         }
 
-        PP_STL_CONSTEXPR_INCOMPLETE auto full() const noexcept
+        auto full() const noexcept
         {
                 if constexpr (excess_bits == 0) {
                         if constexpr (num_words == 0) {
@@ -624,7 +624,7 @@ public:
                 insert(ilist.begin(), ilist.end());
         }
 
-        PP_STL_CONSTEXPR_INCOMPLETE auto& fill() noexcept
+        auto& fill() noexcept
         {
                 if constexpr (num_words == 1) {
                         m_data = detail::ones<word_type>;
@@ -666,7 +666,7 @@ public:
                 erase(ilist.begin(), ilist.end());
         }
 
-        PP_STL_CONSTEXPR_INCOMPLETE auto swap(int_set& other) noexcept(num_words == 0 || std::is_nothrow_swappable_v<value_type>)
+        auto swap(int_set& other) noexcept(num_words == 0 || std::is_nothrow_swappable_v<value_type>)
         {
                 if constexpr (num_words == 1) {
                         using std::swap;
@@ -676,7 +676,7 @@ public:
                 }
         }
 
-        PP_STL_CONSTEXPR_INCOMPLETE auto clear() noexcept
+        auto clear() noexcept
         {
                 if constexpr (num_words == 1) {
                         m_data = zero;
@@ -723,7 +723,7 @@ public:
         [[deprecated]] auto& set(size_type const pos, bool const val = true)
         {
                 if (static_cast<std::size_t>(pos) >= static_cast<std::size_t>(N)) {
-                        throw std::out_of_range{"int_set<N>::set(): index out of range"};
+                        throw std::out_of_range{"int_set<N, UIntType>::set(): index out of range"};
                 }
                 return val ? insert(pos) : erase(pos);
         }
@@ -736,7 +736,7 @@ public:
         [[deprecated]] auto& reset(size_type const pos)
         {
                 if (static_cast<std::size_t>(pos) >= static_cast<std::size_t>(N)) {
-                        throw std::out_of_range{"int_set<N>::reset(): index out of range"};
+                        throw std::out_of_range{"int_set<N, UIntType>::reset(): index out of range"};
                 }
                 return erase(pos);
         }
@@ -750,7 +750,7 @@ public:
         [[deprecated]] auto& flip(size_type const pos)
         {
                 if (static_cast<std::size_t>(pos) >= static_cast<std::size_t>(N)) {
-                        throw std::out_of_range{"int_set<N>::flip(): index out of range"};
+                        throw std::out_of_range{"int_set<N, UIntType>::flip(): index out of range"};
                 }
                 return toggle(pos);
         }
@@ -768,7 +768,7 @@ public:
         [[deprecated]] auto test(size_type const pos) const
         {
                 if (static_cast<std::size_t>(pos) >= static_cast<std::size_t>(N)) {
-                        throw std::out_of_range{"int_set<N>::test(): index out of range"};
+                        throw std::out_of_range{"int_set<N, UIntType>::test(): index out of range"};
                 }
                 return contains(pos);
         }
@@ -821,7 +821,7 @@ public:
                 return *this;
         }
 
-        PP_STL_CONSTEXPR_INCOMPLETE auto& operator<<=(size_type const n) // Throws: Nothing.
+        auto& operator<<=(size_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
@@ -851,7 +851,7 @@ public:
                 return *this;
         }
 
-        PP_STL_CONSTEXPR_INCOMPLETE auto& operator>>=(size_type const n) // Throws: Nothing.
+        auto& operator>>=(size_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_words == 1) {
@@ -932,16 +932,16 @@ private:
                 return n % word_size;
         }
 
-        friend PP_STL_CONSTEXPR_INCOMPLETE auto operator==   <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
-        friend PP_STL_CONSTEXPR_INCOMPLETE auto operator<    <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
-        friend PP_STL_CONSTEXPR_INCOMPLETE auto intersects   <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
-        friend PP_STL_CONSTEXPR_INCOMPLETE auto is_subset_of <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
+        friend auto operator==   <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
+        friend auto operator<    <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
+        friend auto intersects   <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
+        friend auto is_subset_of <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
 };
 
-template<int N>
-PP_STL_CONSTEXPR_INCOMPLETE auto operator==(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+template<int N, class UIntType>
+auto operator==(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
 {
-        constexpr auto num_words = int_set<N>::num_words;
+        constexpr auto num_words = int_set<N, UIntType>::num_words;
         if constexpr (num_words == 0) {
                 return true;
         } else if constexpr (num_words == 1) {
@@ -954,16 +954,16 @@ PP_STL_CONSTEXPR_INCOMPLETE auto operator==(int_set<N> const& lhs, int_set<N> co
         }
 }
 
-template<int N>
-PP_STL_CONSTEXPR_INCOMPLETE auto operator!=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+template<int N, class UIntType>
+auto operator!=(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
 {
         return !(lhs == rhs);
 }
 
-template<int N>
-PP_STL_CONSTEXPR_INCOMPLETE auto operator<(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+template<int N, class UIntType>
+auto operator<(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
 {
-        constexpr auto num_words = int_set<N>::num_words;
+        constexpr auto num_words = int_set<N, UIntType>::num_words;
         if constexpr (num_words == 0) {
                 return false;
         } else if constexpr (num_words == 1) {
@@ -977,79 +977,79 @@ PP_STL_CONSTEXPR_INCOMPLETE auto operator<(int_set<N> const& lhs, int_set<N> con
         }
 }
 
-template<int N>
-PP_STL_CONSTEXPR_INCOMPLETE auto operator>(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+template<int N, class UIntType>
+auto operator>(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
 {
         return rhs < lhs;
 }
 
-template<int N>
-PP_STL_CONSTEXPR_INCOMPLETE auto operator>=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+template<int N, class UIntType>
+auto operator>=(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
 {
         return !(lhs < rhs);
 }
 
-template<int N>
-PP_STL_CONSTEXPR_INCOMPLETE auto operator<=(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+template<int N, class UIntType>
+auto operator<=(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
 {
         return !(rhs < lhs);
 }
 
-template<int N>
-PP_STL_CONSTEXPR_INCOMPLETE auto swap(int_set<N>& lhs, int_set<N>& rhs) noexcept(noexcept(lhs.swap(rhs)))
+template<int N, class UIntType>
+auto swap(int_set<N, UIntType>& lhs, int_set<N, UIntType>& rhs) noexcept(noexcept(lhs.swap(rhs)))
 {
         lhs.swap(rhs);
 }
 
-template<int N>
-constexpr auto operator~(int_set<N> const& lhs) noexcept
+template<int N, class UIntType>
+constexpr auto operator~(int_set<N, UIntType> const& lhs) noexcept
 {
         auto nrv{lhs}; nrv.toggle(); return nrv;
 }
 
-template<int N>
-constexpr auto operator&(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+template<int N, class UIntType>
+constexpr auto operator&(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
 {
         auto nrv{lhs}; nrv &= rhs; return nrv;
 }
 
-template<int N>
-constexpr auto operator|(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+template<int N, class UIntType>
+constexpr auto operator|(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
 {
         auto nrv{lhs}; nrv |= rhs; return nrv;
 }
 
-template<int N>
-constexpr auto operator^(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+template<int N, class UIntType>
+constexpr auto operator^(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
 {
         auto nrv{lhs}; nrv ^= rhs; return nrv;
 }
 
-template<int N>
-constexpr auto operator-(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+template<int N, class UIntType>
+constexpr auto operator-(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
 {
         auto nrv{lhs}; nrv -= rhs; return nrv;
 }
 
-template<int N>
-PP_STL_CONSTEXPR_INCOMPLETE auto operator<<(int_set<N> const& lhs, int const n) // Throws: Nothing.
+template<int N, class UIntType>
+auto operator<<(int_set<N, UIntType> const& lhs, int const n) // Throws: Nothing.
 {
         assert(0 <= n); assert(n < N);
         auto nrv{lhs}; nrv <<= n; return nrv;
 }
 
-template<int N>
-PP_STL_CONSTEXPR_INCOMPLETE auto operator>>(int_set<N> const& lhs, int const n) // Throws: Nothing.
+template<int N, class UIntType>
+auto operator>>(int_set<N, UIntType> const& lhs, int const n) // Throws: Nothing.
 {
         assert(0 <= n); assert(n < N);
         auto nrv{lhs}; nrv >>= n; return nrv;
 }
 
-template<int N>
-PP_STL_CONSTEXPR_INCOMPLETE auto intersects(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+template<int N, class UIntType>
+auto intersects(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
 {
-        constexpr static auto num_words = int_set<N>::num_words;
-        constexpr static auto zero [[maybe_unused]] = detail::zero<typename int_set<N>::word_type>;
+        constexpr static auto num_words = int_set<N, UIntType>::num_words;
+        constexpr static auto zero [[maybe_unused]] = detail::zero<typename int_set<N, UIntType>::word_type>;
         if constexpr (num_words == 0) {
                 return false;
         } else if constexpr (num_words == 1) {
@@ -1065,17 +1065,17 @@ PP_STL_CONSTEXPR_INCOMPLETE auto intersects(int_set<N> const& lhs, int_set<N> co
         }
 }
 
-template<int N>
-PP_STL_CONSTEXPR_INCOMPLETE auto disjoint(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+template<int N, class UIntType>
+auto disjoint(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
 {
         return !intersects(lhs, rhs);
 }
 
-template<int N>
-PP_STL_CONSTEXPR_INCOMPLETE auto is_subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+template<int N, class UIntType>
+auto is_subset_of(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
 {
-        constexpr static auto num_words = int_set<N>::num_words;
-        constexpr static auto zero [[maybe_unused]] = detail::zero<typename int_set<N>::word_type>;
+        constexpr static auto num_words = int_set<N, UIntType>::num_words;
+        constexpr static auto zero [[maybe_unused]] = detail::zero<typename int_set<N, UIntType>::word_type>;
         if constexpr (num_words == 0) {
                 return true;
         } else if constexpr (num_words == 1) {
@@ -1091,127 +1091,137 @@ PP_STL_CONSTEXPR_INCOMPLETE auto is_subset_of(int_set<N> const& lhs, int_set<N> 
         }
 }
 
-template<int N>
-PP_STL_CONSTEXPR_INCOMPLETE auto is_superset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+template<int N, class UIntType>
+auto is_superset_of(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
 {
         return is_subset_of(rhs, lhs);
 }
 
-template<int N>
-PP_STL_CONSTEXPR_INCOMPLETE auto is_proper_subset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+template<int N, class UIntType>
+auto is_proper_subset_of(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
 {
         return is_subset_of(lhs, rhs) && !is_subset_of(rhs, lhs);
 }
 
-template<int N>
-PP_STL_CONSTEXPR_INCOMPLETE auto is_proper_superset_of(int_set<N> const& lhs, int_set<N> const& rhs) noexcept
+template<int N, class UIntType>
+auto is_proper_superset_of(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
 {
         return is_superset_of(lhs, rhs) && !is_superset_of(rhs, lhs);
 }
 
-template<int N>
-constexpr auto begin(int_set<N>& is)
+template<int N, class UIntType>
+constexpr auto begin(int_set<N, UIntType>& is)
         -> decltype(is.begin())
 {
         return is.begin();
 }
 
-template<int N>
-constexpr auto begin(int_set<N> const& is)
+template<int N, class UIntType>
+constexpr auto begin(int_set<N, UIntType> const& is)
         -> decltype(is.begin())
 {
         return is.begin();
 }
 
-template<int N>
-constexpr auto end(int_set<N>& is)
+template<int N, class UIntType>
+constexpr auto end(int_set<N, UIntType>& is)
         -> decltype(is.end())
 {
         return is.end();
 }
 
-template<int N>
-constexpr auto end(int_set<N> const& is)
+template<int N, class UIntType>
+constexpr auto end(int_set<N, UIntType> const& is)
         -> decltype(is.end())
 {
         return is.end();
 }
 
-template<int N>
-constexpr auto cbegin(int_set<N> const& is) noexcept(noexcept(xstd::begin(is)))
+template<int N, class UIntType>
+constexpr auto cbegin(int_set<N, UIntType> const& is) noexcept(noexcept(xstd::begin(is)))
         -> decltype(xstd::begin(is))
 {
         return xstd::begin(is);
 }
 
-template<int N>
-constexpr auto cend(int_set<N> const& is) noexcept(noexcept(xstd::end(is)))
+template<int N, class UIntType>
+constexpr auto cend(int_set<N, UIntType> const& is) noexcept(noexcept(xstd::end(is)))
         -> decltype(xstd::end(is))
 {
         return xstd::end(is);
 }
 
-template<int N>
-constexpr auto rbegin(int_set<N>& is)
+template<int N, class UIntType>
+constexpr auto rbegin(int_set<N, UIntType>& is)
         -> decltype(is.rbegin())
 {
         return is.rbegin();
 }
 
-template<int N>
-constexpr auto rbegin(int_set<N> const& is)
+template<int N, class UIntType>
+constexpr auto rbegin(int_set<N, UIntType> const& is)
         -> decltype(is.rbegin())
 {
         return is.rbegin();
 }
 
-template<int N>
-constexpr auto rend(int_set<N>& is)
+template<int N, class UIntType>
+constexpr auto rend(int_set<N, UIntType>& is)
         -> decltype(is.rend())
 {
         return is.rend();
 }
 
-template<int N>
-constexpr auto rend(int_set<N> const& is)
+template<int N, class UIntType>
+constexpr auto rend(int_set<N, UIntType> const& is)
         -> decltype(is.rend())
 {
         return is.rend();
 }
 
-template<int N>
-constexpr auto crbegin(int_set<N> const& is)
+template<int N, class UIntType>
+constexpr auto crbegin(int_set<N, UIntType> const& is)
         -> decltype(xstd::rbegin(is))
 {
         return xstd::rbegin(is);
 }
 
-template<int N>
-constexpr auto crend(int_set<N> const& is)
+template<int N, class UIntType>
+constexpr auto crend(int_set<N, UIntType> const& is)
         -> decltype(xstd::rend(is))
 {
         return xstd::rend(is);
 }
 
-template<int N, class UnaryFunction>
-constexpr auto for_each(int_set<N> const& is, UnaryFunction fun)
+template<int N, class UIntType, class UnaryFunction>
+constexpr auto for_each(int_set<N, UIntType> const& is, UnaryFunction fun)
 {
         return is.for_each(fun);
 }
 
-template<int N, class UnaryFunction>
-constexpr auto reverse_for_each(int_set<N> const& is, UnaryFunction fun)
+template<int N, class UIntType, class UnaryFunction>
+constexpr auto reverse_for_each(int_set<N, UIntType> const& is, UnaryFunction fun)
 {
         return is.reverse_for_each(fun);
 }
 
-template<int N>
-constexpr auto empty(int_set<N> const& is)
+template<int N, class UIntType>
+constexpr auto empty(int_set<N, UIntType> const& is)
         -> decltype(is.empty())
 {
         return is.empty();
 }
 
-}       // namespace xstd
+template<class charT, class traits, int N, class UIntType>
+auto& operator>>(std::basic_istream<charT, traits>& is, int_set<N, UIntType>& /* x */)
+{
+        return is;
+}
 
-#undef PP_STL_CONSTEXPR_INCOMPLETE
+template<class charT, class traits, int N, class UIntType>
+auto& operator>>(std::basic_ostream<charT, traits>& os, int_set<N, UIntType>& /* x */)
+{
+        return os;
+}
+
+}       // namespace xstd

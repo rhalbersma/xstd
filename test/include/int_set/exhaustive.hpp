@@ -1,7 +1,4 @@
 #pragma once
-#include <bitset>       // bitset
-#include <cassert>      // assert
-#include <type_traits>  // is_same_v
 
 //          Copyright Rein Halbersma 2014-2017.
 // Distributed under the Boost Software License, Version 1.0.

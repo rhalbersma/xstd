@@ -17,8 +17,13 @@ using namespace xstd;
 
 using SetTypes = boost::mpl::vector
 <
-        std::bitset<32>,
-            int_set<32>
+        std::bitset< 0>,
+        std::bitset< 1>,
+        std::bitset<33>,
+        std::bitset<65>,
+            int_set< 0, uint32_t>,
+            int_set< 1, uint32_t>,
+            int_set<33, uint32_t>
 >;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(ExhaustivelyTestAssociativityAndDistributivity, T, SetTypes)

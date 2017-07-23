@@ -16,6 +16,8 @@ using UnsignedIntegerTypes = boost::mpl::vector
         unsigned,
         unsigned long,
         unsigned long long,
+        uint32_t,
+        uint64_t,
         __uint128_t
 >;
 
