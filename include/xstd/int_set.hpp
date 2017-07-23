@@ -453,6 +453,13 @@ public:
 
         int_set() = default;
 
+        [[deprecated]] /* implicit */ constexpr int_set(unsigned long long const /* val */) noexcept
+        :
+                m_data{}
+        {
+
+        }
+
         template<class InputIterator>
         constexpr int_set(InputIterator first, InputIterator last) // Throws: Nothing.
         :

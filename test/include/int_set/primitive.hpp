@@ -17,7 +17,7 @@
 #include <string>                       // basic_string
 
 namespace xstd {
-namespace prim {
+namespace test {
 
 template<class IntSet>
 struct constructor
@@ -52,6 +52,69 @@ struct constructor
         ) const
         {
                                                                                 // [bitset.cons]/6-7
+        }
+};
+
+struct const_reference
+{
+        template<class IntSet>
+        auto operator()(IntSet const& is) const noexcept
+        {
+                if constexpr (tti::has_const_iterator_v<IntSet>) {
+                        for (auto first = is.begin(), last = is.end(); first != last; ++first) {
+                                auto const ref = *first;
+
+                                BOOST_CHECK(&ref == first);
+                                BOOST_CHECK(is[ref]);
+                        }
+                }
+        }
+};
+
+struct const_iterator
+{
+        template<class IntSet>
+        auto operator()(IntSet const& cis) const noexcept
+        {
+                auto is = cis;
+                if constexpr (tti::has_const_iterator_v<IntSet>) {
+                        BOOST_CHECK_EQUAL(std::distance(cis.  begin(), cis.  end()), cis.count());
+                        BOOST_CHECK_EQUAL(std::distance( is.  begin(),  is.  end()), cis.count());
+                        BOOST_CHECK_EQUAL(std::distance( is. cbegin(),  is. cend()), cis.count());
+                        BOOST_CHECK_EQUAL(std::distance(cis. rbegin(), cis. rend()), cis.count());
+                        BOOST_CHECK_EQUAL(std::distance( is. rbegin(),  is. rend()), cis.count());
+                        BOOST_CHECK_EQUAL(std::distance( is.crbegin(),  is.crend()), cis.count());
+                        BOOST_CHECK_EQUAL(std::distance(  begin(cis),   end(cis)), cis.count());
+                        BOOST_CHECK_EQUAL(std::distance(  begin( is),   end( is)), cis.count());
+                        BOOST_CHECK_EQUAL(std::distance( cbegin( is),  cend( is)), cis.count());
+                        BOOST_CHECK_EQUAL(std::distance( rbegin(cis),  rend(cis)), cis.count());
+                        BOOST_CHECK_EQUAL(std::distance( rbegin( is),  rend( is)), cis.count());
+                        BOOST_CHECK_EQUAL(std::distance(crbegin( is), crend( is)), cis.count());
+                }
+        }
+};
+
+struct for_each_
+{
+        template<class IntSet>
+        auto operator()(IntSet const& is) const noexcept
+        {
+                for_each(is, [&](auto const pos) {
+                        BOOST_CHECK(is[pos]);
+                });
+        }
+};
+
+struct reverse_for_each_
+{
+        template<class IntSet>
+        auto operator()(IntSet const& is) const noexcept
+        {
+                if constexpr (tti::has_reverse_for_each_v<IntSet>) {
+                        reverse_for_each(is, [&](auto const pos) {
+                                BOOST_CHECK(is[pos]);
+                        });
+                }
         }
 };
 
@@ -175,7 +238,20 @@ struct set
         }
 
         template<class IntSet, class SizeType>
-        auto operator()(IntSet const& is, SizeType const pos, bool const val = true) const
+        auto operator()(IntSet const& is, SizeType const pos) const
+        {
+                auto const src = is;
+                auto dst = src;
+                auto const& ret = dst.set(pos);
+
+                for (auto N = is.size(), i = decltype(N){0}; i < N; ++i) {
+                        BOOST_CHECK_EQUAL(dst[i], i == pos ? true : src[i]);    // [bitset.members]/14
+                }
+                BOOST_CHECK(std::addressof(ret) == std::addressof(dst));        // [bitset.members]/15
+        }
+
+        template<class IntSet, class SizeType>
+        auto operator()(IntSet const& is, SizeType const pos, bool const val) const
         {
                 auto const src = is;
                 auto dst = src;
@@ -251,9 +327,8 @@ struct op_compl
         template<class IntSet>
         constexpr auto operator()(IntSet const& a, IntSet const& b) const noexcept
         {
-                // De Morgan's Laws
-                BOOST_CHECK(~(a | b) == (~a & ~b));
-                BOOST_CHECK(~(a & b) == (~a | ~b));
+                BOOST_CHECK(~(a | b) == (~a & ~b));                             // De Morgan's Laws
+                BOOST_CHECK(~(a & b) == (~a | ~b));                             // De Morgan's Laws
         }
 };
 
@@ -329,44 +404,6 @@ struct count_
                         expected += is[i];
                 }
                 BOOST_CHECK_EQUAL(is.count(), expected);                        // [bitset.members]/34
-        }
-};
-
-struct for_each_
-{
-        template<class IntSet>
-        auto operator()(IntSet const& is) const noexcept
-        {
-                auto expected = decltype(is.count()){0};
-                for_each(is, [&](auto) { ++expected; });
-                BOOST_CHECK_EQUAL(is.count(), expected);
-
-                if constexpr (tti::has_iterators_v<IntSet>) {
-                        BOOST_CHECK_EQUAL(is.count(), std::distance(is. begin(), is. end()));
-                        BOOST_CHECK_EQUAL(is.count(), std::distance(is.cbegin(), is.cend()));
-                        BOOST_CHECK_EQUAL(is.count(), std::distance( begin(is),  end(is)));
-                        BOOST_CHECK_EQUAL(is.count(), std::distance(cbegin(is), cend(is)));
-                }
-        }
-};
-
-struct reverse_for_each_
-{
-        template<class IntSet>
-        auto operator()(IntSet const& is) const noexcept
-        {
-                if constexpr (tti::has_reverse_for_each_v<IntSet>) {
-                        auto expected = decltype(is.count()){0};
-                        reverse_for_each(is, [&](auto) { ++expected; });
-                        BOOST_CHECK_EQUAL(is.count(), expected);
-
-                        if constexpr (tti::has_reverse_iterators_v<IntSet>) {
-                                BOOST_CHECK_EQUAL(is.count(), std::distance(is. rbegin(), is. rend()));
-                                BOOST_CHECK_EQUAL(is.count(), std::distance(is.crbegin(), is.crend()));
-                                BOOST_CHECK_EQUAL(is.count(), std::distance( rbegin(is),  rend(is)));
-                                BOOST_CHECK_EQUAL(is.count(), std::distance(crbegin(is), crend(is)));
-                        }
-                }
         }
 };
 
@@ -494,7 +531,7 @@ struct is_proper_superset_of_
         }
 };
 
-struct test
+struct test_
 {
         template<class IntSet>
         auto operator()(IntSet const& is) const noexcept
@@ -712,5 +749,5 @@ struct op_ostream
         }
 };
 
-}       // namespace prim
+}       // namespace test
 }       // namespace xstd
