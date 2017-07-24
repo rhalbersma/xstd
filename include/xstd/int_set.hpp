@@ -15,6 +15,7 @@
 #include <istream>              // basic_istream
 #include <iterator>             // bidirectional_iterator_tag, crbegin, crend, rbegin, reverse_iterator
 #include <limits>               // digits
+#include <numeric>              // accumulate
 #include <ostream>              // basic_ostream
 #include <stdexcept>            // out_of_range
 #include <type_traits>          // conditional_t, is_integral_v, is_nothrow_swappable_v, is_pod_v, is_unsigned_v
@@ -41,6 +42,16 @@ namespace builtin {
 // GCC / Clang have built-in functions for Count Trailing Zeros
 // for unsigned, unsigned long and unsigned long long.
 // For zero input, the result is undefined.
+
+#ifdef _MSC_VER
+        #define PP_INTRINSIC_INLINE inline
+        #define PP_INTRINSIC_CONST const
+        #define PP_INTRINSIC_CONST_INLINE const inline
+#else
+        #define PP_INTRINSIC_INLINE constexpr
+        #define PP_INTRINSIC_CONST constexpr
+        #define PP_INTRINSIC_CONST_INLINE constexpr
+#endif
 
 struct ctznz
 {
@@ -137,59 +148,59 @@ struct popcount
 }       // namespace builtin
 
 template<class UIntType>
-constexpr auto ctznz(UIntType x) // Throws: Nothing.
+PP_INTRINSIC_INLINE auto ctznz(UIntType x) // Throws: Nothing.
 {
         assert(x != 0);
         return builtin::ctznz{}(x);
 }
 
 template<class UIntType>
-constexpr auto clznz(UIntType x) // Throws: Nothing.
+PP_INTRINSIC_INLINE auto clznz(UIntType x) // Throws: Nothing.
 {
         assert(x != 0);
         return builtin::clznz{}(x);
 }
 
 template<class UIntType>
-constexpr auto popcount(UIntType x) noexcept
+PP_INTRINSIC_INLINE auto popcount(UIntType x) noexcept
 {
         return builtin::popcount{}(x);
 }
 
 template<class UIntType>
-constexpr auto bsfnz(UIntType x) // Throws: Nothing.
+PP_INTRINSIC_INLINE auto bsfnz(UIntType x) // Throws: Nothing.
 {
         assert(x != 0);
         return ctznz(x);
 }
 
 template<class UIntType>
-constexpr auto bsrnz(UIntType x) // Throws: Nothing.
+PP_INTRINSIC_INLINE auto bsrnz(UIntType x) // Throws: Nothing.
 {
         assert(x != 0);
         return std::numeric_limits<UIntType>::digits - 1 - clznz(x);
 }
 
 template<class UIntType>
-constexpr auto ctz(UIntType x) noexcept
+PP_INTRINSIC_INLINE auto ctz(UIntType x) noexcept
 {
         return x ? ctznz(x) : std::numeric_limits<UIntType>::digits;
 }
 
 template<class UIntType>
-constexpr auto clz(UIntType x) noexcept
+PP_INTRINSIC_INLINE auto clz(UIntType x) noexcept
 {
         return x ? clznz(x) : std::numeric_limits<UIntType>::digits;
 }
 
 template<class UIntType>
-constexpr auto bsf(UIntType x) noexcept
+PP_INTRINSIC_INLINE auto bsf(UIntType x) noexcept
 {
         return ctz(x);
 }
 
 template<class UIntType>
-constexpr auto bsr(UIntType x) noexcept
+PP_INTRINSIC_INLINE auto bsr(UIntType x) noexcept
 {
         return std::numeric_limits<UIntType>::digits - 1 - clz(x);
 }
@@ -311,7 +322,7 @@ public:
         public:
                 const_iterator() = default;
 
-                explicit constexpr const_iterator(word_type const* w) // Throws: Nothing.
+                explicit PP_INTRINSIC_INLINE const_iterator(word_type const* w) // Throws: Nothing.
                 :
                         m_word{w},
                         m_value{find_first()}
@@ -334,24 +345,24 @@ public:
                         return { *m_word, m_value };
                 }
 
-                constexpr auto& operator++() // Throws: Nothing.
+                PP_INTRINSIC_INLINE auto& operator++() // Throws: Nothing.
                 {
                         increment();
                         return *this;
                 }
 
-                constexpr auto operator++(int) // Throws: Nothing.
+                PP_INTRINSIC_INLINE auto operator++(int) // Throws: Nothing.
                 {
                         auto nrv = *this; ++*this; return nrv;
                 }
 
-                constexpr auto& operator--() // Throws:Nothing.
+                PP_INTRINSIC_INLINE auto& operator--() // Throws:Nothing.
                 {
                         decrement();
                         return *this;
                 }
 
-                constexpr auto operator--(int) // Throws: Nothing.
+                PP_INTRINSIC_INLINE auto operator--(int) // Throws: Nothing.
                 {
                         auto nrv = *this; --*this; return nrv;
                 }
@@ -368,7 +379,7 @@ public:
                 }
 
         private:
-                constexpr auto find_first() noexcept
+                PP_INTRINSIC_INLINE auto find_first() noexcept
                 {
                         if constexpr (num_words == 0) {
                                 return 0;
@@ -386,7 +397,7 @@ public:
                         }
                 }
 
-                constexpr auto increment() // Throws: Nothing.
+                PP_INTRINSIC_INLINE auto increment() // Throws: Nothing.
                 {
                         assert(m_value < N);
                         if (num_bits == ++m_value) { return; }
@@ -416,7 +427,7 @@ public:
                         assert(num_bits == m_value);
                 }
 
-                constexpr auto decrement() // Throws: Nothing.
+                PP_INTRINSIC_INLINE auto decrement() // Throws: Nothing.
                 {
                         assert(0 < m_value);
                         --m_value;
@@ -473,9 +484,16 @@ public:
                 int_set(ilist.begin(), ilist.end())
         {}
 
+        template<class InputIterator>
+        constexpr auto assign(InputIterator first, InputIterator last) // Throws: Nothing.
+        {
+                clear();
+                insert(first, last);
+        }
+
         constexpr auto& operator=(std::initializer_list<value_type> ilist) // Throws: Nothing.
         {
-                insert(ilist.begin(), ilist.end());
+                assign(ilist.begin(), ilist.end());
                 return *this;
         }
 
@@ -495,7 +513,7 @@ public:
         constexpr auto crend()   const noexcept { return const_reverse_iterator{rend()};   }
 
         template<class UnaryFunction>
-        constexpr auto for_each(UnaryFunction fun) const
+        PP_INTRINSIC_INLINE auto for_each(UnaryFunction fun) const
         {
                 if constexpr (num_words == 1) {
                         for (auto word = m_data; word != zero; /* update inside loop */) {
@@ -516,7 +534,7 @@ public:
         }
 
         template<class UnaryFunction>
-        constexpr auto reverse_for_each(UnaryFunction fun) const
+        PP_INTRINSIC_INLINE auto reverse_for_each(UnaryFunction fun) const
         {
                 if constexpr (num_words == 1) {
                         for (auto word = m_data; word != zero; /* update inside loop */) {
@@ -534,19 +552,6 @@ public:
                         }
                 }
                 return std::move(fun);
-        }
-
-        auto empty() const noexcept
-        {
-                if constexpr (num_words == 0) {
-                        return true;
-                } else if constexpr (num_words == 1) {
-                        return m_data == zero;
-                } else if constexpr (num_words >= 2) {
-                        return std::all_of(m_data, m_data + num_words, [](auto const word) {
-                                return word == zero;
-                        });
-                }
         }
 
         auto full() const noexcept
@@ -575,28 +580,39 @@ public:
                 }
         }
 
-        constexpr auto count() const noexcept
+        auto empty() const noexcept
+        {
+                if constexpr (num_words == 0) {
+                        return true;
+                } else if constexpr (num_words == 1) {
+                        return m_data == zero;
+                } else if constexpr (num_words >= 2) {
+                        return std::all_of(m_data, m_data + num_words, [](auto const word) {
+                                return word == zero;
+                        });
+                }
+        }
+
+        [[deprecated]] auto all() const noexcept { return full(); }
+        [[deprecated]] auto any() const noexcept { return !empty(); }
+        [[deprecated]] auto none() const noexcept { return empty(); }
+
+        auto count() const noexcept
         {
                 if constexpr (num_words == 0) {
                         return 0;
                 } else if constexpr (num_words == 1) {
                         return detail::popcount(m_data);
                 } else if (num_words >= 2) {
-                        // std::accumulate is not constexpr as of C++17
-                        auto sum = 0;
-                        for (auto&& word : m_data) {
-                                sum += detail::popcount(word);
-                        }
-                        return sum;
+                        return std::accumulate(m_data, m_data + num_words, 0, [](auto const sum, auto const word) {
+                                return sum + detail::popcount(word);
+                        });
                 }
         }
 
         constexpr static auto max_size() noexcept { return N; }
         constexpr static auto capacity() noexcept { return num_bits; }
 
-        [[deprecated]] auto none() const noexcept { return empty(); }
-        [[deprecated]] auto any() const noexcept { return !empty(); }
-        [[deprecated]] auto all() const noexcept { return full(); }
         [[deprecated]] constexpr auto size() const noexcept { return max_size(); }
 
         constexpr auto& insert(value_type const n) // Throws: Nothing.
@@ -627,9 +643,9 @@ public:
         auto& fill() noexcept
         {
                 if constexpr (num_words == 1) {
-                        m_data = detail::ones<word_type>;
+                        m_data = ones;
                 } else if constexpr (num_words >= 2) {
-                        std::fill_n(m_data, num_words, detail::ones<word_type>);
+                        std::fill_n(m_data, num_words, ones);
                 }
                 sanitize_back();
                 assert(full());
@@ -1219,7 +1235,7 @@ auto& operator>>(std::basic_istream<charT, traits>& is, int_set<N, UIntType>& /*
 }
 
 template<class charT, class traits, int N, class UIntType>
-auto& operator>>(std::basic_ostream<charT, traits>& os, int_set<N, UIntType>& /* x */)
+auto& operator<<(std::basic_ostream<charT, traits>& os, int_set<N, UIntType>& /* x */)
 {
         return os;
 }
