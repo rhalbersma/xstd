@@ -21,188 +21,307 @@
 #include <type_traits>          // conditional_t, is_integral_v, is_nothrow_swappable_v, is_pod_v, is_unsigned_v
 #include <utility>              // move, swap
 
+#ifdef __GNUG__
+        #define PP_CONSTEXPR_INLINE             constexpr
+        #define PP_CONSTEXPR_CONST              constexpr
+        #define PP_CONSTEXPR_CONST_INLINE       constexpr
+#else
+        #define PP_CONSTEXPR_INLINE             inline
+        #define PP_CONSTEXPR_CONST              const
+        #define PP_CONSTEXPR_CONST_INLINE       const inline
+#endif
+
 namespace xstd {
 namespace detail {
 
-// GCC / Clang have support for extended 128-bit integers.
-// Uset get<0> and get<1> to extract the lower and upper 64-bit integers.
+#ifdef __GNUG__
 
-template<int N>
-constexpr auto get(__uint128_t x) noexcept
-{
-        static_assert(0 <= N); static_assert(N < 2);
-        return static_cast<uint64_t>(x >> (N * 64));
-}
+        template<int N>
+        constexpr auto get(__uint128_t x) noexcept
+        {
+                static_assert(0 <= N); static_assert(N < 2);
+                return static_cast<uint64_t>(x >> (64 * N));
+        }
+
+#endif
+
+#ifdef _MSC_VER
+        #include <intrin.h>
+        #pragma intrinsic(_BitScanForward)
+        #pragma intrinsic(_BitScanReverse)
+        #pragma intrinsic(__popcnt)
+
+        #ifdef _WIN64
+                #pragma intrinsic(_BitScanForward64)
+                #pragma intrinsic(_BitScanReverse64)
+                #pragma intrinsic(__popcnt64)
+        #endif
+#endif
 
 template<class UIntType> constexpr auto zero =  static_cast<UIntType>(0);
 template<class UIntType> constexpr auto ones = ~static_cast<UIntType>(0);
 
 namespace builtin {
 
-// GCC / Clang have built-in functions for Count Trailing Zeros
-// for unsigned, unsigned long and unsigned long long.
-// For zero input, the result is undefined.
+#ifdef __GNUG__
 
-#ifdef _MSC_VER
-        #define PP_INTRINSIC_INLINE inline
-        #define PP_INTRINSIC_CONST const
-        #define PP_INTRINSIC_CONST_INLINE const inline
-#else
-        #define PP_INTRINSIC_INLINE constexpr
-        #define PP_INTRINSIC_CONST constexpr
-        #define PP_INTRINSIC_CONST_INLINE constexpr
+        struct ctznz
+        {
+                constexpr auto operator()(unsigned x) const // Throws: Nothing.
+                {
+                        assert(x != 0);
+                        return __builtin_ctz(x);
+                }
+
+                constexpr auto operator()(unsigned long x) const // Throws: Nothing.
+                {
+                        assert(x != 0);
+                        return __builtin_ctzl(x);
+                }
+
+                constexpr auto operator()(unsigned long long x) const // Throws: Nothing.
+                {
+                        assert(x != 0);
+                        return __builtin_ctzll(x);
+                }
+
+                constexpr auto operator()(__uint128_t x) const // Throws: Nothing.
+                {
+                        assert(x != 0);
+                        if (auto const lower = get<0>(x); lower != detail::zero<uint64_t>) {
+                                return ctznz{}(lower);
+                        } else {
+                                return ctznz{}(get<1>(x)) + 64;
+                        }
+                }
+        };
+
+        using bsfnz = ctznz;
+
 #endif
 
-struct ctznz
-{
-        constexpr auto operator()(unsigned x) const // Throws: Nothing.
-        {
-                assert(x != 0);
-                return __builtin_ctz(x);
-        }
+#ifdef _MSC_VER
 
-        constexpr auto operator()(unsigned long x) const // Throws: Nothing.
+        struct bsfnz
         {
-                assert(x != 0);
-                return __builtin_ctzl(x);
-        }
-
-        constexpr auto operator()(unsigned long long x) const // Throws: Nothing.
-        {
-                assert(x != 0);
-                return __builtin_ctzll(x);
-        }
-
-        constexpr auto operator()(__uint128_t x) const // Throws: Nothing.
-        {
-                assert(x != 0);
-                if (auto const lower = get<0>(x); lower != detail::zero<uint64_t>) {
-                        return ctznz{}(lower);
-                } else {
-                        return ctznz{}(get<1>(x)) + 64;
+                auto operator()(unsigned long x) const noexcept
+                {
+                        assert(x != 0);
+                        unsigned long index;
+                        _BitScanForward(&index, x);
+                        return static_cast<int>(index);
                 }
-        }
-};
 
-// GCC / Clang have built-in functions for Count Leading Zeros
-// for unsigned, unsigned long and unsigned long long.
-// For zero input, the result is undefined
+        #ifdef _WIN64
 
-struct clznz
-{
-        constexpr auto operator()(unsigned x) const // Throws: Nothing.
-        {
-                assert(x != 0);
-                return __builtin_clz(x);
-        }
-
-        constexpr auto operator()(unsigned long x) const // Throws: Nothing.
-        {
-                assert(x != 0);
-                return __builtin_clzl(x);
-        }
-
-        constexpr auto operator()(unsigned long long x) const // Throws: Nothing.
-        {
-                assert(x != 0);
-                return __builtin_clzll(x);
-        }
-
-        constexpr auto operator()(__uint128_t x) const // Throws: Nothing.
-        {
-                assert(x != 0);
-                if (auto const upper = get<1>(x); upper != detail::zero<uint64_t>) {
-                        return clznz{}(upper);
-                } else {
-                        return clznz{}(get<0>(x)) + 64;
+                auto operator()(uint64_t x) const noexcept
+                {
+                        assert(x != 0);
+                        unsigned long index;
+                        _BitScanForward64(&index, x);
+                        return static_cast<int>(index);
                 }
-        }
-};
 
-// GCC / Clang have built-in functions for Population Count
-// for unsigned, unsigned long and unsigned long long.
+        #endif
 
-struct popcount
-{
-        constexpr auto operator()(unsigned x) const noexcept
+        };
+
+        using ctznz = bsfnz;
+
+#endif
+
+#ifdef __GNUG__
+
+        struct clznz
         {
-                return __builtin_popcount(x);
-        }
+                constexpr auto operator()(unsigned x) const // Throws: Nothing.
+                {
+                        assert(x != 0);
+                        return __builtin_clz(x);
+                }
 
-        constexpr auto operator()(unsigned long x) const noexcept
-        {
-                return __builtin_popcountl(x);
-        }
+                constexpr auto operator()(unsigned long x) const // Throws: Nothing.
+                {
+                        assert(x != 0);
+                        return __builtin_clzl(x);
+                }
 
-        constexpr auto operator()(unsigned long long x) const noexcept
-        {
-                return __builtin_popcountll(x);
-        }
+                constexpr auto operator()(unsigned long long x) const // Throws: Nothing.
+                {
+                        assert(x != 0);
+                        return __builtin_clzll(x);
+                }
 
-        constexpr auto operator()(__uint128_t x) const noexcept
+                constexpr auto operator()(__uint128_t x) const // Throws: Nothing.
+                {
+                        assert(x != 0);
+                        if (auto const upper = get<1>(x); upper != detail::zero<uint64_t>) {
+                                return clznz{}(upper);
+                        } else {
+                                return clznz{}(get<0>(x)) + 64;
+                        }
+                }
+        };
+
+#endif
+
+#ifdef _MSC_VER
+
+        struct bsrnz
         {
-                return popcount{}(get<0>(x)) + popcount{}(get<1>(x));
-        }
-};
+                auto operator()(unsigned long x) const noexcept
+                {
+                        assert(x != 0);
+                        unsigned long index;
+                        _BitScanReverse(&index, x);
+                        return static_cast<int>(index);
+                }
+
+        #ifdef _WIN64
+
+                auto operator()(uint64_t x) const noexcept
+                {
+                        assert(x != 0);
+                        unsigned long index;
+                        _BitScanReverse64(&index, x);
+                        return static_cast<int>(index);
+                }
+
+        #endif
+
+        };
+
+#endif
+
+#ifdef __GNUG__
+
+        struct popcount
+        {
+                constexpr auto operator()(unsigned x) const noexcept
+                {
+                        return __builtin_popcount(x);
+                }
+
+                constexpr auto operator()(unsigned long x) const noexcept
+                {
+                        return __builtin_popcountl(x);
+                }
+
+                constexpr auto operator()(unsigned long long x) const noexcept
+                {
+                        return __builtin_popcountll(x);
+                }
+
+                constexpr auto operator()(__uint128_t x) const noexcept
+                {
+                        return popcount{}(get<0>(x)) + popcount{}(get<1>(x));
+                }
+        };
+
+#endif
+
+#ifdef _MSC_VER
+
+        struct popcount
+        {
+                auto operator()(unsigned x) const noexcept
+                {
+                        return __popcnt(x);
+                }
+
+        #ifdef _WIN64
+
+                auto operator()(uint64_t x) const noexcept
+                {
+                        return __popcnt64(x);
+                }
+
+        #endif
+
+        };
+
+#endif
 
 }       // namespace builtin
 
 template<class UIntType>
-PP_INTRINSIC_INLINE auto ctznz(UIntType x) // Throws: Nothing.
+PP_CONSTEXPR_INLINE auto ctznz(UIntType x) // Throws: Nothing.
 {
         assert(x != 0);
         return builtin::ctznz{}(x);
 }
 
 template<class UIntType>
-PP_INTRINSIC_INLINE auto clznz(UIntType x) // Throws: Nothing.
+PP_CONSTEXPR_INLINE auto bsfnz(UIntType x) // Throws: Nothing.
 {
         assert(x != 0);
-        return builtin::clznz{}(x);
+        return builtin::bsfnz{}(x);
 }
 
 template<class UIntType>
-PP_INTRINSIC_INLINE auto popcount(UIntType x) noexcept
-{
-        return builtin::popcount{}(x);
-}
-
-template<class UIntType>
-PP_INTRINSIC_INLINE auto bsfnz(UIntType x) // Throws: Nothing.
-{
-        assert(x != 0);
-        return ctznz(x);
-}
-
-template<class UIntType>
-PP_INTRINSIC_INLINE auto bsrnz(UIntType x) // Throws: Nothing.
-{
-        assert(x != 0);
-        return std::numeric_limits<UIntType>::digits - 1 - clznz(x);
-}
-
-template<class UIntType>
-PP_INTRINSIC_INLINE auto ctz(UIntType x) noexcept
+PP_CONSTEXPR_INLINE auto ctz(UIntType x) noexcept
 {
         return x ? ctznz(x) : std::numeric_limits<UIntType>::digits;
 }
 
 template<class UIntType>
-PP_INTRINSIC_INLINE auto clz(UIntType x) noexcept
+PP_CONSTEXPR_INLINE auto bsf(UIntType x) noexcept
+{
+        return x ? bsfnz(x) : std::numeric_limits<UIntType>::digits;
+}
+
+#ifdef __GNUG__
+
+        template<class UIntType>
+        PP_CONSTEXPR_INLINE auto clznz(UIntType x) // Throws: Nothing.
+        {
+                assert(x != 0);
+                return builtin::clznz{}(x);
+        }
+
+        template<class UIntType>
+        PP_CONSTEXPR_INLINE auto bsrnz(UIntType x) // Throws: Nothing.
+        {
+                assert(x != 0);
+                return std::numeric_limits<UIntType>::digits - 1 - builtin::clznz{}(x);
+        }
+
+#endif
+
+#ifdef _MSC_VER
+
+        template<class UIntType>
+        PP_CONSTEXPR_INLINE auto clznz(UIntType x) // Throws: Nothing.
+        {
+                assert(x != 0);
+                return std::numeric_limits<UIntType>::digits - 1 - builtin::bsrnz{}(x);
+        }
+
+        template<class UIntType>
+        PP_CONSTEXPR_INLINE auto bsrnz(UIntType x) // Throws: Nothing.
+        {
+                assert(x != 0);
+                return builtin::bsrnz{}(x);
+        }
+
+#endif
+
+template<class UIntType>
+PP_CONSTEXPR_INLINE auto clz(UIntType x) noexcept
 {
         return x ? clznz(x) : std::numeric_limits<UIntType>::digits;
 }
 
 template<class UIntType>
-PP_INTRINSIC_INLINE auto bsf(UIntType x) noexcept
+PP_CONSTEXPR_INLINE auto bsr(UIntType x) noexcept
 {
-        return ctz(x);
+        return x ? bsrnz(x) : -1;
 }
 
 template<class UIntType>
-PP_INTRINSIC_INLINE auto bsr(UIntType x) noexcept
+PP_CONSTEXPR_INLINE auto popcount(UIntType x) noexcept
 {
-        return std::numeric_limits<UIntType>::digits - 1 - clz(x);
+        return builtin::popcount{}(x);
 }
 
 template<class UIntType>
@@ -237,16 +356,17 @@ class int_set
 {
         static_assert(0 <= N);
 
-        using word_type = UIntType;
-        static_assert(std::is_unsigned_v<word_type>);
-        static_assert(std::is_integral_v<word_type>);
+        using block_type = UIntType;
+        static_assert(std::is_unsigned_v<block_type>);
+        static_assert(std::is_integral_v<block_type>);
+        static_assert(sizeof(unsigned) <= sizeof(UIntType));
 
-        constexpr static auto word_size = std::numeric_limits<word_type>::digits;
-        constexpr static auto num_words = (N - 1 + word_size) / word_size;
-        constexpr static auto num_bits = num_words * word_size;
+        constexpr static auto block_size = std::numeric_limits<block_type>::digits;
+        constexpr static auto num_blocks = (N - 1 + block_size) / block_size;
+        constexpr static auto num_bits = num_blocks * block_size;
         constexpr static auto excess_bits = num_bits - N;
 
-        using data_type = std::conditional_t<num_words == 1, word_type, word_type[std::max(num_words, 1)]>;
+        using data_type = std::conditional_t<num_blocks == 1, block_type, block_type[std::max(num_blocks, 1)]>;
         data_type m_data;
 public:
         using key_type        = int;
@@ -266,7 +386,7 @@ public:
                         assert(0 <= m_value); assert(m_value < N);
                 }
 
-                word_type const& m_word;
+                block_type const& m_block;
                 value_type const m_value;
 
         public:
@@ -278,9 +398,9 @@ public:
 
                 const_reference() = delete;
 
-                constexpr const_reference(word_type const& w, value_type const v) noexcept
+                constexpr const_reference(block_type const& b, value_type const v) noexcept
                 :
-                        m_word{w},
+                        m_block{b},
                         m_value{v}
                 {
                         assert_invariants();
@@ -296,15 +416,15 @@ public:
                 constexpr auto operator&() const noexcept
                         -> const_iterator
                 {
-                        return { &m_word, m_value };
+                        return { &m_block, m_value };
                 }
         };
 
         class const_iterator
         {
         public:
-                using difference_type   = int_set::difference_type;
-                using value_type        = int_set::value_type;
+                using difference_type   = typename int_set::difference_type;
+                using value_type        = typename int_set::value_type;
                 using pointer           = const_iterator;
                 using reference         = const_reference;
                 using iterator_category = std::bidirectional_iterator_tag;
@@ -312,27 +432,27 @@ public:
         private:
                 constexpr auto assert_invariants() const noexcept
                 {
-                        assert(m_word != nullptr);
-                        assert(0 <= m_value); assert(m_value < N || num_bits == m_value);
+                        assert(m_block != nullptr);
+                        assert(0 <= m_value); assert(m_value < N || m_value == num_bits);
                 }
 
-                word_type const* m_word;
+                block_type const* m_block;
                 value_type m_value;
 
         public:
                 const_iterator() = default;
 
-                explicit PP_INTRINSIC_INLINE const_iterator(word_type const* w) // Throws: Nothing.
+                explicit PP_CONSTEXPR_INLINE const_iterator(block_type const* b) // Throws: Nothing.
                 :
-                        m_word{w},
+                        m_block{b},
                         m_value{find_first()}
                 {
                         assert_invariants();
                 }
 
-                constexpr const_iterator(word_type const* w, value_type const v) // Throws: Nothing.
+                constexpr const_iterator(block_type const* b, value_type const v) // Throws: Nothing.
                 :
-                        m_word{w},
+                        m_block{b},
                         m_value{v}
                 {
                         assert_invariants();
@@ -342,34 +462,34 @@ public:
                         -> const_reference
                 {
                         assert(0 <= m_value); assert(m_value < N);
-                        return { *m_word, m_value };
+                        return { *m_block, m_value };
                 }
 
-                PP_INTRINSIC_INLINE auto& operator++() // Throws: Nothing.
+                PP_CONSTEXPR_INLINE auto& operator++() // Throws: Nothing.
                 {
                         increment();
                         return *this;
                 }
 
-                PP_INTRINSIC_INLINE auto operator++(int) // Throws: Nothing.
+                PP_CONSTEXPR_INLINE auto operator++(int) // Throws: Nothing.
                 {
                         auto nrv = *this; ++*this; return nrv;
                 }
 
-                PP_INTRINSIC_INLINE auto& operator--() // Throws:Nothing.
+                PP_CONSTEXPR_INLINE auto& operator--() // Throws:Nothing.
                 {
                         decrement();
                         return *this;
                 }
 
-                PP_INTRINSIC_INLINE auto operator--(int) // Throws: Nothing.
+                PP_CONSTEXPR_INLINE auto operator--(int) // Throws: Nothing.
                 {
                         auto nrv = *this; --*this; return nrv;
                 }
 
                 friend constexpr auto operator==(const_iterator lhs, const_iterator rhs) noexcept
                 {
-                        assert(lhs.m_word == rhs.m_word);
+                        assert(lhs.m_block == rhs.m_block);
                         return lhs.m_value == rhs.m_value;
                 }
 
@@ -379,17 +499,17 @@ public:
                 }
 
         private:
-                PP_INTRINSIC_INLINE auto find_first() noexcept
+                PP_CONSTEXPR_INLINE auto find_first() noexcept
                 {
-                        if constexpr (num_words == 0) {
+                        if constexpr (num_blocks == 0) {
                                 return 0;
-                        } else if constexpr (num_words == 1) {
-                                return detail::ctz(*m_word);
-                        } else if constexpr (num_words >= 2) {
+                        } else if constexpr (num_blocks == 1) {
+                                return detail::ctz(*m_block);
+                        } else if constexpr (num_blocks >= 2) {
                                 auto offset = 0;
-                                for (auto i = 0; i < num_words; ++i, offset += word_size) {
-                                        if (auto const word = m_word[i]; word != zero) {
-                                                offset += detail::ctznz(word);
+                                for (auto i = 0; i < num_blocks; ++i, offset += block_size) {
+                                        if (auto const block = m_block[i]; block != zero) {
+                                                offset += detail::ctznz(block);
                                                 break;
                                         }
                                 }
@@ -397,55 +517,63 @@ public:
                         }
                 }
 
-                PP_INTRINSIC_INLINE auto increment() // Throws: Nothing.
+                PP_CONSTEXPR_INLINE auto increment() // Throws: Nothing.
                 {
                         assert(m_value < N);
-                        if (num_bits == ++m_value) { return; }
-                        if constexpr (num_words == 1) {
-                                if (auto const word = *m_word >> m_value; word != zero) {
-                                        m_value += detail::ctznz(word);
+                        if (++m_value == num_bits) {
+                                assert_invariants();
+                                return;
+                        }
+                        if constexpr (num_blocks == 1) {
+                                if (auto const block = *m_block >> m_value; block != zero) {
+                                        m_value += detail::ctznz(block);
+                                        assert_invariants();
                                         return;
                                 }
-                                m_value = word_size;
-                        } else if constexpr (num_words >= 2) {
+                                m_value = block_size;
+                        } else if constexpr (num_blocks >= 2) {
                                 auto i = which(m_value);
                                 if (auto const offset = where(m_value); offset != 0) {
-                                        if (auto const word = m_word[i] >> offset; word != zero) {
-                                                m_value += detail::ctznz(word);
+                                        if (auto const block = m_block[i] >> offset; block != zero) {
+                                                m_value += detail::ctznz(block);
+                                                assert_invariants();
                                                 return;
                                         }
                                         ++i;
-                                        m_value += word_size - offset;
+                                        m_value += block_size - offset;
                                 }
-                                for (/* initialized before loop */; i < num_words; ++i, m_value += word_size) {
-                                        if (auto const word = m_word[i]; word != zero) {
-                                                m_value += detail::ctznz(word);
+                                for (/* initialized before loop */; i < num_blocks; ++i, m_value += block_size) {
+                                        if (auto const block = m_block[i]; block != zero) {
+                                                m_value += detail::ctznz(block);
+                                                assert_invariants();
                                                 return;
                                         }
                                 }
                         }
-                        assert(num_bits == m_value);
+                        assert(m_value == num_bits);
                 }
 
-                PP_INTRINSIC_INLINE auto decrement() // Throws: Nothing.
+                PP_CONSTEXPR_INLINE auto decrement() // Throws: Nothing.
                 {
                         assert(0 < m_value);
                         --m_value;
-                        if constexpr (num_words == 1) {
-                                m_value -= detail::clznz(*m_word << (word_size - 1 - m_value));
-                        } else if constexpr (num_words >= 2) {
+                        if constexpr (num_blocks == 1) {
+                                m_value -= detail::clznz(*m_block << (block_size - 1 - m_value));
+                        } else if constexpr (num_blocks >= 2) {
                                 auto i = which(m_value);
-                                if (auto const offset = where(m_value); offset != word_size - 1) {
-                                        if (auto const word = m_word[i] << (word_size - 1 - offset); word != zero) {
-                                                m_value -= detail::clznz(word);
+                                if (auto const offset = where(m_value); offset != block_size - 1) {
+                                        if (auto const block = m_block[i] << (block_size - 1 - offset); block != zero) {
+                                                m_value -= detail::clznz(block);
+                                                assert_invariants();
                                                 return;
                                         }
                                         --i;
                                         m_value -= offset + 1;
                                 }
-                                for (/* initialized before loop */; i >= 0; --i, m_value -= word_size) {
-                                        if (auto const word = m_word[i]; word != zero) {
-                                                m_value -= detail::clznz(word);
+                                for (/* initialized before loop */; i >= 0; --i, m_value -= block_size) {
+                                        if (auto const block = m_block[i]; block != zero) {
+                                                m_value -= detail::clznz(block);
+                                                assert_invariants();
                                                 return;
                                         }
                                 }
@@ -485,13 +613,13 @@ public:
         {}
 
         template<class InputIterator>
-        constexpr auto assign(InputIterator first, InputIterator last) // Throws: Nothing.
+        auto assign(InputIterator first, InputIterator last) // Throws: Nothing.
         {
                 clear();
                 insert(first, last);
         }
 
-        constexpr auto& operator=(std::initializer_list<value_type> ilist) // Throws: Nothing.
+        auto& operator=(std::initializer_list<value_type> ilist) // Throws: Nothing.
         {
                 assign(ilist.begin(), ilist.end());
                 return *this;
@@ -513,20 +641,20 @@ public:
         constexpr auto crend()   const noexcept { return const_reverse_iterator{rend()};   }
 
         template<class UnaryFunction>
-        PP_INTRINSIC_INLINE auto for_each(UnaryFunction fun) const
+        PP_CONSTEXPR_INLINE auto for_each(UnaryFunction fun) const
         {
-                if constexpr (num_words == 1) {
-                        for (auto word = m_data; word != zero; /* update inside loop */) {
-                                auto const first = detail::bsfnz(word);
+                if constexpr (num_blocks == 1) {
+                        for (auto block = m_data; block != zero; /* update inside loop */) {
+                                auto const first = detail::bsfnz(block);
                                 fun(first);
-                                word ^= bit1(first);
+                                block ^= bit1(first);
                         }
-                } else if constexpr (num_words >= 2) {
-                        for (auto i = 0, offset = 0; i < num_words; ++i, offset += word_size) {
-                                for (auto word = m_data[i]; word != zero; /* update inside loop */) {
-                                        auto const first = detail::bsfnz(word);
+                } else if constexpr (num_blocks >= 2) {
+                        for (auto i = 0, offset = 0; i < num_blocks; ++i, offset += block_size) {
+                                for (auto block = m_data[i]; block != zero; /* update inside loop */) {
+                                        auto const first = detail::bsfnz(block);
                                         fun(offset + first);
-                                        word ^= bit1(first);
+                                        block ^= bit1(first);
                                 }
                         }
                 }
@@ -534,20 +662,20 @@ public:
         }
 
         template<class UnaryFunction>
-        PP_INTRINSIC_INLINE auto reverse_for_each(UnaryFunction fun) const
+        PP_CONSTEXPR_INLINE auto reverse_for_each(UnaryFunction fun) const
         {
-                if constexpr (num_words == 1) {
-                        for (auto word = m_data; word != zero; /* update inside loop */) {
-                                auto const last = detail::bsrnz(word);
+                if constexpr (num_blocks == 1) {
+                        for (auto block = m_data; block != zero; /* update inside loop */) {
+                                auto const last = detail::bsrnz(block);
                                 fun(last);
-                                word ^= bit1(last);
+                                block ^= bit1(last);
                         }
-                } else if constexpr (num_words >= 2) {
-                        for (auto i = num_words - 1, offset = (num_words - 1) * word_size; i >= 0; --i, offset -= word_size) {
-                                for (auto word = m_data[i]; word != zero; /* update inside loop */) {
-                                        auto const last = detail::bsrnz(word);
+                } else if constexpr (num_blocks >= 2) {
+                        for (auto i = num_blocks - 1, offset = (num_blocks - 1) * block_size; i >= 0; --i, offset -= block_size) {
+                                for (auto block = m_data[i]; block != zero; /* update inside loop */) {
+                                        auto const last = detail::bsrnz(block);
                                         fun(offset + last);
-                                        word ^= bit1(last);
+                                        block ^= bit1(last);
                                 }
                         }
                 }
@@ -557,24 +685,24 @@ public:
         auto full() const noexcept
         {
                 if constexpr (excess_bits == 0) {
-                        if constexpr (num_words == 0) {
+                        if constexpr (num_blocks == 0) {
                                 return true;
-                        } else if constexpr (num_words == 1) {
+                        } else if constexpr (num_blocks == 1) {
                                 return m_data == ones;
-                        } else if constexpr (num_words >= 2) {
-                                return std::all_of(m_data, m_data + num_words, [](auto const word) {
-                                        return word == ones;
+                        } else if constexpr (num_blocks >= 2) {
+                                return std::all_of(m_data, m_data + num_blocks, [](auto const block) {
+                                        return block == ones;
                                 });
                         }
                 } else {
-                        if constexpr (num_words == 1) {
+                        if constexpr (num_blocks == 1) {
                                 return m_data == sane;
                         } else {
-                                static_assert(num_words >= 2);
+                                static_assert(num_blocks >= 2);
                                 return
-                                        std::all_of(m_data, m_data + num_words - 1, [](auto const word) {
-                                                return word == ones;
-                                        }) && m_data[num_words - 1] == sane;
+                                        std::all_of(m_data, m_data + num_blocks - 1, [](auto const block) {
+                                                return block == ones;
+                                        }) && m_data[num_blocks - 1] == sane;
                                 ;
                         }
                 }
@@ -582,13 +710,13 @@ public:
 
         auto empty() const noexcept
         {
-                if constexpr (num_words == 0) {
+                if constexpr (num_blocks == 0) {
                         return true;
-                } else if constexpr (num_words == 1) {
+                } else if constexpr (num_blocks == 1) {
                         return m_data == zero;
-                } else if constexpr (num_words >= 2) {
-                        return std::all_of(m_data, m_data + num_words, [](auto const word) {
-                                return word == zero;
+                } else if constexpr (num_blocks >= 2) {
+                        return std::all_of(m_data, m_data + num_blocks, [](auto const block) {
+                                return block == zero;
                         });
                 }
         }
@@ -599,13 +727,13 @@ public:
 
         auto count() const noexcept
         {
-                if constexpr (num_words == 0) {
+                if constexpr (num_blocks == 0) {
                         return 0;
-                } else if constexpr (num_words == 1) {
+                } else if constexpr (num_blocks == 1) {
                         return detail::popcount(m_data);
-                } else if (num_words >= 2) {
-                        return std::accumulate(m_data, m_data + num_words, 0, [](auto const sum, auto const word) {
-                                return sum + detail::popcount(word);
+                } else if (num_blocks >= 2) {
+                        return std::accumulate(m_data, m_data + num_blocks, 0, [](auto const sum, auto const block) {
+                                return sum + detail::popcount(block);
                         });
                 }
         }
@@ -618,7 +746,7 @@ public:
         constexpr auto& insert(value_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
-                if constexpr (num_words == 1) {
+                if constexpr (num_blocks == 1) {
                         m_data |= bit1(n);
                 } else {
                         m_data[which(n)] |= bit1(where(n));
@@ -640,22 +768,21 @@ public:
                 insert(ilist.begin(), ilist.end());
         }
 
-        auto& fill() noexcept
+        auto fill() noexcept
         {
-                if constexpr (num_words == 1) {
+                if constexpr (num_blocks == 1) {
                         m_data = ones;
-                } else if constexpr (num_words >= 2) {
-                        std::fill_n(m_data, num_words, ones);
+                } else if constexpr (num_blocks >= 2) {
+                        std::fill_n(m_data, num_blocks, ones);
                 }
                 sanitize_back();
                 assert(full());
-                return *this;
         }
 
         constexpr auto& erase(value_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
-                if constexpr (num_words == 1) {
+                if constexpr (num_blocks == 1) {
                         m_data &= ~bit1(n);
                 } else {
                         m_data[which(n)] &= ~bit1(where(n));
@@ -682,22 +809,22 @@ public:
                 erase(ilist.begin(), ilist.end());
         }
 
-        auto swap(int_set& other) noexcept(num_words == 0 || std::is_nothrow_swappable_v<value_type>)
+        auto swap(int_set& other) noexcept(num_blocks == 0 || std::is_nothrow_swappable_v<value_type>)
         {
-                if constexpr (num_words == 1) {
+                if constexpr (num_blocks == 1) {
                         using std::swap;
                         swap(m_data, other.m_data);
-                } else if constexpr (num_words >= 2) {
-                        std::swap_ranges(m_data, m_data + num_words, other.m_data);
+                } else if constexpr (num_blocks >= 2) {
+                        std::swap_ranges(m_data, m_data + num_blocks, other.m_data);
                 }
         }
 
         auto clear() noexcept
         {
-                if constexpr (num_words == 1) {
+                if constexpr (num_blocks == 1) {
                         m_data = zero;
-                } else if constexpr (num_words >= 2) {
-                        std::fill_n(m_data, num_words, zero);
+                } else if constexpr (num_blocks >= 2) {
+                        std::fill_n(m_data, num_blocks, zero);
                 }
                 assert(empty());
         }
@@ -705,7 +832,7 @@ public:
         constexpr auto& toggle(value_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
-                if constexpr (num_words == 1) {
+                if constexpr (num_blocks == 1) {
                         m_data ^= bit1(n);
                 } else {
                         m_data[which(n)] ^= bit1(where(n));
@@ -715,11 +842,11 @@ public:
 
         constexpr auto& toggle() noexcept
         {
-                if constexpr (num_words == 1) {
+                if constexpr (num_blocks == 1) {
                         m_data = ~m_data;
-                } else if constexpr (num_words >= 2) {
-                        for (auto&& word : m_data) {
-                                word = ~word;
+                } else if constexpr (num_blocks >= 2) {
+                        for (auto&& block : m_data) {
+                                block = ~block;
                         }
                 }
                 sanitize_back();
@@ -729,7 +856,7 @@ public:
         constexpr auto contains(value_type const n) const // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
-                if constexpr (num_words == 1) {
+                if constexpr (num_blocks == 1) {
                         return (m_data & bit1(n)) != zero;
                 } else {
                         return (m_data[which(n)] & bit1(where(n))) != zero;
@@ -746,7 +873,8 @@ public:
 
         [[deprecated]] auto& set() noexcept
         {
-                return fill();
+                fill();
+                return *this;
         }
 
         [[deprecated]] auto& reset(size_type const pos)
@@ -791,10 +919,10 @@ public:
 
         constexpr auto& operator&=(int_set const& other) noexcept
         {
-                if constexpr (num_words == 1) {
+                if constexpr (num_blocks == 1) {
                         m_data &= other.m_data;
-                } else if constexpr (num_words >= 2) {
-                        for (auto i = 0; i < num_words; ++i) {
+                } else if constexpr (num_blocks >= 2) {
+                        for (auto i = 0; i < num_blocks; ++i) {
                                 m_data[i] &= other.m_data[i];
                         }
                 }
@@ -803,10 +931,10 @@ public:
 
         constexpr auto& operator|=(int_set const& other) noexcept
         {
-                if constexpr (num_words == 1) {
+                if constexpr (num_blocks == 1) {
                         m_data |= other.m_data;
-                } else if constexpr (num_words >= 2) {
-                        for (auto i = 0; i < num_words; ++i) {
+                } else if constexpr (num_blocks >= 2) {
+                        for (auto i = 0; i < num_blocks; ++i) {
                                 m_data[i] |= other.m_data[i];
                         }
                 }
@@ -815,10 +943,10 @@ public:
 
         constexpr auto& operator^=(int_set const& other) noexcept
         {
-                if constexpr (num_words == 1) {
+                if constexpr (num_blocks == 1) {
                         m_data ^= other.m_data;
-                } else if constexpr (num_words >= 2) {
-                        for (auto i = 0; i < num_words; ++i) {
+                } else if constexpr (num_blocks >= 2) {
+                        for (auto i = 0; i < num_blocks; ++i) {
                                 m_data[i] ^= other.m_data[i];
                         }
                 }
@@ -827,10 +955,10 @@ public:
 
         constexpr auto& operator-=(int_set const& other) noexcept
         {
-                if constexpr (num_words == 1) {
+                if constexpr (num_blocks == 1) {
                         m_data &= ~other.m_data;
-                } else if constexpr (num_words >= 2) {
-                        for (auto i = 0; i < num_words; ++i) {
+                } else if constexpr (num_blocks >= 2) {
+                        for (auto i = 0; i < num_blocks; ++i) {
                                 m_data[i] &= ~other.m_data[i];
                         }
                 }
@@ -840,20 +968,20 @@ public:
         auto& operator<<=(size_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
-                if constexpr (num_words == 1) {
+                if constexpr (num_blocks == 1) {
                         m_data <<= n;
-                } else if constexpr (num_words >= 2) {
+                } else if constexpr (num_blocks >= 2) {
                         if (n == 0) { return *this; }
 
-                        auto const n_block = n / word_size;
-                        auto const L_shift = n % word_size;
+                        auto const n_block = n / block_size;
+                        auto const L_shift = n % block_size;
 
                         if (L_shift == 0) {
-                                std::copy_backward(m_data, m_data + num_words - n_block, m_data + num_words);
+                                std::copy_backward(m_data, m_data + num_blocks - n_block, m_data + num_blocks);
                         } else {
-                                auto const R_shift = word_size - L_shift;
+                                auto const R_shift = block_size - L_shift;
 
-                                for (auto i = num_words - 1; i > n_block; --i) {
+                                for (auto i = num_blocks - 1; i > n_block; --i) {
                                         m_data[i] =
                                                 (m_data[i - n_block    ] << L_shift) |
                                                 (m_data[i - n_block - 1] >> R_shift)
@@ -870,26 +998,26 @@ public:
         auto& operator>>=(size_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
-                if constexpr (num_words == 1) {
+                if constexpr (num_blocks == 1) {
                         m_data >>= n;
-                } else if constexpr (num_words >= 2) {
+                } else if constexpr (num_blocks >= 2) {
                         if (n == 0) { return *this; }
 
-                        auto const n_block = n / word_size;
-                        auto const R_shift = n % word_size;
+                        auto const n_block = n / block_size;
+                        auto const R_shift = n % block_size;
 
                         if (R_shift == 0) {
-                                std::copy_n(m_data + n_block, num_words - n_block, m_data);
+                                std::copy_n(m_data + n_block, num_blocks - n_block, m_data);
                         } else {
-                                auto const L_shift = word_size - R_shift;
+                                auto const L_shift = block_size - R_shift;
 
-                                for (auto i = 0; i < num_words - 1 - n_block; ++i) {
+                                for (auto i = 0; i < num_blocks - 1 - n_block; ++i) {
                                         m_data[i] =
                                                 (m_data[i + n_block    ] >> R_shift) |
                                                 (m_data[i + n_block + 1] << L_shift)
                                         ;
                                 }
-                                m_data[num_words - 1 - n_block] = m_data[num_words - 1] >> R_shift;
+                                m_data[num_blocks - 1 - n_block] = m_data[num_blocks - 1] >> R_shift;
                         }
                         using std::rbegin;
                         std::fill_n(rbegin(m_data), n_block, zero);
@@ -904,25 +1032,25 @@ public:
         }
 
 private:
-        constexpr static auto zero = detail::zero<word_type>;
-        constexpr static auto ones = detail::ones<word_type>;
+        constexpr static auto zero = detail::zero<block_type>;
+        constexpr static auto ones = detail::ones<block_type>;
         constexpr static auto sane = ones >> excess_bits;
 
         constexpr auto sanitize_back() noexcept
         {
                 if constexpr (excess_bits != 0) {
-                        if constexpr (num_words == 1) {
+                        if constexpr (num_blocks == 1) {
                                 m_data &= sane;
                         } else {
-                                static_assert(num_words >= 2);
-                                m_data[num_words - 1] &= sane;
+                                static_assert(num_blocks >= 2);
+                                m_data[num_blocks - 1] &= sane;
                         }
                 }
         }
 
         constexpr auto data() const noexcept
         {
-                if constexpr (num_words == 1) {
+                if constexpr (num_blocks == 1) {
                         return &m_data;
                 } else {
                         return m_data;
@@ -931,21 +1059,21 @@ private:
 
         constexpr static auto bit1(value_type const n)  // Throws: Nothing.
         {
-                return detail::bit1<word_type>(n);
+                return detail::bit1<block_type>(n);
         }
 
         constexpr static auto which(value_type const n) // Throws: Nothing.
         {
-                static_assert(num_words != 1);
+                static_assert(num_blocks != 1);
                 assert(0 <= n); assert(n < num_bits);
-                return n / word_size;
+                return n / block_size;
         }
 
         constexpr static auto where(value_type const n) // Throws: Nothing.
         {
-                static_assert(num_words != 1);
+                static_assert(num_blocks != 1);
                 assert(0 <= n); assert(n < num_bits);
-                return n % word_size;
+                return n % block_size;
         }
 
         friend auto operator==   <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
@@ -957,15 +1085,15 @@ private:
 template<int N, class UIntType>
 auto operator==(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
 {
-        constexpr auto num_words = int_set<N, UIntType>::num_words;
-        if constexpr (num_words == 0) {
+        constexpr auto num_blocks = int_set<N, UIntType>::num_blocks;
+        if constexpr (num_blocks == 0) {
                 return true;
-        } else if constexpr (num_words == 1) {
+        } else if constexpr (num_blocks == 1) {
                 return lhs.m_data == rhs.m_data;
-        } else if constexpr (num_words >= 2) {
+        } else if constexpr (num_blocks >= 2) {
                 return std::equal(
-                        lhs.m_data, lhs.m_data + num_words,
-                        rhs.m_data, rhs.m_data + num_words
+                        lhs.m_data, lhs.m_data + num_blocks,
+                        rhs.m_data, rhs.m_data + num_blocks
                 );
         }
 }
@@ -979,12 +1107,12 @@ auto operator!=(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs
 template<int N, class UIntType>
 auto operator<(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
 {
-        constexpr auto num_words = int_set<N, UIntType>::num_words;
-        if constexpr (num_words == 0) {
+        constexpr auto num_blocks = int_set<N, UIntType>::num_blocks;
+        if constexpr (num_blocks == 0) {
                 return false;
-        } else if constexpr (num_words == 1) {
+        } else if constexpr (num_blocks == 1) {
                 return lhs.m_data < rhs.m_data;
-        } else if constexpr (num_words >= 2) {
+        } else if constexpr (num_blocks >= 2) {
                 using std::crbegin; using std::crend;
                 return std::lexicographical_compare(
                         crbegin(lhs.m_data), crend(lhs.m_data),
@@ -1064,16 +1192,16 @@ auto operator>>(int_set<N, UIntType> const& lhs, int const n) // Throws: Nothing
 template<int N, class UIntType>
 auto intersects(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
 {
-        constexpr static auto num_words = int_set<N, UIntType>::num_words;
-        constexpr static auto zero [[maybe_unused]] = detail::zero<typename int_set<N, UIntType>::word_type>;
-        if constexpr (num_words == 0) {
+        constexpr static auto num_blocks = int_set<N, UIntType>::num_blocks;
+        constexpr static auto zero [[maybe_unused]] = detail::zero<typename int_set<N, UIntType>::block_type>;
+        if constexpr (num_blocks == 0) {
                 return false;
-        } else if constexpr (num_words == 1) {
+        } else if constexpr (num_blocks == 1) {
                 return (lhs.m_data & rhs.m_data) != zero;
-        } else if constexpr (num_words >= 2) {
+        } else if constexpr (num_blocks >= 2) {
                 return !std::equal(
-                        lhs.m_data, lhs.m_data + num_words,
-                        rhs.m_data, rhs.m_data + num_words,
+                        lhs.m_data, lhs.m_data + num_blocks,
+                        rhs.m_data, rhs.m_data + num_blocks,
                         [](auto const wL, auto const wR) {
                                 return (wL & wR) == zero;
                         }
@@ -1090,16 +1218,16 @@ auto disjoint(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) 
 template<int N, class UIntType>
 auto is_subset_of(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
 {
-        constexpr static auto num_words = int_set<N, UIntType>::num_words;
-        constexpr static auto zero [[maybe_unused]] = detail::zero<typename int_set<N, UIntType>::word_type>;
-        if constexpr (num_words == 0) {
+        constexpr static auto num_blocks = int_set<N, UIntType>::num_blocks;
+        constexpr static auto zero [[maybe_unused]] = detail::zero<typename int_set<N, UIntType>::block_type>;
+        if constexpr (num_blocks == 0) {
                 return true;
-        } else if constexpr (num_words == 1) {
+        } else if constexpr (num_blocks == 1) {
                 return (lhs.m_data & ~rhs.m_data) == zero;
-        } else if constexpr (num_words >= 2) {
+        } else if constexpr (num_blocks >= 2) {
                 return std::equal(
-                        lhs.m_data, lhs.m_data + num_words,
-                        rhs.m_data, rhs.m_data + num_words,
+                        lhs.m_data, lhs.m_data + num_blocks,
+                        rhs.m_data, rhs.m_data + num_blocks,
                         [](auto const wL, auto const wR) {
                                 return (wL & ~wR) == zero;
                         }

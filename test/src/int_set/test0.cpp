@@ -18,8 +18,8 @@ using SetTypes = boost::mpl::vector
 <
         std::bitset<  0>,
         std::bitset<  1>,
-        std::bitset< 32>,
-        std::bitset< 64>,
+        std::bitset< 33>,
+        std::bitset< 65>,
         std::bitset<128>,
             int_set<  0>,
             int_set<  1>,
