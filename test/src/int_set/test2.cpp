@@ -10,6 +10,7 @@
 #include <boost/mpl/vector.hpp>                 // vector
 #include <boost/test/test_case_template.hpp>    // BOOST_AUTO_TEST_CASE_TEMPLATE
 #include <boost/test/unit_test.hpp>             // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END
+#include <sstream>                              // stringstream
 
 BOOST_AUTO_TEST_SUITE(Quadratic)
 
@@ -123,6 +124,11 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
         all_singleton_set_pairs<T>(test::op_bitor{});
         all_singleton_set_pairs<T>(test::op_xor{});
         all_singleton_set_pairs<T>(test::op_minus{});
+
+        all_doubleton_sets<T>([](auto const& i2) {
+                std::stringstream sstr;
+                test::op_ostream{}(sstr, i2);
+        });
 }
 
 BOOST_AUTO_TEST_SUITE_END()

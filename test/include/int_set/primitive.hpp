@@ -12,8 +12,9 @@
 #include <initializer_list>             // initializer_list
 #include <iterator>                     // distance
 #include <istream>                      // basic_istream
+#include <locale>                       // ctype, use_facet
 #include <memory>                       // addressof
-#include <ostream>                      // basic_ostream
+#include <sstream>                      // basic_stringstream
 #include <stdexcept>                    // invalid_argument, out_of_range, overflow_error
 #include <string>                       // basic_string
 
@@ -39,7 +40,7 @@ struct constructor
                 typename std::basic_string<charT, traits, Allocator>::size_type /* pos */ = 0,
                 typename std::basic_string<charT, traits, Allocator>::size_type /* n */ =
                 std::basic_string<charT, traits, Allocator>::npos,
-                charT /* zero */ = charT('0'), charT /* one */ = charT('1')
+                charT /* nil */ = charT('0'), charT /* one */ = charT('1')
         ) const
         {
                                                                                 // [bitset.cons]/3-5
@@ -49,7 +50,7 @@ struct constructor
         auto operator()(
                 const charT* /* str */,
                 typename std::basic_string<charT>::size_type /* n */ = std::basic_string<charT>::npos,
-                charT /* zero */ = charT('0'), charT /* one */ = charT('1')
+                charT /* nil */ = charT('0'), charT /* one */ = charT('1')
         ) const
         {
                                                                                 // [bitset.cons]/6-7
@@ -334,7 +335,7 @@ struct insert
                                 BOOST_CHECK(dst.contains(elem));
                         });
                         BOOST_CHECK_LE(src.count(), dst.count());
-                        BOOST_CHECK_LE(dst.count(), static_cast<int>(src.count()) + static_cast<int>(std::distance(first, last)));
+                        BOOST_CHECK_LE(dst.count(), src.count() + std::distance(first, last));
                 }
         }
 
@@ -348,7 +349,7 @@ struct insert
                                 BOOST_CHECK(dst.contains(elem));
                         }
                         BOOST_CHECK_LE(src.count(), dst.count());
-                        BOOST_CHECK_LE(dst.count(), static_cast<int>(src.count()) + static_cast<int>(ilist.size()));
+                        BOOST_CHECK_LE(dst.count(), src.count() + static_cast<int>(ilist.size()));
                 }
         }
 };
@@ -391,8 +392,8 @@ struct erase
                         std::for_each(first, last, [&](auto&& elem) {
                                 BOOST_CHECK(!dst.contains(elem));
                         });
-                        BOOST_CHECK_LE(src.count() - std::distance(first, last), dst.count());
                         BOOST_CHECK_LE(dst.count(), src.count());
+                        BOOST_CHECK_LE(src.count(), dst.count() + std::distance(first, last));
                 }
         }
 
@@ -405,8 +406,8 @@ struct erase
                         for (auto&& elem : ilist) {
                                 BOOST_CHECK(!dst.contains(elem));
                         }
-                        BOOST_CHECK_LE(static_cast<int>(src.count()) - static_cast<int>(ilist.size()), dst.count());
                         BOOST_CHECK_LE(dst.count(), src.count());
+                        BOOST_CHECK_LE(src.count(), dst.count() + static_cast<int>(ilist.size()));
                 }
         }
 };
@@ -588,22 +589,20 @@ struct op_less
         template<class IntSet>
         auto operator()(IntSet const& a) const noexcept
         {
-                if constexpr (tti::has_op_less_v<IntSet>) {
-                        BOOST_CHECK(!(a < a));                                  // irreflexive
-                }
+                BOOST_CHECK(!(a < a));                                          // irreflexive
         }
 
         template<class IntSet>
         auto operator()(IntSet const& a, IntSet const& b) const noexcept
         {
-                if constexpr (tti::has_op_less_v<IntSet>) {
-                        auto expected = false;
-                        for (auto N = IntSet{}.size(), mI = decltype(N){-1}, i = N - 1; i > mI; --i) {
-                                if (!a[i] && b[i]) { expected = true; break; }
-                                if (!b[i] && a[i]) {                  break; }
-                        }
-                        BOOST_CHECK_EQUAL(a < b, expected);
+                auto expected = false;
+                for (auto N = IntSet{}.size(), i = decltype(N){0}; i < N; ++i) {
+                        auto const r = N - 1 - i;
+                        if (!a[r] && b[r]) { expected = true; break; }
+                        if (!b[r] && a[r]) {                  break; }
                 }
+                BOOST_CHECK_EQUAL(a < b, expected);
+                BOOST_CHECK_EQUAL(a < b, a.to_string() < b.to_string());
         }
 };
 
@@ -612,17 +611,13 @@ struct op_greater
         template<class IntSet>
         auto operator()(IntSet const& a) const noexcept
         {
-                if constexpr (tti::has_op_less_v<IntSet>) {
-                        BOOST_CHECK(!(a > a));                                  // irreflexive
-                }
+                BOOST_CHECK(!(a > a));                                          // irreflexive
         }
 
         template<class IntSet>
         auto operator()(IntSet const& a, IntSet const& b) const noexcept
         {
-                if constexpr (tti::has_op_less_v<IntSet>) {
-                        BOOST_CHECK_EQUAL(a > b, b < a);
-                }
+                BOOST_CHECK_EQUAL(a > b, b < a);
         }
 };
 
@@ -631,17 +626,13 @@ struct op_greater_equal
         template<class IntSet>
         auto operator()(IntSet const& a) const noexcept
         {
-                if constexpr (tti::has_op_less_v<IntSet>) {
-                        BOOST_CHECK(a >= a);                                    // reflexive
-                }
+                BOOST_CHECK(a >= a);                                            // reflexive
         }
 
         template<class IntSet>
         auto operator()(IntSet const& lhs, IntSet const& rhs) const noexcept
         {
-                if constexpr (tti::has_op_less_v<IntSet>) {
-                        BOOST_CHECK_EQUAL(lhs >= rhs, !(lhs < rhs));
-                }
+                BOOST_CHECK_EQUAL(lhs >= rhs, !(lhs < rhs));
         }
 };
 
@@ -650,17 +641,13 @@ struct op_less_equal
         template<class IntSet>
         auto operator()(IntSet const& a) const noexcept
         {
-                if constexpr (tti::has_op_less_v<IntSet>) {
-                        BOOST_CHECK(a <= a);                                    // reflexive
-                }
+                BOOST_CHECK(a <= a);                                            // reflexive
         }
 
         template<class IntSet>
         auto operator()(IntSet const& a, IntSet const& b) const noexcept
         {
-                if constexpr (tti::has_op_less_v<IntSet>) {
-                        BOOST_CHECK_EQUAL(a <= b, !(b < a));
-                }
+                BOOST_CHECK_EQUAL(a <= b, !(b < a));
         }
 };
 
@@ -725,6 +712,38 @@ struct is_proper_superset_of_
         auto operator()(IntSet const& a, IntSet const& b) const noexcept
         {
                 BOOST_CHECK_EQUAL(is_proper_superset_of(a, b), is_proper_subset_of(b, a));
+        }
+};
+
+struct intersects_
+{
+        template<class IntSet>
+        constexpr auto operator()(IntSet const& a) const noexcept
+        {
+                BOOST_CHECK(intersects(a, a) || a.none());
+        }
+
+        template<class IntSet>
+        constexpr auto operator()(IntSet const& a, IntSet const& b) const noexcept
+        {
+                BOOST_CHECK_EQUAL(intersects(a, b), (a & b).any());
+                BOOST_CHECK_EQUAL(intersects(a, b), intersects(b, a));
+        }
+};
+
+struct disjoint_
+{
+        template<class IntSet>
+        constexpr auto operator()(IntSet const& a) const noexcept
+        {
+                BOOST_CHECK(!disjoint(a, a) || a.none());
+        }
+
+        template<class IntSet>
+        constexpr auto operator()(IntSet const& a, IntSet const& b) const noexcept
+        {
+                BOOST_CHECK_EQUAL(disjoint(a, b), !intersects(a, b));
+                BOOST_CHECK_EQUAL(disjoint(a, b), disjoint(b, a));
         }
 };
 
@@ -928,42 +947,10 @@ struct op_minus
         }
 };
 
-struct intersects_
-{
-        template<class IntSet>
-        constexpr auto operator()(IntSet const& a) const noexcept
-        {
-                BOOST_CHECK(intersects(a, a) || a.none());
-        }
-
-        template<class IntSet>
-        constexpr auto operator()(IntSet const& a, IntSet const& b) const noexcept
-        {
-                BOOST_CHECK_EQUAL(intersects(a, b), (a & b).any());
-                BOOST_CHECK_EQUAL(intersects(a, b), intersects(b, a));
-        }
-};
-
-struct disjoint_
-{
-        template<class IntSet>
-        constexpr auto operator()(IntSet const& a) const noexcept
-        {
-                BOOST_CHECK(!disjoint(a, a) || a.none());
-        }
-
-        template<class IntSet>
-        constexpr auto operator()(IntSet const& a, IntSet const& b) const noexcept
-        {
-                BOOST_CHECK_EQUAL(disjoint(a, b), !intersects(a, b));
-                BOOST_CHECK_EQUAL(disjoint(a, b), disjoint(b, a));
-        }
-};
-
 struct op_istream
 {
         template<class charT, class traits, class IntSet>
-        auto operator()(std::basic_istream<charT, traits>& /* is */, IntSet& /* x */) const
+        auto operator()(std::basic_istream<charT, traits>& /* istr */, IntSet& /* is */) const
         {
                                                                                 // [bitset.operators]/4-7
         }
@@ -972,9 +959,14 @@ struct op_istream
 struct op_ostream
 {
         template<class charT, class traits, class IntSet>
-        auto operator()(std::basic_ostream<charT, traits>& /* os */, IntSet const& /* x */) const
+        auto operator()(std::basic_stringstream<charT, traits>& ostr, IntSet const& is) const
         {
-                                                                                // [bitset.operators]/8
+                auto const expected = is.template to_string<charT, traits, std::allocator<charT>>(
+                        std::use_facet<std::ctype<charT>>(ostr.getloc()).widen('0'),
+                        std::use_facet<std::ctype<charT>>(ostr.getloc()).widen('1')
+                );
+                ostr << is;
+                BOOST_CHECK_EQUAL(ostr.str(), expected);                        // [bitset.operators]/8
         }
 };
 

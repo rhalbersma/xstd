@@ -10,22 +10,37 @@
 
 namespace xstd {
 
-template<auto N>
-auto operator-(std::bitset<N> const& lhs, std::bitset<N> const& rhs) noexcept
+template<auto N, class UnaryFunction>
+auto for_each(std::bitset<N> const& bs, UnaryFunction fun)
 {
-        return lhs & ~rhs;
+        for (auto i = bs._Find_first(); i < N; i = bs._Find_next(i)) {
+                fun(i);
+        }
+        return std::move(fun);
 }
 
 template<auto N>
-auto intersects(std::bitset<N> const& lhs, std::bitset<N> const& rhs) noexcept
+auto operator<(std::bitset<N> const& lhs, std::bitset<N> const& rhs)
 {
-        return (lhs & rhs).any();
+        return lhs.to_string() < rhs.to_string();
 }
 
 template<auto N>
-auto disjoint(std::bitset<N> const& lhs, std::bitset<N> const& rhs) noexcept
+auto operator>(std::bitset<N> const& lhs, std::bitset<N> const& rhs)
 {
-        return !intersects(lhs, rhs);
+        return rhs < lhs;
+}
+
+template<auto N>
+auto operator>=(std::bitset<N> const& lhs, std::bitset<N> const& rhs)
+{
+        return !(lhs < rhs);
+}
+
+template<auto N>
+auto operator<=(std::bitset<N> const& lhs, std::bitset<N> const& rhs)
+{
+        return !(rhs < lhs);
 }
 
 template<auto N>
@@ -52,13 +67,22 @@ auto is_proper_superset_of(std::bitset<N> const& lhs, std::bitset<N> const& rhs)
         return is_superset_of(lhs, rhs) && !is_superset_of(rhs, lhs);
 }
 
-template<auto N, class UnaryFunction>
-constexpr auto for_each(std::bitset<N> const& bs, UnaryFunction fun)
+template<auto N>
+auto intersects(std::bitset<N> const& lhs, std::bitset<N> const& rhs) noexcept
 {
-        for (auto i = bs._Find_first(); i < N; i = bs._Find_next(i)) {
-                fun(i);
-        }
-        return std::move(fun);
+        return (lhs & rhs).any();
+}
+
+template<auto N>
+auto disjoint(std::bitset<N> const& lhs, std::bitset<N> const& rhs) noexcept
+{
+        return !intersects(lhs, rhs);
+}
+
+template<auto N>
+auto operator-(std::bitset<N> const& lhs, std::bitset<N> const& rhs) noexcept
+{
+        return lhs & ~rhs;
 }
 
 }       // namespace xstd

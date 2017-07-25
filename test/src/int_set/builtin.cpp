@@ -17,7 +17,7 @@ using UnsignedIntegerTypes = boost::mpl::vector
 ,       unsigned long long
 ,       uint32_t
 ,       uint64_t
-#ifdef __GNUG__
+#if defined(__GNUG__)
 ,       __uint128_t
 #endif
 >;

@@ -61,14 +61,6 @@ constexpr static auto has_static_member_capacity_v<IntSet, std::void_t<decltype(
 )>> = true;
 
 template<class IntSet, class = void>
-constexpr static auto has_op_less_v = false;
-
-template<class IntSet>
-constexpr static auto has_op_less_v<IntSet, std::void_t<decltype(
-        std::declval<IntSet>() < std::declval<IntSet>()
-)>> = true;
-
-template<class IntSet, class = void>
 constexpr static auto has_member_full_v = false;
 
 template<class IntSet>

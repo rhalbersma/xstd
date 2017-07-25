@@ -15,26 +15,33 @@
 #include <istream>              // basic_istream
 #include <iterator>             // bidirectional_iterator_tag, crbegin, crend, rbegin, reverse_iterator
 #include <limits>               // digits
+#include <locale>               // ctype, use_facet
+#include <memory>               // allocator_traits
 #include <numeric>              // accumulate
 #include <ostream>              // basic_ostream
 #include <stdexcept>            // out_of_range
+#include <string>               // basic_string, char_traits
 #include <type_traits>          // conditional_t, is_integral_v, is_nothrow_swappable_v, is_pod_v, is_unsigned_v
 #include <utility>              // move, swap
 
-#ifdef __GNUG__
+#if defined(__GNUG__)
+
         #define PP_CONSTEXPR_INLINE             constexpr
         #define PP_CONSTEXPR_CONST              constexpr
         #define PP_CONSTEXPR_CONST_INLINE       constexpr
-#else
+
+#elif defined(_MSC_VER)
+
         #define PP_CONSTEXPR_INLINE             inline
         #define PP_CONSTEXPR_CONST              const
         #define PP_CONSTEXPR_CONST_INLINE       const inline
+
 #endif
 
 namespace xstd {
 namespace detail {
 
-#ifdef __GNUG__
+#if defined(__GNUG__)
 
         template<int N>
         constexpr auto get(__uint128_t x) noexcept
@@ -43,19 +50,22 @@ namespace detail {
                 return static_cast<uint64_t>(x >> (64 * N));
         }
 
-#endif
+#elif defined(_MSC_VER)
 
-#ifdef _MSC_VER
         #include <intrin.h>
+
         #pragma intrinsic(_BitScanForward)
         #pragma intrinsic(_BitScanReverse)
         #pragma intrinsic(__popcnt)
 
-        #ifdef _WIN64
+        #if defined(_WIN64)
+
                 #pragma intrinsic(_BitScanForward64)
                 #pragma intrinsic(_BitScanReverse64)
                 #pragma intrinsic(__popcnt64)
+
         #endif
+
 #endif
 
 template<class UIntType> constexpr auto zero =  static_cast<UIntType>(0);
@@ -63,7 +73,7 @@ template<class UIntType> constexpr auto ones = ~static_cast<UIntType>(0);
 
 namespace builtin {
 
-#ifdef __GNUG__
+#if defined(__GNUG__)
 
         struct ctznz
         {
@@ -98,40 +108,6 @@ namespace builtin {
 
         using bsfnz = ctznz;
 
-#endif
-
-#ifdef _MSC_VER
-
-        struct bsfnz
-        {
-                auto operator()(unsigned long x) const noexcept
-                {
-                        assert(x != 0);
-                        unsigned long index;
-                        _BitScanForward(&index, x);
-                        return static_cast<int>(index);
-                }
-
-        #ifdef _WIN64
-
-                auto operator()(uint64_t x) const noexcept
-                {
-                        assert(x != 0);
-                        unsigned long index;
-                        _BitScanForward64(&index, x);
-                        return static_cast<int>(index);
-                }
-
-        #endif
-
-        };
-
-        using ctznz = bsfnz;
-
-#endif
-
-#ifdef __GNUG__
-
         struct clznz
         {
                 constexpr auto operator()(unsigned x) const // Throws: Nothing.
@@ -163,38 +139,6 @@ namespace builtin {
                 }
         };
 
-#endif
-
-#ifdef _MSC_VER
-
-        struct bsrnz
-        {
-                auto operator()(unsigned long x) const noexcept
-                {
-                        assert(x != 0);
-                        unsigned long index;
-                        _BitScanReverse(&index, x);
-                        return static_cast<int>(index);
-                }
-
-        #ifdef _WIN64
-
-                auto operator()(uint64_t x) const noexcept
-                {
-                        assert(x != 0);
-                        unsigned long index;
-                        _BitScanReverse64(&index, x);
-                        return static_cast<int>(index);
-                }
-
-        #endif
-
-        };
-
-#endif
-
-#ifdef __GNUG__
-
         struct popcount
         {
                 constexpr auto operator()(unsigned x) const noexcept
@@ -218,9 +162,57 @@ namespace builtin {
                 }
         };
 
-#endif
+#elif defined(_MSC_VER)
 
-#ifdef _MSC_VER
+        struct bsfnz
+        {
+                auto operator()(unsigned long x) const noexcept
+                {
+                        assert(x != 0);
+                        unsigned long index;
+                        _BitScanForward(&index, x);
+                        return static_cast<int>(index);
+                }
+
+        #if defined(_WIN64)
+
+                auto operator()(uint64_t x) const noexcept
+                {
+                        assert(x != 0);
+                        unsigned long index;
+                        _BitScanForward64(&index, x);
+                        return static_cast<int>(index);
+                }
+
+        #endif
+
+        };
+
+        using ctznz = bsfnz;
+
+        struct bsrnz
+        {
+                auto operator()(unsigned long x) const noexcept
+                {
+                        assert(x != 0);
+                        unsigned long index;
+                        _BitScanReverse(&index, x);
+                        return static_cast<int>(index);
+                }
+
+        #if defined(_WIN64)
+
+                auto operator()(uint64_t x) const noexcept
+                {
+                        assert(x != 0);
+                        unsigned long index;
+                        _BitScanReverse64(&index, x);
+                        return static_cast<int>(index);
+                }
+
+        #endif
+
+        };
 
         struct popcount
         {
@@ -229,7 +221,7 @@ namespace builtin {
                         return __popcnt(x);
                 }
 
-        #ifdef _WIN64
+        #if defined(_WIN64)
 
                 auto operator()(uint64_t x) const noexcept
                 {
@@ -270,7 +262,7 @@ PP_CONSTEXPR_INLINE auto bsf(UIntType x) noexcept
         return x ? bsfnz(x) : std::numeric_limits<UIntType>::digits;
 }
 
-#ifdef __GNUG__
+#if defined(__GNUG__)
 
         template<class UIntType>
         PP_CONSTEXPR_INLINE auto clznz(UIntType x) // Throws: Nothing.
@@ -286,9 +278,7 @@ PP_CONSTEXPR_INLINE auto bsf(UIntType x) noexcept
                 return std::numeric_limits<UIntType>::digits - 1 - builtin::clznz{}(x);
         }
 
-#endif
-
-#ifdef _MSC_VER
+#elif defined(_MSC_VER)
 
         template<class UIntType>
         PP_CONSTEXPR_INLINE auto clznz(UIntType x) // Throws: Nothing.
@@ -348,8 +338,8 @@ class int_set;
 
 template<int N, class UIntType> auto operator==  (int_set<N, UIntType> const& /* lhs */, int_set<N, UIntType> const& /* rhs */) noexcept;
 template<int N, class UIntType> auto operator<   (int_set<N, UIntType> const& /* lhs */, int_set<N, UIntType> const& /* rhs */) noexcept;
-template<int N, class UIntType> auto intersects  (int_set<N, UIntType> const& /* lhs */, int_set<N, UIntType> const& /* rhs */) noexcept;
 template<int N, class UIntType> auto is_subset_of(int_set<N, UIntType> const& /* lhs */, int_set<N, UIntType> const& /* rhs */) noexcept;
+template<int N, class UIntType> auto intersects  (int_set<N, UIntType> const& /* lhs */, int_set<N, UIntType> const& /* rhs */) noexcept;
 
 template<int N, class UIntType = unsigned long long>
 class int_set
@@ -619,6 +609,28 @@ public:
         {
                 assign(ilist.begin(), ilist.end());
                 return *this;
+        }
+
+        auto to_ulong() const
+        {
+
+        }
+
+        auto to_ullong() const
+        {
+
+        }
+
+        template<class charT = char, class traits = std::char_traits<charT>, class Allocator = std::allocator<charT>>
+        auto to_string(charT nil = charT('0'), charT one = charT('1')) const
+        {
+                auto str = std::basic_string<charT, traits, Allocator>(N, nil);
+                for (auto i = 0; i < N; ++i) {
+                        if (contains(i)) {
+                                traits::assign(str[static_cast<std::size_t>(N - 1 - i)], one);
+                        }
+                }
+                return str;
         }
 
         constexpr auto begin()         noexcept { return       iterator{data()}; }
@@ -1067,10 +1079,10 @@ private:
                 return n % block_size;
         }
 
-        friend auto operator==   <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
-        friend auto operator<    <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
-        friend auto intersects   <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
-        friend auto is_subset_of <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
+        friend auto operator==  <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
+        friend auto operator<   <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
+        friend auto is_subset_of<>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
+        friend auto intersects  <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
 };
 
 template<int N, class UIntType>
@@ -1131,6 +1143,70 @@ auto operator<=(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs
 }
 
 template<int N, class UIntType>
+auto is_subset_of(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
+{
+        constexpr static auto num_blocks = int_set<N, UIntType>::num_blocks;
+        constexpr static auto zero [[maybe_unused]] = detail::zero<typename int_set<N, UIntType>::block_type>;
+        if constexpr (num_blocks == 0) {
+                return true;
+        } else if constexpr (num_blocks == 1) {
+                return (lhs.m_data & ~rhs.m_data) == zero;
+        } else if constexpr (num_blocks >= 2) {
+                return std::equal(
+                        lhs.m_data, lhs.m_data + num_blocks,
+                        rhs.m_data, rhs.m_data + num_blocks,
+                        [](auto const wL, auto const wR) {
+                                return (wL & ~wR) == zero;
+                        }
+                );
+        }
+}
+
+template<int N, class UIntType>
+auto is_superset_of(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
+{
+        return is_subset_of(rhs, lhs);
+}
+
+template<int N, class UIntType>
+auto is_proper_subset_of(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
+{
+        return is_subset_of(lhs, rhs) && !is_subset_of(rhs, lhs);
+}
+
+template<int N, class UIntType>
+auto is_proper_superset_of(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
+{
+        return is_superset_of(lhs, rhs) && !is_superset_of(rhs, lhs);
+}
+
+template<int N, class UIntType>
+auto intersects(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
+{
+        constexpr static auto num_blocks = int_set<N, UIntType>::num_blocks;
+        constexpr static auto zero [[maybe_unused]] = detail::zero<typename int_set<N, UIntType>::block_type>;
+        if constexpr (num_blocks == 0) {
+                return false;
+        } else if constexpr (num_blocks == 1) {
+                return (lhs.m_data & rhs.m_data) != zero;
+        } else if constexpr (num_blocks >= 2) {
+                return !std::equal(
+                        lhs.m_data, lhs.m_data + num_blocks,
+                        rhs.m_data, rhs.m_data + num_blocks,
+                        [](auto const wL, auto const wR) {
+                                return (wL & wR) == zero;
+                        }
+                );
+        }
+}
+
+template<int N, class UIntType>
+auto disjoint(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
+{
+        return !intersects(lhs, rhs);
+}
+
+template<int N, class UIntType>
 auto swap(int_set<N, UIntType>& lhs, int_set<N, UIntType>& rhs) noexcept(noexcept(lhs.swap(rhs)))
 {
         lhs.swap(rhs);
@@ -1178,70 +1254,6 @@ auto operator>>(int_set<N, UIntType> const& lhs, int const n) // Throws: Nothing
 {
         assert(0 <= n); assert(n < N);
         auto nrv{lhs}; nrv >>= n; return nrv;
-}
-
-template<int N, class UIntType>
-auto intersects(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
-{
-        constexpr static auto num_blocks = int_set<N, UIntType>::num_blocks;
-        constexpr static auto zero [[maybe_unused]] = detail::zero<typename int_set<N, UIntType>::block_type>;
-        if constexpr (num_blocks == 0) {
-                return false;
-        } else if constexpr (num_blocks == 1) {
-                return (lhs.m_data & rhs.m_data) != zero;
-        } else if constexpr (num_blocks >= 2) {
-                return !std::equal(
-                        lhs.m_data, lhs.m_data + num_blocks,
-                        rhs.m_data, rhs.m_data + num_blocks,
-                        [](auto const wL, auto const wR) {
-                                return (wL & wR) == zero;
-                        }
-                );
-        }
-}
-
-template<int N, class UIntType>
-auto disjoint(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
-{
-        return !intersects(lhs, rhs);
-}
-
-template<int N, class UIntType>
-auto is_subset_of(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
-{
-        constexpr static auto num_blocks = int_set<N, UIntType>::num_blocks;
-        constexpr static auto zero [[maybe_unused]] = detail::zero<typename int_set<N, UIntType>::block_type>;
-        if constexpr (num_blocks == 0) {
-                return true;
-        } else if constexpr (num_blocks == 1) {
-                return (lhs.m_data & ~rhs.m_data) == zero;
-        } else if constexpr (num_blocks >= 2) {
-                return std::equal(
-                        lhs.m_data, lhs.m_data + num_blocks,
-                        rhs.m_data, rhs.m_data + num_blocks,
-                        [](auto const wL, auto const wR) {
-                                return (wL & ~wR) == zero;
-                        }
-                );
-        }
-}
-
-template<int N, class UIntType>
-auto is_superset_of(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
-{
-        return is_subset_of(rhs, lhs);
-}
-
-template<int N, class UIntType>
-auto is_proper_subset_of(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
-{
-        return is_subset_of(lhs, rhs) && !is_subset_of(rhs, lhs);
-}
-
-template<int N, class UIntType>
-auto is_proper_superset_of(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
-{
-        return is_superset_of(lhs, rhs) && !is_superset_of(rhs, lhs);
 }
 
 template<int N, class UIntType>
@@ -1348,15 +1360,18 @@ constexpr auto empty(int_set<N, UIntType> const& is)
 }
 
 template<class charT, class traits, int N, class UIntType>
-auto& operator>>(std::basic_istream<charT, traits>& is, int_set<N, UIntType>& /* x */)
+auto& operator>>(std::basic_istream<charT, traits>& istr, int_set<N, UIntType>& /* is */)
 {
-        return is;
+        return istr;
 }
 
 template<class charT, class traits, int N, class UIntType>
-auto& operator<<(std::basic_ostream<charT, traits>& os, int_set<N, UIntType>& /* x */)
+auto& operator<<(std::basic_ostream<charT, traits>& ostr, int_set<N, UIntType> const& is)
 {
-        return os;
+        return ostr << is.template to_string<charT, traits, std::allocator<charT>>(
+                std::use_facet<std::ctype<charT>>(ostr.getloc()).widen('0'),
+                std::use_facet<std::ctype<charT>>(ostr.getloc()).widen('1')
+        );
 }
 
 }       // namespace xstd
