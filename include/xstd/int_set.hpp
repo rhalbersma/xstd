@@ -433,14 +433,6 @@ public:
         public:
                 const_iterator() = default;
 
-                explicit PP_CONSTEXPR_INLINE const_iterator(block_type const* b) // Throws: Nothing.
-                :
-                        m_block{b},
-                        m_value{find_first()}
-                {
-                        assert_invariants();
-                }
-
                 constexpr const_iterator(block_type const* b, value_type const v) // Throws: Nothing.
                 :
                         m_block{b},
@@ -493,24 +485,6 @@ public:
                 }
 
         private:
-                PP_CONSTEXPR_INLINE auto find_first() noexcept
-                {
-                        if constexpr (num_blocks == 0) {
-                                return 0;
-                        } else if constexpr (num_blocks == 1) {
-                                return detail::ctz(*m_block);
-                        } else if constexpr (num_blocks >= 2) {
-                                auto offset = 0;
-                                for (auto i = 0; i < num_blocks; ++i, offset += block_size) {
-                                        if (auto const block = m_block[i]; block != zero) {
-                                                offset += detail::ctznz(block);
-                                                break;
-                                        }
-                                }
-                                return offset;
-                        }
-                }
-
                 PP_CONSTEXPR_INLINE auto increment() // Throws: Nothing.
                 {
                         assert(m_value < N);
@@ -633,8 +607,8 @@ public:
                 return str;
         }
 
-        constexpr auto begin()         noexcept { return       iterator{data()}; }
-        constexpr auto begin()   const noexcept { return const_iterator{data()}; }
+        constexpr auto begin()         noexcept { return       iterator{data(), find_first()}; }
+        constexpr auto begin()   const noexcept { return const_iterator{data(), find_first()}; }
         constexpr auto end()           noexcept { return       iterator{data(), num_bits}; }
         constexpr auto end()     const noexcept { return const_iterator{data(), num_bits}; }
 
@@ -647,6 +621,20 @@ public:
         constexpr auto cend()    const noexcept { return const_iterator{end()};   }
         constexpr auto crbegin() const noexcept { return const_reverse_iterator{rbegin()}; }
         constexpr auto crend()   const noexcept { return const_reverse_iterator{rend()};   }
+
+        PP_CONSTEXPR_INLINE auto front() const // Throws: Nothing.
+                -> const_reference
+        {
+                assert(!empty());
+                return { *data(), find_first() };
+        }
+
+        PP_CONSTEXPR_INLINE auto back() const // Throws: Nothing.
+                -> const_reference
+        {
+                assert(!empty());
+                return { *data(), find_last() };
+        }
 
         template<class UnaryFunction>
         PP_CONSTEXPR_INLINE auto for_each(UnaryFunction fun) const
@@ -1057,6 +1045,40 @@ private:
                         return &m_data;
                 } else {
                         return m_data;
+                }
+        }
+
+        PP_CONSTEXPR_INLINE auto find_first() const noexcept
+        {
+                if constexpr (num_blocks == 0) {
+                        return 0;
+                } else if constexpr (num_blocks == 1) {
+                        return detail::bsf(m_data);
+                } else if constexpr (num_blocks >= 2) {
+                        auto offset = 0;
+                        for (auto i = 0; i < num_blocks; ++i, offset += block_size) {
+                                if (auto const block = m_data[i]; block != zero) {
+                                        offset += detail::ctznz(block);
+                                        break;
+                                }
+                        }
+                        return offset;
+                }
+        }
+
+        PP_CONSTEXPR_INLINE auto find_last() const noexcept
+        {
+                if constexpr (num_blocks == 1) {
+                        return detail::bsr(m_data);
+                } else {
+                        auto offset = num_bits - 1;
+                        for (auto i = num_blocks - 1; i > -1; --i, offset -= block_size) {
+                                if (auto const block = m_data[i]; block != zero) {
+                                        offset -= detail::clznz(block);
+                                        break;
+                                }
+                        }
+                        return offset;
                 }
         }
 

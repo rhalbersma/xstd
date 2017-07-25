@@ -36,6 +36,22 @@ constexpr static auto has_const_iterator_v<IntSet, std::void_t<
         typename IntSet::const_iterator
 >> = true;
 
+template<class IntSet, class = void>
+constexpr static auto has_member_front_v = false;
+
+template<class IntSet>
+constexpr static auto has_member_front_v<IntSet, std::void_t<decltype(
+        std::declval<IntSet>().empty()
+)>> = true;
+
+template<class IntSet, class = void>
+constexpr static auto has_member_back_v = false;
+
+template<class IntSet>
+constexpr static auto has_member_back_v<IntSet, std::void_t<decltype(
+        std::declval<IntSet>().back()
+)>> = true;
+
 template<class IntSet, class UnaryFunction, class = void>
 constexpr static auto has_reverse_for_each_v = false;
 

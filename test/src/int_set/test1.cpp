@@ -48,6 +48,12 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
         all_cardinality_sets<T>(test::const_iterator{});
         all_singleton_sets<T>(test::const_iterator{});
 
+        all_cardinality_sets<T>(test::front{});
+        all_singleton_sets<T>(test::front{});
+
+        all_cardinality_sets<T>(test::back{});
+        all_singleton_sets<T>(test::back{});
+
         all_cardinality_sets<T>(test::for_each_{});
         all_singleton_sets<T>(test::for_each_{});
 
