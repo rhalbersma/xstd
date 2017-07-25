@@ -32,7 +32,7 @@ using SetTypes = boost::mpl::vector
 BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
 {
         test::constructor<T>{}();
-
+        test::capacity<T>{}();
         test::test_{}(T{});
 }
 

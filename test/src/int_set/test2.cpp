@@ -25,71 +25,104 @@ using SetTypes = boost::mpl::vector
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
 {
-        all_pairs<T>(test::const_reference{});
-        all_pairs<T>(test::const_iterator{});
-        all_pairs<T>(test::for_each_{});
-        all_pairs<T>(test::reverse_for_each_{});
+        all_doubleton_arrays<T>([](auto const& a2) {
+                test::constructor<T>{}(a2.begin(), a2.end());
+        });
+        all_doubleton_ilists<T>([](auto ilist2) {
+                test::constructor<T>{}(ilist2);
+        });
 
-        all_singlet_pairs<T>(test::op_bitand_assign{});
-        all_singlet_pairs<T>(test::op_bitor_assign{});
-        all_singlet_pairs<T>(test::op_xor_assign{});
-        all_singlet_pairs<T>(test::op_minus_assign{});
+        all_doubleton_arrays<T>([](auto const& a2) {
+                test::assign{}(~T{}, a2.begin(), a2.end());
+        });
+        all_doubleton_ilists<T>([](auto ilist2) {
+                test::assign{}(~T{}, ilist2);
+        });
+
+        all_doubleton_sets<T>(test::const_reference{});
+        all_doubleton_sets<T>(test::const_iterator{});
+        all_doubleton_sets<T>(test::for_each_{});
+        all_doubleton_sets<T>(test::reverse_for_each_{});
+
+        all_singleton_set_pairs<T>(test::op_bitand_assign{});
+        all_singleton_set_pairs<T>(test::op_bitor_assign{});
+        all_singleton_set_pairs<T>(test::op_xor_assign{});
+        all_singleton_set_pairs<T>(test::op_minus_assign{});
 
         all_values<T>([](auto const pos){
-                all_counts<T>([&](auto const& ii){
+                all_cardinality_sets<T>([&](auto const& ii){
                         test::op_shift_left_assign{}(ii, pos);
                 });
-                all_singlets<T>([&](auto const& i1){
+                all_singleton_sets<T>([&](auto const& i1){
                         test::op_shift_left_assign{}(i1, pos);
                 });
         });
 
         all_values<T>([](auto const pos){
-                all_counts<T>([&](auto const& ii){
+                all_cardinality_sets<T>([&](auto const& ii){
                         test::op_shift_right_assign{}(ii, pos);
                 });
-                all_singlets<T>([&](auto const& i1){
+                all_singleton_sets<T>([&](auto const& i1){
                         test::op_shift_right_assign{}(i1, pos);
                 });
         });
 
-        all_singlet_pairs<T>(test::op_compl{});
+        all_doubleton_arrays<T>([](auto const& a2) {
+                test::insert{}(T{}, a2.begin(), a2.end());
+        });
+        all_doubleton_ilists<T>([](auto ilist2) {
+                test::insert{}(T{}, ilist2);
+        });
 
-        all_singlet_pairs<T>(test::op_equal_to{});
-        all_singlet_pairs<T>(test::op_not_equal_to{});
+        all_doubleton_arrays<T>([](auto const& a2) {
+                test::erase{}(~T{}, a2.begin(), a2.end());
+        });
+        all_doubleton_ilists<T>([](auto ilist2) {
+                test::erase{}(T{}, ilist2);
+        });
 
-        all_singlet_pairs<T>(test::op_less{});
-        all_singlet_pairs<T>(test::op_greater{});
-        all_singlet_pairs<T>(test::op_greater_equal{});
-        all_singlet_pairs<T>(test::op_less_equal{});
+        all_singleton_set_pairs<T>(test::swap_{});
 
-        all_singlet_pairs<T>(test::is_subset_of_{});
-        all_singlet_pairs<T>(test::is_superset_of_{});
-        all_singlet_pairs<T>(test::is_proper_subset_of_{});
-        all_singlet_pairs<T>(test::is_proper_superset_of_{});
+        all_singleton_set_pairs<T>(test::op_compl{});
+
+        all_singleton_set_pairs<T>(test::op_equal_to{});
+        all_singleton_set_pairs<T>(test::op_not_equal_to{});
+
+        all_singleton_set_pairs<T>(test::op_less{});
+        all_singleton_set_pairs<T>(test::op_greater{});
+        all_singleton_set_pairs<T>(test::op_greater_equal{});
+        all_singleton_set_pairs<T>(test::op_less_equal{});
+
+        all_singleton_set_pairs<T>(test::intersects_{});
+        all_singleton_set_pairs<T>(test::disjoint_{});
+
+        all_singleton_set_pairs<T>(test::is_subset_of_{});
+        all_singleton_set_pairs<T>(test::is_superset_of_{});
+        all_singleton_set_pairs<T>(test::is_proper_subset_of_{});
+        all_singleton_set_pairs<T>(test::is_proper_superset_of_{});
 
         all_values<T>([](auto const pos){
-                all_counts<T>([&](auto const& ii){
+                all_cardinality_sets<T>([&](auto const& ii){
                         test::op_shift_left{}(ii, pos);
                 });
-                all_singlets<T>([&](auto const& i1){
+                all_singleton_sets<T>([&](auto const& i1){
                         test::op_shift_left{}(i1, pos);
                 });
         });
 
         all_values<T>([](auto const pos){
-                all_counts<T>([&](auto const& ii){
+                all_cardinality_sets<T>([&](auto const& ii){
                         test::op_shift_right{}(ii, pos);
                 });
-                all_singlets<T>([&](auto const& i1){
+                all_singleton_sets<T>([&](auto const& i1){
                         test::op_shift_right{}(i1, pos);
                 });
         });
 
-        all_singlet_pairs<T>(test::op_bitand{});
-        all_singlet_pairs<T>(test::op_bitor{});
-        all_singlet_pairs<T>(test::op_xor{});
-        all_singlet_pairs<T>(test::op_minus{});
+        all_singleton_set_pairs<T>(test::op_bitand{});
+        all_singleton_set_pairs<T>(test::op_bitor{});
+        all_singleton_set_pairs<T>(test::op_xor{});
+        all_singleton_set_pairs<T>(test::op_minus{});
 }
 
 BOOST_AUTO_TEST_SUITE_END()

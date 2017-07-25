@@ -28,9 +28,9 @@ using SetTypes = boost::mpl::vector
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(ExhaustivelyTestAssociativityAndDistributivity, T, SetTypes)
 {
-        all_singlet_triples<T>(test::op_bitand{});
-        all_singlet_triples<T>(test::op_bitor{});
-        all_singlet_triples<T>(test::op_xor{});
+        all_singleton_set_triples<T>(test::op_bitand{});
+        all_singleton_set_triples<T>(test::op_bitor{});
+        all_singleton_set_triples<T>(test::op_xor{});
 }
 
 BOOST_AUTO_TEST_SUITE_END()

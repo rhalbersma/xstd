@@ -354,9 +354,10 @@ template<int N, class UIntType> auto is_subset_of(int_set<N, UIntType> const& /*
 template<int N, class UIntType = unsigned long long>
 class int_set
 {
-        static_assert(0 <= N);
-
+public:
         using block_type = UIntType;
+private:
+        static_assert(0 <= N);
         static_assert(std::is_unsigned_v<block_type>);
         static_assert(std::is_integral_v<block_type>);
         static_assert(sizeof(unsigned) <= sizeof(UIntType));
@@ -461,13 +462,14 @@ public:
                 constexpr auto operator*() const // Throws: Nothing.
                         -> const_reference
                 {
-                        assert(0 <= m_value); assert(m_value < N);
+                        assert(m_value < N);
                         return { *m_block, m_value };
                 }
 
                 PP_CONSTEXPR_INLINE auto& operator++() // Throws: Nothing.
                 {
                         increment();
+                        assert_invariants();
                         return *this;
                 }
 
@@ -479,6 +481,7 @@ public:
                 PP_CONSTEXPR_INLINE auto& operator--() // Throws:Nothing.
                 {
                         decrement();
+                        assert_invariants();
                         return *this;
                 }
 
@@ -487,14 +490,15 @@ public:
                         auto nrv = *this; --*this; return nrv;
                 }
 
-                friend constexpr auto operator==(const_iterator lhs, const_iterator rhs) noexcept
+                friend constexpr auto operator==(const_iterator const& lhs, const_iterator const& rhs) noexcept
                 {
                         assert(lhs.m_block == rhs.m_block);
                         return lhs.m_value == rhs.m_value;
                 }
 
-                friend constexpr auto operator!=(const_iterator lhs, const_iterator rhs) noexcept
+                friend constexpr auto operator!=(const_iterator const& lhs, const_iterator const& rhs) noexcept
                 {
+                        assert(lhs.m_block == rhs.m_block);
                         return !(lhs == rhs);
                 }
 
@@ -520,14 +524,10 @@ public:
                 PP_CONSTEXPR_INLINE auto increment() // Throws: Nothing.
                 {
                         assert(m_value < N);
-                        if (++m_value == num_bits) {
-                                assert_invariants();
-                                return;
-                        }
+                        if (++m_value == num_bits) { return; }
                         if constexpr (num_blocks == 1) {
                                 if (auto const block = *m_block >> m_value; block != zero) {
                                         m_value += detail::ctznz(block);
-                                        assert_invariants();
                                         return;
                                 }
                                 m_value = block_size;
@@ -536,7 +536,6 @@ public:
                                 if (auto const offset = where(m_value); offset != 0) {
                                         if (auto const block = m_block[i] >> offset; block != zero) {
                                                 m_value += detail::ctznz(block);
-                                                assert_invariants();
                                                 return;
                                         }
                                         ++i;
@@ -545,7 +544,6 @@ public:
                                 for (/* initialized before loop */; i < num_blocks; ++i, m_value += block_size) {
                                         if (auto const block = m_block[i]; block != zero) {
                                                 m_value += detail::ctznz(block);
-                                                assert_invariants();
                                                 return;
                                         }
                                 }
@@ -564,7 +562,6 @@ public:
                                 if (auto const offset = where(m_value); offset != block_size - 1) {
                                         if (auto const block = m_block[i] << (block_size - 1 - offset); block != zero) {
                                                 m_value -= detail::clznz(block);
-                                                assert_invariants();
                                                 return;
                                         }
                                         --i;
@@ -573,12 +570,11 @@ public:
                                 for (/* initialized before loop */; i >= 0; --i, m_value -= block_size) {
                                         if (auto const block = m_block[i]; block != zero) {
                                                 m_value -= detail::clznz(block);
-                                                assert_invariants();
                                                 return;
                                         }
                                 }
                         }
-                        assert(0 <= m_value); assert(m_value < N);
+                        assert(m_value == 0);
                 }
         };
 
@@ -789,11 +785,6 @@ public:
                 }
                 assert(!contains(n));
                 return *this;
-        }
-
-        constexpr auto& erase(const_iterator it) // Throws: Nothing.
-        {
-                return erase(*it);
         }
 
         template<class InputIterator>

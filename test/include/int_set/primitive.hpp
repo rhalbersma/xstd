@@ -8,6 +8,7 @@
 #include <int_set/traits.hpp>
 #include <xstd/bitset.hpp>
 #include <boost/test/unit_test.hpp>     // BOOST_CHECK, BOOST_CHECK_EQUAL, BOOST_CHECK_NE, BOOST_CHECK_THROW
+#include <algorithm>                    // for_each
 #include <initializer_list>             // initializer_list
 #include <iterator>                     // distance
 #include <istream>                      // basic_istream
@@ -53,6 +54,59 @@ struct constructor
         {
                                                                                 // [bitset.cons]/6-7
         }
+
+        template<class InputIterator>
+        auto operator()(InputIterator first [[maybe_unused]], InputIterator last [[maybe_unused]]) const
+        {
+                if constexpr (std::is_constructible_v<IntSet, InputIterator, InputIterator>) {
+                        auto const dst = IntSet(first, last);
+                        std::for_each(first, last, [&](auto&& elem) {
+                                BOOST_CHECK(dst.contains(elem));
+                        });
+                        BOOST_CHECK_EQUAL(dst.count(), std::distance(first, last));
+                }
+        }
+
+        template<class ValueType>
+        constexpr auto operator()(std::initializer_list<ValueType> ilist [[maybe_unused]]) const
+        {
+                if constexpr (std::is_constructible_v<IntSet, std::initializer_list<ValueType>>) {
+                        auto const dst = IntSet(ilist);
+                        for (auto&& elem : ilist) {
+                                BOOST_CHECK(dst.contains(elem));
+                        }
+                        BOOST_CHECK_EQUAL(dst.count(), ilist.size());
+                }
+        }
+};
+
+struct assign
+{
+        template<class IntSet, class InputIterator>
+        auto operator()(IntSet const& is [[maybe_unused]], InputIterator first [[maybe_unused]], InputIterator last [[maybe_unused]]) const
+        {
+                if constexpr (tti::has_range_assign_v<IntSet, InputIterator>) {
+                        auto const src = is;
+                        auto dst = src; dst.assign(first, last);
+                        std::for_each(first, last, [&](auto&& elem) {
+                                BOOST_CHECK(dst.contains(elem));
+                        });
+                        BOOST_CHECK_EQUAL(dst.count(), std::distance(first, last));
+                }
+        }
+
+        template<class IntSet, class ValueType>
+        constexpr auto operator()(IntSet const& is [[maybe_unused]], std::initializer_list<ValueType> ilist [[maybe_unused]]) const
+        {
+                if constexpr (tti::has_ilist_assign_v<IntSet, ValueType>) {
+                        auto const src = is;
+                        auto dst = src; dst = ilist;
+                        for (auto&& elem : ilist) {
+                                BOOST_CHECK(dst.contains(elem));
+                        }
+                        BOOST_CHECK_EQUAL(dst.count(), ilist.size());
+                }
+        }
 };
 
 struct const_reference
@@ -82,6 +136,7 @@ struct const_iterator
         {
                 if constexpr (tti::has_const_iterator_v<IntSet>) {
                         auto is = cis;
+
                         BOOST_CHECK_EQUAL(std::distance(cis.  begin(), cis.  end()), cis.count());
                         BOOST_CHECK_EQUAL(std::distance( is.  begin(),  is.  end()), cis.count());
                         BOOST_CHECK_EQUAL(std::distance( is. cbegin(),  is. cend()), cis.count());
@@ -114,10 +169,9 @@ struct reverse_for_each_
         template<class IntSet>
         auto operator()(IntSet const& is) const noexcept
         {
-                if constexpr (tti::has_reverse_for_each_v<IntSet>) {
-                        reverse_for_each(is, [&](auto const pos) {
-                                BOOST_CHECK(is[pos]);
-                        });
+                auto const lambda [[maybe_unused]]= [&](auto const pos) { BOOST_CHECK(is[pos]); };
+                if constexpr (tti::has_reverse_for_each_v<IntSet, decltype(lambda)>) {
+                        reverse_for_each(is, lambda);
                 }
         }
 };
@@ -266,24 +320,35 @@ struct set
                 }
                 BOOST_CHECK(std::addressof(ret) == std::addressof(dst));        // [bitset.members]/15
         }
+};
 
+struct insert
+{
         template<class IntSet, class InputIterator>
-        auto operator()(IntSet const& is, InputIterator first, InputIterator last) const
+        auto operator()(IntSet const& is [[maybe_unused]], InputIterator first [[maybe_unused]], InputIterator last [[maybe_unused]]) const
         {
-                auto const src = is;
-                auto dst = src; dst.insert(first, last);
-                while (first != last) {
-                        BOOST_CHECK(dst.contains(*first++));
+                if constexpr (tti::has_range_insert_v<IntSet, InputIterator>) {
+                        auto const src = is;
+                        auto dst = src; dst.insert(first, last);
+                        std::for_each(first, last, [&](auto&& elem) {
+                                BOOST_CHECK(dst.contains(elem));
+                        });
+                        BOOST_CHECK_LE(src.count(), dst.count());
+                        BOOST_CHECK_LE(dst.count(), static_cast<int>(src.count()) + static_cast<int>(std::distance(first, last)));
                 }
         }
 
-        template<class IntSet, class SizeType>
-        constexpr auto operator()(IntSet const& is, std::initializer_list<SizeType> ilist) const
+        template<class IntSet, class ValueType>
+        constexpr auto operator()(IntSet const& is [[maybe_unused]], std::initializer_list<ValueType> ilist [[maybe_unused]]) const
         {
-                auto const src = is;
-                auto dst = src; dst.insert(ilist);
-                for (auto&& elem : ilist) {
-                        BOOST_CHECK(dst.contains(elem));
+                if constexpr (tti::has_ilist_insert_v<IntSet, ValueType>) {
+                        auto const src = is;
+                        auto dst = src; dst.insert(ilist);
+                        for (auto&& elem : ilist) {
+                                BOOST_CHECK(dst.contains(elem));
+                        }
+                        BOOST_CHECK_LE(src.count(), dst.count());
+                        BOOST_CHECK_LE(dst.count(), static_cast<int>(src.count()) + static_cast<int>(ilist.size()));
                 }
         }
 };
@@ -313,25 +378,48 @@ struct reset
                 }
                 BOOST_CHECK(std::addressof(ret) == std::addressof(dst));        // [bitset.members]/20
         }
+};
 
+struct erase
+{
         template<class IntSet, class InputIterator>
-        auto operator()(IntSet const& is, InputIterator first, InputIterator last) const
+        auto operator()(IntSet const& is [[maybe_unused]], InputIterator first [[maybe_unused]], InputIterator last [[maybe_unused]]) const
         {
-                auto const src = is;
-                auto dst = src; dst.erase(first, last);
-                while (first != last) {
-                        BOOST_CHECK(!dst.contains(*first++));
+                if constexpr (tti::has_range_erase_v<IntSet, InputIterator>) {
+                        auto const src = is;
+                        auto dst = src; dst.erase(first, last);
+                        std::for_each(first, last, [&](auto&& elem) {
+                                BOOST_CHECK(!dst.contains(elem));
+                        });
+                        BOOST_CHECK_LE(src.count() - std::distance(first, last), dst.count());
+                        BOOST_CHECK_LE(dst.count(), src.count());
                 }
         }
 
-        template<class IntSet, class SizeType>
-        constexpr auto operator()(IntSet const& is, std::initializer_list<SizeType> ilist) const
+        template<class IntSet, class ValueType>
+        constexpr auto operator()(IntSet const& is [[maybe_unused]], std::initializer_list<ValueType> ilist [[maybe_unused]]) const
         {
-                auto const src = is;
-                auto dst = src; dst.erase(ilist);
-                for (auto&& elem : ilist) {
-                        BOOST_CHECK(!dst.contains(elem));
+                if constexpr (tti::has_ilist_erase_v<IntSet, ValueType>) {
+                        auto const src = is;
+                        auto dst = src; dst.erase(ilist);
+                        for (auto&& elem : ilist) {
+                                BOOST_CHECK(!dst.contains(elem));
+                        }
+                        BOOST_CHECK_LE(static_cast<int>(src.count()) - static_cast<int>(ilist.size()), dst.count());
+                        BOOST_CHECK_LE(dst.count(), src.count());
                 }
+        }
+};
+
+struct swap_
+{
+        template<class IntSet>
+        constexpr auto operator()(IntSet const& a, IntSet const& b) const noexcept
+        {
+                auto src1 = a, src2 = b;
+                using std::swap;
+                swap(src1, src2);
+                BOOST_CHECK(src1 == b && src2 == a);
         }
 };
 
@@ -444,40 +532,77 @@ struct size
         }
 };
 
+template<class IntSet>
+struct capacity
+{
+        auto operator()() const noexcept
+        {
+                if constexpr (tti::has_static_member_capacity_v<IntSet>) {
+                        using block_type = typename IntSet::block_type;
+                        constexpr auto block_size = std::numeric_limits<block_type>::digits;
+
+                        BOOST_CHECK_EQUAL(IntSet::capacity() % block_size, 0);
+                        BOOST_CHECK_EQUAL(IntSet::capacity() / block_size, (IntSet::max_size() - 1 + block_size) / block_size);
+                }
+        }
+};
+
 struct op_equal_to
 {
         template<class IntSet>
-        auto operator()(IntSet const& lhs, IntSet const& rhs) const noexcept
+        auto operator()(IntSet const& a) const noexcept
+        {
+                BOOST_CHECK(a == a);                                            // reflexive
+        }
+
+        template<class IntSet>
+        auto operator()(IntSet const& a, IntSet const& b) const noexcept
         {
                 auto expected = true;
                 for (auto N = IntSet{}.size(), i = decltype(N){0}; i < N; ++i) {
-                        expected &= lhs[i] == rhs[i];
+                        expected &= a[i] == b[i];
                 }
-                BOOST_CHECK_EQUAL(lhs == rhs, expected);                        // [bitset.members]/36
+                BOOST_CHECK_EQUAL(a == b, expected);                            // [bitset.members]/36
+                BOOST_CHECK_EQUAL(a == b, b == a);                              // symmetric
         }
 };
 
 struct op_not_equal_to
 {
         template<class IntSet>
-        auto operator()(IntSet const& lhs, IntSet const& rhs) const noexcept
+        auto operator()(IntSet const& a) const noexcept
         {
-                BOOST_CHECK_EQUAL(lhs != rhs, !(lhs == rhs));                   // [bitset.members]/37
+                BOOST_CHECK(!(a != a));                                         // irreflexive
+        }
+
+        template<class IntSet>
+        auto operator()(IntSet const& a, IntSet const& b) const noexcept
+        {
+                BOOST_CHECK_EQUAL(a != b, !(a == b));                           // [bitset.members]/37
+                BOOST_CHECK_EQUAL(a != b, b != a);                              // symmetric
         }
 };
 
 struct op_less
 {
         template<class IntSet>
-        auto operator()(IntSet const& lhs, IntSet const& rhs) const noexcept
+        auto operator()(IntSet const& a) const noexcept
+        {
+                if constexpr (tti::has_op_less_v<IntSet>) {
+                        BOOST_CHECK(!(a < a));                                  // irreflexive
+                }
+        }
+
+        template<class IntSet>
+        auto operator()(IntSet const& a, IntSet const& b) const noexcept
         {
                 if constexpr (tti::has_op_less_v<IntSet>) {
                         auto expected = false;
                         for (auto N = IntSet{}.size(), mI = decltype(N){-1}, i = N - 1; i > mI; --i) {
-                                if (!lhs[i] && rhs[i]) { expected = true; break; }
-                                if (!rhs[i] && lhs[i]) {                  break; }
+                                if (!a[i] && b[i]) { expected = true; break; }
+                                if (!b[i] && a[i]) {                  break; }
                         }
-                        BOOST_CHECK_EQUAL(lhs < rhs, expected);
+                        BOOST_CHECK_EQUAL(a < b, expected);
                 }
         }
 };
@@ -485,16 +610,32 @@ struct op_less
 struct op_greater
 {
         template<class IntSet>
-        auto operator()(IntSet const& lhs, IntSet const& rhs) const noexcept
+        auto operator()(IntSet const& a) const noexcept
         {
                 if constexpr (tti::has_op_less_v<IntSet>) {
-                        BOOST_CHECK_EQUAL(lhs > rhs, rhs < lhs);
+                        BOOST_CHECK(!(a > a));                                  // irreflexive
+                }
+        }
+
+        template<class IntSet>
+        auto operator()(IntSet const& a, IntSet const& b) const noexcept
+        {
+                if constexpr (tti::has_op_less_v<IntSet>) {
+                        BOOST_CHECK_EQUAL(a > b, b < a);
                 }
         }
 };
 
 struct op_greater_equal
 {
+        template<class IntSet>
+        auto operator()(IntSet const& a) const noexcept
+        {
+                if constexpr (tti::has_op_less_v<IntSet>) {
+                        BOOST_CHECK(a >= a);                                    // reflexive
+                }
+        }
+
         template<class IntSet>
         auto operator()(IntSet const& lhs, IntSet const& rhs) const noexcept
         {
@@ -507,10 +648,18 @@ struct op_greater_equal
 struct op_less_equal
 {
         template<class IntSet>
-        auto operator()(IntSet const& lhs, IntSet const& rhs) const noexcept
+        auto operator()(IntSet const& a) const noexcept
         {
                 if constexpr (tti::has_op_less_v<IntSet>) {
-                        BOOST_CHECK_EQUAL(lhs <= rhs, !(rhs < lhs));
+                        BOOST_CHECK(a <= a);                                    // reflexive
+                }
+        }
+
+        template<class IntSet>
+        auto operator()(IntSet const& a, IntSet const& b) const noexcept
+        {
+                if constexpr (tti::has_op_less_v<IntSet>) {
+                        BOOST_CHECK_EQUAL(a <= b, !(b < a));
                 }
         }
 };
@@ -518,40 +667,64 @@ struct op_less_equal
 struct is_subset_of_
 {
         template<class IntSet>
-        auto operator()(IntSet const& lhs, IntSet const& rhs) const noexcept
+        auto operator()(IntSet const& a) const noexcept
+        {
+                BOOST_CHECK(is_subset_of(a, a));                                // reflexive
+        }
+
+        template<class IntSet>
+        auto operator()(IntSet const& a, IntSet const& b) const noexcept
         {
                 auto expected = true;
                 for (auto N = IntSet{}.size(), i = decltype(N){0}; i < N; ++i) {
-                        expected &= !lhs[i] || rhs[i];
+                        expected &= !a[i] || b[i];
                 }
-                BOOST_CHECK_EQUAL(is_subset_of(lhs, rhs), expected);
+                BOOST_CHECK_EQUAL(is_subset_of(a, b), expected);
         }
 };
 
 struct is_superset_of_
 {
         template<class IntSet>
-        auto operator()(IntSet const& lhs, IntSet const& rhs) const noexcept
+        auto operator()(IntSet const& a) const noexcept
         {
-                BOOST_CHECK_EQUAL(is_superset_of(lhs, rhs), is_subset_of(rhs, lhs));
+                BOOST_CHECK(is_superset_of(a, a));                              // reflexive
+        }
+
+        template<class IntSet>
+        auto operator()(IntSet const& a, IntSet const& b) const noexcept
+        {
+                BOOST_CHECK_EQUAL(is_superset_of(a, b), is_subset_of(b, a));
         }
 };
 
 struct is_proper_subset_of_
 {
         template<class IntSet>
-        auto operator()(IntSet const& lhs, IntSet const& rhs) const noexcept
+        auto operator()(IntSet const& a) const noexcept
         {
-                BOOST_CHECK_EQUAL(is_proper_subset_of(lhs, rhs), is_subset_of(lhs, rhs) && !is_subset_of(rhs, lhs));
+                BOOST_CHECK(!is_proper_subset_of(a, a));                        // irreflexive
+        }
+
+        template<class IntSet>
+        auto operator()(IntSet const& a, IntSet const& b) const noexcept
+        {
+                BOOST_CHECK_EQUAL(is_proper_subset_of(a, b), is_subset_of(a, b) && !is_subset_of(b, a));
         }
 };
 
 struct is_proper_superset_of_
 {
         template<class IntSet>
-        auto operator()(IntSet const& lhs, IntSet const& rhs) const noexcept
+        auto operator()(IntSet const& a) const noexcept
         {
-                BOOST_CHECK_EQUAL(is_proper_superset_of(lhs, rhs), is_proper_subset_of(rhs, lhs));
+                BOOST_CHECK(!is_proper_superset_of(a, a));                      // irreflexive
+        }
+
+        template<class IntSet>
+        auto operator()(IntSet const& a, IntSet const& b) const noexcept
+        {
+                BOOST_CHECK_EQUAL(is_proper_superset_of(a, b), is_proper_subset_of(b, a));
         }
 };
 
@@ -752,6 +925,38 @@ struct op_minus
                 BOOST_CHECK(a - b == a - (a & b));
                 BOOST_CHECK(is_subset_of(a - b, a));
                 BOOST_CHECK(disjoint(a - b, b));
+        }
+};
+
+struct intersects_
+{
+        template<class IntSet>
+        constexpr auto operator()(IntSet const& a) const noexcept
+        {
+                BOOST_CHECK(intersects(a, a) || a.none());
+        }
+
+        template<class IntSet>
+        constexpr auto operator()(IntSet const& a, IntSet const& b) const noexcept
+        {
+                BOOST_CHECK_EQUAL(intersects(a, b), (a & b).any());
+                BOOST_CHECK_EQUAL(intersects(a, b), intersects(b, a));
+        }
+};
+
+struct disjoint_
+{
+        template<class IntSet>
+        constexpr auto operator()(IntSet const& a) const noexcept
+        {
+                BOOST_CHECK(!disjoint(a, a) || a.none());
+        }
+
+        template<class IntSet>
+        constexpr auto operator()(IntSet const& a, IntSet const& b) const noexcept
+        {
+                BOOST_CHECK_EQUAL(disjoint(a, b), !intersects(a, b));
+                BOOST_CHECK_EQUAL(disjoint(a, b), disjoint(b, a));
         }
 };
 

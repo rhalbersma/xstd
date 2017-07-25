@@ -28,17 +28,31 @@ using SetTypes = boost::mpl::vector
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
 {
-        all_singlets<T>(test::const_reference{});
-        all_counts<T>(test::const_reference{});
+        all_singleton_arrays<T>([](auto const& a1) {
+                test::constructor<T>{}(a1.begin(), a1.end());
+        });
+        all_singleton_ilists<T>([](auto ilist1) {
+                test::constructor<T>{}(ilist1);
+        });
 
-        all_counts<T>(test::const_iterator{});
-        all_singlets<T>(test::const_iterator{});
+        all_singleton_arrays<T>([](auto const& a1) {
+                test::assign{}(~T{}, a1.begin(), a1.end());
+        });
+        all_singleton_ilists<T>([](auto ilist1) {
+                test::assign{}(~T{}, ilist1);
+        });
 
-        all_counts<T>(test::for_each_{});
-        all_singlets<T>(test::for_each_{});
+        all_cardinality_sets<T>(test::const_reference{});
+        all_singleton_sets<T>(test::const_reference{});
 
-        all_counts<T>(test::reverse_for_each_{});
-        all_singlets<T>(test::reverse_for_each_{});
+        all_cardinality_sets<T>(test::const_iterator{});
+        all_singleton_sets<T>(test::const_iterator{});
+
+        all_cardinality_sets<T>(test::for_each_{});
+        all_singleton_sets<T>(test::for_each_{});
+
+        all_cardinality_sets<T>(test::reverse_for_each_{});
+        all_singleton_sets<T>(test::reverse_for_each_{});
 
         all_values<T>([](auto const pos) {
                 test::set{}(T{}, pos);
@@ -46,39 +60,69 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
                 test::set{}(T{}, pos, false);
         });
 
-        all_counts<T>(test::reset{});
+        all_singleton_arrays<T>([](auto const& a1) {
+                test::insert{}(T{}, a1.begin(), a1.end());
+        });
+        all_singleton_ilists<T>([](auto ilist1) {
+                test::insert{}(T{}, ilist1);
+        });
+
+        all_cardinality_sets<T>(test::reset{});
         all_values<T>([](auto const pos) {
                 test::reset{}(~T{}, pos);
         });
 
-        all_counts<T>(test::op_compl{});
-        all_singlets<T>(test::op_compl{});
+        all_singleton_arrays<T>([](auto const& a1) {
+                test::erase{}(~T{}, a1.begin(), a1.end());
+        });
+        all_singleton_ilists<T>([](auto ilist1) {
+                test::erase{}(T{}, ilist1);
+        });
+
+        all_cardinality_sets<T>(test::op_compl{});
+        all_singleton_sets<T>(test::op_compl{});
 
         all_values<T>([](auto const pos) {
                 test::flip{}(T{}, pos);
         });
 
-        all_counts<T>(test::count{});
-        all_counts<T>(test::size{});
+        all_cardinality_sets<T>(test::count{});
+        all_cardinality_sets<T>(test::size{});
+
+        all_cardinality_sets<T>(test::op_less{});
+        all_cardinality_sets<T>(test::op_greater{});
+        all_cardinality_sets<T>(test::op_greater_equal{});
+        all_cardinality_sets<T>(test::op_less_equal{});
+
+        all_cardinality_sets<T>(test::is_subset_of_{});
+        all_cardinality_sets<T>(test::is_superset_of_{});
+        all_cardinality_sets<T>(test::is_proper_subset_of_{});
+        all_cardinality_sets<T>(test::is_proper_superset_of_{});
 
         all_values<T>([](auto const pos) {
                 test::test_{}(T{}, pos);
         });
 
-        all_counts<T>(test::any{});
-        all_counts<T>(test::none{});
+        all_cardinality_sets<T>(test::any{});
+        all_cardinality_sets<T>(test::none{});
 
-        all_counts<T>(test::op_bitand{});
-        all_singlets<T>(test::op_bitand{});
+        all_cardinality_sets<T>(test::op_bitand{});
+        all_singleton_sets<T>(test::op_bitand{});
 
-        all_counts<T>(test::op_bitor{});
-        all_singlets<T>(test::op_bitor{});
+        all_cardinality_sets<T>(test::op_bitor{});
+        all_singleton_sets<T>(test::op_bitor{});
 
-        all_counts<T>(test::op_xor{});
-        all_singlets<T>(test::op_xor{});
+        all_cardinality_sets<T>(test::op_xor{});
+        all_singleton_sets<T>(test::op_xor{});
 
-        all_counts<T>(test::op_minus{});
-        all_singlets<T>(test::op_minus{});
+        all_cardinality_sets<T>(test::op_minus{});
+        all_singleton_sets<T>(test::op_minus{});
+
+        all_cardinality_sets<T>(test::intersects_{});
+        all_singleton_sets<T>(test::intersects_{});
+
+        all_cardinality_sets<T>(test::disjoint_{});
+        all_singleton_sets<T>(test::disjoint_{});
 }
 
 using SetTypes2 = boost::mpl::vector
@@ -99,9 +143,9 @@ using SetTypes2 = boost::mpl::vector
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive2, T, SetTypes2)
 {
-        all_counts<T>(test::set{});
-        all_counts<T>(test::flip{});
-        all_counts<T>(test::all{});
+        all_cardinality_sets<T>(test::set{});
+        all_cardinality_sets<T>(test::flip{});
+        all_cardinality_sets<T>(test::all{});
 }
 
 BOOST_AUTO_TEST_SUITE_END()
