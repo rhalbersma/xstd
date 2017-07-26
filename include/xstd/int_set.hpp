@@ -341,7 +341,7 @@ template<int N, class UIntType> auto operator<   (int_set<N, UIntType> const& /*
 template<int N, class UIntType> auto is_subset_of(int_set<N, UIntType> const& /* lhs */, int_set<N, UIntType> const& /* rhs */) noexcept;
 template<int N, class UIntType> auto intersects  (int_set<N, UIntType> const& /* lhs */, int_set<N, UIntType> const& /* rhs */) noexcept;
 
-template<int N, class UIntType = unsigned long long>
+template<int N, class UIntType = std::size_t>
 class int_set
 {
 public:
@@ -444,14 +444,15 @@ public:
                 constexpr auto operator*() const // Throws: Nothing.
                         -> const_reference
                 {
-                        assert(m_value < N);
+                        assert(0 <= m_value); assert(m_value < N);
                         return { *m_block, m_value };
                 }
 
                 PP_CONSTEXPR_INLINE auto& operator++() // Throws: Nothing.
                 {
+                        assert(0 <= m_value); assert(m_value < N);
                         increment();
-                        assert_invariants();
+                        assert(0 < m_value); assert(m_value < N || m_value == num_bits);
                         return *this;
                 }
 
@@ -462,8 +463,9 @@ public:
 
                 PP_CONSTEXPR_INLINE auto& operator--() // Throws:Nothing.
                 {
+                        assert(0 < m_value); assert(m_value < N || m_value == num_bits);
                         decrement();
-                        assert_invariants();
+                        assert(0 <= m_value); assert(m_value < N);
                         return *this;
                 }
 
@@ -538,7 +540,6 @@ public:
                                         }
                                 }
                         }
-                        assert(m_value == 0);
                 }
         };
 

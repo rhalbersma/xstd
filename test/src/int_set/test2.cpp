@@ -5,8 +5,8 @@
 
 #include <int_set/exhaustive.hpp>
 #include <int_set/primitive.hpp>
-#include <xstd/bitset.hpp>
-#include <xstd/int_set.hpp>
+#include <xstd/bitset.hpp>                      // bitset
+#include <xstd/int_set.hpp>                     // int_set
 #include <boost/mpl/vector.hpp>                 // vector
 #include <boost/test/test_case_template.hpp>    // BOOST_AUTO_TEST_CASE_TEMPLATE
 #include <boost/test/unit_test.hpp>             // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END
@@ -17,11 +17,18 @@ BOOST_AUTO_TEST_SUITE(Quadratic)
 using namespace xstd;
 
 using SetTypes = boost::mpl::vector
-<
-        std::bitset<33>,
-            int_set< 0, uint32_t>,
-            int_set< 1, uint32_t>,
-            int_set<33, uint32_t>
+<       std::bitset<  0>
+,       std::bitset<  1>
+,       std::bitset<  2>
+,       std::bitset< 32>
+,       std::bitset< 33>
+,       std::bitset< 34>
+,       int_set<  0, uint32_t>
+,       int_set<  1, uint32_t>
+,       int_set<  2, uint32_t>
+,       int_set< 32, uint32_t>
+,       int_set< 33, uint32_t>
+,       int_set< 34, uint32_t>
 >;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
@@ -51,18 +58,12 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
         all_singleton_set_pairs<T>(test::op_minus_assign{});
 
         all_values<T>([](auto const pos){
-                all_cardinality_sets<T>([&](auto const& ii){
-                        test::op_shift_left_assign{}(ii, pos);
-                });
                 all_singleton_sets<T>([&](auto const& i1){
                         test::op_shift_left_assign{}(i1, pos);
                 });
         });
 
         all_values<T>([](auto const pos){
-                all_cardinality_sets<T>([&](auto const& ii){
-                        test::op_shift_right_assign{}(ii, pos);
-                });
                 all_singleton_sets<T>([&](auto const& i1){
                         test::op_shift_right_assign{}(i1, pos);
                 });
@@ -103,18 +104,12 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
         all_singleton_set_pairs<T>(test::is_proper_superset_of_{});
 
         all_values<T>([](auto const pos){
-                all_cardinality_sets<T>([&](auto const& ii){
-                        test::op_shift_left{}(ii, pos);
-                });
                 all_singleton_sets<T>([&](auto const& i1){
                         test::op_shift_left{}(i1, pos);
                 });
         });
 
         all_values<T>([](auto const pos){
-                all_cardinality_sets<T>([&](auto const& ii){
-                        test::op_shift_right{}(ii, pos);
-                });
                 all_singleton_sets<T>([&](auto const& i1){
                         test::op_shift_right{}(i1, pos);
                 });

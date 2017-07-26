@@ -8,7 +8,8 @@
 #include <int_set/traits.hpp>
 #include <xstd/bitset.hpp>
 #include <boost/test/unit_test.hpp>     // BOOST_CHECK, BOOST_CHECK_EQUAL, BOOST_CHECK_NE, BOOST_CHECK_THROW
-#include <algorithm>                    // for_each
+#include <algorithm>                    // for_each, is_sorted
+#include <functional>                   // greater
 #include <initializer_list>             // initializer_list
 #include <iterator>                     // distance
 #include <istream>                      // basic_istream
@@ -138,18 +139,31 @@ struct const_iterator
                 if constexpr (tti::has_const_iterator_v<IntSet>) {
                         auto is = cis;
 
-                        BOOST_CHECK_EQUAL(std::distance(cis.  begin(), cis.  end()), cis.count());
                         BOOST_CHECK_EQUAL(std::distance( is.  begin(),  is.  end()), cis.count());
-                        BOOST_CHECK_EQUAL(std::distance( is. cbegin(),  is. cend()), cis.count());
-                        BOOST_CHECK_EQUAL(std::distance(cis. rbegin(), cis. rend()), cis.count());
+                        BOOST_CHECK_EQUAL(std::distance(cis.  begin(), cis.  end()), cis.count());
                         BOOST_CHECK_EQUAL(std::distance( is. rbegin(),  is. rend()), cis.count());
+                        BOOST_CHECK_EQUAL(std::distance(cis. rbegin(), cis. rend()), cis.count());
+                        BOOST_CHECK_EQUAL(std::distance( is. cbegin(),  is. cend()), cis.count());
                         BOOST_CHECK_EQUAL(std::distance( is.crbegin(),  is.crend()), cis.count());
-                        BOOST_CHECK_EQUAL(std::distance(  begin(cis),   end(cis)), cis.count());
                         BOOST_CHECK_EQUAL(std::distance(  begin( is),   end( is)), cis.count());
-                        BOOST_CHECK_EQUAL(std::distance( cbegin( is),  cend( is)), cis.count());
-                        BOOST_CHECK_EQUAL(std::distance( rbegin(cis),  rend(cis)), cis.count());
+                        BOOST_CHECK_EQUAL(std::distance(  begin(cis),   end(cis)), cis.count());
                         BOOST_CHECK_EQUAL(std::distance( rbegin( is),  rend( is)), cis.count());
+                        BOOST_CHECK_EQUAL(std::distance( rbegin(cis),  rend(cis)), cis.count());
+                        BOOST_CHECK_EQUAL(std::distance( cbegin( is),  cend( is)), cis.count());
                         BOOST_CHECK_EQUAL(std::distance(crbegin( is), crend( is)), cis.count());
+
+                        BOOST_CHECK(std::is_sorted( is.  begin(),  is.  end()));
+                        BOOST_CHECK(std::is_sorted(cis.  begin(), cis.  end()));
+                        BOOST_CHECK(std::is_sorted( is. rbegin(),  is. rend(), std::greater<>{}));
+                        BOOST_CHECK(std::is_sorted(cis. rbegin(), cis. rend(), std::greater<>{}));
+                        BOOST_CHECK(std::is_sorted( is. cbegin(),  is. cend()));
+                        BOOST_CHECK(std::is_sorted( is.crbegin(),  is.crend(), std::greater<>{}));
+                        BOOST_CHECK(std::is_sorted(  begin( is),   end( is)));
+                        BOOST_CHECK(std::is_sorted(  begin(cis),   end(cis)));
+                        BOOST_CHECK(std::is_sorted( rbegin( is),  rend( is), std::greater<>{}));
+                        BOOST_CHECK(std::is_sorted( rbegin(cis),  rend(cis), std::greater<>{}));
+                        BOOST_CHECK(std::is_sorted( cbegin( is),  cend( is)));
+                        BOOST_CHECK(std::is_sorted(crbegin( is), crend( is), std::greater<>{}));
                 }
         }
 };

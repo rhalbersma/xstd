@@ -81,8 +81,8 @@ auto all_doubleton_arrays(UnaryFunction fun)
         constexpr auto N = IntSet{}.size();
         using SizeType = decltype(N);
 
-        for (auto i = SizeType{0}; i < N - 1; ++i) {
-                for (auto j = SizeType{i + 1}; j < N; ++j) {
+        for (auto j = SizeType{1}; j < N; ++j) {
+                for (auto i = SizeType{0}; i < j; ++i) {
                         auto const ij2 = std::array<SizeType, 2>{{ i, j }};
                         fun(ij2);
                 }
@@ -95,8 +95,8 @@ auto all_doubleton_ilists(UnaryFunction fun)
         constexpr auto N = IntSet{}.size();
         using SizeType = decltype(N);
 
-        for (auto i = SizeType{0}; i < N - 1; ++i) {
-                for (auto j = SizeType{i + 1}; j < N; ++j) {
+        for (auto j = SizeType{1}; j < N; ++j) {
+                for (auto i = SizeType{0}; i < j; ++i) {
                         auto ij2 = { i, j };
                         fun(ij2);
                 }
@@ -109,8 +109,8 @@ auto all_doubleton_sets(UnaryFunction fun)
         constexpr auto N = IntSet{}.size();
         using SizeType = decltype(N);
 
-        for (auto i = SizeType{0}; i < N - 1; ++i) {
-                for (auto j = SizeType{i + 1}; j < N; ++j) {
+        for (auto j = SizeType{1}; j < N; ++j) {
+                for (auto i = SizeType{0}; i < j; ++i) {
                         auto const ij2 = IntSet{}.set(i).set(j);
                         fun(ij2);
                 }
