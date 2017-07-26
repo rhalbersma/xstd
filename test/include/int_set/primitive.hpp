@@ -32,7 +32,7 @@ struct constructor
 
         constexpr auto operator()(unsigned long long const /* val */) const
         {
-                                                                                // [bitset.cons]/2
+                // TODO                                                         // [bitset.cons]/2
         }
 
         template <class charT, class traits, class Allocator>
@@ -44,7 +44,7 @@ struct constructor
                 charT /* nil */ = charT('0'), charT /* one */ = charT('1')
         ) const
         {
-                                                                                // [bitset.cons]/3-5
+                // TODO                                                         // [bitset.cons]/3-5
         }
 
         template <class charT>
@@ -54,7 +54,7 @@ struct constructor
                 charT /* nil */ = charT('0'), charT /* one */ = charT('1')
         ) const
         {
-                                                                                // [bitset.cons]/6-7
+                // TODO                                                         // [bitset.cons]/6-7
         }
 
         template<class InputIterator>
@@ -868,19 +868,19 @@ struct op_at
         template<class IntSet, class SizeType>
         auto operator()(IntSet const& /* is */, SizeType const /* pos */) const
         {
-                                                                                // [bitset.members]/45-47
+                // TODO                                                         // [bitset.members]/45-47
         }
 
         template<class IntSet, class SizeType>
         auto operator()(IntSet& /* is */, SizeType const /* pos */, bool const /* value */) const
         {
-                                                                                // [bitset.members]/48-51
+                // TODO                                                         // [bitset.members]/48-51
         }
 };
 
 struct hash_
 {
-                                                                                // [bitset.hash]/1
+        // TODO                                                                 // [bitset.hash]/1
 };
 
 struct op_bitand
@@ -990,7 +990,7 @@ struct op_istream
         template<class charT, class traits, class IntSet>
         auto operator()(std::basic_istream<charT, traits>& /* istr */, IntSet& /* is */) const
         {
-                                                                                // [bitset.operators]/4-7
+                // TODO                                                         // [bitset.operators]/4-7
         }
 };
 

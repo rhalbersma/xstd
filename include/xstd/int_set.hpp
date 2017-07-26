@@ -557,7 +557,29 @@ public:
         :
                 m_data{}
         {
+                // TODO
+        }
 
+        template <class charT, class traits, class Allocator>
+        int_set(
+                const std::basic_string<charT, traits, Allocator>& /* str */,
+                typename std::basic_string<charT, traits, Allocator>::size_type /* pos */ = 0,
+                typename std::basic_string<charT, traits, Allocator>::size_type /* n */ =
+                std::basic_string<charT, traits, Allocator>::npos,
+                charT /* nil */ = charT('0'), charT /* one */ = charT('1')
+        )
+        {
+                // TODO
+        }
+
+        template <class charT>
+        int_set(
+                const charT* /* str */,
+                typename std::basic_string<charT>::size_type /* n */ = std::basic_string<charT>::npos,
+                charT /* nil */ = charT('0'), charT /* one */ = charT('1')
+        )
+        {
+                // TODO
         }
 
         template<class InputIterator>
@@ -588,12 +610,12 @@ public:
 
         auto to_ulong() const
         {
-
+                // TODO
         }
 
         auto to_ullong() const
         {
-
+                // TODO
         }
 
         template<class charT = char, class traits = std::char_traits<charT>, class Allocator = std::allocator<charT>>
@@ -1020,7 +1042,7 @@ public:
         template<class HashAlgorithm>
         friend auto hash_append(HashAlgorithm& h, int_set const& is)
         {
-                h(is.data(), is.capacity() /  std::numeric_limits<unsigned char>::digits);
+                h(is.data(), is.capacity() / std::numeric_limits<unsigned char>::digits);       // TODO
         }
 
 private:
@@ -1385,7 +1407,7 @@ constexpr auto empty(int_set<N, UIntType> const& is)
 template<class charT, class traits, int N, class UIntType>
 auto& operator>>(std::basic_istream<charT, traits>& istr, int_set<N, UIntType>& /* is */)
 {
-        return istr;
+        return istr;    // TODO
 }
 
 template<class charT, class traits, int N, class UIntType>
