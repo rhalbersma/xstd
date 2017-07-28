@@ -649,14 +649,14 @@ public:
                 -> const_reference
         {
                 assert(!empty());
-                return { *data(), find_first() };
+                return { *data(), find_front() };
         }
 
         PP_CONSTEXPR_INLINE auto back() const // Throws: Nothing.
                 -> const_reference
         {
                 assert(!empty());
-                return { *data(), find_last() };
+                return { *data(), find_back() };
         }
 
         template<class UnaryFunction>
@@ -1089,19 +1089,35 @@ private:
                 }
         }
 
-        PP_CONSTEXPR_INLINE auto find_last() const noexcept
+        PP_CONSTEXPR_INLINE auto find_front() const noexcept
         {
+                assert(!empty());
                 if constexpr (num_blocks == 1) {
-                        return detail::bsr(m_data);
+                        return detail::bsfnz(m_data);
                 } else {
-                        auto offset = num_bits - 1;
-                        for (auto i = num_blocks - 1; i > -1; --i, offset -= block_size) {
+                        auto offset = 0;
+                        for (auto i = 0; i < num_blocks - 1; ++i, offset += block_size) {
                                 if (auto const block = m_data[i]; block != zero) {
-                                        offset -= detail::clznz(block);
-                                        break;
+                                        return offset + detail::ctznz(block);
                                 }
                         }
-                        return offset;
+                        return offset + detail::ctznz(m_data[std::max(num_blocks - 1, 0)]);
+                }
+        }
+
+        PP_CONSTEXPR_INLINE auto find_back() const noexcept
+        {
+                assert(!empty());
+                if constexpr (num_blocks == 1) {
+                        return detail::bsrnz(m_data);
+                } else {
+                        auto offset = num_bits - 1;
+                        for (auto i = num_blocks - 1; i > 0; --i, offset -= block_size) {
+                                if (auto const block = m_data[i]; block != zero) {
+                                        return offset - detail::clznz(block);
+                                }
+                        }
+                        return offset - detail::clznz(m_data[0]);
                 }
         }
 
