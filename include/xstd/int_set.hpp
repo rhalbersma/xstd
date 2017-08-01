@@ -660,6 +660,50 @@ public:
         }
 
         template<class UnaryFunction>
+        PP_CONSTEXPR_INLINE auto consume(UnaryFunction fun)
+        {
+                if constexpr (num_blocks == 1) {
+                        while (m_data != zero) {
+                                auto const first = detail::bsfnz(m_data);
+                                fun(first);
+                                m_data ^= bit1(first);
+                        }
+                } else if constexpr (num_blocks >= 2) {
+                        for (auto i = 0, offset = 0; i < num_blocks; ++i, offset += block_size) {
+                                while (m_data[i] != zero) {
+                                        auto const first = detail::bsfnz(m_data[i]);
+                                        fun(offset + first);
+                                        m_data[i] ^= bit1(first);
+                                }
+                        }
+                }
+                assert(empty());
+                return std::move(fun);
+        }
+
+        template<class UnaryFunction>
+        PP_CONSTEXPR_INLINE auto reverse_consume(UnaryFunction fun)
+        {
+                if constexpr (num_blocks == 1) {
+                        while (m_data != zero) {
+                                auto const last = detail::bsrnz(m_data);
+                                fun(last);
+                                m_data ^= bit1(last);
+                        }
+                } else if constexpr (num_blocks >= 2) {
+                        for (auto i = num_blocks - 1, offset = (num_blocks - 1) * block_size; i >= 0; --i, offset -= block_size) {
+                                while (m_data[i] != zero) {
+                                        auto const last = detail::bsrnz(m_data[i]);
+                                        fun(offset + last);
+                                        m_data[i] ^= bit1(last);
+                                }
+                        }
+                }
+                assert(empty());
+                return std::move(fun);
+        }
+
+        template<class UnaryFunction>
         PP_CONSTEXPR_INLINE auto for_each(UnaryFunction fun) const
         {
                 if constexpr (num_blocks == 1) {
