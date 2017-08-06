@@ -27,7 +27,7 @@ set(cxx_compile_options_warnings_general
                 -Weverything 
                 -Wno-c++98-compat 
                 -Wno-c++98-compat-pedantic      
-				-Wno-range-loop-analysis
+                -Wno-range-loop-analysis
         >
         $<$<CXX_COMPILER_ID:GNU>:
                 -Wall
