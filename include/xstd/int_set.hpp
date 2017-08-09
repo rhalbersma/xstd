@@ -703,6 +703,53 @@ public:
                 return std::move(fun);
         }
 
+        template<class UnaryPredicate>
+        PP_CONSTEXPR_INLINE auto any_of(UnaryPredicate pred) const
+        {
+                if constexpr (num_blocks == 1) {
+                        for (auto block = m_data; block != zero; /* update inside loop */) {
+                                auto const first = detail::bsfnz(block);
+                                if (pred(first)) {
+                                        return true;
+                                }
+                                block ^= bit1(first);
+                        }
+                } else if constexpr (num_blocks >= 2) {
+                        for (auto i = 0, offset = 0; i < num_blocks; ++i, offset += block_size) {
+                                for (auto block = m_data[i]; block != zero; /* update inside loop */) {
+                                        auto const first = detail::bsfnz(block);
+                                        if (pred(first)) {
+                                                return true;
+                                        }
+                                        block ^= bit1(first);
+                                }
+                        }
+                }
+                return false;
+        }
+
+        template<class T, class BinaryOperation = std::plus<>>
+        PP_CONSTEXPR_INLINE auto accumulate(T init, BinaryOperation op = BinaryOperation{}) const
+        {
+                auto result = std::move(init);
+                if constexpr (num_blocks == 1) {
+                        for (auto block = m_data; block != zero; /* update inside loop */) {
+                                auto const first = detail::bsfnz(block);
+                                result = op(result, first);
+                                block ^= bit1(first);
+                        }
+                } else if constexpr (num_blocks >= 2) {
+                        for (auto i = 0, offset = 0; i < num_blocks; ++i, offset += block_size) {
+                                for (auto block = m_data[i]; block != zero; /* update inside loop */) {
+                                        auto const first = detail::bsfnz(block);
+                                        result = op(result, first);
+                                        block ^= bit1(first);
+                                }
+                        }
+                }
+                return result;
+        }
+
         template<class UnaryFunction>
         PP_CONSTEXPR_INLINE auto for_each(UnaryFunction fun) const
         {
