@@ -20,6 +20,8 @@ Extensions to the C++ Standard Library
 
 `<int_set>`: Rebooting the `std::bitset` franchise.
 
+An `int_set<N, UIntType = std::size_t>` is a modern reimagining of `std::bitset<N>`, keeping what time has proven to be effective, and fixing or throwing out what is not. `int_set` does less (i.e. it does not do bounds-checking, and does not throw exceptions). `int_set` also has several iteration methods which makes it easier to use with the rest of the Standard Library.
+
 License
 -------
 
