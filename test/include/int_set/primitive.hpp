@@ -8,16 +8,18 @@
 #include <int_set/traits.hpp>
 #include <xstd/bitset.hpp>
 #include <boost/test/unit_test.hpp>     // BOOST_CHECK, BOOST_CHECK_EQUAL, BOOST_CHECK_NE, BOOST_CHECK_THROW
-#include <algorithm>                    // for_each, is_sorted
+#include <algorithm>                    // any_of, for_each, is_sorted
 #include <functional>                   // greater
 #include <initializer_list>             // initializer_list
 #include <iterator>                     // distance
 #include <istream>                      // basic_istream
 #include <locale>                       // ctype, use_facet
 #include <memory>                       // addressof
+#include <numeric>                      // accumulate
 #include <sstream>                      // basic_stringstream
 #include <stdexcept>                    // invalid_argument, out_of_range, overflow_error
 #include <string>                       // basic_string
+#include <iostream>
 
 namespace xstd {
 namespace test {
@@ -188,6 +190,28 @@ struct back
                 if constexpr (tti::has_member_back_v<IntSet> && tti::has_const_iterator_v<IntSet>) {
                         BOOST_CHECK(is.none() || (is.back() == *is.rbegin()));
                         BOOST_CHECK(is.none() || (&is.back() == std::next(is.rbegin()).base()));
+                }
+        }
+};
+
+struct any_of
+{
+        template<class IntSet, class UnaryPredicate>
+        auto operator()(IntSet const& is [[maybe_unused]], UnaryPredicate pred [[maybe_unused]]) const noexcept
+        {
+                if constexpr (tti::has_member_any_of_v<IntSet, UnaryPredicate> && tti::has_const_iterator_v<IntSet>) {
+                        BOOST_CHECK_EQUAL(is.any_of(pred), std::any_of(is.begin(), is.end(), pred));
+                }
+        }
+};
+
+struct accumulate
+{
+        template<class IntSet, class T, class BinaryOperation = std::plus<>>
+        auto operator()(IntSet const& is [[maybe_unused]], T init [[maybe_unused]], BinaryOperation op [[maybe_unused]] = BinaryOperation{}) const noexcept
+        {
+                if constexpr (tti::has_member_accumulate_v<IntSet, T, BinaryOperation> && tti::has_const_iterator_v<IntSet>) {
+                        BOOST_CHECK_EQUAL(is.accumulate(init, op), std::accumulate(is.begin(), is.end(), init, op));
                 }
         }
 };

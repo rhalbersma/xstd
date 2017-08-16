@@ -661,7 +661,7 @@ public:
         }
 
         template<class UnaryPredicate>
-        PP_CONSTEXPR_INLINE auto any_of(UnaryPredicate pred) const
+        PP_CONSTEXPR_INLINE auto any_of(UnaryPredicate pred [[maybe_unused]]) const
         {
                 if constexpr (num_blocks == 1) {
                         for (auto block = m_data; block != zero; /* update inside loop */) {
@@ -675,7 +675,7 @@ public:
                         for (auto i = 0, offset = 0; i < num_blocks; ++i, offset += block_size) {
                                 for (auto block = m_data[i]; block != zero; /* update inside loop */) {
                                         auto const first = detail::bsfnz(block);
-                                        if (pred(first)) {
+                                        if (pred(offset + first)) {
                                                 return true;
                                         }
                                         block ^= bit1(first);
@@ -686,7 +686,7 @@ public:
         }
 
         template<class T, class BinaryOperation = std::plus<>>
-        PP_CONSTEXPR_INLINE auto accumulate(T init, BinaryOperation op = BinaryOperation{}) const
+        PP_CONSTEXPR_INLINE auto accumulate(T init, BinaryOperation op [[maybe_unused]] = BinaryOperation{}) const
         {
                 auto result = std::move(init);
                 if constexpr (num_blocks == 1) {
@@ -699,7 +699,7 @@ public:
                         for (auto i = 0, offset = 0; i < num_blocks; ++i, offset += block_size) {
                                 for (auto block = m_data[i]; block != zero; /* update inside loop */) {
                                         auto const first = detail::bsfnz(block);
-                                        result = op(result, first);
+                                        result = op(result, offset + first);
                                         block ^= bit1(first);
                                 }
                         }

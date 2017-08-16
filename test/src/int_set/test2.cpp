@@ -28,7 +28,7 @@ using SetTypes = boost::mpl::vector
 ,       int_set<  2, uint32_t>
 ,       int_set< 32, uint32_t>
 ,       int_set< 33, uint32_t>
-,       int_set< 34, uint32_t>
+,       int_set< 35, uint32_t>
 >;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
@@ -49,6 +49,15 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
 
         all_doubleton_sets<T>(test::const_reference{});
         all_doubleton_sets<T>(test::const_iterator{});
+
+        all_values<T>([](auto const pos) {
+                all_singleton_sets<T>([&](auto const& i1) {
+                        test::any_of{}(i1, [&](auto const elem) {
+                                return elem == pos;
+                        });
+                });
+        });
+
         all_doubleton_sets<T>(test::for_each_{});
         all_doubleton_sets<T>(test::reverse_for_each_{});
 
@@ -57,13 +66,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
         all_singleton_set_pairs<T>(test::op_xor_assign{});
         all_singleton_set_pairs<T>(test::op_minus_assign{});
 
-        all_values<T>([](auto const pos){
+        all_values<T>([](auto const pos) {
                 all_singleton_sets<T>([&](auto const& i1){
                         test::op_shift_left_assign{}(i1, pos);
                 });
         });
 
-        all_values<T>([](auto const pos){
+        all_values<T>([](auto const pos) {
                 all_singleton_sets<T>([&](auto const& i1){
                         test::op_shift_right_assign{}(i1, pos);
                 });
