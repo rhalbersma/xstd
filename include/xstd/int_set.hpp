@@ -1488,18 +1488,6 @@ constexpr auto crend(int_set<N, UIntType> const& is)
         return xstd::rend(is);
 }
 
-template<int N, class UIntType, class UnaryFunction>
-constexpr auto for_each(int_set<N, UIntType> const& is, UnaryFunction fun)
-{
-        return is.for_each(fun);
-}
-
-template<int N, class UIntType, class UnaryFunction>
-constexpr auto reverse_for_each(int_set<N, UIntType> const& is, UnaryFunction fun)
-{
-        return is.reverse_for_each(fun);
-}
-
 template<int N, class UIntType>
 constexpr auto empty(int_set<N, UIntType> const& is)
         -> decltype(is.empty())
