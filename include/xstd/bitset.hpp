@@ -11,15 +11,6 @@
 
 namespace xstd {
 
-template<std::size_t N, class UnaryFunction>
-auto for_each(std::bitset<N> const& bs, UnaryFunction fun)
-{
-        for (auto i = bs._Find_first(); i < N; i = bs._Find_next(i)) {
-                fun(i);
-        }
-        return std::move(fun);
-}
-
 template<std::size_t N>
 auto operator<(std::bitset<N> const& lhs, std::bitset<N> const& rhs)
 {

@@ -69,11 +69,19 @@ constexpr static auto has_member_accumulate_v<IntSet, T, BinaryOperation, std::v
 )>> = true;
 
 template<class IntSet, class UnaryFunction, class = void>
-constexpr static auto has_reverse_for_each_v = false;
+constexpr static auto has_member_for_each_v = false;
 
 template<class IntSet, class UnaryFunction>
-constexpr static auto has_reverse_for_each_v<IntSet, UnaryFunction, std::void_t<decltype(
-        reverse_for_each(std::declval<IntSet>(), std::declval<UnaryFunction>())
+constexpr static auto has_member_for_each_v<IntSet, UnaryFunction, std::void_t<decltype(
+        std::declval<IntSet>().for_each(std::declval<UnaryFunction>())
+)>> = true;
+
+template<class IntSet, class UnaryFunction, class = void>
+constexpr static auto has_member_reverse_for_each_v = false;
+
+template<class IntSet, class UnaryFunction>
+constexpr static auto has_member_reverse_for_each_v<IntSet, UnaryFunction, std::void_t<decltype(
+        std::declval<IntSet>().reverse_for_each(std::declval<UnaryFunction>())
 )>> = true;
 
 template<class IntSet, class = void>

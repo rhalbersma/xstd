@@ -19,7 +19,7 @@
 #include <sstream>                      // basic_stringstream
 #include <stdexcept>                    // invalid_argument, out_of_range, overflow_error
 #include <string>                       // basic_string
-#include <iostream>
+#include <vector>                       // vector
 
 namespace xstd {
 namespace test {
@@ -216,25 +216,43 @@ struct accumulate
         }
 };
 
-struct for_each_
+namespace detail {
+
+class tracer
 {
-        template<class IntSet>
-        auto operator()(IntSet const& is) const noexcept
+        std::vector<int> m_trace{};
+public:
+        auto operator()(int const elem)
         {
-                for_each(is, [&](auto const pos) {
-                        BOOST_CHECK(is[pos]);
-                });
+                m_trace.push_back(elem);
+        }
+
+        friend auto operator==(tracer const& lhs, tracer const& rhs) noexcept
+        {
+                return lhs.m_trace == rhs.m_trace;
         }
 };
 
-struct reverse_for_each_
+}       // namespace detail
+
+struct for_each
 {
         template<class IntSet>
-        auto operator()(IntSet const& is) const noexcept
+        auto operator()(IntSet const& is [[maybe_unused]]) const noexcept
         {
-                auto const lambda [[maybe_unused]]= [&](auto const pos) { BOOST_CHECK(is[pos]); };
-                if constexpr (tti::has_reverse_for_each_v<IntSet, decltype(lambda)>) {
-                        reverse_for_each(is, lambda);
+                if constexpr (tti::has_member_for_each_v<IntSet, detail::tracer> && tti::has_const_iterator_v<IntSet>) {
+                        BOOST_CHECK(is.for_each(detail::tracer{}) == std::for_each(is.begin(), is.end(), detail::tracer{}));
+                }
+        }
+};
+
+struct reverse_for_each
+{
+        template<class IntSet>
+        auto operator()(IntSet const& is [[maybe_unused]]) const noexcept
+        {
+                if constexpr (tti::has_member_for_each_v<IntSet, detail::tracer> && tti::has_const_iterator_v<IntSet>) {
+                        BOOST_CHECK(is.reverse_for_each(detail::tracer{}) == std::for_each(is.rbegin(), is.rend(), detail::tracer{}));
                 }
         }
 };

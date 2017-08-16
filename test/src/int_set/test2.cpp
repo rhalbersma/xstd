@@ -58,8 +58,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
                 });
         });
 
-        all_doubleton_sets<T>(test::for_each_{});
-        all_doubleton_sets<T>(test::reverse_for_each_{});
+        all_doubleton_sets<T>(test::for_each{});
+        all_doubleton_sets<T>(test::reverse_for_each{});
 
         all_singleton_set_pairs<T>(test::op_bitand_assign{});
         all_singleton_set_pairs<T>(test::op_bitor_assign{});

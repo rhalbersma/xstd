@@ -75,11 +75,11 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
                 test::accumulate{}(i1, 0);
         });
 
-        all_cardinality_sets<T>(test::for_each_{});
-        all_singleton_sets<T>(test::for_each_{});
+        all_cardinality_sets<T>(test::for_each{});
+        all_singleton_sets<T>(test::for_each{});
 
-        all_cardinality_sets<T>(test::reverse_for_each_{});
-        all_singleton_sets<T>(test::reverse_for_each_{});
+        all_cardinality_sets<T>(test::reverse_for_each{});
+        all_singleton_sets<T>(test::reverse_for_each{});
 
         all_singleton_sets<T>(test::set{});
         all_values<T>([](auto const pos) {
