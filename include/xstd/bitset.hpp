@@ -6,11 +6,12 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <bitset>       // bitset
+#include <cstddef>      // size_t
 #include <utility>      // move
 
 namespace xstd {
 
-template<auto N, class UnaryFunction>
+template<std::size_t N, class UnaryFunction>
 auto for_each(std::bitset<N> const& bs, UnaryFunction fun)
 {
         for (auto i = bs._Find_first(); i < N; i = bs._Find_next(i)) {
@@ -19,67 +20,67 @@ auto for_each(std::bitset<N> const& bs, UnaryFunction fun)
         return std::move(fun);
 }
 
-template<auto N>
+template<std::size_t N>
 auto operator<(std::bitset<N> const& lhs, std::bitset<N> const& rhs)
 {
         return lhs.to_string() < rhs.to_string();
 }
 
-template<auto N>
+template<std::size_t N>
 auto operator>(std::bitset<N> const& lhs, std::bitset<N> const& rhs)
 {
         return rhs < lhs;
 }
 
-template<auto N>
+template<std::size_t N>
 auto operator>=(std::bitset<N> const& lhs, std::bitset<N> const& rhs)
 {
         return !(lhs < rhs);
 }
 
-template<auto N>
+template<std::size_t N>
 auto operator<=(std::bitset<N> const& lhs, std::bitset<N> const& rhs)
 {
         return !(rhs < lhs);
 }
 
-template<auto N>
+template<std::size_t N>
 auto is_subset_of(std::bitset<N> const& lhs, std::bitset<N> const& rhs) noexcept
 {
         return (lhs & ~rhs).none();
 }
 
-template<auto N>
+template<std::size_t N>
 auto is_superset_of(std::bitset<N> const& lhs, std::bitset<N> const& rhs) noexcept
 {
         return is_subset_of(rhs, lhs);
 }
 
-template<auto N>
+template<std::size_t N>
 auto is_proper_subset_of(std::bitset<N> const& lhs, std::bitset<N> const& rhs) noexcept
 {
         return is_subset_of(lhs, rhs) && !is_subset_of(rhs, lhs);
 }
 
-template<auto N>
+template<std::size_t N>
 auto is_proper_superset_of(std::bitset<N> const& lhs, std::bitset<N> const& rhs) noexcept
 {
         return is_superset_of(lhs, rhs) && !is_superset_of(rhs, lhs);
 }
 
-template<auto N>
+template<std::size_t N>
 auto intersects(std::bitset<N> const& lhs, std::bitset<N> const& rhs) noexcept
 {
         return (lhs & rhs).any();
 }
 
-template<auto N>
+template<std::size_t N>
 auto disjoint(std::bitset<N> const& lhs, std::bitset<N> const& rhs) noexcept
 {
         return !intersects(lhs, rhs);
 }
 
-template<auto N>
+template<std::size_t N>
 auto operator-(std::bitset<N> const& lhs, std::bitset<N> const& rhs) noexcept
 {
         return lhs & ~rhs;
