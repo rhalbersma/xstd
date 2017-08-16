@@ -21,6 +21,7 @@
 #include <ostream>              // basic_ostream
 #include <stdexcept>            // out_of_range
 #include <string>               // basic_string, char_traits
+#include <tuple>                // tie
 #include <type_traits>          // conditional_t, is_integral_v, is_nothrow_swappable_v, is_pod_v, is_unsigned_v
 #include <utility>              // move, swap
 
@@ -755,7 +756,9 @@ public:
                                 return true;
                         } else if constexpr (num_blocks == 1) {
                                 return m_data == ones;
-                        } else if constexpr (num_blocks >= 2) {
+                        } else if constexpr (num_blocks == 2) {
+                                return m_data[0] == ones && m_data[1] == ones;
+                        } else if constexpr (num_blocks > 2) {
                                 return std::all_of(m_data, m_data + num_blocks, [](auto const block) {
                                         return block == ones;
                                 });
@@ -763,8 +766,10 @@ public:
                 } else {
                         if constexpr (num_blocks == 1) {
                                 return m_data == sane;
+                        } else if constexpr (num_blocks == 2) {
+                                return m_data[0] == ones && m_data[1] == sane;
                         } else {
-                                static_assert(num_blocks >= 2);
+                                static_assert(num_blocks > 2);
                                 return
                                         std::all_of(m_data, m_data + num_blocks - 1, [](auto const block) {
                                                 return block == ones;
@@ -780,7 +785,9 @@ public:
                         return true;
                 } else if constexpr (num_blocks == 1) {
                         return m_data == zero;
-                } else if constexpr (num_blocks >= 2) {
+                } else if constexpr (num_blocks == 2) {
+                        return m_data[0] == zero && m_data[1] == zero;
+                } else if constexpr (num_blocks > 2) {
                         return std::all_of(m_data, m_data + num_blocks, [](auto const block) {
                                 return block == zero;
                         });
@@ -797,7 +804,9 @@ public:
                         return 0;
                 } else if constexpr (num_blocks == 1) {
                         return detail::popcount(m_data);
-                } else if (num_blocks >= 2) {
+                } else if constexpr (num_blocks == 2) {
+                        return detail::popcount(m_data[0]) + detail::popcount(m_data[1]);
+                } else if constexpr (num_blocks > 2) {
                         return std::accumulate(m_data, m_data + num_blocks, 0, [](auto const sum, auto const block) {
                                 return sum + detail::popcount(block);
                         });
@@ -838,7 +847,10 @@ public:
         {
                 if constexpr (num_blocks == 1) {
                         m_data = ones;
-                } else if constexpr (num_blocks >= 2) {
+                } else if constexpr (num_blocks == 2) {
+                        m_data[0] = ones;
+                        m_data[1] = ones;
+                } else if constexpr (num_blocks > 2) {
                         std::fill_n(m_data, num_blocks, ones);
                 }
                 sanitize_back();
@@ -884,7 +896,10 @@ public:
         {
                 if constexpr (num_blocks == 1) {
                         m_data = zero;
-                } else if constexpr (num_blocks >= 2) {
+                } else if constexpr (num_blocks == 2) {
+                        m_data[0] = zero;
+                        m_data[1] = zero;
+                } else if constexpr (num_blocks > 2) {
                         std::fill_n(m_data, num_blocks, zero);
                 }
                 assert(empty());
@@ -905,7 +920,10 @@ public:
         {
                 if constexpr (num_blocks == 1) {
                         m_data = ~m_data;
-                } else if constexpr (num_blocks >= 2) {
+                } else if constexpr (num_blocks == 2) {
+                        m_data[0] = ~m_data[0];
+                        m_data[1] = ~m_data[1];
+                } else if constexpr (num_blocks > 2) {
                         for (auto&& block : m_data) {
                                 block = ~block;
                         }
@@ -982,7 +1000,10 @@ public:
         {
                 if constexpr (num_blocks == 1) {
                         m_data &= other.m_data;
-                } else if constexpr (num_blocks >= 2) {
+                } else if constexpr (num_blocks == 2) {
+                        m_data[0] &= other.m_data[0];
+                        m_data[1] &= other.m_data[1];
+                } else if constexpr (num_blocks > 2) {
                         for (auto i = 0; i < num_blocks; ++i) {
                                 m_data[i] &= other.m_data[i];
                         }
@@ -994,7 +1015,10 @@ public:
         {
                 if constexpr (num_blocks == 1) {
                         m_data |= other.m_data;
-                } else if constexpr (num_blocks >= 2) {
+                } else if constexpr (num_blocks == 2) {
+                        m_data[0] |= other.m_data[0];
+                        m_data[1] |= other.m_data[1];
+                } else if constexpr (num_blocks > 2) {
                         for (auto i = 0; i < num_blocks; ++i) {
                                 m_data[i] |= other.m_data[i];
                         }
@@ -1006,7 +1030,10 @@ public:
         {
                 if constexpr (num_blocks == 1) {
                         m_data ^= other.m_data;
-                } else if constexpr (num_blocks >= 2) {
+                } else if constexpr (num_blocks == 2) {
+                        m_data[0] ^= other.m_data[0];
+                        m_data[1] ^= other.m_data[1];
+                } else if constexpr (num_blocks > 2) {
                         for (auto i = 0; i < num_blocks; ++i) {
                                 m_data[i] ^= other.m_data[i];
                         }
@@ -1018,7 +1045,10 @@ public:
         {
                 if constexpr (num_blocks == 1) {
                         m_data &= ~other.m_data;
-                } else if constexpr (num_blocks >= 2) {
+                } else if constexpr (num_blocks == 2) {
+                        m_data[0] &= ~other.m_data[0];
+                        m_data[1] &= ~other.m_data[1];
+                } else if constexpr (num_blocks > 2) {
                         for (auto i = 0; i < num_blocks; ++i) {
                                 m_data[i] &= ~other.m_data[i];
                         }
@@ -1201,7 +1231,12 @@ auto operator==(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs
                 return true;
         } else if constexpr (num_blocks == 1) {
                 return lhs.m_data == rhs.m_data;
-        } else if constexpr (num_blocks >= 2) {
+        } else if constexpr (num_blocks == 2) {
+                constexpr auto tied = [](auto const& is) {
+                        return std::tie(is.m_data[0], is.m_data[1]);
+                };
+                return tied(lhs) == tied(rhs);
+        } else if constexpr (num_blocks > 2) {
                 return std::equal(
                         lhs.m_data, lhs.m_data + num_blocks,
                         rhs.m_data, rhs.m_data + num_blocks
@@ -1223,7 +1258,12 @@ auto operator<(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs)
                 return false;
         } else if constexpr (num_blocks == 1) {
                 return lhs.m_data < rhs.m_data;
-        } else if constexpr (num_blocks >= 2) {
+        } else if constexpr (num_blocks == 2) {
+                constexpr auto tied = [](auto const& is) {
+                        return std::tie(is.m_data[1], is.m_data[0]);
+                };
+                return tied(lhs) < tied(rhs);
+        } else if constexpr (num_blocks > 2) {
                 using std::crbegin; using std::crend;
                 return std::lexicographical_compare(
                         crbegin(lhs.m_data), crend(lhs.m_data),

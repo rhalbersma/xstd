@@ -30,9 +30,9 @@ using SetTypes = boost::mpl::vector
 ,       int_set< 33, uint32_t>
 ,       int_set< 34, uint32_t>
 ,       int_set< 64, uint32_t>
+,       int_set< 65, uint32_t>
+,       int_set< 96, uint32_t>
 ,       int_set< 64, uint64_t>
-,       int_set< 65, uint64_t>
-,       int_set< 66, uint64_t>
 ,       int_set<128, uint64_t>
 #if defined(__GNUG__)
 ,       int_set<128, __uint128_t>
