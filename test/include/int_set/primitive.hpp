@@ -552,7 +552,7 @@ struct flip
                 auto dst = is;
                 auto const& ret = dst.flip(pos);
                 for (auto N = is.size(), i = decltype(N){0}; i < N; ++i) {
-                        BOOST_CHECK_EQUAL(dst[i], i == pos? !src[i] : src[i]);  // [bitset.members]/26
+                        BOOST_CHECK_EQUAL(dst[i], i == pos ? !src[i] : src[i]);  // [bitset.members]/26
                 }
                 BOOST_CHECK(std::addressof(ret) == std::addressof(dst));        // [bitset.members]/27
 

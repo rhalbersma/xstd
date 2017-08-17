@@ -99,11 +99,11 @@ namespace builtin {
                 constexpr auto operator()(__uint128_t x) const // Throws: Nothing.
                 {
                         assert(x != 0);
-                        if (auto const lower = get<0>(x); lower != detail::zero<uint64_t>) {
-                                return ctznz{}(lower);
-                        } else {
-                                return ctznz{}(get<1>(x)) + 64;
-                        }
+                        return
+                                (get<0>(x) != detail::zero<uint64_t>) ?
+                                ctznz{}(get<0>(x)) :
+                                ctznz{}(get<1>(x)) + 64
+                        ;
                 }
         };
 
@@ -132,11 +132,11 @@ namespace builtin {
                 constexpr auto operator()(__uint128_t x) const // Throws: Nothing.
                 {
                         assert(x != 0);
-                        if (auto const upper = get<1>(x); upper != detail::zero<uint64_t>) {
-                                return clznz{}(upper);
-                        } else {
-                                return clznz{}(get<0>(x)) + 64;
-                        }
+                        return
+                                (get<1>(x) != detail::zero<uint64_t>) ?
+                                clznz{}(get<1>(x)) :
+                                clznz{}(get<0>(x)) + 64
+                        ;
                 }
         };
 
@@ -887,7 +887,11 @@ public:
                 if constexpr (num_blocks == 1) {
                         using std::swap;
                         swap(m_data, other.m_data);
-                } else if constexpr (num_blocks >= 2) {
+                } else if constexpr (num_blocks == 2) {
+                        using std::swap;
+                        swap(m_data[0], other.m_data[0]);
+                        swap(m_data[1], other.m_data[1]);
+                } else if constexpr (num_blocks > 2) {
                         std::swap_ranges(m_data, m_data + num_blocks, other.m_data);
                 }
         }
@@ -1171,6 +1175,12 @@ private:
                 assert(!empty());
                 if constexpr (num_blocks == 1) {
                         return detail::bsfnz(m_data);
+                } else if constexpr (num_blocks == 2) {
+                        return
+                                (m_data[0] != zero) ?
+                                detail::bsfnz(m_data[0]) :
+                                detail::bsfnz(m_data[1]) + block_size
+                        ;
                 } else {
                         auto offset = 0;
                         for (auto i = 0; i < num_blocks - 1; ++i, offset += block_size) {
@@ -1187,6 +1197,12 @@ private:
                 assert(!empty());
                 if constexpr (num_blocks == 1) {
                         return detail::bsrnz(m_data);
+                } else if constexpr (num_blocks == 2) {
+                        return
+                                (m_data[1] != zero) ?
+                                detail::bsrnz(m_data[1]) + block_size :
+                                detail::bsrnz(m_data[0])
+                        ;
                 } else {
                         auto offset = num_bits - 1;
                         for (auto i = num_blocks - 1; i > 0; --i, offset -= block_size) {
@@ -1299,7 +1315,12 @@ auto is_subset_of(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& r
                 return true;
         } else if constexpr (num_blocks == 1) {
                 return (lhs.m_data & ~rhs.m_data) == zero;
-        } else if constexpr (num_blocks >= 2) {
+        } else if constexpr (num_blocks == 2) {
+                return
+                        (lhs.m_data[0] & ~rhs.m_data[0]) == zero &&
+                        (lhs.m_data[1] & ~rhs.m_data[1]) == zero
+                ;
+        } else if constexpr (num_blocks > 2) {
                 return std::equal(
                         lhs.m_data, lhs.m_data + num_blocks,
                         rhs.m_data, rhs.m_data + num_blocks,
@@ -1337,7 +1358,12 @@ auto intersects(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs
                 return false;
         } else if constexpr (num_blocks == 1) {
                 return (lhs.m_data & rhs.m_data) != zero;
-        } else if constexpr (num_blocks >= 2) {
+        } else if constexpr (num_blocks == 2) {
+                return
+                        (lhs.m_data[0] & rhs.m_data[0]) != zero ||
+                        (lhs.m_data[1] & rhs.m_data[1]) != zero
+                ;
+        } else if constexpr (num_blocks > 2) {
                 return !std::equal(
                         lhs.m_data, lhs.m_data + num_blocks,
                         rhs.m_data, rhs.m_data + num_blocks,
