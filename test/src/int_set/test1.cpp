@@ -141,6 +141,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
                 test::test_{}(T{}, pos);
         });
 
+        all_values<T>([](auto const pos) {
+                test::test_{}(T{}, pos);
+        });
+
         all_cardinality_sets<T>(test::all{});
         all_cardinality_sets<T>(test::any{});
         all_cardinality_sets<T>(test::none{});

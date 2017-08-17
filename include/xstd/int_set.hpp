@@ -554,35 +554,6 @@ public:
 
         int_set() = default;
 
-        [[deprecated]] /* implicit */ constexpr int_set(unsigned long long const /* val */) noexcept
-        :
-                m_data{}
-        {
-                // TODO
-        }
-
-        template <class charT, class traits, class Allocator>
-        int_set(
-                const std::basic_string<charT, traits, Allocator>& /* str */,
-                typename std::basic_string<charT, traits, Allocator>::size_type /* pos */ = 0,
-                typename std::basic_string<charT, traits, Allocator>::size_type /* n */ =
-                std::basic_string<charT, traits, Allocator>::npos,
-                charT /* nil */ = charT('0'), charT /* one */ = charT('1')
-        )
-        {
-                // TODO
-        }
-
-        template <class charT>
-        int_set(
-                const charT* /* str */,
-                typename std::basic_string<charT>::size_type /* n */ = std::basic_string<charT>::npos,
-                charT /* nil */ = charT('0'), charT /* one */ = charT('1')
-        )
-        {
-                // TODO
-        }
-
         template<class InputIterator>
         constexpr int_set(InputIterator first, InputIterator last) // Throws: Nothing.
         :
@@ -607,28 +578,6 @@ public:
         {
                 assign(ilist.begin(), ilist.end());
                 return *this;
-        }
-
-        auto to_ulong() const
-        {
-                // TODO
-        }
-
-        auto to_ullong() const
-        {
-                // TODO
-        }
-
-        template<class charT = char, class traits = std::char_traits<charT>, class Allocator = std::allocator<charT>>
-        auto to_string(charT nil = charT('0'), charT one = charT('1')) const
-        {
-                auto str = std::basic_string<charT, traits, Allocator>(N, nil);
-                for (auto i = 0; i < N; ++i) {
-                        if (contains(i)) {
-                                traits::assign(str[static_cast<std::size_t>(N - 1 - i)], one);
-                        }
-                }
-                return str;
         }
 
         constexpr auto begin()         noexcept { return       iterator{data(), find_first()}; }
@@ -806,10 +755,6 @@ public:
                 }
         }
 
-        [[deprecated]] auto all() const noexcept { return full(); }
-        [[deprecated]] auto any() const noexcept { return !empty(); }
-        [[deprecated]] auto none() const noexcept { return empty(); }
-
         auto count() const noexcept
         {
                 if constexpr (num_blocks == 0) {
@@ -827,8 +772,6 @@ public:
 
         constexpr static auto max_size() noexcept { return N; }
         constexpr static auto capacity() noexcept { return num_bits; }
-
-        [[deprecated]] constexpr auto size() const noexcept { return max_size(); }
 
         constexpr auto& insert(value_type const n) // Throws: Nothing.
         {
@@ -958,60 +901,6 @@ public:
                 }
         }
 
-        [[deprecated]] auto& set(size_type const pos, bool const val = true)
-        {
-                if (static_cast<std::size_t>(pos) >= static_cast<std::size_t>(N)) {
-                        throw std::out_of_range{"int_set<N, UIntType>::set(): index out of range"};
-                }
-                return val ? insert(pos) : erase(pos);
-        }
-
-        [[deprecated]] auto& set() noexcept
-        {
-                fill();
-                return *this;
-        }
-
-        [[deprecated]] auto& reset(size_type const pos)
-        {
-                if (static_cast<std::size_t>(pos) >= static_cast<std::size_t>(N)) {
-                        throw std::out_of_range{"int_set<N, UIntType>::reset(): index out of range"};
-                }
-                return erase(pos);
-        }
-
-        [[deprecated]] auto& reset() noexcept
-        {
-                clear();
-                return *this;
-        }
-
-        [[deprecated]] auto& flip(size_type const pos)
-        {
-                if (static_cast<std::size_t>(pos) >= static_cast<std::size_t>(N)) {
-                        throw std::out_of_range{"int_set<N, UIntType>::flip(): index out of range"};
-                }
-                return toggle(pos);
-        }
-
-        [[deprecated]] auto& flip() noexcept
-        {
-                return toggle();
-        }
-
-        [[deprecated]] constexpr auto operator[](size_type const pos) const // Throws: Nothing.
-        {
-                return contains(pos);
-        }
-
-        [[deprecated]] auto test(size_type const pos) const
-        {
-                if (static_cast<std::size_t>(pos) >= static_cast<std::size_t>(N)) {
-                        throw std::out_of_range{"int_set<N, UIntType>::test(): index out of range"};
-                }
-                return contains(pos);
-        }
-
         constexpr auto& operator&=(int_set const& other) noexcept
         {
                 if constexpr (num_blocks == 1) {
@@ -1138,6 +1027,65 @@ public:
                 h(is.data(), is.capacity() / std::numeric_limits<unsigned char>::digits);       // TODO
         }
 
+        [[deprecated]] auto& set() noexcept
+        {
+                fill();
+                return *this;
+        }
+
+        [[deprecated]] auto& set(size_type const pos, bool const val = true)
+        {
+                if (static_cast<std::size_t>(pos) >= static_cast<std::size_t>(N)) {
+                        throw std::out_of_range{"int_set<N, UIntType>::set(): index out of range"};
+                }
+                return val ? insert(pos) : erase(pos);
+        }
+
+        [[deprecated]] auto& reset() noexcept
+        {
+                clear();
+                return *this;
+        }
+
+        [[deprecated]] auto& reset(size_type const pos)
+        {
+                if (static_cast<std::size_t>(pos) >= static_cast<std::size_t>(N)) {
+                        throw std::out_of_range{"int_set<N, UIntType>::reset(): index out of range"};
+                }
+                return erase(pos);
+        }
+
+        [[deprecated]] auto& flip() noexcept
+        {
+                return toggle();
+        }
+
+        [[deprecated]] auto& flip(size_type const pos)
+        {
+                if (static_cast<std::size_t>(pos) >= static_cast<std::size_t>(N)) {
+                        throw std::out_of_range{"int_set<N, UIntType>::flip(): index out of range"};
+                }
+                return toggle(pos);
+        }
+
+        [[deprecated]] constexpr auto size() const noexcept { return max_size(); }
+
+        [[deprecated]] auto test(size_type const pos) const
+        {
+                if (static_cast<std::size_t>(pos) >= static_cast<std::size_t>(N)) {
+                        throw std::out_of_range{"int_set<N, UIntType>::test(): index out of range"};
+                }
+                return contains(pos);
+        }
+
+        [[deprecated]] auto all() const noexcept { return full(); }
+        [[deprecated]] auto any() const noexcept { return !empty(); }
+        [[deprecated]] auto none() const noexcept { return empty(); }
+
+        [[deprecated]] constexpr auto operator[](size_type const pos) const // Throws: Nothing.
+        {
+                return contains(pos);
+        }
 private:
         constexpr static auto zero = detail::zero<block_type>;
         constexpr static auto ones = detail::ones<block_type>;
@@ -1531,21 +1479,6 @@ constexpr auto empty(int_set<N, UIntType> const& is)
         -> decltype(is.empty())
 {
         return is.empty();
-}
-
-template<class charT, class traits, int N, class UIntType>
-auto& operator>>(std::basic_istream<charT, traits>& istr, int_set<N, UIntType>& /* is */)
-{
-        return istr;    // TODO
-}
-
-template<class charT, class traits, int N, class UIntType>
-auto& operator<<(std::basic_ostream<charT, traits>& ostr, int_set<N, UIntType> const& is)
-{
-        return ostr << is.template to_string<charT, traits, std::allocator<charT>>(
-                std::use_facet<std::ctype<charT>>(ostr.getloc()).widen('0'),
-                std::use_facet<std::ctype<charT>>(ostr.getloc()).widen('1')
-        );
 }
 
 }       // namespace xstd

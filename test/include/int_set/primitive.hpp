@@ -33,33 +33,6 @@ struct constructor
                 BOOST_CHECK(IntSet{}.none());                                   // [bitset.cons]/1
         }
 
-        constexpr auto operator()(unsigned long long const /* val */) const
-        {
-                // TODO                                                         // [bitset.cons]/2
-        }
-
-        template <class charT, class traits, class Allocator>
-        auto operator()(
-                const std::basic_string<charT, traits, Allocator>& /* str */,
-                typename std::basic_string<charT, traits, Allocator>::size_type /* pos */ = 0,
-                typename std::basic_string<charT, traits, Allocator>::size_type /* n */ =
-                std::basic_string<charT, traits, Allocator>::npos,
-                charT /* nil */ = charT('0'), charT /* one */ = charT('1')
-        ) const
-        {
-                // TODO                                                         // [bitset.cons]/3-5
-        }
-
-        template <class charT>
-        auto operator()(
-                const charT* /* str */,
-                typename std::basic_string<charT>::size_type /* n */ = std::basic_string<charT>::npos,
-                charT /* nil */ = charT('0'), charT /* one */ = charT('1')
-        ) const
-        {
-                // TODO                                                         // [bitset.cons]/6-7
-        }
-
         template<class InputIterator>
         auto operator()(InputIterator first [[maybe_unused]], InputIterator last [[maybe_unused]]) const
         {
@@ -713,7 +686,6 @@ struct op_less
                         if (!b[r] && a[r]) {                  break; }
                 }
                 BOOST_CHECK_EQUAL(a < b, expected);
-                BOOST_CHECK_EQUAL(a < b, a.to_string() < b.to_string());
 
                 if constexpr (tti::has_const_iterator_v<IntSet>) {
                         BOOST_CHECK_EQUAL(a < b, std::lexicographical_compare(a.rbegin(), a.rend(), b.rbegin(), b.rend()));
@@ -947,15 +919,10 @@ struct op_shift_right
 struct op_at
 {
         template<class IntSet, class SizeType>
-        auto operator()(IntSet const& /* is */, SizeType const /* pos */) const
+        auto operator()(IntSet const& is, SizeType const pos) const
         {
-                // TODO                                                         // [bitset.members]/45-47
-        }
-
-        template<class IntSet, class SizeType>
-        auto operator()(IntSet& /* is */, SizeType const /* pos */, bool const /* value */) const
-        {
-                // TODO                                                         // [bitset.members]/48-51
+                BOOST_CHECK(0 <= pos && pos < is.size());                       // [bitset.members]/45
+                BOOST_CHECK_EQUAL(is[pos], is.test(pos));                       // [bitset.members]/46
         }
 };
 
@@ -1091,29 +1058,6 @@ struct op_minus
                         std::set_difference(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(rhs));
                         BOOST_CHECK(std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
                 }
-        }
-};
-
-struct op_istream
-{
-        template<class charT, class traits, class IntSet>
-        auto operator()(std::basic_istream<charT, traits>& /* istr */, IntSet& /* is */) const
-        {
-                // TODO                                                         // [bitset.operators]/4-7
-        }
-};
-
-struct op_ostream
-{
-        template<class charT, class traits, class IntSet>
-        auto operator()(std::basic_stringstream<charT, traits>& ostr, IntSet const& is) const
-        {
-                auto const expected = is.template to_string<charT, traits, std::allocator<charT>>(
-                        std::use_facet<std::ctype<charT>>(ostr.getloc()).widen('0'),
-                        std::use_facet<std::ctype<charT>>(ostr.getloc()).widen('1')
-                );
-                ostr << is;
-                BOOST_CHECK_EQUAL(ostr.str(), expected);                        // [bitset.operators]/8
         }
 };
 

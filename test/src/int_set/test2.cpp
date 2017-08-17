@@ -144,11 +144,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
         all_singleton_set_pairs<T>(test::op_bitor{});
         all_singleton_set_pairs<T>(test::op_xor{});
         all_singleton_set_pairs<T>(test::op_minus{});
-
-        all_doubleton_sets<T>([](auto const& i2) {
-                std::stringstream sstr;
-                test::op_ostream{}(sstr, i2);
-        });
 }
 
 BOOST_AUTO_TEST_SUITE_END()
