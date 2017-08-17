@@ -8,10 +8,11 @@
 #include <int_set/traits.hpp>
 #include <xstd/bitset.hpp>
 #include <boost/test/unit_test.hpp>     // BOOST_CHECK, BOOST_CHECK_EQUAL, BOOST_CHECK_NE, BOOST_CHECK_THROW
-#include <algorithm>                    // any_of, for_each, is_sorted
-#include <functional>                   // greater
+#include <algorithm>                    // any_of, equal, for_each, includes, is_sorted, lexicographical_compare,
+                                        // set_intersection, set_union, set_symmetric_difference, set_difference
+#include <functional>                   // greater, plus
 #include <initializer_list>             // initializer_list
-#include <iterator>                     // distance
+#include <iterator>                     // back_inserter, distance, next
 #include <istream>                      // basic_istream
 #include <locale>                       // ctype, use_facet
 #include <memory>                       // addressof
@@ -597,6 +598,10 @@ struct count
                         expected += is[i];
                 }
                 BOOST_CHECK_EQUAL(is.count(), expected);                        // [bitset.members]/34
+
+                if constexpr (tti::has_const_iterator_v<IntSet>) {
+                        BOOST_CHECK_EQUAL(is.count(), std::distance(is.begin(), is.end()));
+                }
         }
 };
 
@@ -645,6 +650,10 @@ struct op_equal_to
                 }
                 BOOST_CHECK_EQUAL(a == b, expected);                            // [bitset.members]/36
                 BOOST_CHECK_EQUAL(a == b, b == a);                              // symmetric
+
+                if constexpr (tti::has_const_iterator_v<IntSet>) {
+                        BOOST_CHECK_EQUAL(a == b, std::equal(a.begin(), a.end(), b.begin(), b.end()));
+                }
         }
 };
 
@@ -683,6 +692,10 @@ struct op_less
                 }
                 BOOST_CHECK_EQUAL(a < b, expected);
                 BOOST_CHECK_EQUAL(a < b, a.to_string() < b.to_string());
+
+                if constexpr (tti::has_const_iterator_v<IntSet>) {
+                        BOOST_CHECK_EQUAL(a < b, std::lexicographical_compare(a.rbegin(), a.rend(), b.rbegin(), b.rend()));
+                }
         }
 };
 
@@ -747,6 +760,10 @@ struct is_subset_of_
                         expected &= !a[i] || b[i];
                 }
                 BOOST_CHECK_EQUAL(is_subset_of(a, b), expected);
+
+                if constexpr (tti::has_const_iterator_v<IntSet>) {
+                        BOOST_CHECK_EQUAL(is_subset_of(a, b), std::includes(a.begin(), a.end(), b.begin(), b.end()));
+                }
         }
 };
 
@@ -934,13 +951,20 @@ struct op_bitand
         }
 
         template<class IntSet>
-        constexpr auto operator()(IntSet const& a, IntSet const& b) const noexcept
+        auto operator()(IntSet const& a, IntSet const& b) const noexcept
         {
                 auto expected = a; expected &= b;
                 BOOST_CHECK((a & b) == expected);                               // [bitset.operators]/1
                 BOOST_CHECK((a & b) == (b & a));                                // commutative
                 BOOST_CHECK(is_subset_of(a & b, a));
                 BOOST_CHECK(is_subset_of(a & b, b));
+
+                if constexpr (tti::has_const_iterator_v<IntSet>) {
+                        auto const lhs = a & b;
+                        auto rhs = std::vector<int>{};
+                        std::set_intersection(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(rhs));
+                        BOOST_CHECK(std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
+                }
         }
 
         template<class IntSet>
@@ -960,13 +984,20 @@ struct op_bitor
         }
 
         template<class IntSet>
-        constexpr auto operator()(IntSet const& a, IntSet const& b) const noexcept
+        auto operator()(IntSet const& a, IntSet const& b) const noexcept
         {
                 auto expected = a; expected |= b;
                 BOOST_CHECK((a | b) == expected);                               // [bitset.operators]/2
                 BOOST_CHECK((a | b) == (b | a));                                // commutative
                 BOOST_CHECK(is_subset_of(a, a | b));
                 BOOST_CHECK(is_subset_of(b, a | b));
+
+                if constexpr (tti::has_const_iterator_v<IntSet>) {
+                        auto const lhs = a | b;
+                        auto rhs = std::vector<int>{};
+                        std::set_union(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(rhs));
+                        BOOST_CHECK(std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
+                }
         }
 
         template<class IntSet>
@@ -986,13 +1017,20 @@ struct op_xor
         }
 
         template<class IntSet>
-        constexpr auto operator()(IntSet const& a, IntSet const& b) const noexcept
+        auto operator()(IntSet const& a, IntSet const& b) const noexcept
         {
                 auto expected = a; expected ^= b;
                 BOOST_CHECK((a ^ b) == expected);                               // [bitset.operators]/3
                 BOOST_CHECK((a ^ b) == (b ^ a));                                // commutative
                 BOOST_CHECK((a ^ b) == ((a - b) | (b - a)));
                 BOOST_CHECK((a ^ b) == (a | b) - (a & b));
+
+                if constexpr (tti::has_const_iterator_v<IntSet>) {
+                        auto const lhs = a ^ b;
+                        auto rhs = std::vector<int>{};
+                        std::set_symmetric_difference(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(rhs));
+                        BOOST_CHECK(std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
+                }
         }
 
         template<class IntSet>
@@ -1012,7 +1050,7 @@ struct op_minus
         }
 
         template<class IntSet>
-        constexpr auto operator()(IntSet const& a, IntSet const& b) const noexcept
+        auto operator()(IntSet const& a, IntSet const& b) const noexcept
         {
                 if constexpr (tti::has_member_op_minus_assign_v<IntSet>) {
                         auto expected = a; expected -= b;
@@ -1024,6 +1062,13 @@ struct op_minus
                 BOOST_CHECK(a - b == a - (a & b));
                 BOOST_CHECK(is_subset_of(a - b, a));
                 BOOST_CHECK(disjoint(a - b, b));
+
+                if constexpr (tti::has_const_iterator_v<IntSet>) {
+                        auto const lhs = a - b;
+                        auto rhs = std::vector<int>{};
+                        std::set_difference(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(rhs));
+                        BOOST_CHECK(std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
+                }
         }
 };
 
