@@ -238,6 +238,22 @@ struct for_each
         {
                 if constexpr (tti::has_member_for_each_v<IntSet, detail::tracer> && tti::has_const_iterator_v<IntSet>) {
                         BOOST_CHECK(is.for_each(detail::tracer{}) == std::for_each(is.begin(), is.end(), detail::tracer{}));
+
+                        {
+                                auto fun = detail::tracer{};
+                                for (auto first = is.begin(), last = is.end(); first != last; first++ /* post-increment to hit code coverage */) {
+                                        fun(*first);
+                                }
+                                BOOST_CHECK(is.for_each(detail::tracer{}) == std::move(fun));
+                        }
+
+                        {
+                                auto fun = detail::tracer{};
+                                for (auto&& elem : is) {
+                                        fun(elem);
+                                }
+                                BOOST_CHECK(is.for_each(detail::tracer{}) == std::move(fun));
+                        }
                 }
         }
 };
@@ -249,6 +265,14 @@ struct reverse_for_each
         {
                 if constexpr (tti::has_member_for_each_v<IntSet, detail::tracer> && tti::has_const_iterator_v<IntSet>) {
                         BOOST_CHECK(is.reverse_for_each(detail::tracer{}) == std::for_each(is.rbegin(), is.rend(), detail::tracer{}));
+
+                        {
+                                auto fun = detail::tracer{};
+                                for (auto first = is.end(), last = is.begin(); first != last; first-- /* post-decrement in condition to hit code coverage */) {
+                                        fun(*std::prev(first));
+                                }
+                                BOOST_CHECK(is.reverse_for_each(detail::tracer{}) == std::move(fun));
+                        }
                 }
         }
 };

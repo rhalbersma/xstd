@@ -1130,7 +1130,7 @@ private:
                 }
         }
 
-        PP_CONSTEXPR_INLINE auto find_front() const noexcept
+        PP_CONSTEXPR_INLINE auto find_front() const // Throws: Nothing.
         {
                 assert(!empty());
                 if constexpr (num_blocks == 1) {
@@ -1152,7 +1152,7 @@ private:
                 }
         }
 
-        PP_CONSTEXPR_INLINE auto find_back() const noexcept
+        PP_CONSTEXPR_INLINE auto find_back() const // Throws: Nothing.
         {
                 assert(!empty());
                 if constexpr (num_blocks == 1) {
@@ -1176,6 +1176,7 @@ private:
 
         constexpr static auto bit1(value_type const n)  // Throws: Nothing.
         {
+                assert(0 <= n); assert(n < num_bits);
                 return detail::bit1<block_type>(n);
         }
 
