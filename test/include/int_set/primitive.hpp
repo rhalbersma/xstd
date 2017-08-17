@@ -206,6 +206,28 @@ struct any_of
         }
 };
 
+struct none_of
+{
+        template<class IntSet, class UnaryPredicate>
+        auto operator()(IntSet const& is [[maybe_unused]], UnaryPredicate pred [[maybe_unused]]) const noexcept
+        {
+                if constexpr (tti::has_member_none_of_v<IntSet, UnaryPredicate> && tti::has_const_iterator_v<IntSet>) {
+                        BOOST_CHECK_EQUAL(is.none_of(pred), std::none_of(is.begin(), is.end(), pred));
+                }
+        }
+};
+
+struct all_of
+{
+        template<class IntSet, class UnaryPredicate>
+        auto operator()(IntSet const& is [[maybe_unused]], UnaryPredicate pred [[maybe_unused]]) const noexcept
+        {
+                if constexpr (tti::has_member_all_of_v<IntSet, UnaryPredicate> && tti::has_const_iterator_v<IntSet>) {
+                        BOOST_CHECK_EQUAL(is.all_of(pred), std::all_of(is.begin(), is.end(), pred));
+                }
+        }
+};
+
 struct accumulate
 {
         template<class IntSet, class T, class BinaryOperation = std::plus<>>

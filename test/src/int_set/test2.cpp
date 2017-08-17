@@ -58,6 +58,22 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
                 });
         });
 
+        all_values<T>([](auto const pos) {
+                all_singleton_sets<T>([&](auto const& i1) {
+                        test::none_of{}(i1, [&](auto const elem) {
+                                return elem == pos;
+                        });
+                });
+        });
+
+        all_values<T>([](auto const pos) {
+                all_singleton_sets<T>([&](auto const& i1) {
+                        test::all_of{}(i1, [&](auto const elem) {
+                                return elem == pos;
+                        });
+                });
+        });
+
         all_doubleton_sets<T>(test::for_each{});
         all_doubleton_sets<T>(test::reverse_for_each{});
 

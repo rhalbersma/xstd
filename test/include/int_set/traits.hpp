@@ -60,6 +60,22 @@ constexpr static auto has_member_any_of_v<IntSet, UnaryPredicate, std::void_t<de
         std::declval<IntSet>().any_of(std::declval<UnaryPredicate>())
 )>> = true;
 
+template<class IntSet, class UnaryPredicate, class = void>
+constexpr static auto has_member_none_of_v = false;
+
+template<class IntSet, class UnaryPredicate>
+constexpr static auto has_member_none_of_v<IntSet, UnaryPredicate, std::void_t<decltype(
+        std::declval<IntSet>().none_of(std::declval<UnaryPredicate>())
+)>> = true;
+
+template<class IntSet, class UnaryPredicate, class = void>
+constexpr static auto has_member_all_of_v = false;
+
+template<class IntSet, class UnaryPredicate>
+constexpr static auto has_member_all_of_v<IntSet, UnaryPredicate, std::void_t<decltype(
+        std::declval<IntSet>().all_of(std::declval<UnaryPredicate>())
+)>> = true;
+
 template<class IntSet, class T, class BinaryOperation, class = void>
 constexpr static auto has_member_accumulate_v = false;
 

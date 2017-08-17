@@ -10,7 +10,7 @@
 #include <cassert>              // assert
 #include <cstddef>              // size_t
 #include <cstdint>              // uint64_t
-#include <functional>           // less
+#include <functional>           // less, not_fn
 #include <initializer_list>     // initializer_list
 #include <istream>              // basic_istream
 #include <iterator>             // bidirectional_iterator_tag, crbegin, crend, rbegin, reverse_iterator
@@ -683,6 +683,18 @@ public:
                         }
                 }
                 return false;
+        }
+
+        template<class UnaryPredicate>
+        PP_CONSTEXPR_INLINE auto none_of(UnaryPredicate pred [[maybe_unused]]) const
+        {
+                return !any_of(pred);
+        }
+
+        template<class UnaryPredicate>
+        PP_CONSTEXPR_INLINE auto all_of(UnaryPredicate pred [[maybe_unused]]) const
+        {
+                return !any_of(std::not_fn(pred));
         }
 
         template<class T, class BinaryOperation = std::plus<>>
