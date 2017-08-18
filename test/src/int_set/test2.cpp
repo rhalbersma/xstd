@@ -28,7 +28,7 @@ using SetTypes = boost::mpl::vector
 ,       int_set<  2, uint32_t>
 ,       int_set< 32, uint32_t>
 ,       int_set< 33, uint32_t>
-,       int_set< 35, uint32_t>
+,       int_set< 34, uint32_t>
 >;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
