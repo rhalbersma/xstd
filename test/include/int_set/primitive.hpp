@@ -150,8 +150,8 @@ struct front
         auto operator()(IntSet const& is) const noexcept
         {
                 if constexpr (tti::has_member_front_v<IntSet> && tti::has_const_iterator_v<IntSet>) {
-                        BOOST_CHECK(is.none() || (is.front() == *is.begin()));
-                        BOOST_CHECK(is.none() || (&is.front() == is.begin()));
+                        BOOST_CHECK(is.empty() || (is.front() == *is.begin()));
+                        BOOST_CHECK(is.empty() || (&is.front() == is.begin()));
                 }
         }
 };
@@ -162,8 +162,8 @@ struct back
         auto operator()(IntSet const& is) const noexcept
         {
                 if constexpr (tti::has_member_back_v<IntSet> && tti::has_const_iterator_v<IntSet>) {
-                        BOOST_CHECK(is.none() || (is.back() == *is.rbegin()));
-                        BOOST_CHECK(is.none() || (&is.back() == std::next(is.rbegin()).base()));
+                        BOOST_CHECK(is.empty() || (is.back() == *is.rbegin()));
+                        BOOST_CHECK(is.empty() || (&is.back() == std::next(is.rbegin()).base()));
                 }
         }
 };
