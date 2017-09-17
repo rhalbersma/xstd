@@ -7,6 +7,7 @@
 
 #include <cassert>      // assert
 #include <cstddef>      // size_t
+#include <iosfwd>
 #include <tuple>        // tie
 
 namespace xstd {
