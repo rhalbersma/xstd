@@ -15,18 +15,27 @@ BOOST_AUTO_TEST_SUITE(Constant)
 using namespace xstd;
 
 using SetTypes = boost::mpl::vector
-<
-        std::bitset<  0>,
-        std::bitset<  1>,
-        std::bitset< 33>,
-        std::bitset< 65>,
-        std::bitset<128>,
-            int_set<  0>,
-            int_set<  1>,
-            int_set< 32>,
-            int_set< 64>,
-            int_set<128>,
-            int_set<256>
+<       std::bitset<  0>
+,       std::bitset< 32>
+,       std::bitset< 64>
+,       std::bitset< 96>
+,       std::bitset<128>
+,       int_set<  0, uint32_t>
+,       int_set<  1, uint32_t>
+,       int_set<  2, uint32_t>
+,       int_set< 32, uint32_t>
+,       int_set< 33, uint32_t>
+,       int_set< 34, uint32_t>
+,       int_set< 64, uint32_t>
+,       int_set< 65, uint32_t>
+,       int_set< 66, uint32_t>
+,       int_set< 96, uint32_t>
+,       int_set< 64, uint64_t>
+,       int_set<128, uint64_t>
+#if defined(__GNUG__)
+,       int_set<128, __uint128_t>
+,       int_set<256, __uint128_t>
+#endif
 >;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)

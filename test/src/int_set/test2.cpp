@@ -18,17 +18,12 @@ using namespace xstd;
 
 using SetTypes = boost::mpl::vector
 <       std::bitset<  0>
-,       std::bitset<  1>
-,       std::bitset<  2>
 ,       std::bitset< 32>
-,       std::bitset< 33>
-,       std::bitset< 34>
+,       std::bitset< 64>
 ,       int_set<  0, uint32_t>
 ,       int_set<  1, uint32_t>
-,       int_set<  2, uint32_t>
-,       int_set< 32, uint32_t>
 ,       int_set< 33, uint32_t>
-,       int_set< 34, uint32_t>
+,       int_set< 65, uint32_t>
 >;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
@@ -77,10 +72,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
         all_doubleton_sets<T>(test::for_each{});
         all_doubleton_sets<T>(test::reverse_for_each{});
 
-        all_singleton_set_pairs<T>(test::op_bitand_assign{});
-        all_singleton_set_pairs<T>(test::op_bitor_assign{});
-        all_singleton_set_pairs<T>(test::op_xor_assign{});
-        all_singleton_set_pairs<T>(test::op_minus_assign{});
+        all_singleton_set_pairs<T>(test::op_bitand_assign{});   // implementation of operator&= branches on num_blocks >= 3
+        all_singleton_set_pairs<T>(test::op_bitor_assign{});    // implementation of operator&= branches on num_blocks >= 3
+        all_singleton_set_pairs<T>(test::op_xor_assign{});      // implementation of operator&= branches on num_blocks >= 3
+        all_singleton_set_pairs<T>(test::op_minus_assign{});    // implementation of operator&= branches on num_blocks >= 3
 
         all_values<T>([](auto const pos) {
                 all_singleton_sets<T>([&](auto const& i1){
@@ -108,25 +103,25 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
                 test::erase{}(T{}, ilist2);
         });
 
-        all_singleton_set_pairs<T>(test::swap_{});
+        all_singleton_set_pairs<T>(test::swap_{});              // implementation of swap() branches on num_blocks >= 3
 
         all_singleton_set_pairs<T>(test::op_compl{});
 
-        all_singleton_set_pairs<T>(test::op_equal_to{});
+        all_singleton_set_pairs<T>(test::op_equal_to{});        // implementation of operator== branches on num_blocks >= 3
         all_singleton_set_pairs<T>(test::op_not_equal_to{});
 
-        all_singleton_set_pairs<T>(test::op_less{});
+        all_singleton_set_pairs<T>(test::op_less{});            // implementation of operator< branches on num_blocks >= 3
         all_singleton_set_pairs<T>(test::op_greater{});
         all_singleton_set_pairs<T>(test::op_greater_equal{});
         all_singleton_set_pairs<T>(test::op_less_equal{});
 
-        all_singleton_set_pairs<T>(test::intersects_{});
-        all_singleton_set_pairs<T>(test::disjoint_{});
-
-        all_singleton_set_pairs<T>(test::is_subset_of_{});
+        all_singleton_set_pairs<T>(test::is_subset_of_{});      // implementation of is_subset_of() branches on num_blocks >= 3
         all_singleton_set_pairs<T>(test::is_superset_of_{});
         all_singleton_set_pairs<T>(test::is_proper_subset_of_{});
         all_singleton_set_pairs<T>(test::is_proper_superset_of_{});
+
+        all_singleton_set_pairs<T>(test::intersects_{});        // implementation of intersects() branches on num_blocks >= 3
+        all_singleton_set_pairs<T>(test::disjoint_{});
 
         all_values<T>([](auto const pos){
                 all_singleton_sets<T>([&](auto const& i1){

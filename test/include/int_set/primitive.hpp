@@ -97,11 +97,11 @@ struct const_reference
                                 auto const ref = *first;
 
                                 BOOST_CHECK(&ref == first);
-                                BOOST_CHECK(is[ref]);
+                                BOOST_CHECK(is.contains(ref));
                         }
 
                         for (auto&& ref : is) {
-                                BOOST_CHECK(is[ref]);
+                                BOOST_CHECK(is.contains(ref));
                         }
                 }
         }
@@ -268,7 +268,7 @@ struct reverse_for_each
 
                         {
                                 auto fun = detail::tracer{};
-                                for (auto first = is.end(), last = is.begin(); first != last; first-- /* post-decrement in condition to hit code coverage */) {
+                                for (auto first = is.end(), last = is.begin(); first != last; first-- /* post-decrement to hit code coverage */) {
                                         fun(*std::prev(first));
                                 }
                                 BOOST_CHECK(is.reverse_for_each(detail::tracer{}) == std::move(fun));
@@ -571,39 +571,12 @@ struct flip
                 auto dst = is;
                 auto const& ret = dst.flip(pos);
                 for (auto N = is.size(), i = decltype(N){0}; i < N; ++i) {
-                        BOOST_CHECK_EQUAL(dst[i], i == pos ? !src[i] : src[i]);  // [bitset.members]/26
+                        BOOST_CHECK_EQUAL(dst[i], i == pos ? !src[i] : src[i]); // [bitset.members]/26
                 }
                 BOOST_CHECK(std::addressof(ret) == std::addressof(dst));        // [bitset.members]/27
 
                 dst.flip(pos);
                 BOOST_CHECK(dst == src);                                        // involution
-        }
-};
-
-struct to_ulong
-{
-        template<class IntSet>
-        auto operator()(IntSet const& /* is */) const noexcept
-        {
-                                                                                // [bitset.members]/28-29
-        }
-};
-
-struct to_ullong
-{
-        template<class IntSet>
-        auto operator()(IntSet const& /* is */) const noexcept
-        {
-                                                                                // [bitset.members]/30-31
-        }
-};
-
-struct to_string
-{
-        template<class IntSet>
-        auto operator()(IntSet const& /* is */) const noexcept
-        {
-                                                                                // [bitset.members]/32-33
         }
 };
 
@@ -948,11 +921,6 @@ struct op_at
                 BOOST_CHECK(0 <= pos && pos < is.size());                       // [bitset.members]/45
                 BOOST_CHECK_EQUAL(is[pos], is.test(pos));                       // [bitset.members]/46
         }
-};
-
-struct hash_
-{
-        // TODO                                                                 // [bitset.hash]/1
 };
 
 struct op_bitand

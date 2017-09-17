@@ -17,11 +17,9 @@ using namespace xstd;
 
 using SetTypes = boost::mpl::vector
 <       std::bitset<  0>
-,       std::bitset<  1>
-,       std::bitset<  2>
+,       std::bitset< 32>
 ,       std::bitset< 64>
-,       std::bitset< 65>
-,       std::bitset< 66>
+,       std::bitset< 96>
 ,       std::bitset<128>
 ,       int_set<  0, uint32_t>
 ,       int_set<  1, uint32_t>
@@ -31,6 +29,7 @@ using SetTypes = boost::mpl::vector
 ,       int_set< 34, uint32_t>
 ,       int_set< 64, uint32_t>
 ,       int_set< 65, uint32_t>
+,       int_set< 66, uint32_t>
 ,       int_set< 96, uint32_t>
 ,       int_set< 64, uint64_t>
 ,       int_set<128, uint64_t>
@@ -81,7 +80,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
         all_cardinality_sets<T>(test::reverse_for_each{});
         all_singleton_sets<T>(test::reverse_for_each{});
 
-        all_singleton_sets<T>(test::set{});
+        all_singleton_sets<T>(test::set{});                     // implementation of fill() branches on excess_bits, and on num_blocks >= 3
         all_values<T>([](auto const pos) {
                 test::set{}(T{}, pos);
                 test::set{}(T{}, pos, true);
@@ -95,7 +94,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
                 test::insert{}(T{}, ilist1);
         });
 
-        all_singleton_sets<T>(test::reset{});
+        all_singleton_sets<T>(test::reset{});                   // implementation of clear() branches on num_blocks >= 3
         all_values<T>([](auto const pos) {
                 test::reset{}(~T{}, pos);
         });
@@ -108,12 +107,12 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
         });
 
         all_singleton_sets<T>(test::op_compl{});
-        all_singleton_sets<T>(test::flip{});
+        all_singleton_sets<T>(test::flip{});                    // implementation of toggle() branches on excess_bits, and on num_blocks >= 3
         all_values<T>([](auto const pos) {
                 test::flip{}(T{}, pos);
         });
 
-        all_cardinality_sets<T>(test::count{});
+        all_cardinality_sets<T>(test::count{});                 // implementation of count() branches on num_blocks >= 3
         all_singleton_sets<T>(test::size{});
 
         all_cardinality_sets<T>(test::op_equal_to{});
@@ -141,13 +140,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
                 test::test_{}(T{}, pos);
         });
 
-        all_values<T>([](auto const pos) {
-                test::test_{}(T{}, pos);
-        });
-
-        all_cardinality_sets<T>(test::all{});
+        all_cardinality_sets<T>(test::all{});                   // implementation of full() branches on excess_bits, and on num_blocks >= 3
         all_cardinality_sets<T>(test::any{});
-        all_cardinality_sets<T>(test::none{});
+        all_cardinality_sets<T>(test::none{});                  // implementation of empty() branches on num_blocks >= 3
+
+        all_values<T>([](auto const pos) {
+                test::op_at{}(T{}, pos);
+        });
 
         all_singleton_sets<T>(test::op_bitand{});
         all_singleton_sets<T>(test::op_bitor{});

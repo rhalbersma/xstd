@@ -719,7 +719,7 @@ public:
                                 return m_data == ones;
                         } else if constexpr (num_blocks == 2) {
                                 return m_data[0] == ones && m_data[1] == ones;
-                        } else if constexpr (num_blocks > 2) {
+                        } else if constexpr (num_blocks >= 3) {
                                 return std::all_of(m_data, m_data + num_blocks, [](auto const block) {
                                         return block == ones;
                                 });
@@ -730,7 +730,7 @@ public:
                         } else if constexpr (num_blocks == 2) {
                                 return m_data[0] == ones && m_data[1] == sane;
                         } else {
-                                static_assert(num_blocks > 2);
+                                static_assert(num_blocks >= 3);
                                 return
                                         std::all_of(m_data, m_data + num_blocks - 1, [](auto const block) {
                                                 return block == ones;
@@ -748,7 +748,7 @@ public:
                         return m_data == zero;
                 } else if constexpr (num_blocks == 2) {
                         return m_data[0] == zero && m_data[1] == zero;
-                } else if constexpr (num_blocks > 2) {
+                } else if constexpr (num_blocks >= 3) {
                         return std::all_of(m_data, m_data + num_blocks, [](auto const block) {
                                 return block == zero;
                         });
@@ -763,7 +763,7 @@ public:
                         return detail::popcount(m_data);
                 } else if constexpr (num_blocks == 2) {
                         return detail::popcount(m_data[0]) + detail::popcount(m_data[1]);
-                } else if constexpr (num_blocks > 2) {
+                } else if constexpr (num_blocks >= 3) {
                         return std::accumulate(m_data, m_data + num_blocks, 0, [](auto const sum, auto const block) {
                                 return sum + detail::popcount(block);
                         });
@@ -805,7 +805,7 @@ public:
                 } else if constexpr (num_blocks == 2) {
                         m_data[0] = ones;
                         m_data[1] = ones;
-                } else if constexpr (num_blocks > 2) {
+                } else if constexpr (num_blocks >= 3) {
                         std::fill_n(m_data, num_blocks, ones);
                 }
                 sanitize_back();
@@ -846,7 +846,7 @@ public:
                         using std::swap;
                         swap(m_data[0], other.m_data[0]);
                         swap(m_data[1], other.m_data[1]);
-                } else if constexpr (num_blocks > 2) {
+                } else if constexpr (num_blocks >= 3) {
                         std::swap_ranges(m_data, m_data + num_blocks, other.m_data);
                 }
         }
@@ -858,7 +858,7 @@ public:
                 } else if constexpr (num_blocks == 2) {
                         m_data[0] = zero;
                         m_data[1] = zero;
-                } else if constexpr (num_blocks > 2) {
+                } else if constexpr (num_blocks >= 3) {
                         std::fill_n(m_data, num_blocks, zero);
                 }
                 assert(empty());
@@ -882,7 +882,7 @@ public:
                 } else if constexpr (num_blocks == 2) {
                         m_data[0] = ~m_data[0];
                         m_data[1] = ~m_data[1];
-                } else if constexpr (num_blocks > 2) {
+                } else if constexpr (num_blocks >= 3) {
                         for (auto&& block : m_data) {
                                 block = ~block;
                         }
@@ -908,7 +908,7 @@ public:
                 } else if constexpr (num_blocks == 2) {
                         m_data[0] &= other.m_data[0];
                         m_data[1] &= other.m_data[1];
-                } else if constexpr (num_blocks > 2) {
+                } else if constexpr (num_blocks >= 3) {
                         for (auto i = 0; i < num_blocks; ++i) {
                                 m_data[i] &= other.m_data[i];
                         }
@@ -923,7 +923,7 @@ public:
                 } else if constexpr (num_blocks == 2) {
                         m_data[0] |= other.m_data[0];
                         m_data[1] |= other.m_data[1];
-                } else if constexpr (num_blocks > 2) {
+                } else if constexpr (num_blocks >= 3) {
                         for (auto i = 0; i < num_blocks; ++i) {
                                 m_data[i] |= other.m_data[i];
                         }
@@ -938,7 +938,7 @@ public:
                 } else if constexpr (num_blocks == 2) {
                         m_data[0] ^= other.m_data[0];
                         m_data[1] ^= other.m_data[1];
-                } else if constexpr (num_blocks > 2) {
+                } else if constexpr (num_blocks >= 3) {
                         for (auto i = 0; i < num_blocks; ++i) {
                                 m_data[i] ^= other.m_data[i];
                         }
@@ -953,7 +953,7 @@ public:
                 } else if constexpr (num_blocks == 2) {
                         m_data[0] &= ~other.m_data[0];
                         m_data[1] &= ~other.m_data[1];
-                } else if constexpr (num_blocks > 2) {
+                } else if constexpr (num_blocks >= 3) {
                         for (auto i = 0; i < num_blocks; ++i) {
                                 m_data[i] &= ~other.m_data[i];
                         }
@@ -1213,7 +1213,7 @@ auto operator==(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs
                         return std::tie(is.m_data[0], is.m_data[1]);
                 };
                 return tied(lhs) == tied(rhs);
-        } else if constexpr (num_blocks > 2) {
+        } else if constexpr (num_blocks >= 3) {
                 return std::equal(
                         lhs.m_data, lhs.m_data + num_blocks,
                         rhs.m_data, rhs.m_data + num_blocks
@@ -1240,7 +1240,7 @@ auto operator<(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs)
                         return std::tie(is.m_data[1], is.m_data[0]);
                 };
                 return tied(lhs) < tied(rhs);
-        } else if constexpr (num_blocks > 2) {
+        } else if constexpr (num_blocks >= 3) {
                 using std::crbegin; using std::crend;
                 return std::lexicographical_compare(
                         crbegin(lhs.m_data), crend(lhs.m_data),
@@ -1281,7 +1281,7 @@ auto is_subset_of(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& r
                         (lhs.m_data[0] & ~rhs.m_data[0]) == zero &&
                         (lhs.m_data[1] & ~rhs.m_data[1]) == zero
                 ;
-        } else if constexpr (num_blocks > 2) {
+        } else if constexpr (num_blocks >= 3) {
                 return std::equal(
                         lhs.m_data, lhs.m_data + num_blocks,
                         rhs.m_data, rhs.m_data + num_blocks,
@@ -1324,7 +1324,7 @@ auto intersects(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs
                         (lhs.m_data[0] & rhs.m_data[0]) != zero ||
                         (lhs.m_data[1] & rhs.m_data[1]) != zero
                 ;
-        } else if constexpr (num_blocks > 2) {
+        } else if constexpr (num_blocks >= 3) {
                 return !std::equal(
                         lhs.m_data, lhs.m_data + num_blocks,
                         rhs.m_data, rhs.m_data + num_blocks,
