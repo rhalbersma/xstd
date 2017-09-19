@@ -17,9 +17,7 @@
 #include <locale>                       // ctype, use_facet
 #include <memory>                       // addressof
 #include <numeric>                      // accumulate
-#include <sstream>                      // basic_stringstream
 #include <stdexcept>                    // invalid_argument, out_of_range, overflow_error
-#include <string>                       // basic_string
 #include <vector>                       // vector
 
 namespace xstd {

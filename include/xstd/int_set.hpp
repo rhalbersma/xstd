@@ -12,15 +12,11 @@
 #include <cstdint>              // uint64_t
 #include <functional>           // less, not_fn
 #include <initializer_list>     // initializer_list
-#include <istream>              // basic_istream
 #include <iterator>             // bidirectional_iterator_tag, crbegin, crend, rbegin, reverse_iterator
 #include <limits>               // digits
-#include <locale>               // ctype, use_facet
 #include <memory>               // allocator_traits
 #include <numeric>              // accumulate
-#include <ostream>              // basic_ostream
 #include <stdexcept>            // out_of_range
-#include <string>               // basic_string, char_traits
 #include <tuple>                // tie
 #include <type_traits>          // conditional_t, is_integral_v, is_nothrow_swappable_v, is_pod_v, is_unsigned_v
 #include <utility>              // move, swap

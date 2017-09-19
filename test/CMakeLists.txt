@@ -2,6 +2,11 @@
 # use the Boost.Test unit test framework
 ###############################################################
 
+set(BOOST_INCLUDEDIR /usr/local/include/boost-1_65_1)
+set(BOOST_LIBRARYDIR /usr/local/lib)
+set(Boost_COMPILER -gcc)
+#set(Boost_COMPILER -clang50) 
+
 find_package(Boost 1.65.1 REQUIRED COMPONENTS 
         unit_test_framework
 )
@@ -28,6 +33,7 @@ set(cxx_compile_options_warnings_general
                 -Wno-c++98-compat 
                 -Wno-c++98-compat-pedantic      
                 -Wno-range-loop-analysis
+#                -stdlib=libc++
         >
         $<$<CXX_COMPILER_ID:GNU>:
                 -Wall
@@ -46,18 +52,19 @@ set(cxx_compile_options_warnings_general
 )  
 
 set(cxx_compile_options_optimization 
+#	--coverage
         -g
-	--coverage
-#        -O3
-#        -flto 
+        -O3
+        -flto 
         -march=native 
         -mtune=native
 )
 
 set(cxx_linker_optimization_flags
-	--coverage
-#        -flto 
-#        -fuse-ld=gold
+#		-stdlib=libc++
+#		-lc++abi
+        -flto 
+        -fuse-ld=gold
 )
 
 ###############################################################
@@ -76,7 +83,8 @@ foreach(t ${targets})
 
 		add_executable(${target_id} src/${t})
 	
-        target_include_directories(${target_id} PRIVATE
+        target_include_directories(${target_id} SYSTEM PRIVATE
+                ${Boost_INCLUDE_DIR}
                 ${test_include_dir}
         )
 
