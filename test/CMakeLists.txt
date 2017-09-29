@@ -33,7 +33,6 @@ set(cxx_compile_options_warnings_general
                 -Wno-c++98-compat 
                 -Wno-c++98-compat-pedantic      
                 -Wno-range-loop-analysis
-#                -stdlib=libc++
         >
         $<$<CXX_COMPILER_ID:GNU>:
                 -Wall
@@ -53,6 +52,7 @@ set(cxx_compile_options_warnings_general
 
 set(cxx_compile_options_optimization 
 #	--coverage
+#       -stdlib=libc++
         -g
         -O3
         -flto 
@@ -83,9 +83,12 @@ foreach(t ${targets})
 
 		add_executable(${target_id} src/${t})
 	
-        target_include_directories(${target_id} SYSTEM PRIVATE
-                ${Boost_INCLUDE_DIR}
-                ${test_include_dir}
+        target_include_directories(${target_id} PRIVATE 
+        		${test_include_dir}
+        )
+ 
+        target_include_directories(${target_id} SYSTEM PRIVATE 
+        		${Boost_INCLUDE_DIR}
         )
 
         target_link_libraries(${target_id} PRIVATE

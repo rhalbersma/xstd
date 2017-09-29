@@ -50,8 +50,8 @@ constexpr bool operator!=(div_t const& lhs, div_t const& rhs) noexcept
         return !(lhs == rhs);
 }
 
-template<class charT, class traits>
-std::basic_ostream<charT, traits>& operator<<(std::basic_ostream<charT, traits>& ostr, div_t const& d)
+template<class CharT, class Traits>
+std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& ostr, div_t const& d)
 {
         ostr << '[' << d.quot << ',' << d.rem << ']';
         return ostr;
