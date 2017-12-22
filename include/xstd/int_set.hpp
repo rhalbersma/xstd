@@ -330,7 +330,7 @@ constexpr auto bit1(int n) // Throws: Nothing.
 
 }       // namespace detail
 
-template<int, class>
+template<int /* N */, class /* UIntType */>
 class int_set;
 
 template<int N, class UIntType> auto operator==  (int_set<N, UIntType> const& /* lhs */, int_set<N, UIntType> const& /* rhs */) noexcept;

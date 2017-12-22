@@ -7,7 +7,6 @@
 
 #include <bitset>       // bitset
 #include <cstddef>      // size_t
-#include <utility>      // move
 
 namespace xstd {
 
