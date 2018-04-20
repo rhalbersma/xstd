@@ -41,7 +41,7 @@ constexpr static auto has_member_front_v = false;
 
 template<class IntSet>
 constexpr static auto has_member_front_v<IntSet, std::void_t<decltype(
-        std::declval<IntSet>().empty()
+        std::declval<IntSet>().front()
 )>> = true;
 
 template<class IntSet, class = void>
