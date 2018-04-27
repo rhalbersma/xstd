@@ -5,35 +5,21 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <algorithm>            // all_of, copy_backward, copy_n, equal, fill_n, lexicographical_compare, max, swap_ranges
-#include <array>                // array
-#include <cassert>              // assert
-#include <cstddef>              // size_t
-#include <cstdint>              // uint64_t
-#include <functional>           // less, not_fn
-#include <initializer_list>     // initializer_list
-#include <iterator>             // bidirectional_iterator_tag, crbegin, crend, rbegin, reverse_iterator
-#include <limits>               // digits
-#include <memory>               // allocator_traits
-#include <numeric>              // accumulate
-#include <stdexcept>            // out_of_range
-#include <tuple>                // tie
-#include <type_traits>          // conditional_t, is_integral_v, is_nothrow_swappable_v, is_pod_v, is_unsigned_v
-#include <utility>              // move, swap
-
-#if defined(__GNUG__)
-
-        #define PP_CONSTEXPR_INLINE             constexpr
-        #define PP_CONSTEXPR_CONST              constexpr
-        #define PP_CONSTEXPR_CONST_INLINE       constexpr
-
-#elif defined(_MSC_VER)
-
-        #define PP_CONSTEXPR_INLINE             inline
-        #define PP_CONSTEXPR_CONST              const
-        #define PP_CONSTEXPR_CONST_INLINE       const inline
-
-#endif
+#include <algorithm>                    // all_of, copy, copy_backward, copy_n, equal, fill_n, lexicographical_compare, max, swap_ranges
+#include <array>                        // array
+#include <cassert>                      // assert
+#include <cstddef>                      // size_t
+#include <cstdint>                      // uint64_t
+#include <functional>                   // less, not_fn
+#include <initializer_list>             // initializer_list
+#include <iosfwd>                       // basic_ostream
+#include <iterator>                     // bidirectional_iterator_tag, crbegin, crend, rbegin, reverse_iterator
+#include <experimental/iterator>        // make_ostream_joiner
+#include <limits>                       // digits
+#include <numeric>                      // accumulate
+#include <tuple>                        // tie
+#include <type_traits>                  // conditional_t, is_integral_v, is_nothrow_swappable_v, is_unsigned_v
+#include <utility>                      // move, swap
 
 namespace xstd {
 namespace detail {
@@ -234,27 +220,27 @@ namespace builtin {
 }       // namespace builtin
 
 template<class UIntType>
-PP_CONSTEXPR_INLINE auto ctznz(UIntType x) // Throws: Nothing.
+constexpr auto ctznz(UIntType x) // Throws: Nothing.
 {
         assert(x != 0);
         return builtin::ctznz{}(x);
 }
 
 template<class UIntType>
-PP_CONSTEXPR_INLINE auto bsfnz(UIntType x) // Throws: Nothing.
+constexpr auto bsfnz(UIntType x) // Throws: Nothing.
 {
         assert(x != 0);
         return builtin::bsfnz{}(x);
 }
 
 template<class UIntType>
-PP_CONSTEXPR_INLINE auto ctz(UIntType x) noexcept
+constexpr auto ctz(UIntType x) noexcept
 {
         return x ? ctznz(x) : std::numeric_limits<UIntType>::digits;
 }
 
 template<class UIntType>
-PP_CONSTEXPR_INLINE auto bsf(UIntType x) noexcept
+constexpr auto bsf(UIntType x) noexcept
 {
         return x ? bsfnz(x) : std::numeric_limits<UIntType>::digits;
 }
@@ -262,14 +248,14 @@ PP_CONSTEXPR_INLINE auto bsf(UIntType x) noexcept
 #if defined(__GNUG__)
 
         template<class UIntType>
-        PP_CONSTEXPR_INLINE auto clznz(UIntType x) // Throws: Nothing.
+        constexpr auto clznz(UIntType x) // Throws: Nothing.
         {
                 assert(x != 0);
                 return builtin::clznz{}(x);
         }
 
         template<class UIntType>
-        PP_CONSTEXPR_INLINE auto bsrnz(UIntType x) // Throws: Nothing.
+        constexpr auto bsrnz(UIntType x) // Throws: Nothing.
         {
                 assert(x != 0);
                 return std::numeric_limits<UIntType>::digits - 1 - builtin::clznz{}(x);
@@ -278,14 +264,14 @@ PP_CONSTEXPR_INLINE auto bsf(UIntType x) noexcept
 #elif defined(_MSC_VER)
 
         template<class UIntType>
-        PP_CONSTEXPR_INLINE auto clznz(UIntType x) // Throws: Nothing.
+        constexpr auto clznz(UIntType x) // Throws: Nothing.
         {
                 assert(x != 0);
                 return std::numeric_limits<UIntType>::digits - 1 - builtin::bsrnz{}(x);
         }
 
         template<class UIntType>
-        PP_CONSTEXPR_INLINE auto bsrnz(UIntType x) // Throws: Nothing.
+        constexpr auto bsrnz(UIntType x) // Throws: Nothing.
         {
                 assert(x != 0);
                 return builtin::bsrnz{}(x);
@@ -294,19 +280,19 @@ PP_CONSTEXPR_INLINE auto bsf(UIntType x) noexcept
 #endif
 
 template<class UIntType>
-PP_CONSTEXPR_INLINE auto clz(UIntType x) noexcept
+constexpr auto clz(UIntType x) noexcept
 {
         return x ? clznz(x) : std::numeric_limits<UIntType>::digits;
 }
 
 template<class UIntType>
-PP_CONSTEXPR_INLINE auto bsr(UIntType x) noexcept
+constexpr auto bsr(UIntType x) noexcept
 {
         return x ? bsrnz(x) : -1;
 }
 
 template<class UIntType>
-PP_CONSTEXPR_INLINE auto popcount(UIntType x) noexcept
+constexpr auto popcount(UIntType x) noexcept
 {
         return builtin::popcount{}(x);
 }
@@ -445,7 +431,7 @@ public:
                         return { *m_block, m_value };
                 }
 
-                PP_CONSTEXPR_INLINE auto& operator++() // Throws: Nothing.
+                constexpr auto& operator++() // Throws: Nothing.
                 {
                         assert(0 <= m_value); assert(m_value < N);
                         increment();
@@ -453,12 +439,12 @@ public:
                         return *this;
                 }
 
-                PP_CONSTEXPR_INLINE auto operator++(int) // Throws: Nothing.
+                constexpr auto operator++(int) // Throws: Nothing.
                 {
                         auto nrv = *this; ++*this; return nrv;
                 }
 
-                PP_CONSTEXPR_INLINE auto& operator--() // Throws:Nothing.
+                constexpr auto& operator--() // Throws:Nothing.
                 {
                         assert(0 < m_value); assert(m_value < N || m_value == num_bits);
                         decrement();
@@ -466,7 +452,7 @@ public:
                         return *this;
                 }
 
-                PP_CONSTEXPR_INLINE auto operator--(int) // Throws: Nothing.
+                constexpr auto operator--(int) // Throws: Nothing.
                 {
                         auto nrv = *this; --*this; return nrv;
                 }
@@ -484,7 +470,7 @@ public:
                 }
 
         private:
-                PP_CONSTEXPR_INLINE auto increment() // Throws: Nothing.
+                constexpr auto increment() // Throws: Nothing.
                 {
                         assert(m_value < N);
                         if (++m_value == num_bits) { return; }
@@ -514,7 +500,7 @@ public:
                         assert(m_value == num_bits);
                 }
 
-                PP_CONSTEXPR_INLINE auto decrement() // Throws: Nothing.
+                constexpr auto decrement() // Throws: Nothing.
                 {
                         assert(0 < m_value);
                         --m_value;
@@ -591,14 +577,14 @@ public:
         constexpr auto crbegin() const noexcept { return const_reverse_iterator{rbegin()}; }
         constexpr auto crend()   const noexcept { return const_reverse_iterator{rend()};   }
 
-        PP_CONSTEXPR_INLINE auto front() const // Throws: Nothing.
+        constexpr auto front() const // Throws: Nothing.
                 -> const_reference
         {
                 assert(!empty());
                 return { *data(), find_front() };
         }
 
-        PP_CONSTEXPR_INLINE auto back() const // Throws: Nothing.
+        constexpr auto back() const // Throws: Nothing.
                 -> const_reference
         {
                 assert(!empty());
@@ -606,7 +592,7 @@ public:
         }
 
         template<class UnaryPredicate>
-        PP_CONSTEXPR_INLINE auto any_of(UnaryPredicate pred [[maybe_unused]]) const
+        constexpr auto any_of(UnaryPredicate pred [[maybe_unused]]) const
         {
                 if constexpr (num_blocks == 1) {
                         for (auto block = m_data; block != zero; /* update inside loop */) {
@@ -631,19 +617,19 @@ public:
         }
 
         template<class UnaryPredicate>
-        PP_CONSTEXPR_INLINE auto none_of(UnaryPredicate pred [[maybe_unused]]) const
+        constexpr auto none_of(UnaryPredicate pred [[maybe_unused]]) const
         {
                 return !any_of(pred);
         }
 
         template<class UnaryPredicate>
-        PP_CONSTEXPR_INLINE auto all_of(UnaryPredicate pred [[maybe_unused]]) const
+        constexpr auto all_of(UnaryPredicate pred [[maybe_unused]]) const
         {
                 return !any_of(std::not_fn(pred));
         }
 
         template<class T, class BinaryOperation = std::plus<>>
-        PP_CONSTEXPR_INLINE auto accumulate(T init, BinaryOperation op [[maybe_unused]] = BinaryOperation{}) const
+        constexpr auto accumulate(T init, BinaryOperation op [[maybe_unused]] = BinaryOperation{}) const
         {
                 auto result = std::move(init);
                 if constexpr (num_blocks == 1) {
@@ -665,7 +651,7 @@ public:
         }
 
         template<class UnaryFunction>
-        PP_CONSTEXPR_INLINE auto for_each(UnaryFunction fun) const
+        constexpr auto for_each(UnaryFunction fun) const
         {
                 if constexpr (num_blocks == 1) {
                         for (auto block = m_data; block != zero; /* update inside loop */) {
@@ -686,7 +672,7 @@ public:
         }
 
         template<class UnaryFunction>
-        PP_CONSTEXPR_INLINE auto reverse_for_each(UnaryFunction fun) const
+        constexpr auto reverse_for_each(UnaryFunction fun) const
         {
                 if constexpr (num_blocks == 1) {
                         for (auto block = m_data; block != zero; /* update inside loop */) {
@@ -1023,65 +1009,6 @@ public:
                 h(is.data(), is.capacity() / std::numeric_limits<unsigned char>::digits);       // TODO
         }
 
-        [[deprecated]] auto& set() noexcept
-        {
-                fill();
-                return *this;
-        }
-
-        [[deprecated]] auto& set(size_type const pos, bool const val = true)
-        {
-                if (static_cast<std::size_t>(pos) >= static_cast<std::size_t>(N)) {
-                        throw std::out_of_range{"int_set<N, UIntType>::set(): index out of range"};
-                }
-                return val ? insert(pos) : erase(pos);
-        }
-
-        [[deprecated]] auto& reset() noexcept
-        {
-                clear();
-                return *this;
-        }
-
-        [[deprecated]] auto& reset(size_type const pos)
-        {
-                if (static_cast<std::size_t>(pos) >= static_cast<std::size_t>(N)) {
-                        throw std::out_of_range{"int_set<N, UIntType>::reset(): index out of range"};
-                }
-                return erase(pos);
-        }
-
-        [[deprecated]] auto& flip() noexcept
-        {
-                return toggle();
-        }
-
-        [[deprecated]] auto& flip(size_type const pos)
-        {
-                if (static_cast<std::size_t>(pos) >= static_cast<std::size_t>(N)) {
-                        throw std::out_of_range{"int_set<N, UIntType>::flip(): index out of range"};
-                }
-                return toggle(pos);
-        }
-
-        [[deprecated]] constexpr auto size() const noexcept { return max_size(); }
-
-        [[deprecated]] auto test(size_type const pos) const
-        {
-                if (static_cast<std::size_t>(pos) >= static_cast<std::size_t>(N)) {
-                        throw std::out_of_range{"int_set<N, UIntType>::test(): index out of range"};
-                }
-                return contains(pos);
-        }
-
-        [[deprecated]] auto all() const noexcept { return full(); }
-        [[deprecated]] auto any() const noexcept { return !empty(); }
-        [[deprecated]] auto none() const noexcept { return empty(); }
-
-        [[deprecated]] constexpr auto operator[](size_type const pos) const // Throws: Nothing.
-        {
-                return contains(pos);
-        }
 private:
         constexpr static auto zero = detail::zero<block_type>;
         constexpr static auto ones = detail::ones<block_type>;
@@ -1108,7 +1035,7 @@ private:
                 }
         }
 
-        PP_CONSTEXPR_INLINE auto find_first() const noexcept
+        constexpr auto find_first() const noexcept
         {
                 if constexpr (num_blocks == 0) {
                         return 0;
@@ -1126,7 +1053,7 @@ private:
                 }
         }
 
-        PP_CONSTEXPR_INLINE auto find_front() const // Throws: Nothing.
+        constexpr auto find_front() const // Throws: Nothing.
         {
                 assert(!empty());
                 if constexpr (num_blocks == 1) {
@@ -1148,7 +1075,7 @@ private:
                 }
         }
 
-        PP_CONSTEXPR_INLINE auto find_back() const // Throws: Nothing.
+        constexpr auto find_back() const // Throws: Nothing.
         {
                 assert(!empty());
                 if constexpr (num_blocks == 1) {
@@ -1476,6 +1403,15 @@ constexpr auto empty(int_set<N, UIntType> const& is)
         -> decltype(is.empty())
 {
         return is.empty();
+}
+
+template<class CharT, class Traits, int N, class UIntType>
+auto& operator<<(std::basic_ostream<CharT, Traits>& os, int_set<N, UIntType> const& is)
+{
+        os << '[';
+        std::copy(is.begin(), is.end(), std::experimental::make_ostream_joiner(os, ','));
+        os << ']';
+        return os;
 }
 
 }       // namespace xstd

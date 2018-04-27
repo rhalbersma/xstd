@@ -3,10 +3,12 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
+#include <bitset>                               // bitset
+#include <xstd/int_set.hpp>                     // int_set
+#include <int_set/deprecated/bitset.hpp>        // bitset
+#include <int_set/deprecated/int_set.hpp>       // int_set
 #include <int_set/exhaustive.hpp>
 #include <int_set/primitive.hpp>
-#include <xstd/bitset.hpp>                      // bitset
-#include <xstd/int_set.hpp>                     // int_set
 #include <boost/mpl/vector.hpp>                 // vector
 #include <boost/test/test_case_template.hpp>    // BOOST_AUTO_TEST_CASE_TEMPLATE
 #include <boost/test/unit_test.hpp>             // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END
@@ -26,9 +28,9 @@ using SetTypes = boost::mpl::vector
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(ExhaustivelyTestAssociativityAndDistributivity, T, SetTypes)
 {
-        all_singleton_set_triples<T>(test::op_bitand{});
-        all_singleton_set_triples<T>(test::op_bitor{});
-        all_singleton_set_triples<T>(test::op_xor{});
+        all_singleton_set_triples<T>(op_bitand{});
+        all_singleton_set_triples<T>(op_bitor{});
+        all_singleton_set_triples<T>(op_xor{});
 }
 
 BOOST_AUTO_TEST_SUITE_END()

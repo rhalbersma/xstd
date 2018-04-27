@@ -5,8 +5,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <array>                // array
-#include <initializer_list>     // initializer_list
+#include <array>                        // array
+#include <initializer_list>             // initializer_list
 
 namespace xstd {
 
@@ -15,7 +15,7 @@ namespace xstd {
 template<class IntSet, class UnaryFunction>
 auto all_values(UnaryFunction fun)
 {
-        constexpr auto N = IntSet{}.size();
+        constexpr auto N = size(IntSet{});
         using SizeType = decltype(N);
 
         for (auto i = SizeType{0}; i < N; ++i) {
@@ -26,7 +26,7 @@ auto all_values(UnaryFunction fun)
 template<class IntSet, class UnaryFunction>
 auto all_cardinality_sets(UnaryFunction fun)
 {
-        constexpr auto N = IntSet{}.size();
+        constexpr auto N = size(IntSet{});
         using SizeType = decltype(N);
 
         for (auto i = SizeType{0}; i < N; ++i) {
@@ -40,7 +40,7 @@ auto all_cardinality_sets(UnaryFunction fun)
 template<class IntSet, class UnaryFunction>
 auto all_singleton_arrays(UnaryFunction fun)
 {
-        constexpr auto N = IntSet{}.size();
+        constexpr auto N = size(IntSet{});
         using SizeType = decltype(N);
 
         for (auto i = SizeType{0}; i < N; ++i) {
@@ -52,7 +52,7 @@ auto all_singleton_arrays(UnaryFunction fun)
 template<class IntSet, class UnaryFunction>
 auto all_singleton_ilists(UnaryFunction fun)
 {
-        constexpr auto N = IntSet{}.size();
+        constexpr auto N = size(IntSet{});
         using SizeType = decltype(N);
 
         for (auto i = SizeType{0}; i < N; ++i) {
@@ -64,11 +64,12 @@ auto all_singleton_ilists(UnaryFunction fun)
 template<class IntSet, class UnaryFunction>
 auto all_singleton_sets(UnaryFunction fun)
 {
-        constexpr auto N = IntSet{}.size();
+        constexpr auto N = size(IntSet{});
         using SizeType = decltype(N);
 
         for (auto i = SizeType{0}; i < N; ++i) {
-                auto const i1 = IntSet{}.set(i);
+                auto tmp = IntSet{};
+                auto const i1 = set(tmp, i);
                 fun(i1);
         }
 }
@@ -78,7 +79,7 @@ auto all_singleton_sets(UnaryFunction fun)
 template<class IntSet, class UnaryFunction>
 auto all_doubleton_arrays(UnaryFunction fun)
 {
-        constexpr auto N = IntSet{}.size();
+        constexpr auto N = size(IntSet{});
         using SizeType = decltype(N);
 
         for (auto j = SizeType{1}; j < N; ++j) {
@@ -92,7 +93,7 @@ auto all_doubleton_arrays(UnaryFunction fun)
 template<class IntSet, class UnaryFunction>
 auto all_doubleton_ilists(UnaryFunction fun)
 {
-        constexpr auto N = IntSet{}.size();
+        constexpr auto N = size(IntSet{});
         using SizeType = decltype(N);
 
         for (auto j = SizeType{1}; j < N; ++j) {
@@ -106,12 +107,13 @@ auto all_doubleton_ilists(UnaryFunction fun)
 template<class IntSet, class UnaryFunction>
 auto all_doubleton_sets(UnaryFunction fun)
 {
-        constexpr auto N = IntSet{}.size();
+        constexpr auto N = size(IntSet{});
         using SizeType = decltype(N);
 
         for (auto j = SizeType{1}; j < N; ++j) {
                 for (auto i = SizeType{0}; i < j; ++i) {
-                        auto const ij2 = IntSet{}.set(i).set(j);
+                        auto tmp = IntSet{};
+                        auto const ij2 = set(set(tmp, i), j);
                         fun(ij2);
                 }
         }
@@ -120,13 +122,15 @@ auto all_doubleton_sets(UnaryFunction fun)
 template<class IntSet, class BinaryFunction>
 auto all_singleton_set_pairs(BinaryFunction fun)
 {
-        constexpr auto N = IntSet{}.size();
+        constexpr auto N = size(IntSet{});
         using SizeType = decltype(N);
 
         for (auto i = SizeType{0}; i < N; ++i) {
-                auto const i1 = IntSet{}.set(i);
+                auto tmp1 = IntSet{};
+                auto const i1 = set(tmp1, i);
                 for (auto j = SizeType{0}; j < N; ++j) {
-                        auto const j1 = IntSet{}.set(j);
+                        auto tmp2 = IntSet{};
+                        auto const j1 = set(tmp2, j);
                         fun(i1, j1);
                 }
         }
@@ -137,15 +141,18 @@ auto all_singleton_set_pairs(BinaryFunction fun)
 template<class IntSet, class TernaryFunction>
 auto all_singleton_set_triples(TernaryFunction fun)
 {
-        constexpr auto N = IntSet{}.size();
+        constexpr auto N = size(IntSet{});
         using SizeType = decltype(N);
 
         for (auto i = SizeType{0}; i < N; ++i) {
-                auto const i1 = IntSet{}.set(i);
+                auto tmp1 = IntSet{};
+                auto const i1 = set(tmp1, i);
                 for (auto j = SizeType{0}; j < N; ++j) {
-                        auto const j1 = IntSet{}.set(j);
+                        auto tmp2 = IntSet{};
+                        auto const j1 = set(tmp2, j);
                         for (auto k = SizeType{0}; k < N; ++k) {
-                                auto const k1 = IntSet{}.set(k);
+                                auto tmp3 = IntSet{};
+                                auto const k1 = set(tmp3, k);
                                 fun(i1, j1, k1);
                         }
                 }

@@ -13,18 +13,10 @@ namespace xstd {
 namespace tti {
 
 template<class IntSet, class = void>
-constexpr static auto has_value_type_v = false;
+constexpr static auto has_op_minus_assign_v = false;
 
 template<class IntSet>
-constexpr static auto has_value_type_v<IntSet, std::void_t<
-        typename IntSet::value_type
->> = true;
-
-template<class IntSet, class = void>
-constexpr static auto has_member_op_minus_assign_v = false;
-
-template<class IntSet>
-constexpr static auto has_member_op_minus_assign_v<IntSet, std::void_t<decltype(
+constexpr static auto has_op_minus_assign_v<IntSet, std::void_t<decltype(
         std::declval<IntSet>() -= std::declval<IntSet>()
 )>> = true;
 
@@ -37,98 +29,98 @@ constexpr static auto has_const_iterator_v<IntSet, std::void_t<
 >> = true;
 
 template<class IntSet, class = void>
-constexpr static auto has_member_front_v = false;
+constexpr static auto has_front_v = false;
 
 template<class IntSet>
-constexpr static auto has_member_front_v<IntSet, std::void_t<decltype(
+constexpr static auto has_front_v<IntSet, std::void_t<decltype(
         std::declval<IntSet>().front()
 )>> = true;
 
 template<class IntSet, class = void>
-constexpr static auto has_member_back_v = false;
+constexpr static auto has_back_v = false;
 
 template<class IntSet>
-constexpr static auto has_member_back_v<IntSet, std::void_t<decltype(
+constexpr static auto has_back_v<IntSet, std::void_t<decltype(
         std::declval<IntSet>().back()
 )>> = true;
 
 template<class IntSet, class UnaryPredicate, class = void>
-constexpr static auto has_member_any_of_v = false;
+constexpr static auto has_any_of_v = false;
 
 template<class IntSet, class UnaryPredicate>
-constexpr static auto has_member_any_of_v<IntSet, UnaryPredicate, std::void_t<decltype(
+constexpr static auto has_any_of_v<IntSet, UnaryPredicate, std::void_t<decltype(
         std::declval<IntSet>().any_of(std::declval<UnaryPredicate>())
 )>> = true;
 
 template<class IntSet, class UnaryPredicate, class = void>
-constexpr static auto has_member_none_of_v = false;
+constexpr static auto has_none_of_v = false;
 
 template<class IntSet, class UnaryPredicate>
-constexpr static auto has_member_none_of_v<IntSet, UnaryPredicate, std::void_t<decltype(
+constexpr static auto has_none_of_v<IntSet, UnaryPredicate, std::void_t<decltype(
         std::declval<IntSet>().none_of(std::declval<UnaryPredicate>())
 )>> = true;
 
 template<class IntSet, class UnaryPredicate, class = void>
-constexpr static auto has_member_all_of_v = false;
+constexpr static auto has_all_of_v = false;
 
 template<class IntSet, class UnaryPredicate>
-constexpr static auto has_member_all_of_v<IntSet, UnaryPredicate, std::void_t<decltype(
+constexpr static auto has_all_of_v<IntSet, UnaryPredicate, std::void_t<decltype(
         std::declval<IntSet>().all_of(std::declval<UnaryPredicate>())
 )>> = true;
 
 template<class IntSet, class T, class BinaryOperation, class = void>
-constexpr static auto has_member_accumulate_v = false;
+constexpr static auto has_accumulate_v = false;
 
 template<class IntSet, class T, class BinaryOperation>
-constexpr static auto has_member_accumulate_v<IntSet, T, BinaryOperation, std::void_t<decltype(
+constexpr static auto has_accumulate_v<IntSet, T, BinaryOperation, std::void_t<decltype(
         std::declval<IntSet>().accumulate(std::declval<T>(), std::declval<BinaryOperation>())
 )>> = true;
 
 template<class IntSet, class UnaryFunction, class = void>
-constexpr static auto has_member_for_each_v = false;
+constexpr static auto has_for_each_v = false;
 
 template<class IntSet, class UnaryFunction>
-constexpr static auto has_member_for_each_v<IntSet, UnaryFunction, std::void_t<decltype(
+constexpr static auto has_for_each_v<IntSet, UnaryFunction, std::void_t<decltype(
         std::declval<IntSet>().for_each(std::declval<UnaryFunction>())
 )>> = true;
 
 template<class IntSet, class UnaryFunction, class = void>
-constexpr static auto has_member_reverse_for_each_v = false;
+constexpr static auto has_reverse_for_each_v = false;
 
 template<class IntSet, class UnaryFunction>
-constexpr static auto has_member_reverse_for_each_v<IntSet, UnaryFunction, std::void_t<decltype(
+constexpr static auto has_reverse_for_each_v<IntSet, UnaryFunction, std::void_t<decltype(
         std::declval<IntSet>().reverse_for_each(std::declval<UnaryFunction>())
 )>> = true;
 
 template<class IntSet, class = void>
-constexpr static auto has_static_member_max_size_v = false;
+constexpr static auto has_static_max_size_v = false;
 
 template<class IntSet>
-constexpr static auto has_static_member_max_size_v<IntSet, std::void_t<decltype(
+constexpr static auto has_static_max_size_v<IntSet, std::void_t<decltype(
         IntSet::max_size()
 )>> = true;
 
 template<class IntSet, class = void>
-constexpr static auto has_static_member_capacity_v = false;
+constexpr static auto has_static_capacity_v = false;
 
 template<class IntSet>
-constexpr static auto has_static_member_capacity_v<IntSet, std::void_t<decltype(
+constexpr static auto has_static_capacity_v<IntSet, std::void_t<decltype(
         IntSet::capacity()
 )>> = true;
 
 template<class IntSet, class = void>
-constexpr static auto has_member_full_v = false;
+constexpr static auto has_full_v = false;
 
 template<class IntSet>
-constexpr static auto has_member_full_v<IntSet, std::void_t<decltype(
+constexpr static auto has_full_v<IntSet, std::void_t<decltype(
         std::declval<IntSet>().full()
 )>> = true;
 
 template<class IntSet, class = void>
-constexpr static auto has_member_empty_v = false;
+constexpr static auto has_empty_v = false;
 
 template<class IntSet>
-constexpr static auto has_member_empty_v<IntSet, std::void_t<decltype(
+constexpr static auto has_empty_v<IntSet, std::void_t<decltype(
         std::declval<IntSet>().empty()
 )>> = true;
 
@@ -178,14 +170,6 @@ constexpr static auto has_ilist_erase_v = false;
 template<class IntSet, class ValueType>
 constexpr static auto has_ilist_erase_v<IntSet, ValueType, std::void_t<decltype(
         std::declval<IntSet>().erase(std::declval<std::initializer_list<ValueType>>())
-)>> = true;
-
-template<class IntSet, class = void>
-constexpr static auto has_member_swap_v = false;
-
-template<class IntSet>
-constexpr static auto has_member_swap_v<IntSet, std::void_t<decltype(
-        std::declval<IntSet>().swap(std::declval<IntSet>())
 )>> = true;
 
 }       // namespace tti
