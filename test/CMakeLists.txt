@@ -2,12 +2,7 @@
 # use the Boost.Test unit test framework
 ###############################################################
 
-set(BOOST_INCLUDEDIR /usr/local/include/boost-1_65_1)
-set(BOOST_LIBRARYDIR /usr/local/lib)
-set(Boost_COMPILER -gcc)
-#set(Boost_COMPILER -clang50) 
-
-find_package(Boost 1.65.1 REQUIRED COMPONENTS 
+find_package(Boost 1.66.0 REQUIRED COMPONENTS 
         unit_test_framework
 )
 
@@ -52,7 +47,6 @@ set(cxx_compile_options_warnings_general
 
 set(cxx_compile_options_optimization 
 #	--coverage
-#       -stdlib=libc++
         -g
         -O3
         -flto 
@@ -61,8 +55,6 @@ set(cxx_compile_options_optimization
 )
 
 set(cxx_linker_optimization_flags
-#		-stdlib=libc++
-#		-lc++abi
         -flto 
         -fuse-ld=gold
 )

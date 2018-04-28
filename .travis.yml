@@ -14,7 +14,6 @@ env:
 before_install:
 - |
   sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-  sudo add-apt-repository -y ppa:anthony-justsoftwaresolutions/libcxx
   sudo add-apt-repository -y ppa:jonathonf/binutils  
   sudo add-apt-repository -y ppa:jonathonf/gcc-8.0
   sudo add-apt-repository "deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-6.0 main"
@@ -37,7 +36,6 @@ install:
   sudo apt-get install g++-8
   sudo apt-get install clang-6.0 lldb-6.0 lld-6.0
   sudo apt-get install clang-7   lldb-7   lld-7
-  sudo apt-get install libc++-helpers libc++-dev libc++1 libc++abi-dev libc++abi1
 
 - |
   sudo update-alternatives --install /usr/bin/gcc     gcc     /usr/bin/gcc-7       90
@@ -65,7 +63,7 @@ install:
   BOOST_URL="https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.bz2"
   mkdir -p boost-1.66.0 && travis_retry wget --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xj -C boost-1.66.0
   cd boost-1.66.0 
-  ./bootstrap.sh --with-toolset=gcc   --with-libraries=test && sudo ./b2 -d0 --layout=versioned install
+  ./bootstrap.sh --with-toolset=gcc --with-libraries=test && sudo ./b2 -d0 install
   sudo ldconfig /usr/local/lib
 
 ################################################################################
