@@ -65,8 +65,7 @@ install:
   BOOST_URL="https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.bz2"
   mkdir -p boost-1.66.0 && travis_retry wget --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xj -C boost-1.66.0
   cd boost-1.66.0 
-  ./bootstrap.sh --with-toolset=gcc   --with-libraries=test && sudo ./b2 -d0 --layout=versioned install toolset=gcc
-  ./bootstrap.sh --with-toolset=clang --with-libraries=test && sudo ./b2 -d0 --layout=versioned install toolset=clang cxxflags="-stdlib=libc++" linkflags="-stdlib=libc++ -lc++abi"
+  ./bootstrap.sh --with-toolset=gcc   --with-libraries=test && sudo ./b2 -d0 --layout=versioned install
   sudo ldconfig /usr/local/lib
 
 ################################################################################
