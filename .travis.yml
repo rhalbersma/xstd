@@ -84,6 +84,9 @@ before_script:
 script: 
 - |
   cmake --build . -- -j2
+  ld --version
+  g++ --version
+  gcc --version
   ctest
 
 after_success:
