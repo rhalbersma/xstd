@@ -32,7 +32,7 @@ install:
 # gcc-7 needs binutils-2.26 for LTO builds, but Ubuntu 14.04 provides 2.24
 ################################################################################
 - |
-  sudo apt-get install g++-7 binutils-2.26 lcov
+  sudo apt-get install g++-7 binutils lcov
   sudo apt-get install g++-8
   sudo apt-get install clang-6.0 lldb-6.0 lld-6.0
   sudo apt-get install clang-7   lldb-7   lld-7
@@ -46,7 +46,7 @@ install:
   sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-6.0 90
   sudo update-alternatives --install /usr/bin/clang   clang   /usr/bin/clang-7     80
   sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-7   80
-  export PATH=/usr/lib/binutils-2.26/bin:${PATH}
+#  export PATH=/usr/lib/binutils-2.26/bin:${PATH}
   
 ################################################################################
 # All manual dependencies are installed in ${TRAVIS_BUILD_DIR}/../deps
