@@ -14,9 +14,8 @@
                                         // set_intersection, set_union, set_symmetric_difference, set_difference
 #include <functional>                   // greater, plus
 #include <initializer_list>             // initializer_list
-#include <iterator>                     // back_inserter, distance, next
 #include <istream>                      // basic_istream
-#include <locale>                       // ctype, use_facet
+#include <iterator>                     // back_inserter, distance, next
 #include <memory>                       // addressof
 #include <numeric>                      // accumulate
 #include <stdexcept>                    // out_of_range
@@ -130,16 +129,16 @@ struct const_iterator
 
                         BOOST_CHECK(std::is_sorted( is.  begin(),  is.  end()));
                         BOOST_CHECK(std::is_sorted(cis.  begin(), cis.  end()));
-                        BOOST_CHECK(std::is_sorted( is. rbegin(),  is. rend(), std::greater<>{}));
-                        BOOST_CHECK(std::is_sorted(cis. rbegin(), cis. rend(), std::greater<>{}));
+                        BOOST_CHECK(std::is_sorted( is. rbegin(),  is. rend(), std::greater{}));
+                        BOOST_CHECK(std::is_sorted(cis. rbegin(), cis. rend(), std::greater{}));
                         BOOST_CHECK(std::is_sorted( is. cbegin(),  is. cend()));
-                        BOOST_CHECK(std::is_sorted( is.crbegin(),  is.crend(), std::greater<>{}));
+                        BOOST_CHECK(std::is_sorted( is.crbegin(),  is.crend(), std::greater{}));
                         BOOST_CHECK(std::is_sorted(  begin( is),   end( is)));
                         BOOST_CHECK(std::is_sorted(  begin(cis),   end(cis)));
-                        BOOST_CHECK(std::is_sorted( rbegin( is),  rend( is), std::greater<>{}));
-                        BOOST_CHECK(std::is_sorted( rbegin(cis),  rend(cis), std::greater<>{}));
+                        BOOST_CHECK(std::is_sorted( rbegin( is),  rend( is), std::greater{}));
+                        BOOST_CHECK(std::is_sorted( rbegin(cis),  rend(cis), std::greater{}));
                         BOOST_CHECK(std::is_sorted( cbegin( is),  cend( is)));
-                        BOOST_CHECK(std::is_sorted(crbegin( is), crend( is), std::greater<>{}));
+                        BOOST_CHECK(std::is_sorted(crbegin( is), crend( is), std::greater{}));
                 }
         }
 };
