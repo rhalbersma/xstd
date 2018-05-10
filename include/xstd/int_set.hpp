@@ -329,6 +329,7 @@ class int_set
 {
 public:
         using block_type = UIntType;
+
 private:
         static_assert(0 <= N);
         static_assert(std::is_unsigned_v<block_type>);
@@ -340,198 +341,29 @@ private:
         constexpr static auto num_bits = num_blocks * block_size;
         constexpr static auto excess_bits = num_bits - N;
 
-        using data_type = std::conditional_t<num_blocks == 1, block_type, block_type[std::max(num_blocks, 1)]>;
+        class proxy_reference;
+        class proxy_iterator;
+
+        using data_type = std::conditional_t<num_blocks == 1, block_type, block_type[std::max(num_blocks, 1)]>;        
         data_type m_data;
+
 public:
-        using key_type        = int;
-        using key_compare     = std::less<>;
-        using value_type      = int;
-        using value_compare   = std::less<>;
-        using size_type       = int;
-        using difference_type = int;
-
-        class const_reference;
-        class const_iterator;
-
-        class const_reference
-        {
-                constexpr auto assert_invariants() const noexcept
-                {
-                        assert(0 <= m_value); assert(m_value < N);
-                }
-
-                block_type const& m_block;
-                value_type const m_value;
-
-        public:
-                ~const_reference() = default;
-                const_reference(const_reference const&) = default;
-                const_reference(const_reference&&) = default;
-                const_reference& operator=(const_reference const&) = delete;
-                const_reference& operator=(const_reference&&) = delete;
-
-                const_reference() = delete;
-
-                constexpr const_reference(block_type const& b, value_type const v) noexcept
-                :
-                        m_block{b},
-                        m_value{v}
-                {
-                        assert_invariants();
-                }
-
-                const_reference& operator=(value_type const) = delete;
-
-                /* implicit */ constexpr operator value_type() const noexcept
-                {
-                        return m_value;
-                }
-
-                constexpr auto operator&() const noexcept
-                        -> const_iterator
-                {
-                        return { &m_block, m_value };
-                }
-        };
-
-        class const_iterator
-        {
-        public:
-                using difference_type   = typename int_set::difference_type;
-                using value_type        = typename int_set::value_type;
-                using pointer           = const_iterator;
-                using reference         = const_reference;
-                using iterator_category = std::bidirectional_iterator_tag;
-
-        private:
-                constexpr auto assert_invariants() const noexcept
-                {
-                        assert(m_block != nullptr);
-                        assert(0 <= m_value); assert(m_value < N || m_value == num_bits);
-                }
-
-                block_type const* m_block;
-                value_type m_value;
-
-        public:
-                const_iterator() = default;
-
-                constexpr const_iterator(block_type const* b, value_type const v) // Throws: Nothing.
-                :
-                        m_block{b},
-                        m_value{v}
-                {
-                        assert_invariants();
-                }
-
-                constexpr auto operator*() const // Throws: Nothing.
-                        -> const_reference
-                {
-                        assert(0 <= m_value); assert(m_value < N);
-                        return { *m_block, m_value };
-                }
-
-                constexpr auto& operator++() // Throws: Nothing.
-                {
-                        assert(0 <= m_value); assert(m_value < N);
-                        increment();
-                        assert(0 < m_value); assert(m_value < N || m_value == num_bits);
-                        return *this;
-                }
-
-                constexpr auto operator++(int) // Throws: Nothing.
-                {
-                        auto nrv = *this; ++*this; return nrv;
-                }
-
-                constexpr auto& operator--() // Throws:Nothing.
-                {
-                        assert(0 < m_value); assert(m_value < N || m_value == num_bits);
-                        decrement();
-                        assert(0 <= m_value); assert(m_value < N);
-                        return *this;
-                }
-
-                constexpr auto operator--(int) // Throws: Nothing.
-                {
-                        auto nrv = *this; --*this; return nrv;
-                }
-
-                friend constexpr auto operator==(const_iterator const& lhs, const_iterator const& rhs) noexcept
-                {
-                        assert(lhs.m_block == rhs.m_block);
-                        return lhs.m_value == rhs.m_value;
-                }
-
-                friend constexpr auto operator!=(const_iterator const& lhs, const_iterator const& rhs) noexcept
-                {
-                        assert(lhs.m_block == rhs.m_block);
-                        return !(lhs == rhs);
-                }
-
-        private:
-                constexpr auto increment() // Throws: Nothing.
-                {
-                        assert(m_value < N);
-                        if (++m_value == num_bits) { return; }
-                        if constexpr (num_blocks == 1) {
-                                if (auto const block = *m_block >> m_value; block != zero) {
-                                        m_value += detail::ctznz(block);
-                                        return;
-                                }
-                                m_value = block_size;
-                        } else if constexpr (num_blocks >= 2) {
-                                auto i = which(m_value);
-                                if (auto const offset = where(m_value); offset != 0) {
-                                        if (auto const block = m_block[i] >> offset; block != zero) {
-                                                m_value += detail::ctznz(block);
-                                                return;
-                                        }
-                                        ++i;
-                                        m_value += block_size - offset;
-                                }
-                                for (/* initialized before loop */; i < num_blocks; ++i, m_value += block_size) {
-                                        if (auto const block = m_block[i]; block != zero) {
-                                                m_value += detail::ctznz(block);
-                                                return;
-                                        }
-                                }
-                        }
-                        assert(m_value == num_bits);
-                }
-
-                constexpr auto decrement() // Throws: Nothing.
-                {
-                        assert(0 < m_value);
-                        --m_value;
-                        if constexpr (num_blocks == 1) {
-                                m_value -= detail::clznz(*m_block << (block_size - 1 - m_value));
-                        } else if constexpr (num_blocks >= 2) {
-                                auto i = which(m_value);
-                                if (auto const offset = where(m_value); offset != block_size - 1) {
-                                        if (auto const block = m_block[i] << (block_size - 1 - offset); block != zero) {
-                                                m_value -= detail::clznz(block);
-                                                return;
-                                        }
-                                        --i;
-                                        m_value -= offset + 1;
-                                }
-                                for (/* initialized before loop */; i >= 0; --i, m_value -= block_size) {
-                                        if (auto const block = m_block[i]; block != zero) {
-                                                m_value -= detail::clznz(block);
-                                                return;
-                                        }
-                                }
-                        }
-                }
-        };
-
-        using reference              = const_reference;
-        using iterator               = const_iterator;
-        using pointer                = iterator;
-        using const_pointer          = const_iterator;
+        using key_type               = int;
+        using key_compare            = std::less<>;
+        using value_type             = int;
+        using value_compare          = std::less<>;
+        using allocator_type         = void;
+        using pointer                = proxy_iterator;
+        using const_pointer          = proxy_iterator;
+        using reference              = proxy_reference;
+        using const_reference        = proxy_reference;
+        using size_type              = int;
+        using difference_type        = int;
+        using iterator               = proxy_iterator;
+        using const_iterator         = proxy_iterator;
         using reverse_iterator       = std::reverse_iterator<iterator>;
         using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+        using node_type              = void;
         using insert_return_type     = void;
 
         int_set() = default;
@@ -1116,6 +948,178 @@ private:
                 assert(0 <= n); assert(n < num_bits);
                 return n % block_size;
         }
+
+        class proxy_reference
+        {
+                constexpr auto assert_invariants() const noexcept
+                {
+                        assert(0 <= m_value); assert(m_value < N);
+                }
+
+                block_type const& m_block;
+                value_type const m_value;
+        
+        public:
+                ~proxy_reference() = default;
+                proxy_reference(proxy_reference const&) = default;
+                proxy_reference(proxy_reference&&) = default;
+                proxy_reference& operator=(proxy_reference const&) = delete;
+                proxy_reference& operator=(proxy_reference&&) = delete;
+
+                proxy_reference() = delete;
+
+                constexpr proxy_reference(block_type const& b, value_type const v) noexcept
+                :
+                        m_block{b},
+                        m_value{v}
+                {
+                        assert_invariants();
+                }
+
+                proxy_reference& operator=(value_type const) = delete;
+
+                /* implicit */ constexpr operator value_type() const noexcept
+                {
+                        return m_value;
+                }
+
+                constexpr auto operator&() const noexcept
+                        -> proxy_iterator
+                {
+                        return { &m_block, m_value };
+                }
+        };
+
+        class proxy_iterator
+        {
+        public:
+                using difference_type   = typename int_set::difference_type;
+                using value_type        = typename int_set::value_type;
+                using pointer           = proxy_iterator;
+                using reference         = proxy_reference;
+                using iterator_category = std::bidirectional_iterator_tag;
+
+        private:
+                constexpr auto assert_invariants() const noexcept
+                {
+                        assert(m_block != nullptr);
+                        assert(0 <= m_value); assert(m_value < N || m_value == num_bits);
+                }
+
+                block_type const* m_block;
+                value_type m_value;
+
+        public:
+                proxy_iterator() = default;
+
+                constexpr proxy_iterator(block_type const* b, value_type const v) // Throws: Nothing.
+                :
+                        m_block{b},
+                        m_value{v}
+                {
+                        assert_invariants();
+                }
+
+                constexpr auto operator*() const // Throws: Nothing.
+                        -> proxy_reference
+                {
+                        assert(0 <= m_value); assert(m_value < N);
+                        return { *m_block, m_value };
+                }
+
+                constexpr auto& operator++() // Throws: Nothing.
+                {
+                        assert(0 <= m_value); assert(m_value < N);
+                        increment();
+                        assert(0 < m_value); assert(m_value < N || m_value == num_bits);
+                        return *this;
+                }
+
+                constexpr auto operator++(int) // Throws: Nothing.
+                {
+                        auto nrv = *this; ++*this; return nrv;
+                }
+
+                constexpr auto& operator--() // Throws:Nothing.
+                {
+                        assert(0 < m_value); assert(m_value < N || m_value == num_bits);
+                        decrement();
+                        assert(0 <= m_value); assert(m_value < N);
+                        return *this;
+                }
+
+                constexpr auto operator--(int) // Throws: Nothing.
+                {
+                        auto nrv = *this; --*this; return nrv;
+                }
+
+                friend constexpr auto operator==(proxy_iterator const& lhs, proxy_iterator const& rhs) noexcept
+                {
+                        assert(lhs.m_block == rhs.m_block);
+                        return lhs.m_value == rhs.m_value;
+                }
+
+                friend constexpr auto operator!=(proxy_iterator const& lhs, proxy_iterator const& rhs) noexcept
+                {
+                        return !(lhs == rhs);
+                }
+
+        private:
+                constexpr auto increment() // Throws: Nothing.
+                {
+                        assert(m_value < N);
+                        if (++m_value == num_bits) { return; }
+                        if constexpr (num_blocks == 1) {
+                                if (auto const block = *m_block >> m_value; block != zero) {
+                                        m_value += detail::ctznz(block);
+                                        return;
+                                }
+                                m_value = block_size;
+                        } else if constexpr (num_blocks >= 2) {
+                                auto i = which(m_value);
+                                if (auto const offset = where(m_value); offset != 0) {
+                                        if (auto const block = m_block[i] >> offset; block != zero) {
+                                                m_value += detail::ctznz(block);
+                                                return;
+                                        }
+                                        ++i;
+                                        m_value += block_size - offset;
+                                }
+                                for (/* initialized before loop */; i < num_blocks; ++i, m_value += block_size) {
+                                        if (auto const block = m_block[i]; block != zero) {
+                                                m_value += detail::ctznz(block);
+                                                return;
+                                        }
+                                }
+                        }
+                        assert(m_value == num_bits);
+                }
+
+                constexpr auto decrement() // Throws: Nothing.
+                {
+                        assert(0 < m_value);
+                        --m_value;
+                        if constexpr (num_blocks == 1) {
+                                m_value -= detail::clznz(*m_block << (block_size - 1 - m_value));
+                        } else if constexpr (num_blocks >= 2) {
+                                auto i = which(m_value);
+                                if (auto const offset = where(m_value); offset != block_size - 1) {
+                                        if (auto const block = m_block[i] << (block_size - 1 - offset); block != zero) {
+                                                m_value -= detail::clznz(block);
+                                                return;
+                                        }
+                                        --i;
+                                        m_value -= offset + 1;
+                                }
+                                for (/* initialized before loop */; i >= 0; --i, m_value -= block_size) {
+                                        if (auto const block = m_block[i]; block != zero) {
+                                                m_value -= detail::clznz(block);
+                                                return;
+                                        }
+                                }
+                        }
+                }
+        };
 
         friend auto operator==  <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
         friend auto operator<   <>(int_set const& /* lhs */, int_set const& /* rhs */) noexcept;
