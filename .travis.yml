@@ -82,7 +82,7 @@ before_script:
 script: 
 - |
   cmake --build . -- -j2
-  ctest
+  ctest -j2
 
 after_success:
 - |

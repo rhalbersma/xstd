@@ -72,14 +72,14 @@ BOOST_AUTO_TEST_CASE(StdDiv)
         }};
 
         std::array<xstd::div_t, 8> std_res{};
-        std::transform(input.cbegin(), input.cend(), std_res.begin(), [](auto const& p) -> xstd::div_t {
+        std::transform(input.begin(), input.end(), std_res.begin(), [](auto const& p) -> xstd::div_t {
                 auto const d = std::div(p.first, p.second);
                 return { d.quot, d.rem };
         });
 
         BOOST_CHECK_EQUAL_COLLECTIONS(
-                std_res.cbegin(), std_res.cend(),
-                std_div.cbegin(), std_div.cend()
+                std_res.begin(), std_res.end(),
+                std_div.begin(), std_div.end()
         );
 }
 
@@ -92,13 +92,13 @@ BOOST_AUTO_TEST_CASE(TruncatedDiv)
         }};
 
         std::array<xstd::div_t, 8> truncated_res{};
-        std::transform(input.cbegin(), input.cend(), truncated_res.begin(), [](auto const& p) {
+        std::transform(input.begin(), input.end(), truncated_res.begin(), [](auto const& p) {
                 return xstd::truncated_div(p.first, p.second);
         });
 
         BOOST_CHECK_EQUAL_COLLECTIONS(
-                truncated_res.cbegin(), truncated_res.cend(),
-                truncated_div.cbegin(), truncated_div.cend()
+                truncated_res.begin(), truncated_res.end(),
+                truncated_div.begin(), truncated_div.end()
         );
 }
 
@@ -111,13 +111,13 @@ BOOST_AUTO_TEST_CASE(FlooredDiv)
         }};
 
         std::array<xstd::div_t, 8> floored_res{};
-        std::transform(input.cbegin(), input.cend(), floored_res.begin(), [](auto const& p) {
+        std::transform(input.begin(), input.end(), floored_res.begin(), [](auto const& p) {
                 return xstd::floored_div(p.first, p.second);
         });
 
         BOOST_CHECK_EQUAL_COLLECTIONS(
-                floored_res.cbegin(), floored_res.cend(),
-                floored_div.cbegin(), floored_div.cend()
+                floored_res.begin(), floored_res.end(),
+                floored_div.begin(), floored_div.end()
         );
 }
 
@@ -130,13 +130,13 @@ BOOST_AUTO_TEST_CASE(EuclideanDiv)
         }};
 
         std::array<xstd::div_t, 8> euclidean_res{};
-        std::transform(input.cbegin(), input.cend(), euclidean_res.begin(), [](auto const& p) {
+        std::transform(input.begin(), input.end(), euclidean_res.begin(), [](auto const& p) {
                 return xstd::euclidean_div(p.first, p.second);
         });
 
         BOOST_CHECK_EQUAL_COLLECTIONS(
-                euclidean_res.cbegin(), euclidean_res.cend(),
-                euclidean_div.cbegin(), euclidean_div.cend()
+                euclidean_res.begin(), euclidean_res.end(),
+                euclidean_div.begin(), euclidean_div.end()
         );
 }
 
