@@ -47,6 +47,14 @@ set(cxx_compile_options_optimization
         >
 )
 
+if(NOT MSVC)
+        set(cxx_link_optimizations
+                -flto
+                -fuse-ld=gold
+        )
+endif()
+
+
 ###############################################################
 # define test executables
 ###############################################################
@@ -66,14 +74,8 @@ foreach(t ${targets})
         target_link_libraries(${target_id} PRIVATE
                 xstd 
                 Boost::unit_test_framework
+                ${cxx_link_optimizations}
         )
-
-        if(NOT MSVC)
-                target_link_libraries(${target_id} PRIVATE
-                        -flto
-                        -fuse-ld=gold
-                )
-        endif()
 
         target_include_directories(${target_id} PRIVATE 
         	${test_include_dir}
