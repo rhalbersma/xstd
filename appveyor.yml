@@ -3,8 +3,7 @@ image:
 build_script:
 - cmd: >-
     cd %APPVEYOR_BUILD_FOLDER%
-    echo
-        
+
     mkdir build     
     
     cd build    
