@@ -3,7 +3,6 @@ image:
  
 environment:
     BOOST_ROOT: C:/Libraries/boost_1_66_0
-    BOOST_LIBRARYDIR_WIN64: C:/Libraries/boost_1_66_0/lib64-msvc-14.1
 
 configuration:
     - Debug
@@ -20,7 +19,7 @@ build_script:
     
     cd build    
     
-    cmake .. -G "Visual Studio 15 Win64"        
+    cmake .. -G "Visual Studio 15 Win64" -DBOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE        
     
     cmake --build .
     
