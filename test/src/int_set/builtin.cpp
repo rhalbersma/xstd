@@ -28,6 +28,8 @@ using UnsignedIntegerTypes = boost::mpl::vector
         ,       uint64_t
         >;
 
+        #else
+
         using UnsignedIntegerTypes = boost::mpl::vector
         <       uint32_t
         >;

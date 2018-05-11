@@ -2,6 +2,16 @@ find_package(Boost 1.66.0 REQUIRED COMPONENTS
         unit_test_framework
 )
 
+set(cxx_compile_definitions
+        BOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE
+        BOOST_ALL_NO_LIB
+        BOOST_ALL_DYN_LINK
+        BOOST_TEST_MAIN
+        $<$<CXX_COMPILER_ID:MSVC>:
+                _SCL_SECURE_NO_WARNINGS
+        >
+)
+
 set(cxx_compile_options_warnings
         $<$<CXX_COMPILER_ID:Clang>:
                 -Weverything 
@@ -72,10 +82,7 @@ foreach(t ${targets})
         )
 	
         target_compile_definitions(${target_id} PRIVATE
-                BOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE
-                BOOST_ALL_NO_LIB
-                BOOST_ALL_DYN_LINK
-                BOOST_TEST_MAIN
+                ${cxx_compile_definitions}
         )
 
         target_compile_options(${target_id} PRIVATE 
