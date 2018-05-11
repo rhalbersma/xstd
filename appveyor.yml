@@ -3,9 +3,13 @@ image:
 build_script:
 - cmd: >-
     cd ${APPVEYOR_BUILD_FOLDER}
+    
     mkdir build 
+    
     cd build
+    
     cmake .. -G "Visual Studio 15"    
+    
     cmake --build .
 test_script:
 - cmd: ctest
