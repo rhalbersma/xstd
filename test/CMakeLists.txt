@@ -1,14 +1,6 @@
-###############################################################
-# use the Boost.Test unit test framework
-###############################################################
-
 find_package(Boost 1.66.0 REQUIRED COMPONENTS 
         unit_test_framework
 )
-
-###############################################################
-# compiler and linker flags
-###############################################################
 
 set(cxx_compile_options_warnings
         $<$<CXX_COMPILER_ID:Clang>:
@@ -53,11 +45,6 @@ if(NOT MSVC)
                 -fuse-ld=gold
         )
 endif()
-
-
-###############################################################
-# define test executables
-###############################################################
 
 set(test_include_dir ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(test_source_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)
