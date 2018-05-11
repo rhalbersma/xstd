@@ -12,14 +12,8 @@
 
 namespace xstd {
 
-constexpr bool is_power_of_2(std::size_t x) noexcept
-{
-        return (x - 1) < (x & -x);
-}
-
 constexpr std::size_t align_on(std::size_t address, std::size_t alignment) noexcept
 {
-        assert(is_power_of_2(alignment));
         return (address + alignment - 1) & ~(alignment - 1);
 }
 
