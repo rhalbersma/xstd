@@ -16,7 +16,7 @@ before_build:
     
     cd build       
     
-    cmake .. -G %generator% -DBoost_DEBUG=ON    
+    cmake .. -G "%generator%" -DBoost_DEBUG=ON    
 
 build_script:
 - cmd: >-
