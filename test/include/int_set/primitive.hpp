@@ -857,7 +857,9 @@ struct fn_all
         template<class IntSet>
         auto operator()(IntSet const& is) const noexcept
         {
-                BOOST_CHECK_EQUAL(all(is), is.count() == xstd::size(is));             // [bitset.members]/40
+                static_assert(std::is_same_v<decltype(is.count()), decltype(size(is))>);
+                auto const expected = is.count() == size(is);
+                BOOST_CHECK_EQUAL(all(is), expected);             // [bitset.members]/40
 
                 if constexpr (tti::has_full_v<IntSet>) {
                         BOOST_CHECK_EQUAL(all(is), is.full());

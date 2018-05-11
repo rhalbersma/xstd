@@ -615,7 +615,7 @@ public:
                 erase(ilist.begin(), ilist.end());
         }
 
-        auto swap(int_set& other) noexcept(num_blocks == 0 || std::is_nothrow_swappable_v<value_type>)
+        auto swap(int_set& other [[maybe_unused]]) noexcept(num_blocks == 0 || std::is_nothrow_swappable_v<value_type>)
         {
                 if constexpr (num_blocks == 1) {
                         using std::swap;
