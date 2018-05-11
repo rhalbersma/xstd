@@ -38,6 +38,10 @@ using CountUnsignedIntegerTypes = ScanUnsignedIntegerTypes;
 
         #else
 
+        using ScanUnsignedIntegerTypes = boost::mpl::vector
+        <       unsigned long
+        >;
+        
         using CountUnsignedIntegerTypes = boost::mpl::vector
         <       unsigned
         >;
