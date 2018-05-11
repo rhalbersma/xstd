@@ -137,11 +137,11 @@ namespace builtin {
 
         struct bsfnz
         {
-                auto operator()(unsigned long x) const noexcept
+                auto operator()(uint32_t x) const noexcept
                 {
                         assert(x != 0);
                         unsigned long index;
-                        _BitScanForward(&index, x);
+                        _BitScanForward(&index, static_cast<unsigned long>(x));
                         return static_cast<int>(index);
                 }
 
@@ -163,11 +163,11 @@ namespace builtin {
 
         struct bsrnz
         {
-                auto operator()(unsigned long x) const noexcept
+                auto operator()(uint32_t x) const noexcept
                 {
                         assert(x != 0);
                         unsigned long index;
-                        _BitScanReverse(&index, x);
+                        _BitScanReverse(&index, static_cast<unsigned long>(x));
                         return static_cast<int>(index);
                 }
 
@@ -187,9 +187,9 @@ namespace builtin {
 
         struct popcount
         {
-                auto operator()(unsigned x) const noexcept
+                auto operator()(uint32_t x) const noexcept
                 {
-                        return __popcnt(x);
+                        return __popcnt(static_cast<unsigned>(x));
                 }
 
         #if defined(_WIN64)
