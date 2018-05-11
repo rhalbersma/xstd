@@ -1,12 +1,12 @@
 image:
   - Visual Studio 2017
  
-environment:
-    BOOST_ROOT: C:/Libraries/boost_1_66_0
-
+platform:
+  - x64 
+ 
 configuration:
-    - Debug
-#    - Release
+#    - Debug
+  - Release
 
 build:
     parallel: true
@@ -19,7 +19,7 @@ build_script:
     
     cd build    
     
-    cmake .. -G "Visual Studio 15 Win64" -DBUILD_SHARED_LIBS=ON -DBoost_DEBUG=ON
+    cmake .. -G "Visual Studio 15" -DBoost_DEBUG=ON
     
     cmake --build .
     

@@ -72,7 +72,8 @@ foreach(t ${targets})
         )
 	
         target_compile_definitions(${target_id} PRIVATE
-                BOOST_TEST_DYN_LINK
+                BOOST_ALL_NO_LIB
+                BOOST_ALL_DYN_LINK
                 BOOST_TEST_MAIN
                 BOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE
         )
