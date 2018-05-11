@@ -11,16 +11,33 @@
 
 BOOST_AUTO_TEST_SUITE(Builtin)
 
+#if defined(__GNUG__)
+
 using UnsignedIntegerTypes = boost::mpl::vector
 <       unsigned
 ,       unsigned long
 ,       unsigned long long
-,       uint32_t
-,       uint64_t
-#if defined(__GNUG__)
 ,       __uint128_t
-#endif
 >;
+
+#elif defined(_MSC_VER)
+
+        #if defined(WIN64) 
+
+        using UnsignedIntegerTypes = boost::mpl::vector
+        <       unsigned long
+        ,       uint64_t
+        >;
+
+        #else
+
+        using UnsignedIntegerTypes = boost::mpl::vector
+        <       unsigned long
+        >;
+
+        #endif
+
+#endif
 
 using namespace xstd;
 
