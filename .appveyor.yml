@@ -5,24 +5,28 @@ platform:
   - x64 
  
 configuration:
-#    - Debug
   - Release
 
 build:
     parallel: true
 
-build_script:
+environment:
+    BOOST_ROOT: C:/Libraries/boost_1_66_0
+
+before_build:
 - cmd: >-
     cd %APPVEYOR_BUILD_FOLDER%
+    
+    mkdir build         
+    
+    cd build       
+    
+    cmake .. -G "Visual Studio 15" -DBoost_DEBUG=ON    
 
-    mkdir build     
-    
-    cd build    
-    
-    cmake .. -G "Visual Studio 15" -DBoost_DEBUG=ON
-    
+build_script:
+- cmd: >-
     cmake --build .
     
 test_script:
-- cmd: ctest
-
+- cmd: >-
+    ctest
