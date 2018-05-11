@@ -13,7 +13,7 @@
 #include <functional>                   // less, not_fn
 #include <initializer_list>             // initializer_list
 #include <iosfwd>                       // basic_ostream
-#include <iterator>                     // bidirectional_iterator_tag, rbegin, rend, reverse_iterator
+#include <iterator>                     // bidirectional_iterator_tag, begin, end, prev, rbegin, rend, reverse_iterator
 #include <experimental/iterator>        // make_ostream_joiner
 #include <limits>                       // digits
 #include <numeric>                      // accumulate
@@ -527,7 +527,7 @@ public:
                         } else if constexpr (num_blocks == 2) {
                                 return m_data[0] == ones && m_data[1] == ones;
                         } else if constexpr (num_blocks >= 3) {
-                                return std::all_of(m_data, m_data + num_blocks, [](auto const block) {
+                                return std::all_of(std::begin(m_data), std::end(m_data), [](auto const block) {
                                         return block == ones;
                                 });
                         }
@@ -539,7 +539,7 @@ public:
                         } else {
                                 static_assert(num_blocks >= 3);
                                 return
-                                        std::all_of(m_data, m_data + num_blocks - 1, [](auto const block) {
+                                        std::all_of(std::begin(m_data), std::prev(std::end(m_data)), [](auto const block) {
                                                 return block == ones;
                                         }) && m_data[num_blocks - 1] == sane;
                                 ;
@@ -556,7 +556,7 @@ public:
                 } else if constexpr (num_blocks == 2) {
                         return m_data[0] == zero && m_data[1] == zero;
                 } else if constexpr (num_blocks >= 3) {
-                        return std::all_of(m_data, m_data + num_blocks, [](auto const block) {
+                        return std::all_of(std::begin(m_data), std::end(m_data), [](auto const block) {
                                 return block == zero;
                         });
                 }
@@ -571,7 +571,7 @@ public:
                 } else if constexpr (num_blocks == 2) {
                         return detail::popcount(m_data[0]) + detail::popcount(m_data[1]);
                 } else if constexpr (num_blocks >= 3) {
-                        return std::accumulate(m_data, m_data + num_blocks, 0, [](auto const sum, auto const block) {
+                        return std::accumulate(std::begin(m_data), std::end(m_data), 0, [](auto const sum, auto const block) {
                                 return sum + detail::popcount(block);
                         });
                 }
@@ -613,7 +613,7 @@ public:
                         m_data[0] = ones;
                         m_data[1] = ones;
                 } else if constexpr (num_blocks >= 3) {
-                        std::fill_n(m_data, num_blocks, ones);
+                        std::fill_n(std::begin(m_data), num_blocks, ones);
                 }
                 sanitize_back();
                 assert(full());
@@ -654,7 +654,7 @@ public:
                         swap(m_data[0], other.m_data[0]);
                         swap(m_data[1], other.m_data[1]);
                 } else if constexpr (num_blocks >= 3) {
-                        std::swap_ranges(m_data, m_data + num_blocks, other.m_data);
+                        std::swap_ranges(std::begin(m_data), std::end(m_data), std::begin(other.m_data));
                 }
         }
 
@@ -666,7 +666,7 @@ public:
                         m_data[0] = zero;
                         m_data[1] = zero;
                 } else if constexpr (num_blocks >= 3) {
-                        std::fill_n(m_data, num_blocks, zero);
+                        std::fill_n(std::begin(m_data), num_blocks, zero);
                 }
                 assert(empty());
         }
@@ -780,7 +780,7 @@ public:
                         auto const L_shift = n % block_size;
 
                         if (L_shift == 0) {
-                                std::copy_backward(m_data, m_data + num_blocks - n_block, m_data + num_blocks);
+                                std::copy_backward(std::begin(m_data), std::prev(std::end(m_data), n_block), std::end(m_data));
                         } else {
                                 auto const R_shift = block_size - L_shift;
 
@@ -792,7 +792,7 @@ public:
                                 }
                                 m_data[n_block] = m_data[0] << L_shift;
                         }
-                        std::fill_n(m_data, n_block, zero);
+                        std::fill_n(std::begin(m_data), n_block, zero);
                 }
                 sanitize_back();
                 return *this;
@@ -810,7 +810,7 @@ public:
                         auto const R_shift = n % block_size;
 
                         if (R_shift == 0) {
-                                std::copy_n(m_data + n_block, num_blocks - n_block, m_data);
+                                std::copy_n(std::next(std::begin(m_data), n_block), num_blocks - n_block, std::begin(m_data));
                         } else {
                                 auto const L_shift = block_size - R_shift;
 
@@ -822,7 +822,6 @@ public:
                                 }
                                 m_data[num_blocks - 1 - n_block] = m_data[num_blocks - 1] >> R_shift;
                         }
-                        using std::rbegin;
                         std::fill_n(std::rbegin(m_data), n_block, zero);
                 }
                 return *this;
@@ -1130,8 +1129,8 @@ auto operator==(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs
                 return tied(lhs) == tied(rhs);
         } else if constexpr (num_blocks >= 3) {
                 return std::equal(
-                        lhs.m_data, lhs.m_data + num_blocks,
-                        rhs.m_data, rhs.m_data + num_blocks
+                        std::begin(lhs.m_data), std::end(lhs.m_data),
+                        std::begin(rhs.m_data), std::end(rhs.m_data)
                 );
         }
 }
@@ -1156,10 +1155,9 @@ auto operator<(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs)
                 };
                 return tied(lhs) < tied(rhs);
         } else if constexpr (num_blocks >= 3) {
-                using std::rbegin; using std::rend;
                 return std::lexicographical_compare(
-                        rbegin(lhs.m_data), rend(lhs.m_data),
-                        rbegin(rhs.m_data), rend(rhs.m_data)
+                        std::rbegin(lhs.m_data), std::rend(lhs.m_data),
+                        std::rbegin(rhs.m_data), std::rend(rhs.m_data)
                 );
         }
 }
@@ -1198,8 +1196,8 @@ auto is_subset_of(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& r
                 ;
         } else if constexpr (num_blocks >= 3) {
                 return std::equal(
-                        lhs.m_data, lhs.m_data + num_blocks,
-                        rhs.m_data, rhs.m_data + num_blocks,
+                        std::begin(lhs.m_data), std::end(lhs.m_data),
+                        std::begin(rhs.m_data), std::end(rhs.m_data),
                         [](auto const wL, auto const wR) {
                                 return (wL & ~wR) == zero;
                         }
@@ -1241,8 +1239,8 @@ auto intersects(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs
                 ;
         } else if constexpr (num_blocks >= 3) {
                 return !std::equal(
-                        lhs.m_data, lhs.m_data + num_blocks,
-                        rhs.m_data, rhs.m_data + num_blocks,
+                        std::begin(lhs.m_data), std::end(lhs.m_data),
+                        std::begin(rhs.m_data), std::end(rhs.m_data),
                         [](auto const wL, auto const wR) {
                                 return (wL & wR) == zero;
                         }
