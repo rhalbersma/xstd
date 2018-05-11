@@ -25,7 +25,6 @@ set(cxx_compile_options_warnings
                 -Werror
                 -pedantic-errors
                 -Wno-padded
-                -Wno-deprecated-declarations
         >
 )  
 

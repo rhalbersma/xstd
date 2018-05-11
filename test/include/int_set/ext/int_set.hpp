@@ -14,14 +14,14 @@ template<class T>
 using size_t = typename T::size_type;
 
 template<int N, class UIntType>
-[[deprecated]] auto& set(int_set<N, UIntType>& is) noexcept
+auto& set(int_set<N, UIntType>& is) noexcept
 {
         is.fill();
         return is;
 }
 
 template<int N, class UIntType>
-[[deprecated]] auto& set(int_set<N, UIntType>& is, size_t<int_set<N, UIntType>> const pos, bool const val = true)
+auto& set(int_set<N, UIntType>& is, size_t<int_set<N, UIntType>> const pos, bool const val = true)
 {
         if (pos >= N) {
                 throw std::out_of_range{"set(int_set<N, UIntType>&, int): index out of range"};
@@ -30,14 +30,14 @@ template<int N, class UIntType>
 }
 
 template<int N, class UIntType>
-[[deprecated]] auto& reset(int_set<N, UIntType>& is) noexcept
+auto& reset(int_set<N, UIntType>& is) noexcept
 {
         is.clear();
         return is;
 }
 
 template<int N, class UIntType>
-[[deprecated]] auto& reset(int_set<N, UIntType>& is, size_t<int_set<N, UIntType>> const pos)
+auto& reset(int_set<N, UIntType>& is, size_t<int_set<N, UIntType>> const pos)
 {
         if (pos >= N) {
                 throw std::out_of_range{"reset(int_set<N, UIntType>&, int): index out of range"};
@@ -46,13 +46,13 @@ template<int N, class UIntType>
 }
 
 template<int N, class UIntType>
-[[deprecated]] auto& flip(int_set<N, UIntType>& is) noexcept
+auto& flip(int_set<N, UIntType>& is) noexcept
 {
         return is.toggle();
 }
 
 template<int N, class UIntType>
-[[deprecated]] auto& flip(int_set<N, UIntType>& is, size_t<int_set<N, UIntType>> const pos)
+auto& flip(int_set<N, UIntType>& is, size_t<int_set<N, UIntType>> const pos)
 {
         if (pos >= N) {
                 throw std::out_of_range{"flip(int_set<N, UIntType>&, int): index out of range"};
@@ -61,13 +61,13 @@ template<int N, class UIntType>
 }
 
 template<int N, class UIntType>
-[[deprecated]] constexpr auto size(int_set<N, UIntType> const& is) noexcept
+constexpr auto size(int_set<N, UIntType> const& is) noexcept
 {
         return is.max_size();
 }
 
 template<int N, class UIntType>
-[[deprecated]] auto test(int_set<N, UIntType> const& is, size_t<int_set<N, UIntType>> const pos)
+auto test(int_set<N, UIntType> const& is, size_t<int_set<N, UIntType>> const pos)
 {
         if (pos >= N) {
                 throw std::out_of_range{"test(int_set<N, UIntType>&, int): index out of range"};
@@ -76,25 +76,25 @@ template<int N, class UIntType>
 }
 
 template<int N, class UIntType>
-[[deprecated]] auto all(int_set<N, UIntType> const& is) noexcept
+auto all(int_set<N, UIntType> const& is) noexcept
 {
         return is.full();
 }
 
 template<int N, class UIntType>
-[[deprecated]] auto any(int_set<N, UIntType> const& is) noexcept
+auto any(int_set<N, UIntType> const& is) noexcept
 {
         return !is.empty();
 }
 
 template<int N, class UIntType>
-[[deprecated]] auto none(int_set<N, UIntType> const& is) noexcept
+auto none(int_set<N, UIntType> const& is) noexcept
 {
         return is.empty();
 }
 
 template<int N, class UIntType>
-[[deprecated]] constexpr auto contains(int_set<N, UIntType> const& is, size_t<int_set<N, UIntType>> const pos) // Throws: Nothing.
+constexpr auto contains(int_set<N, UIntType> const& is, size_t<int_set<N, UIntType>> const pos) // Throws: Nothing.
 {
         return is.contains(pos);
 }
