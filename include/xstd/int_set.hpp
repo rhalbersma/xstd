@@ -189,14 +189,14 @@ namespace builtin {
         {
                 auto operator()(uint32_t x) const noexcept
                 {
-                        return __popcnt(static_cast<unsigned>(x));
+                        return static_cast<int>(__popcnt(static_cast<unsigned>(x)));
                 }
 
         #if defined(_WIN64)
 
                 auto operator()(uint64_t x) const noexcept
                 {
-                        return __popcnt64(x);
+                        return static_cast<int>(__popcnt64(x));
                 }
 
         #endif
