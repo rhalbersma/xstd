@@ -7,6 +7,10 @@ environment:
     BOOST_LIBRARYDIR: C:/Libraries/boost_1_66_0/lib64-msvc-14.1
     PATH: "%BOOST_LIBRARYDIR%;%PATH%"
     
+configuration:
+    -Debug
+    -Release    
+    
 build:
     parallel: true
 
