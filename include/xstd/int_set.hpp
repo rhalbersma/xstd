@@ -5,21 +5,20 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <algorithm>                    // all_of, copy, copy_backward, copy_n, equal, fill_n, lexicographical_compare, max, swap_ranges
-#include <array>                        // array
-#include <cassert>                      // assert
-#include <cstddef>                      // size_t
-#include <cstdint>                      // uint64_t
-#include <functional>                   // less, not_fn
-#include <initializer_list>             // initializer_list
-#include <iosfwd>                       // basic_ostream
-#include <iterator>                     // bidirectional_iterator_tag, begin, end, prev, rbegin, rend, reverse_iterator
-#include <experimental/iterator>        // make_ostream_joiner
-#include <limits>                       // digits
-#include <numeric>                      // accumulate
-#include <tuple>                        // tie
-#include <type_traits>                  // is_integral_v, is_nothrow_swappable_v, is_unsigned_v
-#include <utility>                      // move, swap
+#include <algorithm>            // all_of, copy, copy_backward, copy_n, equal, fill_n, lexicographical_compare, max, swap_ranges
+#include <array>                // array
+#include <cassert>              // assert
+#include <cstddef>              // size_t
+#include <cstdint>              // uint64_t
+#include <functional>           // less, not_fn
+#include <initializer_list>     // initializer_list
+#include <iosfwd>               // basic_ostream
+#include <iterator>             // bidirectional_iterator_tag, begin, end, prev, rbegin, rend, reverse_iterator
+#include <limits>               // digits
+#include <numeric>              // accumulate
+#include <tuple>                // tie
+#include <type_traits>          // is_integral_v, is_nothrow_swappable_v, is_unsigned_v
+#include <utility>              // move, swap
 
 namespace xstd {
 namespace detail {
@@ -1373,15 +1372,6 @@ constexpr auto empty(int_set<N, UIntType> const& is)
         -> decltype(is.empty())
 {
         return is.empty();
-}
-
-template<class CharT, class Traits, int N, class UIntType>
-auto& operator<<(std::basic_ostream<CharT, Traits>& os, int_set<N, UIntType> const& is)
-{
-        os << '[';
-        std::copy(is.begin(), is.end(), std::experimental::make_ostream_joiner(os, ','));
-        os << ']';
-        return os;
 }
 
 }       // namespace xstd

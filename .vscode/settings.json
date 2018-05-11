@@ -49,6 +49,7 @@
         "cstddef": "cpp",
         "cstring": "cpp",
         "cwchar": "cpp",
-        "cwctype": "cpp"
+        "cwctype": "cpp",
+        "iterator": "cpp"
     }
 }
