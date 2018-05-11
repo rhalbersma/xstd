@@ -1,25 +1,12 @@
 image:
   - Visual Studio 2017
  
-platform:
-  - x86
-  - x64 
- 
-configuration:
-  - Debug
-  - Release
-
-init:
-- cmd: >-
-    if "%PLATFORM%"=="x86" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars32.bat"
-
-    if "%PLATFORM%"=="x64" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
+environment:
+    generator: "Visual Studio 15 2017 Win64"
+    BOOST_ROOT: C:/Libraries/boost_1_66_0
 
 build:
     parallel: true
-
-environment:
-    BOOST_ROOT: C:/Libraries/boost_1_66_0
 
 before_build:
 - cmd: >-
@@ -29,7 +16,7 @@ before_build:
     
     cd build       
     
-    cmake .. -G "Visual Studio 15" -DBoost_DEBUG=ON    
+    cmake .. -G %generator% -DBoost_DEBUG=ON    
 
 build_script:
 - cmd: >-
