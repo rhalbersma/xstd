@@ -89,7 +89,7 @@ struct mem_assign
 struct const_reference
 {
         template<class IntSet>
-        auto operator()(IntSet const& is) const noexcept
+        auto operator()(IntSet const& is [[maybe_unused]]) const noexcept
         {
                 if constexpr (tti::has_const_iterator_v<IntSet>) {
                         for (auto first = is.begin(), last = is.end(); first != last; ++first) {
@@ -109,7 +109,7 @@ struct const_reference
 struct const_iterator
 {
         template<class IntSet>
-        auto operator()(IntSet const& cis) const noexcept
+        auto operator()(IntSet const& cis [[maybe_unused]]) const noexcept
         {
                 if constexpr (tti::has_const_iterator_v<IntSet>) {
                         auto is = cis;
@@ -146,7 +146,7 @@ struct const_iterator
 struct mem_front
 {
         template<class IntSet>
-        auto operator()(IntSet const& is) const noexcept
+        auto operator()(IntSet const& is [[maybe_unused]]) const noexcept
         {
                 if constexpr (tti::has_front_v<IntSet> && tti::has_const_iterator_v<IntSet>) {
                         BOOST_CHECK(is.empty() || (is.front() == *is.begin()));
@@ -158,7 +158,7 @@ struct mem_front
 struct mem_back
 {
         template<class IntSet>
-        auto operator()(IntSet const& is) const noexcept
+        auto operator()(IntSet const& is [[maybe_unused]]) const noexcept
         {
                 if constexpr (tti::has_back_v<IntSet> && tti::has_const_iterator_v<IntSet>) {
                         BOOST_CHECK(is.empty() || (is.back() == *is.rbegin()));
@@ -327,7 +327,7 @@ struct op_xor_assign
 struct op_minus_assign
 {
         template<class IntSet>
-        constexpr auto operator()(IntSet const& lhs, IntSet const& rhs) const noexcept
+        constexpr auto operator()(IntSet const& lhs [[maybe_unused]], IntSet const& rhs [[maybe_unused]]) const noexcept
         {
                 if constexpr (tti::has_op_minus_assign_v<IntSet>) {
                         auto const src = lhs;
@@ -857,7 +857,7 @@ struct fn_all
         template<class IntSet>
         auto operator()(IntSet const& is) const noexcept
         {
-                BOOST_CHECK_EQUAL(all(is), is.count() == size(is));             // [bitset.members]/40
+                BOOST_CHECK_EQUAL(all(is), is.count() == xstd::size(is));             // [bitset.members]/40
 
                 if constexpr (tti::has_full_v<IntSet>) {
                         BOOST_CHECK_EQUAL(all(is), is.full());

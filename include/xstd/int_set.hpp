@@ -679,7 +679,7 @@ public:
                 }
         }
 
-        constexpr auto& operator&=(int_set const& other) noexcept
+        constexpr auto& operator&=(int_set const& other [[maybe_unused]]) noexcept
         {
                 if constexpr (num_blocks == 1) {
                         m_data[0] &= other.m_data[0];
@@ -694,7 +694,7 @@ public:
                 return *this;
         }
 
-        constexpr auto& operator|=(int_set const& other) noexcept
+        constexpr auto& operator|=(int_set const& other [[maybe_unused]]) noexcept
         {
                 if constexpr (num_blocks == 1) {
                         m_data[0] |= other.m_data[0];
@@ -709,7 +709,7 @@ public:
                 return *this;
         }
 
-        constexpr auto& operator^=(int_set const& other) noexcept
+        constexpr auto& operator^=(int_set const& other [[maybe_unused]]) noexcept
         {
                 if constexpr (num_blocks == 1) {
                         m_data[0] ^= other.m_data[0];
@@ -724,7 +724,7 @@ public:
                 return *this;
         }
 
-        constexpr auto& operator-=(int_set const& other) noexcept
+        constexpr auto& operator-=(int_set const& other [[maybe_unused]]) noexcept
         {
                 if constexpr (num_blocks == 1) {
                         m_data[0] &= ~other.m_data[0];
@@ -739,7 +739,7 @@ public:
                 return *this;
         }
 
-        auto& operator<<=(size_type const n) // Throws: Nothing.
+        auto& operator<<=(size_type const n [[maybe_unused]]) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < N);
                 if constexpr (num_blocks == 1) {
@@ -1094,7 +1094,7 @@ private:
 };
 
 template<int N, class UIntType>
-auto operator==(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
+auto operator==(int_set<N, UIntType> const& lhs [[maybe_unused]], int_set<N, UIntType> const& rhs [[maybe_unused]]) noexcept
 {
         constexpr auto num_blocks = int_set<N, UIntType>::num_blocks;
         if constexpr (num_blocks == 0) {
@@ -1121,7 +1121,7 @@ auto operator!=(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs
 }
 
 template<int N, class UIntType>
-auto operator<(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
+auto operator<(int_set<N, UIntType> const& lhs [[maybe_unused]], int_set<N, UIntType> const& rhs [[maybe_unused]]) noexcept
 {
         constexpr auto num_blocks = int_set<N, UIntType>::num_blocks;
         if constexpr (num_blocks == 0) {
@@ -1160,7 +1160,7 @@ auto operator<=(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs
 }
 
 template<int N, class UIntType>
-auto is_subset_of(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
+auto is_subset_of(int_set<N, UIntType> const& lhs [[maybe_unused]], int_set<N, UIntType> const& rhs [[maybe_unused]]) noexcept
 {
         constexpr static auto num_blocks = int_set<N, UIntType>::num_blocks;
         constexpr static auto zero [[maybe_unused]] = int_set<N, UIntType>::zero;
@@ -1203,7 +1203,7 @@ auto is_proper_superset_of(int_set<N, UIntType> const& lhs, int_set<N, UIntType>
 }
 
 template<int N, class UIntType>
-auto intersects(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
+auto intersects(int_set<N, UIntType> const& lhs [[maybe_unused]], int_set<N, UIntType> const& rhs [[maybe_unused]]) noexcept
 {
         constexpr static auto num_blocks = int_set<N, UIntType>::num_blocks;
         constexpr static auto zero [[maybe_unused]] = int_set<N, UIntType>::zero;
