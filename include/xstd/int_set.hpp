@@ -51,9 +51,6 @@ namespace detail {
 
 #endif
 
-template<class UIntType> constexpr auto zero =  static_cast<UIntType>(0);
-template<class UIntType> constexpr auto ones = ~static_cast<UIntType>(0);
-
 namespace builtin {
 
 #if defined(__GNUG__)
@@ -81,11 +78,7 @@ namespace builtin {
                 constexpr auto operator()(__uint128_t x) const // Throws: Nothing.
                 {
                         assert(x != 0);
-                        return
-                                (get<0>(x) != detail::zero<uint64_t>) ?
-                                ctznz{}(get<0>(x)) :
-                                ctznz{}(get<1>(x)) + 64
-                        ;
+                        return get<0>(x) != 0 ? ctznz{}(get<0>(x)) : ctznz{}(get<1>(x)) + 64;
                 }
         };
 
@@ -114,11 +107,7 @@ namespace builtin {
                 constexpr auto operator()(__uint128_t x) const // Throws: Nothing.
                 {
                         assert(x != 0);
-                        return
-                                (get<1>(x) != detail::zero<uint64_t>) ?
-                                clznz{}(get<1>(x)) :
-                                clznz{}(get<0>(x)) + 64
-                        ;
+                        return get<1>(x) != 0 ? clznz{}(get<1>(x)) : clznz{}(get<0>(x)) + 64;
                 }
         };
 
@@ -295,23 +284,6 @@ template<class UIntType>
 constexpr auto popcount(UIntType x) noexcept
 {
         return builtin::popcount{}(x);
-}
-
-template<class UIntType>
-constexpr auto bit1_table = []() {
-        constexpr auto N = std::numeric_limits<UIntType>::digits;
-        auto table = std::array<UIntType, N>{};
-        for (auto n = 0; n < N; ++n) {
-                table[static_cast<std::size_t>(n)] = static_cast<UIntType>(1) << n;
-        }
-        return table;
-}();
-
-template<class UIntType>
-constexpr auto bit1(int n) // Throws: Nothing.
-{
-        assert(0 <= n); assert(n < std::numeric_limits<UIntType>::digits);
-        return bit1_table<UIntType>[static_cast<std::size_t>(n)];
 }
 
 }       // namespace detail
@@ -834,9 +806,37 @@ public:
         }
 
 private:
-        constexpr static auto zero = detail::zero<block_type>;
-        constexpr static auto ones = detail::ones<block_type>;
+        constexpr static auto zero = static_cast<block_type>(0);
+        constexpr static auto ones = ~zero;
         constexpr static auto sane = ones >> excess_bits;
+
+        constexpr static auto bit1_table = []() {
+                auto table = std::array<block_type, block_size>{};
+                for (auto i = 0; i < block_size; ++i) {
+                        table[static_cast<std::size_t>(i)] = static_cast<block_type>(1) << i;
+                }
+                return table;
+        }();
+
+        constexpr static auto bit1(value_type const n) // Throws: Nothing.
+        {
+                assert(0 <= n); assert(n < block_size);
+                return bit1_table[static_cast<std::size_t>(n)];
+        }
+
+        constexpr static auto which(value_type const n) // Throws: Nothing.
+        {
+                static_assert(num_blocks != 1);
+                assert(0 <= n); assert(n < num_bits);
+                return n / block_size;
+        }
+
+        constexpr static auto where(value_type const n) // Throws: Nothing.
+        {
+                static_assert(num_blocks != 1);
+                assert(0 <= n); assert(n < num_bits);
+                return n % block_size;
+        }
 
         constexpr auto sanitize_back() noexcept
         {
@@ -915,26 +915,6 @@ private:
                         }
                         return offset - detail::clznz(m_data[0]);
                 }
-        }
-
-        constexpr static auto bit1(value_type const n)  // Throws: Nothing.
-        {
-                assert(0 <= n); assert(n < num_bits);
-                return detail::bit1<block_type>(n);
-        }
-
-        constexpr static auto which(value_type const n) // Throws: Nothing.
-        {
-                static_assert(num_blocks != 1);
-                assert(0 <= n); assert(n < num_bits);
-                return n / block_size;
-        }
-
-        constexpr static auto where(value_type const n) // Throws: Nothing.
-        {
-                static_assert(num_blocks != 1);
-                assert(0 <= n); assert(n < num_bits);
-                return n % block_size;
         }
 
         class proxy_reference
@@ -1184,7 +1164,7 @@ template<int N, class UIntType>
 auto is_subset_of(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
 {
         constexpr static auto num_blocks = int_set<N, UIntType>::num_blocks;
-        constexpr static auto zero [[maybe_unused]] = detail::zero<UIntType>;
+        constexpr static auto zero [[maybe_unused]] = int_set<N, UIntType>::zero;
         if constexpr (num_blocks == 0) {
                 return true;
         } else if constexpr (num_blocks == 1) {
@@ -1227,7 +1207,7 @@ template<int N, class UIntType>
 auto intersects(int_set<N, UIntType> const& lhs, int_set<N, UIntType> const& rhs) noexcept
 {
         constexpr static auto num_blocks = int_set<N, UIntType>::num_blocks;
-        constexpr static auto zero [[maybe_unused]] = detail::zero<UIntType>;
+        constexpr static auto zero [[maybe_unused]] = int_set<N, UIntType>::zero;
         if constexpr (num_blocks == 0) {
                 return false;
         } else if constexpr (num_blocks == 1) {
