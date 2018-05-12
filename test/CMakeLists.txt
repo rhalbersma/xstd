@@ -1,4 +1,4 @@
-find_package(Boost 1.66.0 REQUIRED COMPONENTS 
+find_package(Boost 1.66.0 REQUIRED COMPONENTS
         unit_test_framework
 )
 
@@ -17,20 +17,20 @@ set(cxx_compile_options_warnings
                 /W4
         >
         $<$<CXX_COMPILER_ID:Clang>:
-                -Weverything 
-                -Wno-c++98-compat 
-                -Wno-c++98-compat-pedantic      
-                -Wno-disabled-macro-expansion 
-                -Wno-global-constructors 
+                -Weverything
+                -Wno-c++98-compat
+                -Wno-c++98-compat-pedantic
+                -Wno-disabled-macro-expansion
+                -Wno-global-constructors
                 -Wno-range-loop-analysis
         >
         $<$<CXX_COMPILER_ID:GNU>:
                 -Wall
                 -Wextra
                 -Wpedantic
-                -Wconversion                
+                -Wconversion
                 -Wshadow
-                -Wsign-compare 
+                -Wsign-compare
                 -Wsign-conversion
                 -Wsign-promo
         >
@@ -39,14 +39,14 @@ set(cxx_compile_options_warnings
                 -pedantic-errors
                 -Wno-padded
         >
-)  
+)
 
-set(cxx_compile_options_optimization 
+set(cxx_compile_options_optimization
         $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:
                 -g
                 -O3
-                -flto 
-                -march=native 
+                -flto
+                -march=native
                 -mtune=native
         >
 )
@@ -71,27 +71,27 @@ foreach(t ${targets})
 	add_executable(${target_id})
 
         target_link_libraries(${target_id} PRIVATE
-                xstd 
+                xstd
                 Boost::unit_test_framework
                 ${cxx_link_optimizations}
         )
 
-        target_include_directories(${target_id} PRIVATE 
+        target_include_directories(${target_id} PRIVATE
         	${test_include_dir}
         )
 
         target_sources(${target_id} PRIVATE
                 src/${t}
         )
-	
+
         target_compile_definitions(${target_id} PRIVATE
                 ${cxx_compile_definitions}
         )
 
-        target_compile_options(${target_id} PRIVATE 
+        target_compile_options(${target_id} PRIVATE
                 ${cxx_compile_options_warnings}
-                ${cxx_compile_options_optimization}     
+                ${cxx_compile_options_optimization}
         )
 
-        add_test(${target_id} ${target_id})  
+        add_test(${target_id} ${target_id})
 endforeach()
