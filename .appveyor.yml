@@ -22,7 +22,7 @@ before_build:
     
     cd build       
     
-    cmake .. -G "%generator%" -DBoost_DEBUG=ON    
+    cmake .. -G "%generator%"   
 
 build_script:
 - cmd: >-
