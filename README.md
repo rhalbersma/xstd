@@ -23,6 +23,11 @@ Extensions to the C++ Standard Library
 
 An `int_set<N, UIntType = std::size_t>` is a modern reimagining of `std::bitset<N>`, keeping what time has proven to be effective, and fixing or throwing out what is not. `int_set` does less (i.e. it does not do bounds-checking, and does not throw exceptions). `int_set` also has several iteration methods which makes it easier to use with the rest of the Standard Library.
 
+Requirements
+------------
+
+These header-only libraries are usable with any compiler that implements the [C++17 Standard](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4659.pdf). The supported compilers are [gcc](https://gcc.gnu.org/projects/cxx-status.html), version 7.3 or higher, [Clang](http://clang.llvm.org/cxx_status.html) version 6.0 or higher (tested both with libstdc++ 7.3 on Travis CI), and Visual C++ 15.6 or higher (tested on AppVeyor). Testing is done using CMake version 3.11 and Boost.Test version 1.66.0. See the Travis CI and AppVeyor config files for how to set this up on Linux and Windows.
+
 License
 -------
 
