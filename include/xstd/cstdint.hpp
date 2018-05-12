@@ -8,129 +8,36 @@
 #include <cstdint>      // uint8_t, uint16_t, uint32_t, uint64_t
                         // uint_fast8_t, uint_fast16_t, uint_fast32_t, uint_fast64_t
                         // uint_least8_t, uint_least16_t, uint_least32_t, uint_least64_t
-#include <limits>       // max
-#include <type_traits>  // enable_if, bool_constant
+#include <limits>       // min, max
+#include <type_traits>  // conditional_t
 
 namespace xstd {
-namespace detail {
 
 template<class T, int N>
-constexpr auto is_representable_v = N <= (std::numeric_limits<T>::max() + 1);
-
-template<int, class = void>
-struct uint;
+constexpr auto is_representable_v = std::numeric_limits<T>::min() <= N && N <= std::numeric_limits<T>::max();
 
 template<int N>
-struct uint<N, std::enable_if_t<
-        is_representable_v<uint8_t, N>
->>
-{
-        using type = uint8_t;
-};
+using uint_t = 
+        std::conditional_t<is_representable_v<uint8_t, N>, uint8_t, 
+        std::conditional_t<is_representable_v<uint16_t, N>, uint16_t, 
+        std::conditional_t<is_representable_v<uint32_t, N>, uint32_t, 
+        uint64_t
+>>>;
 
 template<int N>
-struct uint<N, std::enable_if_t<
-        is_representable_v<uint16_t, N> && !is_representable_v<uint8_t, N>
->>
-{
-        using type = uint16_t;
-};
+using uint_fast_t = 
+        std::conditional_t<is_representable_v<uint8_t, N>, uint_fast8_t, 
+        std::conditional_t<is_representable_v<uint16_t, N>, uint_fast16_t, 
+        std::conditional_t<is_representable_v<uint32_t, N>, uint_fast32_t, 
+        uint_fast64_t
+>>>;
 
 template<int N>
-struct uint<N, std::enable_if_t<
-        is_representable_v<uint32_t, N> && !is_representable_v<uint16_t, N>
->>
-{
-        using type = uint32_t;
-};
-
-template<int N>
-struct uint<N, std::enable_if_t<
-        is_representable_v<uint64_t, N> && !is_representable_v<uint32_t, N>
->>
-{
-        using type = uint64_t;
-};
-
-template<int, class = void>
-struct uint_fast;
-
-template<int N>
-struct uint_fast<N, std::enable_if_t<
-        is_representable_v<uint8_t, N>
->>
-{
-        using type = uint_fast8_t;
-};
-
-template<int N>
-struct uint_fast<N, std::enable_if_t<
-        is_representable_v<uint16_t, N> && !is_representable_v<uint8_t, N>
->>
-{
-        using type = uint_fast16_t;
-};
-
-template<int N>
-struct uint_fast<N, std::enable_if_t<
-        is_representable_v<uint32_t, N> && !is_representable_v<uint16_t, N>
->>
-{
-        using type = uint_fast32_t;
-};
-
-template<int N>
-struct uint_fast<N, std::enable_if_t<
-        is_representable_v<uint64_t, N> && !is_representable_v<uint32_t, N>
->>
-{
-        using type = uint_fast64_t;
-};
-
-template<int, class = void>
-struct uint_least;
-
-template<int N>
-struct uint_least<N, std::enable_if_t<
-        is_representable_v<uint8_t, N>
->>
-{
-        using type = uint_least8_t;
-};
-
-template<int N>
-struct uint_least<N, std::enable_if_t<
-        is_representable_v<uint16_t, N> && !is_representable_v<uint8_t, N>
->>
-{
-        using type = uint_least16_t;
-};
-
-template<int N>
-struct uint_least<N, std::enable_if_t<
-        is_representable_v<uint32_t, N> && !is_representable_v<uint16_t, N>
->>
-{
-        using type = uint_least32_t;
-};
-
-template<int N>
-struct uint_least<N, std::enable_if_t<
-        is_representable_v<uint64_t, N> && !is_representable_v<uint32_t, N>
->>
-{
-        using type = uint_least64_t;
-};
-
-}       // namespace detail
-
-template<int N>
-using uint_t = typename detail::uint<N>::type;
-
-template<int N>
-using uint_fast_t = typename detail::uint_fast<N>::type;
-
-template<int N>
-using uint_least_t = typename detail::uint_least<N>::type;
+using uint_least_t = 
+        std::conditional_t<is_representable_v<uint8_t, N>, uint_least8_t, 
+        std::conditional_t<is_representable_v<uint16_t, N>, uint_least16_t, 
+        std::conditional_t<is_representable_v<uint32_t, N>, uint_least32_t, 
+        uint_least64_t
+>>>;
 
 }       // namespace xstd
