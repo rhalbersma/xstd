@@ -5,7 +5,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <type_traits>  // enable_if, is_enum, underlying_type, integral_constant
+#include <type_traits>  // enable_if_t, is_enum_v, integral_constant, underlying_type_t
 
 namespace xstd {
 

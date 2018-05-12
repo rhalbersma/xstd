@@ -13,31 +13,23 @@
 
 namespace xstd {
 
-template<class T, int N>
+template<class T, class IntegralType, IntegralType N>
 constexpr auto is_representable_v = std::numeric_limits<T>::min() <= N && N <= std::numeric_limits<T>::max();
 
-template<int N>
-using uint_t = 
-        std::conditional_t<is_representable_v<uint8_t, N>, uint8_t, 
-        std::conditional_t<is_representable_v<uint16_t, N>, uint16_t, 
-        std::conditional_t<is_representable_v<uint32_t, N>, uint32_t, 
-        uint64_t
->>>;
-
-template<int N>
-using uint_fast_t = 
-        std::conditional_t<is_representable_v<uint8_t, N>, uint_fast8_t, 
-        std::conditional_t<is_representable_v<uint16_t, N>, uint_fast16_t, 
-        std::conditional_t<is_representable_v<uint32_t, N>, uint_fast32_t, 
-        uint_fast64_t
->>>;
-
-template<int N>
+template<class IntegralType, IntegralType N>
 using uint_least_t = 
-        std::conditional_t<is_representable_v<uint8_t, N>, uint_least8_t, 
-        std::conditional_t<is_representable_v<uint16_t, N>, uint_least16_t, 
-        std::conditional_t<is_representable_v<uint32_t, N>, uint_least32_t, 
+        std::conditional_t<is_representable_v<uint_least8_t, IntegralType, N>, uint_least8_t, 
+        std::conditional_t<is_representable_v<uint_least16_t, IntegralType, N>, uint_least16_t, 
+        std::conditional_t<is_representable_v<uint_least32_t, IntegralType, N>, uint_least32_t, 
         uint_least64_t
+>>>;
+
+template<class IntegralType, IntegralType N>
+using uint_fast_t = 
+        std::conditional_t<is_representable_v<uint_least8_t, IntegralType, N>, uint_fast8_t, 
+        std::conditional_t<is_representable_v<uint_least16_t, IntegralType, N>, uint_fast16_t, 
+        std::conditional_t<is_representable_v<uint_least32_t, IntegralType, N>, uint_fast32_t, 
+        uint_fast64_t
 >>>;
 
 }       // namespace xstd
