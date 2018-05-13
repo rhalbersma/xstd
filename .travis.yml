@@ -6,10 +6,10 @@ sudo: false
 matrix:
   include:
     - env: CXX_COMPILER=clang++-6.0
-      addons: { apt: { packages: ["clang-6.0", "libboost-test-dev"], sources: ["llvm-toolchain-trusty-6.0"] } }
+      addons: { apt: { packages: ["clang-6.0", "libboost-test-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-6.0"] } }
 
     - env: CXX_COMPILER=clang++-7
-      addons: { apt: { packages: ["clang-7", "libboost-test-dev"], sources: ["llvm-toolchain-trusty"] } }
+      addons: { apt: { packages: ["clang-7", "libboost-test-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty"] } }
 
     - env: CXX_COMPILER=g++-7
       addons: { apt: { packages: ["g++-7", "libboost-test-dev"], sources: ["ubuntu-toolchain-r-test"] } }
@@ -17,24 +17,6 @@ matrix:
     - env: CXX_COMPILER=g++-8
       addons: { apt: { packages: ["g++-8", "libboost-test-dev"], sources: ["ubuntu-toolchain-r-test"] } }
    
-install:
-
-################################################################################
-# All manual dependencies are installed in ${TRAVIS_BUILD_DIR}/../deps
-################################################################################
-- |
-  DEPS_DIR="${TRAVIS_BUILD_DIR}/../deps"
-  mkdir -p ${DEPS_DIR}
-  
-################################################################################
-# Install the latest CMake
-################################################################################
-- |
-  cd ${DEPS_DIR}
-  CMAKE_URL="http://www.cmake.org/files/v3.11/cmake-3.11.1-Linux-x86_64.tar.gz"
-  mkdir -p cmake-3.11.1 && travis_retry wget --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake-3.11.1
-  export PATH=${DEPS_DIR}/cmake-3.11.1/bin:${PATH}
-
 before_script:
 - |
   cd ${TRAVIS_BUILD_DIR}
