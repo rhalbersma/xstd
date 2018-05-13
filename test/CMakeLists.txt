@@ -62,10 +62,6 @@ foreach(t ${targets})
         	${test_include_dir}
         )
 
-        target_sources(${target_id} PRIVATE
-                src/${t}
-        )
-
         target_compile_definitions(${target_id} PRIVATE
                 ${cxx_compile_definitions}
         )

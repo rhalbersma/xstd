@@ -26,7 +26,7 @@ before_script:
 script: 
 - |
   cmake --build . -- -j2
-  ctest -j2
+  ctest
 
 notifications:
   email: false

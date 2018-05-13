@@ -13,6 +13,7 @@ configuration:
     
 build:
     parallel: true
+    verbosity: minimal
 
 before_build:
 - cmd: >-
