@@ -40,7 +40,7 @@ struct constructor
                         std::for_each(first, last, [&](auto&& elem) {
                                 BOOST_CHECK(dst.contains(elem));
                         });
-                        BOOST_CHECK_EQUAL(dst.count(), std::distance(first, last));
+                        BOOST_CHECK_EQUAL(dst.count(), static_cast<int>(std::distance(first, last)));
                 }
         }
 
@@ -68,7 +68,7 @@ struct mem_assign
                         std::for_each(first, last, [&](auto&& elem) {
                                 BOOST_CHECK(dst.contains(elem));
                         });
-                        BOOST_CHECK_EQUAL(dst.count(), std::distance(first, last));
+                        BOOST_CHECK_EQUAL(dst.count(), static_cast<int>(std::distance(first, last)));
                 }
         }
 
@@ -434,7 +434,7 @@ struct mem_insert
                                 BOOST_CHECK(dst.contains(elem));
                         });
                         BOOST_CHECK_LE(src.count(), dst.count());
-                        BOOST_CHECK_LE(dst.count(), src.count() + std::distance(first, last));
+                        BOOST_CHECK_LE(dst.count(), src.count() + static_cast<int>(std::distance(first, last)));
                 }
         }
 
@@ -492,7 +492,7 @@ struct mem_erase
                                 BOOST_CHECK(!dst.contains(elem));
                         });
                         BOOST_CHECK_LE(dst.count(), src.count());
-                        BOOST_CHECK_LE(src.count(), dst.count() + std::distance(first, last));
+                        BOOST_CHECK_LE(src.count(), dst.count() + static_cast<int>(std::distance(first, last)));
                 }
         }
 
