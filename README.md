@@ -26,7 +26,7 @@ An `int_set<N, UIntType = std::size_t>` is a modern reimagining of `std::bitset<
 Requirements
 ------------
 
-These header-only libraries are usable with any conforming [C++17](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4659.pdf) compiler. The following compilers are actively tested (on Travis CI and AppVeyor, using CMake and Boost.Test)
+These header-only libraries are usable with any conforming [C++17](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4659.pdf) compiler. The following compilers are actively being tested:
 
 | Platform | Compiler       | Minimum version | Continuous integration |
 | :------- | :------------- | --------------: | :--------------------: |
