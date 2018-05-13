@@ -51,7 +51,7 @@ foreach(t ${targets})
 	string(REPLACE "/" "." target_id ${target_path}/${target_name_we})
 	string(REGEX REPLACE "^[.]" "" target_id ${target_id})
 
-	add_executable(${target_id})
+	add_executable(${target_id} src/${t})
 
         target_link_libraries(${target_id} PRIVATE
                 xstd
