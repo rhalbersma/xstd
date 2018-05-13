@@ -11,7 +11,7 @@ Extensions to the C++ Standard Library
 
 **Additions to existing headers**
 
-`<cstddef>`: User-Defined Literals for `size_t` (proposed as [N4254](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4254.html) and [P0330R0](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2016/p0330r0.pdf)).
+`<cstddef>`: User-Defined Literals for `size_t` (proposed as [N4254](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4254.html) and [P0330R1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0330r1.pdf)).
 
 `<cstdlib>`: Floored and Euclidean versions of `std::div()` and equality operators on `std::div_t`, a `constexpr std::abs()` and `signum()`
 
@@ -26,7 +26,14 @@ An `int_set<N, UIntType = std::size_t>` is a modern reimagining of `std::bitset<
 Requirements
 ------------
 
-These header-only libraries are usable with any compiler that implements the [C++17 Standard](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4659.pdf). The supported compilers are [gcc](https://gcc.gnu.org/projects/cxx-status.html), version 7.3 or higher, [Clang](http://clang.llvm.org/cxx_status.html) version 6.0 or higher (tested both with libstdc++ 7.3 on Travis CI), and Visual C++ 15.6 or higher (tested on AppVeyor). Testing is done using CMake version 3.11 and Boost.Test version 1.66.0. See the Travis CI and AppVeyor config files for how to set this up on Linux and Windows.
+These header-only libraries are usable with any conforming [C++17](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4659.pdf) compiler. The following compilers are actively tested (on Travis CI and AppVeyor, using CMake and Boost.Test)
+
+
+| Platform | Compiler      | Minimum version |
+| -------- | ------------- | --------------: |
+| Linux    | Clang         | 6.0             |
+| Linux    | GCC           | 7.3             |
+| Windows  | Visual Studio | 15.6            |
 
 License
 -------
