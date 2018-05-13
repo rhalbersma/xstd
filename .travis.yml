@@ -1,51 +1,28 @@
+language: cpp
 os: linux
 dist: trusty
-language: cpp
+sudo: false
 env:
-- CXX_COMPILER=g++-7       BUILD_TYPE=Debug
-- CXX_COMPILER=g++-7       BUILD_TYPE=Release
-- CXX_COMPILER=g++-8       BUILD_TYPE=Debug
-- CXX_COMPILER=g++-8       BUILD_TYPE=Release
-- CXX_COMPILER=clang++-6.0 BUILD_TYPE=Debug    
-- CXX_COMPILER=clang++-6.0 BUILD_TYPE=Release   
-- CXX_COMPILER=clang++-7   BUILD_TYPE=Debug    
-- CXX_COMPILER=clang++-7   BUILD_TYPE=Release   
+- BUILD_TYPE=Debug
+- BUILD_TYPE=Release 
+addons: { apt: { packages: ["libboost-test-dev"] } }
 
-before_install:
-- |
-  sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-  sudo add-apt-repository -y ppa:jonathonf/binutils  
-  sudo add-apt-repository "deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-6.0 main"
-  sudo add-apt-repository "deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty main"
-  wget -O - http://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+matrix:
+  include:
+    - env: CXX_COMPILER=clang++-6.0
+      addons: { apt: { packages: ["clang-6.0"], sources: ["llvm-toolchain-trusty-6.0"] } }
 
-- |
-  sudo apt-get update -qq
-    
+    - env: CXX_COMPILER=clang++-7
+      addons: { apt: { packages: ["clang-7"], sources: ["llvm-toolchain-trusty"] } }
+
+    - env: CXX_COMPILER=g++-7
+      addons: { apt: { packages: ["g++-7"], sources: ["ubuntu-toolchain-r-test"] } }
+
+    - env: CXX_COMPILER=g++-8
+      addons: { apt: { packages: ["g++-8"], sources: ["ubuntu-toolchain-r-test"] } }
+   
 install:
 
-################################################################################
-# Install the latest gcc and clang compilers plus code coverage generator
-# Boost.Test needs to be built with gcc-7, but Ubuntu 14.04 provides 4.8
-# ./bootstrap.sh needs to find gcc-7 and clang and ./b2 needs to find g++-7 and clang++
-# gcc-7 needs binutils 2.28 for LTO builds, but Ubuntu 14.04 provides 2.24
-################################################################################
-- |
-  sudo apt-get install g++-7 binutils lcov
-  sudo apt-get install g++-8
-  sudo apt-get install clang-6.0 lldb-6.0 lld-6.0
-  sudo apt-get install clang-7   lldb-7   lld-7
-
-- |
-  sudo update-alternatives --install /usr/bin/gcc     gcc     /usr/bin/gcc-7       90
-  sudo update-alternatives --install /usr/bin/g++     g++     /usr/bin/g++-7       90
-  sudo update-alternatives --install /usr/bin/gcc     gcc     /usr/bin/gcc-8       80
-  sudo update-alternatives --install /usr/bin/g++     g++     /usr/bin/g++-8       80
-  sudo update-alternatives --install /usr/bin/clang   clang   /usr/bin/clang-6.0   90
-  sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-6.0 90
-  sudo update-alternatives --install /usr/bin/clang   clang   /usr/bin/clang-7     80
-  sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-7   80
-  
 ################################################################################
 # All manual dependencies are installed in ${TRAVIS_BUILD_DIR}/../deps
 ################################################################################
@@ -53,17 +30,6 @@ install:
   DEPS_DIR="${TRAVIS_BUILD_DIR}/../deps"
   mkdir -p ${DEPS_DIR}
   
-################################################################################
-# Install the latest Boost and build Boost.Test (compiled with g++-7)
-################################################################################
-- |
-  cd ${DEPS_DIR}
-  BOOST_URL="https://dl.bintray.com/boostorg/release/1.66.0/source/boost_1_66_0.tar.bz2"
-  mkdir -p boost-1.66.0 && travis_retry wget --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xj -C boost-1.66.0
-  cd boost-1.66.0 
-  ./bootstrap.sh --with-toolset=gcc --with-libraries=test && sudo ./b2 -d0 install
-  sudo ldconfig /usr/local/lib
-
 ################################################################################
 # Install the latest CMake
 ################################################################################
@@ -83,11 +49,6 @@ script:
 - |
   cmake --build . -- -j2
   ctest -j2
-
-after_success:
-- |
-  lcov --capture --directory .. --output-file coverage.info
-  bash <(curl -s https://codecov.io/bash)
 
 notifications:
   email: false

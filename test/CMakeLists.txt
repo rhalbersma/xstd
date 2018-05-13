@@ -1,4 +1,4 @@
-find_package(Boost 1.66.0 REQUIRED COMPONENTS
+find_package(Boost COMPONENTS
         unit_test_framework
 )
 
@@ -41,23 +41,6 @@ set(cxx_compile_options_warnings
         >
 )
 
-set(cxx_compile_options_optimization
-        $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:
-                -g
-                -O3
-                -flto
-                -march=native
-                -mtune=native
-        >
-)
-
-if(NOT MSVC)
-        set(cxx_link_optimizations
-                -flto
-                -fuse-ld=gold
-        )
-endif()
-
 set(test_include_dir ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(test_source_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)
 file(GLOB_RECURSE targets RELATIVE ${test_source_dir} *.cpp)
@@ -73,7 +56,6 @@ foreach(t ${targets})
         target_link_libraries(${target_id} PRIVATE
                 xstd
                 Boost::unit_test_framework
-                ${cxx_link_optimizations}
         )
 
         target_include_directories(${target_id} PRIVATE
@@ -90,7 +72,6 @@ foreach(t ${targets})
 
         target_compile_options(${target_id} PRIVATE
                 ${cxx_compile_options_warnings}
-                ${cxx_compile_options_optimization}
         )
 
         add_test(${target_id} ${target_id})
