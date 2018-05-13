@@ -5,11 +5,11 @@ sudo: false
 
 matrix:
   include:
-    - env: CXX_COMPILER=clang++-6.0
-      addons: { apt: { packages: ["clang-6.0", "libboost-test-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-6.0"] } }
+    - env: CXX_COMPILER=clang++-6.0 CXX=g++-7
+      addons: { apt: { packages: ["clang-6.0", "g++-7", "libboost-test-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty-6.0"] } }
 
-    - env: CXX_COMPILER=clang++-7
-      addons: { apt: { packages: ["clang-7", "libboost-test-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty"] } }
+    - env: CXX_COMPILER=clang++-7 CXX=g++-7
+      addons: { apt: { packages: ["clang-7", "g++-7", "libboost-test-dev"], sources: ["ubuntu-toolchain-r-test", "llvm-toolchain-trusty"] } }
 
     - env: CXX_COMPILER=g++-7
       addons: { apt: { packages: ["g++-7", "libboost-test-dev"], sources: ["ubuntu-toolchain-r-test"] } }
