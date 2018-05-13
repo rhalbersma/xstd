@@ -2,12 +2,12 @@
 [![Standard](https://img.shields.io/badge/c%2B%2B-17-blue.svg)](https://en.wikipedia.org/wiki/C%2B%2B#Standardization) 
 [![License](https://img.shields.io/badge/license-Boost-blue.svg)](https://opensource.org/licenses/BSL-1.0) 
 [![](https://tokei.rs/b1/github/rhalbersma/xstd)](https://github.com/rhalbersma/xstd)
-[![Build Status](https://travis-ci.org/rhalbersma/xstd.svg?branch=master)](https://travis-ci.org/rhalbersma/xstd)
+[![Build Status](https://travis-ci.org/rhalbersma/xstd.svg)](https://travis-ci.org/rhalbersma/xstd)
 [![Build status](https://ci.appveyor.com/api/projects/status/nu193iqabu749mpx?svg=true)](https://ci.appveyor.com/project/rhalbersma/xstd)
 [![codecov](https://codecov.io/gh/rhalbersma/xstd/branch/master/graph/badge.svg)](https://codecov.io/gh/rhalbersma/xstd)
 
 Extensions to the C++ Standard Library
-======================================
+--------------------------------------
 
 | Header          | Additions         | Description | Reference |
 | :-------------- | :---------------- | ----------- | :---------|
@@ -23,11 +23,11 @@ An `int_set<N>` is a modern reimagining of `std::bitset<N>`, keeping what time h
 Requirements
 ------------
 
-These header-only libraries are usable with any conforming [C++17](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4659.pdf) compiler. The following compilers are actively being tested:
+These header-only libraries are actively being tested with the following conforming [C++17](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4659.pdf) compilers:
 
 | Platform | Compiler       | Minimum version | Continuous integration |
 | :------- | :------------- | --------------: | :--------------------: |
-| Linux    | Clang <br> GCC |     6.0<br> 7.3 | [![Build Status](https://travis-ci.org/rhalbersma/xstd.svg?branch=master)](https://travis-ci.org/rhalbersma/xstd) |
+| Linux    | Clang <br> GCC |     6.0<br> 7.3 | [![Build Status](https://travis-ci.org/rhalbersma/xstd.svg)](https://travis-ci.org/rhalbersma/xstd) |
 | Windows  | Visual Studio  |            15.6 | [![Build status](https://ci.appveyor.com/api/projects/status/nu193iqabu749mpx?svg=true)](https://ci.appveyor.com/project/rhalbersma/xstd) |
 
 License
