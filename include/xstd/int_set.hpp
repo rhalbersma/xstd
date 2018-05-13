@@ -22,186 +22,179 @@
 
 namespace xstd {
 namespace detail {
-
-#if defined(__GNUG__)
-
-        template<int N>
-        constexpr auto get(__uint128_t x) noexcept
-        {
-                static_assert(0 <= N); static_assert(N < 2);
-                return static_cast<uint64_t>(x >> (64 * N));
-        }
-
-#elif defined(_MSC_VER)
-
-        #include <intrin.h>
-
-        #pragma intrinsic(_BitScanForward)
-        #pragma intrinsic(_BitScanReverse)
-        #pragma intrinsic(__popcnt)
-
-        #if defined(_WIN64)
-
-                #pragma intrinsic(_BitScanForward64)
-                #pragma intrinsic(_BitScanReverse64)
-                #pragma intrinsic(__popcnt64)
-
-        #endif
-
-#endif
-
 namespace builtin {
 
 #if defined(__GNUG__)
 
-        struct ctznz
+template<int N>
+constexpr auto get(__uint128_t x) noexcept
+{
+        static_assert(0 <= N); static_assert(N < 2);
+        return static_cast<uint64_t>(x >> (64 * N));
+}
+
+struct ctznz
+{
+        constexpr auto operator()(unsigned x) const // Throws: Nothing.
         {
-                constexpr auto operator()(unsigned x) const // Throws: Nothing.
-                {
-                        assert(x != 0);
-                        return __builtin_ctz(x);
-                }
+                assert(x != 0);
+                return __builtin_ctz(x);
+        }
 
-                constexpr auto operator()(unsigned long x) const // Throws: Nothing.
-                {
-                        assert(x != 0);
-                        return __builtin_ctzl(x);
-                }
-
-                constexpr auto operator()(unsigned long long x) const // Throws: Nothing.
-                {
-                        assert(x != 0);
-                        return __builtin_ctzll(x);
-                }
-
-                constexpr auto operator()(__uint128_t x) const // Throws: Nothing.
-                {
-                        assert(x != 0);
-                        return get<0>(x) != 0 ? ctznz{}(get<0>(x)) : ctznz{}(get<1>(x)) + 64;
-                }
-        };
-
-        using bsfnz = ctznz;
-
-        struct clznz
+        constexpr auto operator()(unsigned long x) const // Throws: Nothing.
         {
-                constexpr auto operator()(unsigned x) const // Throws: Nothing.
-                {
-                        assert(x != 0);
-                        return __builtin_clz(x);
-                }
+                assert(x != 0);
+                return __builtin_ctzl(x);
+        }
 
-                constexpr auto operator()(unsigned long x) const // Throws: Nothing.
-                {
-                        assert(x != 0);
-                        return __builtin_clzl(x);
-                }
-
-                constexpr auto operator()(unsigned long long x) const // Throws: Nothing.
-                {
-                        assert(x != 0);
-                        return __builtin_clzll(x);
-                }
-
-                constexpr auto operator()(__uint128_t x) const // Throws: Nothing.
-                {
-                        assert(x != 0);
-                        return get<1>(x) != 0 ? clznz{}(get<1>(x)) : clznz{}(get<0>(x)) + 64;
-                }
-        };
-
-        struct popcount
+        constexpr auto operator()(unsigned long long x) const // Throws: Nothing.
         {
-                constexpr auto operator()(unsigned x) const noexcept
-                {
-                        return __builtin_popcount(x);
-                }
+                assert(x != 0);
+                return __builtin_ctzll(x);
+        }
 
-                constexpr auto operator()(unsigned long x) const noexcept
-                {
-                        return __builtin_popcountl(x);
-                }
+        constexpr auto operator()(__uint128_t x) const // Throws: Nothing.
+        {
+                assert(x != 0);
+                return get<0>(x) != 0 ? ctznz{}(get<0>(x)) : ctznz{}(get<1>(x)) + 64;
+        }
+};
 
-                constexpr auto operator()(unsigned long long x) const noexcept
-                {
-                        return __builtin_popcountll(x);
-                }
+using bsfnz = ctznz;
 
-                constexpr auto operator()(__uint128_t x) const noexcept
-                {
-                        return popcount{}(get<0>(x)) + popcount{}(get<1>(x));
-                }
-        };
+struct clznz
+{
+        constexpr auto operator()(unsigned x) const // Throws: Nothing.
+        {
+                assert(x != 0);
+                return __builtin_clz(x);
+        }
+
+        constexpr auto operator()(unsigned long x) const // Throws: Nothing.
+        {
+                assert(x != 0);
+                return __builtin_clzl(x);
+        }
+
+        constexpr auto operator()(unsigned long long x) const // Throws: Nothing.
+        {
+                assert(x != 0);
+                return __builtin_clzll(x);
+        }
+
+        constexpr auto operator()(__uint128_t x) const // Throws: Nothing.
+        {
+                assert(x != 0);
+                return get<1>(x) != 0 ? clznz{}(get<1>(x)) : clznz{}(get<0>(x)) + 64;
+        }
+};
+
+struct popcount
+{
+        constexpr auto operator()(unsigned x) const noexcept
+        {
+                return __builtin_popcount(x);
+        }
+
+        constexpr auto operator()(unsigned long x) const noexcept
+        {
+                return __builtin_popcountl(x);
+        }
+
+        constexpr auto operator()(unsigned long long x) const noexcept
+        {
+                return __builtin_popcountll(x);
+        }
+
+        constexpr auto operator()(__uint128_t x) const noexcept
+        {
+                return popcount{}(get<0>(x)) + popcount{}(get<1>(x));
+        }
+};
 
 #elif defined(_MSC_VER)
 
-        struct bsfnz
+#include <intrin.h>
+
+#pragma intrinsic(_BitScanForward)
+#pragma intrinsic(_BitScanReverse)
+#pragma intrinsic(__popcnt)
+
+#if defined(_WIN64)
+
+#pragma intrinsic(_BitScanForward64)
+#pragma intrinsic(_BitScanReverse64)
+#pragma intrinsic(__popcnt64)
+
+#endif
+
+struct bsfnz
+{
+        auto operator()(uint32_t x) const noexcept
         {
-                auto operator()(uint32_t x) const noexcept
-                {
-                        assert(x != 0);
-                        unsigned long index;
-                        _BitScanForward(&index, static_cast<unsigned long>(x));
-                        return static_cast<int>(index);
-                }
+                assert(x != 0);
+                unsigned long index;
+                _BitScanForward(&index, static_cast<unsigned long>(x));
+                return static_cast<int>(index);
+        }
 
-        #if defined(_WIN64)
+#if defined(_WIN64)
 
-                auto operator()(uint64_t x) const noexcept
-                {
-                        assert(x != 0);
-                        unsigned long index;
-                        _BitScanForward64(&index, x);
-                        return static_cast<int>(index);
-                }
-
-        #endif
-
-        };
-
-        using ctznz = bsfnz;
-
-        struct bsrnz
+        auto operator()(uint64_t x) const noexcept
         {
-                auto operator()(uint32_t x) const noexcept
-                {
-                        assert(x != 0);
-                        unsigned long index;
-                        _BitScanReverse(&index, static_cast<unsigned long>(x));
-                        return static_cast<int>(index);
-                }
+                assert(x != 0);
+                unsigned long index;
+                _BitScanForward64(&index, x);
+                return static_cast<int>(index);
+        }
 
-        #if defined(_WIN64)
+#endif
 
-                auto operator()(uint64_t x) const noexcept
-                {
-                        assert(x != 0);
-                        unsigned long index;
-                        _BitScanReverse64(&index, x);
-                        return static_cast<int>(index);
-                }
+};
 
-        #endif
+using ctznz = bsfnz;
 
-        };
-
-        struct popcount
+struct bsrnz
+{
+        auto operator()(uint32_t x) const noexcept
         {
-                auto operator()(uint32_t x) const noexcept
-                {
-                        return static_cast<int>(__popcnt(static_cast<unsigned>(x)));
-                }
+                assert(x != 0);
+                unsigned long index;
+                _BitScanReverse(&index, static_cast<unsigned long>(x));
+                return static_cast<int>(index);
+        }
 
-        #if defined(_WIN64)
+#if defined(_WIN64)
 
-                auto operator()(uint64_t x) const noexcept
-                {
-                        return static_cast<int>(__popcnt64(x));
-                }
+        auto operator()(uint64_t x) const noexcept
+        {
+                assert(x != 0);
+                unsigned long index;
+                _BitScanReverse64(&index, x);
+                return static_cast<int>(index);
+        }
 
-        #endif
+#endif
 
-        };
+};
+
+struct popcount
+{
+        auto operator()(uint32_t x) const noexcept
+        {
+                return static_cast<int>(__popcnt(static_cast<unsigned>(x)));
+        }
+
+#if defined(_WIN64)
+
+        auto operator()(uint64_t x) const noexcept
+        {
+                return static_cast<int>(__popcnt64(x));
+        }
+
+#endif
+
+};
 
 #endif
 
@@ -235,35 +228,35 @@ constexpr auto bsf(UIntType x) noexcept
 
 #if defined(__GNUG__)
 
-        template<class UIntType>
-        constexpr auto clznz(UIntType x) // Throws: Nothing.
-        {
-                assert(x != 0);
-                return builtin::clznz{}(x);
-        }
+template<class UIntType>
+constexpr auto clznz(UIntType x) // Throws: Nothing.
+{
+        assert(x != 0);
+        return builtin::clznz{}(x);
+}
 
-        template<class UIntType>
-        constexpr auto bsrnz(UIntType x) // Throws: Nothing.
-        {
-                assert(x != 0);
-                return std::numeric_limits<UIntType>::digits - 1 - builtin::clznz{}(x);
-        }
+template<class UIntType>
+constexpr auto bsrnz(UIntType x) // Throws: Nothing.
+{
+        assert(x != 0);
+        return std::numeric_limits<UIntType>::digits - 1 - builtin::clznz{}(x);
+}
 
 #elif defined(_MSC_VER)
 
-        template<class UIntType>
-        constexpr auto clznz(UIntType x) // Throws: Nothing.
-        {
-                assert(x != 0);
-                return std::numeric_limits<UIntType>::digits - 1 - builtin::bsrnz{}(x);
-        }
+template<class UIntType>
+constexpr auto clznz(UIntType x) // Throws: Nothing.
+{
+        assert(x != 0);
+        return std::numeric_limits<UIntType>::digits - 1 - builtin::bsrnz{}(x);
+}
 
-        template<class UIntType>
-        constexpr auto bsrnz(UIntType x) // Throws: Nothing.
-        {
-                assert(x != 0);
-                return builtin::bsrnz{}(x);
-        }
+template<class UIntType>
+constexpr auto bsrnz(UIntType x) // Throws: Nothing.
+{
+        assert(x != 0);
+        return builtin::bsrnz{}(x);
+}
 
 #endif
 
