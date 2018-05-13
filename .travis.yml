@@ -2,12 +2,12 @@ language: cpp
 os: linux
 dist: trusty
 sudo: false
-env:
-- BUILD_TYPE=Debug
-- BUILD_TYPE=Release 
 addons: { apt: { packages: ["libboost-test-dev"] } }
 
 matrix:
+  env:
+    - BUILD_TYPE=Debug
+    - BUILD_TYPE=Release 
   include:
     - env: CXX_COMPILER=clang++-6.0
       addons: { apt: { packages: ["clang-6.0"], sources: ["llvm-toolchain-trusty-6.0"] } }
