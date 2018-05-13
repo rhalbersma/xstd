@@ -15,10 +15,10 @@ BOOST_AUTO_TEST_SUITE(CStdLib)
 
 BOOST_AUTO_TEST_CASE(AlignOn)
 {
-        constexpr auto N = 1LL << 10;
+        constexpr auto N = 1ULL << 10;
         for (std::size_t address = 0; address < N; ++address) {
                 for (std::size_t alignment = 1; alignment < N; alignment *= 2) {
-                        BOOST_CHECK_EQUAL(xstd::align_on(address, alignment) % alignment, 0);
+                        BOOST_CHECK_EQUAL(xstd::align_on(address, alignment) % alignment, 0ULL);
                 }
         }
 }
