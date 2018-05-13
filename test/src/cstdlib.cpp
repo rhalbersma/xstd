@@ -126,7 +126,9 @@ BOOST_AUTO_TEST_CASE(EuclideanDiv)
         );
 }
 
-BOOST_AUTO_TEST_CASE(OutputOperatorCoverage, * boost::unit_test::expected_failures(1))
+BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(OutputOperatorCoverage, 1)
+
+BOOST_AUTO_TEST_CASE(OutputOperatorCoverage)
 {
         BOOST_CHECK_NE((xstd::div_t{1, 0}), (xstd::div_t{1, 0}));
 }
