@@ -52,7 +52,7 @@ struct constructor
                         for (auto&& elem : ilist) {
                                 BOOST_CHECK(dst.contains(elem));
                         }
-                        BOOST_CHECK_EQUAL(dst.count(), ilist.size());
+                        BOOST_CHECK_EQUAL(dst.count(), static_cast<int>(ilist.size()));
                 }
         }
 };
@@ -81,7 +81,7 @@ struct mem_assign
                         for (auto&& elem : ilist) {
                                 BOOST_CHECK(dst.contains(elem));
                         }
-                        BOOST_CHECK_EQUAL(dst.count(), ilist.size());
+                        BOOST_CHECK_EQUAL(dst.count(), static_cast<int>(ilist.size()));
                 }
         }
 };
