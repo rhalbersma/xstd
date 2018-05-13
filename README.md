@@ -28,12 +28,11 @@ Requirements
 
 These header-only libraries are usable with any conforming [C++17](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4659.pdf) compiler. The following compilers are actively tested (on Travis CI and AppVeyor, using CMake and Boost.Test)
 
-
 | Platform | Compiler      | Minimum version |
-| -------- | ------------- | --------------: |
-| Linux    | Clang         | 6.0             |
-| Linux    | GCC           | 7.3             |
-| Windows  | Visual Studio | 15.6            |
+| :------- | :------------ | --------------: |
+| Linux    | Clang         |             6.0 |
+| Linux    | GCC           |             7.3 |
+| Windows  | Visual Studio |            15.6 |
 
 License
 -------
