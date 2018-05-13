@@ -7,15 +7,10 @@
 
 #include <cassert>      // assert
 #include <cstddef>      // size_t
-#include <iosfwd>
+#include <iosfwd>       // basic_ostream
 #include <tuple>        // tie
 
 namespace xstd {
-
-constexpr std::size_t align_on(std::size_t address, std::size_t alignment) noexcept
-{
-        return (address + alignment - 1) & ~(alignment - 1);
-}
 
 // a constexpr version of std::abs(int)
 constexpr int abs(int n)
@@ -24,7 +19,7 @@ constexpr int abs(int n)
 }
 
 // http://stackoverflow.com/a/4609795/819272
-constexpr int signum(int n) noexcept
+constexpr int sign(int n) noexcept
 {
         return static_cast<int>(0 < n) - static_cast<int>(n < 0);
 }
@@ -60,15 +55,31 @@ std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>&
 // rem: Ada, Clojure, Erlang, Haskell, Julia, Lisp, Prolog
 // remainder: Ruby, Scheme
 // mod: Fortran, OCaml
-constexpr div_t truncated_div(int D, int d) // Throws: Nothing.
+constexpr div_t div(int D, int d) // Throws: Nothing.
 {
         assert(d != 0);
         auto const qT = D / d;
         auto const rT = D % d;
         assert(D == d * qT + rT);
         assert(abs(rT) < abs(d));
-        assert(signum(rT) == signum(D)|| rT == 0);
+        assert(sign(rT) == sign(D)|| rT == 0);
         return { qT, rT };
+}
+
+// https://en.wikipedia.org/wiki/Euclidean_division
+// mod: Maple, Pascal
+// modulo: Scheme
+constexpr div_t euclidean_div(int D, int d) // Throws: Nothing.
+{
+        assert(d != 0);
+        auto const divT = div(D, d);
+        auto const I = divT.rem >= 0 ? 0 : (d > 0 ? 1 : -1);
+        auto const qE = divT.quot - I;
+        auto const rE = divT.rem + I * d;
+        assert(D == d * qE + rE);
+        assert(abs(rE) < abs(d));
+        assert(sign(rE) >= 0);
+        return { qE, rE };
 }
 
 // %: Perl, Python, Ruby
@@ -78,30 +89,14 @@ constexpr div_t truncated_div(int D, int d) // Throws: Nothing.
 constexpr div_t floored_div(int D, int d) // Throws: Nothing.
 {
         assert(d != 0);
-        auto const divT = truncated_div(D, d);
-        auto const I = signum(divT.rem) == -signum(d) ? 1 : 0;
+        auto const divT = div(D, d);
+        auto const I = sign(divT.rem) == -sign(d) ? 1 : 0;
         auto const qF = divT.quot - I;
         auto const rF = divT.rem + I * d;
         assert(D == d * qF + rF);
         assert(abs(rF) < abs(d));
-        assert(signum(rF) == signum(d));
+        assert(sign(rF) == sign(d));
         return { qF, rF };
-}
-
-// https://en.wikipedia.org/wiki/Euclidean_division
-// mod: Maple, Pascal
-// modulo: Scheme
-constexpr div_t euclidean_div(int D, int d) // Throws: Nothing.
-{
-        assert(d != 0);
-        auto const divT = truncated_div(D, d);
-        auto const I = divT.rem >= 0 ? 0 : (d > 0 ? 1 : -1);
-        auto const qE = divT.quot - I;
-        auto const rE = divT.rem + I * d;
-        assert(D == d * qE + rE);
-        assert(abs(rE) < abs(d));
-        assert(signum(rE) >= 0);
-        return { qE, rE };
 }
 
 }       // namespace xstd

@@ -11,11 +11,11 @@ Extensions to the C++ Standard Library
 
 **Additions to existing headers**
 
-`<cstddef>`: User-Defined Literals for `size_t` (proposed as [N4254](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2014/n4254.html) and [P0330R1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0330r1.pdf)).
-
-`<cstdlib>`: Floored and Euclidean versions of `std::div()` and equality operators on `std::div_t`, a `constexpr std::abs()` and `signum()`
-
-`<type_traits>`: Conversions of scoped enums to their underlying types.
+| Header          | Additions      | Description | Reference |
+| :-------        | :------------ | --- | :-------------- |
+| `<cstddef>`     | `operator "" _zu` | User-defined literals for `size_t` | [P0330R1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0330r1.pdf) |
+| `<cstdlib>`     | `abs` <br> `div` <br> `euclidean_div` <br> `floored_div` <br> `sign` | A `constexpr` version of `std::abs(int)` <br> A `constexpr` version of `std::div(int, int)` <br> Euclidean instead of truncated division <br> Floored instead of truncated division <br> A `constexpr` version of `boost::math::sign` | [P0533R2](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0533r2.pdf) <br> [P0533R2](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0533r2.pdf) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) <br> [Boost.Math](https://www.boost.org/doc/libs/1_67_0/libs/math/doc/html/math_toolkit/sign_functions.html) |
+| `<type_traits>` | `to_underlying_type` | Converts an enum to its underlying type | [Effective Modern C++](http://shop.oreilly.com/product/0636920033707.do), Item 10 | 
 
 **New headers**
 
@@ -28,11 +28,10 @@ Requirements
 
 These header-only libraries are usable with any conforming [C++17](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4659.pdf) compiler. The following compilers are actively tested (on Travis CI and AppVeyor, using CMake and Boost.Test)
 
-| Platform | Compiler      | Minimum version |
-| :------- | :------------ | --------------: |
-| Linux    | Clang         |             6.0 |
-| Linux    | GCC           |             7.3 |
-| Windows  | Visual Studio |            15.6 |
+| Platform | Compiler       | Minimum version | Continuous integration |
+| :------- | :------------- | --------------: | :--------------------: |
+| Linux    | Clang <br> GCC |     6.0<br> 7.3 | [![Build Status](https://travis-ci.org/rhalbersma/xstd.svg?branch=master)](https://travis-ci.org/rhalbersma/xstd) |
+| Windows  | Visual Studio  |            15.6 | [![Build status](https://ci.appveyor.com/api/projects/status/nu193iqabu749mpx?svg=true)](https://ci.appveyor.com/project/rhalbersma/xstd) |
 
 License
 -------

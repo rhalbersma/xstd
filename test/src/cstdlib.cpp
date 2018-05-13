@@ -3,7 +3,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/cstdlib.hpp>             // truncated_div, floored_div, euclidean_div
+#include <xstd/cstdlib.hpp>             // div, floored_div, euclidean_div
 #include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_SUITE_END
 #include <algorithm>                    // transform
 #include <array>                        // array
@@ -12,16 +12,6 @@
 #include <utility>                      // pair
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
-
-BOOST_AUTO_TEST_CASE(AlignOn)
-{
-        constexpr auto N = 1ULL << 10;
-        for (std::size_t address = 0; address < N; ++address) {
-                for (std::size_t alignment = 1; alignment < N; alignment *= 2) {
-                        BOOST_CHECK_EQUAL(xstd::align_on(address, alignment) % alignment, 0ULL);
-                }
-        }
-}
 
 BOOST_AUTO_TEST_CASE(Abs)
 {
@@ -32,13 +22,13 @@ BOOST_AUTO_TEST_CASE(Abs)
         BOOST_CHECK_EQUAL(xstd::abs(+2), 2);
 }
 
-BOOST_AUTO_TEST_CASE(Signum)
+BOOST_AUTO_TEST_CASE(Sign)
 {
-        BOOST_CHECK_EQUAL(xstd::signum(-2), -1);
-        BOOST_CHECK_EQUAL(xstd::signum(-1), -1);
-        BOOST_CHECK_EQUAL(xstd::signum( 0),  0);
-        BOOST_CHECK_EQUAL(xstd::signum(+1),  1);
-        BOOST_CHECK_EQUAL(xstd::signum(+2),  1);
+        BOOST_CHECK_EQUAL(xstd::sign(-2), -1);
+        BOOST_CHECK_EQUAL(xstd::sign(-1), -1);
+        BOOST_CHECK_EQUAL(xstd::sign( 0),  0);
+        BOOST_CHECK_EQUAL(xstd::sign(+1),  1);
+        BOOST_CHECK_EQUAL(xstd::sign(+2),  1);
 }
 
 // http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf
@@ -71,7 +61,7 @@ BOOST_AUTO_TEST_CASE(StdDiv)
 
 BOOST_AUTO_TEST_CASE(TruncatedDiv)
 {
-        auto const truncated_div = std::array<xstd::div_t, 8>
+        auto const div = std::array<xstd::div_t, 8>
         {{
                 {+2, +2}, {-2, +2}, {-2, -2}, {+2, -2},
                 { 0, +1}, { 0, +1}, { 0, -1}, { 0, -1}
@@ -79,31 +69,12 @@ BOOST_AUTO_TEST_CASE(TruncatedDiv)
 
         std::array<xstd::div_t, 8> truncated_res{};
         std::transform(input.begin(), input.end(), truncated_res.begin(), [](auto const& p) {
-                return xstd::truncated_div(p.first, p.second);
+                return xstd::div(p.first, p.second);
         });
 
         BOOST_CHECK_EQUAL_COLLECTIONS(
                 truncated_res.begin(), truncated_res.end(),
-                truncated_div.begin(), truncated_div.end()
-        );
-}
-
-BOOST_AUTO_TEST_CASE(FlooredDiv)
-{
-        auto const floored_div = std::array<xstd::div_t, 8>
-        {{
-                {+2, +2}, {-3, -1}, {-3, +1}, {+2, -2},
-                { 0, +1}, {-1, -1}, {-1, +1}, { 0, -1}
-        }};
-
-        std::array<xstd::div_t, 8> floored_res{};
-        std::transform(input.begin(), input.end(), floored_res.begin(), [](auto const& p) {
-                return xstd::floored_div(p.first, p.second);
-        });
-
-        BOOST_CHECK_EQUAL_COLLECTIONS(
-                floored_res.begin(), floored_res.end(),
-                floored_div.begin(), floored_div.end()
+                div.begin(), div.end()
         );
 }
 
@@ -123,6 +94,25 @@ BOOST_AUTO_TEST_CASE(EuclideanDiv)
         BOOST_CHECK_EQUAL_COLLECTIONS(
                 euclidean_res.begin(), euclidean_res.end(),
                 euclidean_div.begin(), euclidean_div.end()
+        );
+}
+
+BOOST_AUTO_TEST_CASE(FlooredDiv)
+{
+        auto const floored_div = std::array<xstd::div_t, 8>
+        {{
+                {+2, +2}, {-3, -1}, {-3, +1}, {+2, -2},
+                { 0, +1}, {-1, -1}, {-1, +1}, { 0, -1}
+        }};
+
+        std::array<xstd::div_t, 8> floored_res{};
+        std::transform(input.begin(), input.end(), floored_res.begin(), [](auto const& p) {
+                return xstd::floored_div(p.first, p.second);
+        });
+
+        BOOST_CHECK_EQUAL_COLLECTIONS(
+                floored_res.begin(), floored_res.end(),
+                floored_div.begin(), floored_div.end()
         );
 }
 
