@@ -303,6 +303,12 @@ class int_set
         static_assert(std::is_integral_v<UIntType>);
         static_assert(sizeof(unsigned) <= sizeof(UIntType));
 
+        #if defined(_MSC_VER)
+
+        static_assert(sizeof(UIntType) <= sizeof(std::size_t));
+
+        #endif
+
         constexpr static auto block_size = std::numeric_limits<UIntType>::digits;
         constexpr static auto num_blocks = (N - 1 + block_size) / block_size;
         constexpr static auto num_bits = num_blocks * block_size;
