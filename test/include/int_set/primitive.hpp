@@ -15,7 +15,7 @@
 #include <functional>                   // greater, plus
 #include <initializer_list>             // initializer_list
 #include <istream>                      // basic_istream
-#include <iterator>                     // back_inserter, distance, next
+#include <iterator>                     // distance, inserter, next
 #include <memory>                       // addressof
 #include <numeric>                      // accumulate
 #include <stdexcept>                    // out_of_range
@@ -942,8 +942,8 @@ struct op_bitand
 
                 if constexpr (tti::has_const_iterator_v<IntSet>) {
                         auto const lhs = a & b;
-                        std::vector<int> rhs;
-                        std::set_intersection(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(rhs));
+                        IntSet rhs;
+                        std::set_intersection(a.begin(), a.end(), b.begin(), b.end(), std::inserter(rhs, rhs.begin()));
                         BOOST_CHECK(std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
                 }
         }
@@ -975,9 +975,9 @@ struct op_bitor
 
                 if constexpr (tti::has_const_iterator_v<IntSet>) {
                         auto const lhs = a | b;
-                        std::vector<int> rhs;
-                        std::set_union(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(rhs));
-                        BOOST_CHECK(std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
+                        IntSet rhs;
+                        std::set_union(a.begin(), a.end(), b.begin(), b.end(), std::inserter(rhs, rhs.begin()));
+                        BOOST_CHECK(lhs == rhs);
                 }
         }
 
@@ -1008,9 +1008,9 @@ struct op_xor
 
                 if constexpr (tti::has_const_iterator_v<IntSet>) {
                         auto const lhs = a ^ b;
-                        std::vector<int> rhs;
-                        std::set_symmetric_difference(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(rhs));
-                        BOOST_CHECK(std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
+                        IntSet rhs;
+                        std::set_symmetric_difference(a.begin(), a.end(), b.begin(), b.end(), std::inserter(rhs, rhs.begin()));
+                        BOOST_CHECK(lhs == rhs);
                 }
         }
 
@@ -1046,9 +1046,9 @@ struct op_minus
 
                 if constexpr (tti::has_const_iterator_v<IntSet>) {
                         auto const lhs = a - b;
-                        std::vector<int> rhs;
-                        std::set_difference(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(rhs));
-                        BOOST_CHECK(std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
+                        IntSet rhs;
+                        std::set_difference(a.begin(), a.end(), b.begin(), b.end(), std::inserter(rhs, rhs.begin()));
+                        BOOST_CHECK(lhs == rhs);
                 }
         }
 };

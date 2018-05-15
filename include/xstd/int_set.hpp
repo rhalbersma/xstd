@@ -562,6 +562,12 @@ public:
                 return *this;
         }
 
+        constexpr auto insert(const_iterator /* hint */, value_type const n) // Throws: Nothing.
+        {
+                insert(n);
+                return iterator{data(), n};
+        }
+
         template<class InputIterator>
         constexpr auto insert(InputIterator first, InputIterator last) // Throws: Nothing.
         {
