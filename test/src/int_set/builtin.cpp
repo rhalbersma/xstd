@@ -21,20 +21,20 @@ using UnsignedIntegerTypes = boost::mpl::vector
 
 #elif defined(_MSC_VER)
 
-        #if defined(WIN64) 
+#if defined(WIN64) 
 
-        using UnsignedIntegerTypes = boost::mpl::vector
-        <       uint32_t
-        ,       uint64_t
-        >;
+using UnsignedIntegerTypes = boost::mpl::vector
+<       uint32_t
+,       uint64_t
+>;
 
-        #else
+#else
 
-        using UnsignedIntegerTypes = boost::mpl::vector
-        <       uint32_t
-        >;
+using UnsignedIntegerTypes = boost::mpl::vector
+<       uint32_t
+>;
 
-        #endif
+#endif
 
 #endif
 

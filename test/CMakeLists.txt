@@ -15,6 +15,7 @@ set(cxx_compile_definitions
 set(cxx_compile_options_warnings
         $<$<CXX_COMPILER_ID:MSVC>:
                 /W4
+                /analyze
         >
         $<$<CXX_COMPILER_ID:Clang>:
                 -Weverything
