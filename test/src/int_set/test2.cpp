@@ -7,8 +7,14 @@
 #include <xstd/int_set.hpp>                     // int_set
 #include <int_set/legacy/bitset.hpp>            // bitset
 #include <int_set/legacy/int_set.hpp>           // int_set
-#include <int_set/exhaustive.hpp>
-#include <int_set/primitive.hpp>
+#include <int_set/exhaustive.hpp>               // all_values, all_singleton_sets, all_singleton_set_pairs,
+                                                // all_doubleton_arrays, all_doubleton_ilists, all_doubleton_sets,
+#include <int_set/primitive.hpp>                // constructor, mem_assign, const_reference, const_iterator, mem_all_of, mem_any_of, me_none_of,
+                                                // mem_for_each, mem_reverse_for_each, op_bitand_assign, op_bitor_assign, op_xor_assign, op_minus_assign,
+                                                // op_shift_left_assign, op_shift_right_assign, mem_insert, mem_erase, fn_swap, op_compl,
+                                                // op_equal_to, op_not_equal_to, op_less, op_greater, op_greater_equal, op_less_equal,
+                                                // fn_is_subset_of, fn_is_superset_of, fn_is_proper_subset_of, fn_is_proper_superset_of,
+                                                // fn_intersect, fn_disjoint, op_shift_left, op_shift_right, op_bitand, op_bitor, op_xor, op_minus
 #include <boost/mpl/vector.hpp>                 // vector
 #include <boost/test/test_case_template.hpp>    // BOOST_AUTO_TEST_CASE_TEMPLATE
 #include <boost/test/unit_test.hpp>             // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END
@@ -73,10 +79,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
         all_doubleton_sets<T>(mem_for_each{});
         all_doubleton_sets<T>(mem_reverse_for_each{});
 
-        all_singleton_set_pairs<T>(op_bitand_assign{});         // implementation of operator&= branches on num_blocks >= 3
-        all_singleton_set_pairs<T>(op_bitor_assign{});          // implementation of operator&= branches on num_blocks >= 3
-        all_singleton_set_pairs<T>(op_xor_assign{});            // implementation of operator&= branches on num_blocks >= 3
-        all_singleton_set_pairs<T>(op_minus_assign{});          // implementation of operator&= branches on num_blocks >= 3
+        all_singleton_set_pairs<T>(op_bitand_assign{});
+        all_singleton_set_pairs<T>(op_bitor_assign{});
+        all_singleton_set_pairs<T>(op_xor_assign{});
+        all_singleton_set_pairs<T>(op_minus_assign{});
 
         all_values<T>([](auto const pos) {
                 all_singleton_sets<T>([&](auto const& i1){
@@ -104,24 +110,24 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
                 mem_erase{}(T{}, ilist2);
         });
 
-        all_singleton_set_pairs<T>(fn_swap{});                  // implementation of swap() branches on num_blocks >= 3
+        all_singleton_set_pairs<T>(fn_swap{});
 
         all_singleton_set_pairs<T>(op_compl{});
 
-        all_singleton_set_pairs<T>(op_equal_to{});              // implementation of operator== branches on num_blocks >= 3
+        all_singleton_set_pairs<T>(op_equal_to{});
         all_singleton_set_pairs<T>(op_not_equal_to{});
 
-        all_singleton_set_pairs<T>(op_less{});                  // implementation of operator< branches on num_blocks >= 3
+        all_singleton_set_pairs<T>(op_less{});
         all_singleton_set_pairs<T>(op_greater{});
         all_singleton_set_pairs<T>(op_greater_equal{});
         all_singleton_set_pairs<T>(op_less_equal{});
 
-        all_singleton_set_pairs<T>(fn_is_subset_of{});          // implementation of is_subset_of() branches on num_blocks >= 3
+        all_singleton_set_pairs<T>(fn_is_subset_of{});
         all_singleton_set_pairs<T>(fn_is_superset_of{});
         all_singleton_set_pairs<T>(fn_is_proper_subset_of{});
         all_singleton_set_pairs<T>(fn_is_proper_superset_of{});
 
-        all_singleton_set_pairs<T>(fn_intersects{});            // implementation of intersects() branches on num_blocks >= 3
+        all_singleton_set_pairs<T>(fn_intersects{});
         all_singleton_set_pairs<T>(fn_disjoint{});
 
         all_values<T>([](auto const pos){

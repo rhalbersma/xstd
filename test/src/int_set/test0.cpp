@@ -7,8 +7,7 @@
 #include <xstd/int_set.hpp>                     // int_set
 #include <int_set/legacy/bitset.hpp>            // bitset
 #include <int_set/legacy/int_set.hpp>           // int_set
-#include <int_set/exhaustive.hpp>
-#include <int_set/primitive.hpp>
+#include <int_set/primitive.hpp>                // constructor, mem_capacity, fn_test
 #include <boost/mpl/vector.hpp>                 // vector
 #include <boost/test/test_case_template.hpp>    // BOOST_AUTO_TEST_CASE_TEMPLATE
 #include <boost/test/unit_test.hpp>             // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END

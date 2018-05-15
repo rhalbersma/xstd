@@ -7,8 +7,13 @@
 #include <xstd/int_set.hpp>                     // int_set
 #include <int_set/legacy/bitset.hpp>            // bitset
 #include <int_set/legacy/int_set.hpp>           // int_set
-#include <int_set/exhaustive.hpp>
-#include <int_set/primitive.hpp>
+#include <int_set/exhaustive.hpp>               // all_values, all_cardinality_sets, all_singleton_arrays, all_singleton_ilists, all_singleton_sets
+#include <int_set/primitive.hpp>                // constructor, mem_assign, const_reference, const_iterator, mem_front, mem_back,
+                                                // mem_accumulate, mem_for_each, mem_reverse_for_each, fn_set, mem_insert, fn_reset, mem_erase,
+                                                // op_compl, fn_flip, mem_count, fn_size, op_equal_to, op_less, fn_intersects, fn_is_subset_of,
+                                                // op_not_equal_to, op_greater, op_greater_equal, op_less_equal,
+                                                // fn_disjoint, fn_is_superset_of, fn_is_proper_subset_of, fn_is_proper_superset_of,
+                                                // fn_test, fn_all, fn_any, fn_none, op_at, op_bitand, op_bitor, op_xor, op_minus
 #include <boost/mpl/vector.hpp>                 // vector
 #include <boost/test/test_case_template.hpp>    // BOOST_AUTO_TEST_CASE_TEMPLATE
 #include <boost/test/unit_test.hpp>             // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END
@@ -81,7 +86,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
         all_cardinality_sets<T>(mem_reverse_for_each{});
         all_singleton_sets<T>(mem_reverse_for_each{});
 
-        all_singleton_sets<T>(fn_set{});                        // implementation of fill() branches on excess_bits, and on num_blocks >= 3
+        all_singleton_sets<T>(fn_set{});
         all_values<T>([](auto const pos) {
                 fn_set{}(T{}, pos);
                 fn_set{}(T{}, pos, true);
@@ -95,7 +100,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
                 mem_insert{}(T{}, ilist1);
         });
 
-        all_singleton_sets<T>(fn_reset{});                      // implementation of clear() branches on num_blocks >= 3
+        all_singleton_sets<T>(fn_reset{});
         all_values<T>([](auto const pos) {
                 fn_reset{}(~T{}, pos);
         });
@@ -108,12 +113,12 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
         });
 
         all_singleton_sets<T>(op_compl{});
-        all_singleton_sets<T>(fn_flip{});                       // implementation of toggle() branches on excess_bits, and on num_blocks >= 3
+        all_singleton_sets<T>(fn_flip{});
         all_values<T>([](auto const pos) {
                 fn_flip{}(T{}, pos);
         });
 
-        all_cardinality_sets<T>(mem_count{});                   // implementation of count() branches on num_blocks >= 3
+        all_cardinality_sets<T>(mem_count{});
         all_singleton_sets<T>(fn_size{});
 
         all_cardinality_sets<T>(op_equal_to{});
@@ -141,9 +146,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Exhaustive, T, SetTypes)
                 fn_test{}(T{}, pos);
         });
 
-        all_cardinality_sets<T>(fn_all{});                      // implementation of full() branches on excess_bits, and on num_blocks >= 3
+        all_cardinality_sets<T>(fn_all{});
         all_cardinality_sets<T>(fn_any{});
-        all_cardinality_sets<T>(fn_none{});                     // implementation of empty() branches on num_blocks >= 3
+        all_cardinality_sets<T>(fn_none{});
 
         all_values<T>([](auto const pos) {
                 op_at{}(T{}, pos);

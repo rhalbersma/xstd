@@ -5,8 +5,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <array>                        // array
-#include <initializer_list>             // initializer_list
+#include <array>                // array
+#include <initializer_list>     // initializer_list
 
 namespace xstd {
 
