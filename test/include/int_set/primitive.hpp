@@ -29,7 +29,8 @@ struct constructor
 {
         constexpr auto operator()() const noexcept
         {
-                BOOST_CHECK(none(IntSet{}));                                    // [bitset.cons]/1
+                IntSet is;
+                BOOST_CHECK(none(is));                                          // [bitset.cons]/1
         }
 
         template<class InputIterator>
@@ -215,7 +216,7 @@ namespace detail {
 
 class tracer
 {
-        std::vector<int> m_trace{};
+        std::vector<int> m_trace;
 public:
         auto operator()(int const elem)
         {
@@ -239,7 +240,7 @@ struct mem_for_each
                         BOOST_CHECK(is.for_each(detail::tracer{}) == std::for_each(is.begin(), is.end(), detail::tracer{}));
 
                         {
-                                auto fun = detail::tracer{};
+                                detail::tracer fun;
                                 for (auto first = is.begin(), last = is.end(); first != last; first++ /* post-increment to hit code coverage */) {
                                         fun(*first);
                                 }
@@ -247,7 +248,7 @@ struct mem_for_each
                         }
 
                         {
-                                auto fun = detail::tracer{};
+                                detail::tracer fun;
                                 for (auto&& elem : is) {
                                         fun(elem);
                                 }
@@ -266,7 +267,7 @@ struct mem_reverse_for_each
                         BOOST_CHECK(is.reverse_for_each(detail::tracer{}) == std::for_each(is.rbegin(), is.rend(), detail::tracer{}));
 
                         {
-                                auto fun = detail::tracer{};
+                                detail::tracer fun;
                                 for (auto first = is.end(), last = is.begin(); first != last; first-- /* post-decrement to hit code coverage */) {
                                         fun(*std::prev(first));
                                 }
@@ -941,7 +942,7 @@ struct op_bitand
 
                 if constexpr (tti::has_const_iterator_v<IntSet>) {
                         auto const lhs = a & b;
-                        auto rhs = std::vector<int>{};
+                        std::vector<int> rhs;
                         std::set_intersection(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(rhs));
                         BOOST_CHECK(std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
                 }
@@ -974,7 +975,7 @@ struct op_bitor
 
                 if constexpr (tti::has_const_iterator_v<IntSet>) {
                         auto const lhs = a | b;
-                        auto rhs = std::vector<int>{};
+                        std::vector<int> rhs;
                         std::set_union(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(rhs));
                         BOOST_CHECK(std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
                 }
@@ -1007,7 +1008,7 @@ struct op_xor
 
                 if constexpr (tti::has_const_iterator_v<IntSet>) {
                         auto const lhs = a ^ b;
-                        auto rhs = std::vector<int>{};
+                        std::vector<int> rhs;
                         std::set_symmetric_difference(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(rhs));
                         BOOST_CHECK(std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
                 }
@@ -1045,7 +1046,7 @@ struct op_minus
 
                 if constexpr (tti::has_const_iterator_v<IntSet>) {
                         auto const lhs = a - b;
-                        auto rhs = std::vector<int>{};
+                        std::vector<int> rhs;
                         std::set_difference(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(rhs));
                         BOOST_CHECK(std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
                 }

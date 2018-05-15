@@ -310,7 +310,7 @@ class int_set
         class proxy_reference;
         class proxy_iterator;
 
-        UIntType m_data[std::max(num_blocks, 1)];
+        UIntType m_data[std::max(num_blocks, 1)] {};
 public:
         using key_type               = int;
         using key_compare            = std::less<>;

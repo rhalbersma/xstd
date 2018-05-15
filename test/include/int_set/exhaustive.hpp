@@ -68,7 +68,7 @@ auto all_singleton_sets(UnaryFunction fun)
         using SizeType = decltype(N);
 
         for (auto i = SizeType{0}; i < N; ++i) {
-                auto tmp = IntSet{};
+                IntSet tmp;
                 auto const i1 = set(tmp, i);
                 fun(i1);
         }
@@ -112,7 +112,7 @@ auto all_doubleton_sets(UnaryFunction fun)
 
         for (auto j = SizeType{1}; j < N; ++j) {
                 for (auto i = SizeType{0}; i < j; ++i) {
-                        auto tmp = IntSet{};
+                        IntSet tmp;
                         auto const ij2 = set(set(tmp, i), j);
                         fun(ij2);
                 }
@@ -126,10 +126,10 @@ auto all_singleton_set_pairs(BinaryFunction fun)
         using SizeType = decltype(N);
 
         for (auto i = SizeType{0}; i < N; ++i) {
-                auto tmp1 = IntSet{};
+                IntSet tmp1;
                 auto const i1 = set(tmp1, i);
                 for (auto j = SizeType{0}; j < N; ++j) {
-                        auto tmp2 = IntSet{};
+                        IntSet tmp2;
                         auto const j1 = set(tmp2, j);
                         fun(i1, j1);
                 }
@@ -145,13 +145,13 @@ auto all_singleton_set_triples(TernaryFunction fun)
         using SizeType = decltype(N);
 
         for (auto i = SizeType{0}; i < N; ++i) {
-                auto tmp1 = IntSet{};
+                IntSet tmp1;
                 auto const i1 = set(tmp1, i);
                 for (auto j = SizeType{0}; j < N; ++j) {
-                        auto tmp2 = IntSet{};
+                        IntSet tmp2;
                         auto const j1 = set(tmp2, j);
                         for (auto k = SizeType{0}; k < N; ++k) {
-                                auto tmp3 = IntSet{};
+                                IntSet tmp3;
                                 auto const k1 = set(tmp3, k);
                                 fun(i1, j1, k1);
                         }
