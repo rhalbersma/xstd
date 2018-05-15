@@ -41,14 +41,12 @@ set(cxx_compile_options_warnings
         >
 )
 
-set(cxx_compile_options_coverage
-        $<$<CXX_COMPILER_ID:GNU>:
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        set(cxx_compile_options_coverage
                 -g
                 --coverage
-        >
-)
+        )
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         set(cxx_linker_options_coverage
                 --coverage
         )
