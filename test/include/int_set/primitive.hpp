@@ -944,7 +944,7 @@ struct op_bitand
                         auto const lhs = a & b;
                         IntSet rhs;
                         std::set_intersection(a.begin(), a.end(), b.begin(), b.end(), std::inserter(rhs, rhs.begin()));
-                        BOOST_CHECK(std::equal(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
+                        BOOST_CHECK(lhs == rhs);
                 }
         }
 
