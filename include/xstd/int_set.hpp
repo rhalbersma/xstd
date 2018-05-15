@@ -804,9 +804,9 @@ public:
         }
 
         template<class HashAlgorithm>
-        friend auto hash_append(HashAlgorithm& h, int_set const& is)
+        friend auto hash_append(HashAlgorithm& h, int_set const& is) noexcept
         {
-                h(is.data(), is.capacity() / std::numeric_limits<unsigned char>::digits);       // TODO
+                h(is.data(), is.capacity() / std::numeric_limits<unsigned char>::digits);
         }
 
 private:
