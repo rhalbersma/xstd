@@ -10,7 +10,7 @@
                                         // has_op_minus_assign_v, has_range_insert_v, has_ilist_insert_v, has_range_erase_v, has_ilist_erase_v,
                                         // has_static_max_size_v, has_static_capacity_v, has_full_v, has_empty_v
 #include <boost/test/unit_test.hpp>     // BOOST_CHECK, BOOST_CHECK_EQUAL, BOOST_CHECK_NE, BOOST_CHECK_THROW
-#include <algorithm>                    // any_of, none_of, all_of, equal, for_each, includes, is_sorted, lexicographical_compare,
+#include <algorithm>                    // all_of, any_of, none_of, equal, for_each, includes, is_sorted, lexicographical_compare,
                                         // set_intersection, set_union, set_symmetric_difference, set_difference
 #include <functional>                   // greater, plus
 #include <initializer_list>             // initializer_list
@@ -289,7 +289,7 @@ struct op_bitand_assign
                 for (auto N = size(IntSet{}), i = decltype(N){0}; i < N; ++i) { // [bitset.members]/1
                         BOOST_CHECK_EQUAL(contains(dst, i), !contains(rhs, i) ? false : contains(src, i));
                 }
-                BOOST_CHECK(std::addressof(ret) == std::addressof(dst));        // [bitset.members]/2
+                BOOST_CHECK_EQUAL(std::addressof(ret), std::addressof(dst));    // [bitset.members]/2
         }
 };
 
@@ -305,7 +305,7 @@ struct op_bitor_assign
                 for (auto N = size(IntSet{}), i = decltype(N){0}; i < N; ++i) { // [bitset.members]/3
                         BOOST_CHECK_EQUAL(contains(dst, i), contains(rhs, i) ? true : contains(src, i));
                 }
-                BOOST_CHECK(std::addressof(ret) == std::addressof(dst));        // [bitset.members]/4
+                BOOST_CHECK_EQUAL(std::addressof(ret), std::addressof(dst));    // [bitset.members]/4
         }
 };
 
@@ -321,7 +321,7 @@ struct op_xor_assign
                 for (auto N = size(IntSet{}), i = decltype(N){0}; i < N; ++i) { // [bitset.members]/5
                         BOOST_CHECK_EQUAL(contains(dst, i), contains(rhs, i) ? !contains(src, i) : contains(src, i));
                 }
-                BOOST_CHECK(std::addressof(ret) == std::addressof(dst));        // [bitset.members]/6
+                BOOST_CHECK_EQUAL(std::addressof(ret), std::addressof(dst));    // [bitset.members]/6
         }
 };
 
@@ -338,7 +338,7 @@ struct op_minus_assign
                         for (auto N = size(IntSet{}), i = decltype(N){0}; i < N; ++i) {
                                 BOOST_CHECK_EQUAL(contains(dst, i), contains(rhs, i) ? false : contains(src, i));
                         }
-                        BOOST_CHECK(std::addressof(ret) == std::addressof(dst));
+                        BOOST_CHECK_EQUAL(std::addressof(ret), std::addressof(dst));
                 }
         }
 };
@@ -359,7 +359,7 @@ struct op_shift_left_assign
                                 BOOST_CHECK_EQUAL(contains(dst, I), contains(src, I - pos));
                         }
                 }
-                BOOST_CHECK(std::addressof(ret) == std::addressof(dst));        // [bitset.members]/8
+                BOOST_CHECK_EQUAL(std::addressof(ret), std::addressof(dst));    // [bitset.members]/8
         }
 };
 
@@ -379,7 +379,7 @@ struct op_shift_right_assign
                                 BOOST_CHECK_EQUAL(contains(dst, I), contains(src, I + pos));
                         }
                 }
-                BOOST_CHECK(std::addressof(ret) == std::addressof(dst));        // [bitset.members]/10
+                BOOST_CHECK_EQUAL(std::addressof(ret), std::addressof(dst));    // [bitset.members]/10
         }
 };
 
@@ -392,7 +392,7 @@ struct fn_set
                 auto const& ret = set(value);
 
                 BOOST_CHECK(all(value));                                        // [bitset.members]/11
-                BOOST_CHECK(std::addressof(ret) == std::addressof(value));      // [bitset.members]/12
+                BOOST_CHECK_EQUAL(std::addressof(ret), std::addressof(value));  // [bitset.members]/12
                 BOOST_CHECK_THROW(set(value, size(is)), std::out_of_range);     // [bitset.members]/13
         }
 
@@ -406,7 +406,7 @@ struct fn_set
                 for (auto N = size(is), i = decltype(N){0}; i < N; ++i) {       // [bitset.members]/14
                         BOOST_CHECK_EQUAL(contains(dst, i), i == pos ? true : contains(src, i));
                 }
-                BOOST_CHECK(std::addressof(ret) == std::addressof(dst));        // [bitset.members]/15
+                BOOST_CHECK_EQUAL(std::addressof(ret), std::addressof(dst));    // [bitset.members]/15
         }
 
         template<class IntSet, class SizeType>
@@ -419,7 +419,7 @@ struct fn_set
                 for (auto N = size(is), i = decltype(N){0}; i < N; ++i) {       // [bitset.members]/14
                         BOOST_CHECK_EQUAL(contains(dst, i), i == pos ? val : contains(src, i));
                 }
-                BOOST_CHECK(std::addressof(ret) == std::addressof(dst));        // [bitset.members]/15
+                BOOST_CHECK_EQUAL(std::addressof(ret), std::addressof(dst));    // [bitset.members]/15
         }
 };
 
@@ -463,7 +463,7 @@ struct fn_reset
                 auto const& ret = reset(value);
 
                 BOOST_CHECK(none(value));                                       // [bitset.members]/16
-                BOOST_CHECK(std::addressof(ret) == std::addressof(value));      // [bitset.members]/17
+                BOOST_CHECK_EQUAL(std::addressof(ret), std::addressof(value));  // [bitset.members]/17
                 BOOST_CHECK_THROW(reset(value, size(is)), std::out_of_range);   // [bitset.members]/18
         }
 
@@ -477,7 +477,7 @@ struct fn_reset
                 for (auto N = size(is), i = decltype(N){0}; i < N; ++i) {       // [bitset.members]/19
                         BOOST_CHECK_EQUAL(contains(dst, i), i == pos ? false : contains(src, i));
                 }
-                BOOST_CHECK(std::addressof(ret) == std::addressof(dst));        // [bitset.members]/20
+                BOOST_CHECK_EQUAL(std::addressof(ret), std::addressof(dst));    // [bitset.members]/20
         }
 };
 
@@ -532,7 +532,7 @@ struct op_compl
                 auto expected = a; flip(expected);
                 auto const& ret = ~a;
 
-                BOOST_CHECK(std::addressof(ret) != std::addressof(expected));   // [bitset.members]/21
+                BOOST_CHECK_NE(std::addressof(ret), std::addressof(expected));  // [bitset.members]/21
                 BOOST_CHECK(ret == expected);                                   // [bitset.members]/22
                 BOOST_CHECK(~ret == a);                                         // involution
         }
@@ -557,7 +557,7 @@ struct fn_flip
                 for (auto N = size(is), i = decltype(N){0}; i < N; ++i) {
                         BOOST_CHECK_NE(contains(dst, i), contains(src, i));     // [bitset.members]/23
                 }
-                BOOST_CHECK(std::addressof(ret) == std::addressof(dst));        // [bitset.members]/24
+                BOOST_CHECK_EQUAL(std::addressof(ret), std::addressof(dst));    // [bitset.members]/24
                 BOOST_CHECK_THROW(flip(dst, size(is)), std::out_of_range);      // [bitset.members]/25
 
                 flip(dst);
@@ -573,7 +573,7 @@ struct fn_flip
                 for (auto N = size(is), i = decltype(N){0}; i < N; ++i) {       // [bitset.members]/26
                         BOOST_CHECK_EQUAL(contains(dst, i), i == pos ? !contains(src, i) : contains(src, i));
                 }
-                BOOST_CHECK(std::addressof(ret) == std::addressof(dst));        // [bitset.members]/27
+                BOOST_CHECK_EQUAL(std::addressof(ret), std::addressof(dst));    // [bitset.members]/27
 
                 flip(dst, pos);
                 BOOST_CHECK(dst == src);                                        // involution

@@ -12,8 +12,7 @@
 #include <cstdint>              // uint64_t
 #include <functional>           // less, not_fn
 #include <initializer_list>     // initializer_list
-#include <iosfwd>               // basic_ostream
-#include <iterator>             // bidirectional_iterator_tag, begin, end, prev, rbegin, rend, reverse_iterator
+#include <iterator>             // bidirectional_iterator_tag, begin, end, next, prev, rbegin, rend, reverse_iterator
 #include <limits>               // digits
 #include <numeric>              // accumulate
 #include <tuple>                // tie
@@ -310,7 +309,7 @@ class int_set
         class proxy_reference;
         class proxy_iterator;
 
-        UIntType m_data[std::max(num_blocks, 1)] {};
+        UIntType m_data[std::max(num_blocks, 1)]{};    // zero-initializated by default
 public:
         using key_type               = int;
         using key_compare            = std::less<>;
@@ -563,9 +562,10 @@ public:
         }
 
         constexpr auto insert(const_iterator /* hint */, value_type const n) // Throws: Nothing.
+                -> iterator
         {
                 insert(n);
-                return iterator{data(), n};
+                return { data(), n };
         }
 
         template<class InputIterator>
