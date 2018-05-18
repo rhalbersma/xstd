@@ -12,17 +12,17 @@
 
 BOOST_AUTO_TEST_SUITE(TypeTraits)
 
-using namespace xstd;
-
 using SetTypes = boost::mpl::vector
-<       std::bitset< 0>
-,       std::bitset<32>
-,       std::bitset<64>
-,       int_set< 0>
-,       int_set<32>
-,       int_set<64>
-,       int_set<128>
-,       int_set<256>
+<       std::bitset<  0>
+,       std::bitset< 32>
+,       std::bitset< 64>
+,       std::bitset<128>
+,       std::bitset<256>
+,       xstd::int_set<  0>
+,       xstd::int_set< 32>
+,       xstd::int_set< 64>
+,       xstd::int_set<128>
+,       xstd::int_set<256>
 >;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(IsNothrowDefaultConstructible, T, SetTypes)
