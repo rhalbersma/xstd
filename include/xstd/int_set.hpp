@@ -53,25 +53,25 @@ constexpr auto get(__uint128_t x) noexcept
 
 struct ctznz
 {
-        constexpr auto operator()(unsigned x) const // Throws: Nothing.
+        XSTD_PP_CONSTEXPR_INTRINSIC auto operator()(unsigned x) const // Throws: Nothing.
         {
                 assert(x != 0);
                 return __builtin_ctz(x);
         }
 
-        constexpr auto operator()(unsigned long x) const // Throws: Nothing.
+        XSTD_PP_CONSTEXPR_INTRINSIC auto operator()(unsigned long x) const // Throws: Nothing.
         {
                 assert(x != 0);
                 return __builtin_ctzl(x);
         }
 
-        constexpr auto operator()(unsigned long long x) const // Throws: Nothing.
+        XSTD_PP_CONSTEXPR_INTRINSIC auto operator()(unsigned long long x) const // Throws: Nothing.
         {
                 assert(x != 0);
                 return __builtin_ctzll(x);
         }
 
-        constexpr auto operator()(__uint128_t x) const // Throws: Nothing.
+        XSTD_PP_CONSTEXPR_INTRINSIC auto operator()(__uint128_t x) const // Throws: Nothing.
         {
                 assert(x != 0);
                 return get<0>(x) != 0 ? ctznz{}(get<0>(x)) : ctznz{}(get<1>(x)) + 64;
@@ -82,25 +82,25 @@ using bsfnz = ctznz;
 
 struct clznz
 {
-        constexpr auto operator()(unsigned x) const // Throws: Nothing.
+        XSTD_PP_CONSTEXPR_INTRINSIC auto operator()(unsigned x) const // Throws: Nothing.
         {
                 assert(x != 0);
                 return __builtin_clz(x);
         }
 
-        constexpr auto operator()(unsigned long x) const // Throws: Nothing.
+        XSTD_PP_CONSTEXPR_INTRINSIC auto operator()(unsigned long x) const // Throws: Nothing.
         {
                 assert(x != 0);
                 return __builtin_clzl(x);
         }
 
-        constexpr auto operator()(unsigned long long x) const // Throws: Nothing.
+        XSTD_PP_CONSTEXPR_INTRINSIC auto operator()(unsigned long long x) const // Throws: Nothing.
         {
                 assert(x != 0);
                 return __builtin_clzll(x);
         }
 
-        constexpr auto operator()(__uint128_t x) const // Throws: Nothing.
+        XSTD_PP_CONSTEXPR_INTRINSIC auto operator()(__uint128_t x) const // Throws: Nothing.
         {
                 assert(x != 0);
                 return get<1>(x) != 0 ? clznz{}(get<1>(x)) : clznz{}(get<0>(x)) + 64;
@@ -109,22 +109,22 @@ struct clznz
 
 struct popcount
 {
-        constexpr auto operator()(unsigned x) const noexcept
+        XSTD_PP_CONSTEXPR_INTRINSIC auto operator()(unsigned x) const noexcept
         {
                 return __builtin_popcount(x);
         }
 
-        constexpr auto operator()(unsigned long x) const noexcept
+        XSTD_PP_CONSTEXPR_INTRINSIC auto operator()(unsigned long x) const noexcept
         {
                 return __builtin_popcountl(x);
         }
 
-        constexpr auto operator()(unsigned long long x) const noexcept
+        XSTD_PP_CONSTEXPR_INTRINSIC auto operator()(unsigned long long x) const noexcept
         {
                 return __builtin_popcountll(x);
         }
 
-        constexpr auto operator()(__uint128_t x) const noexcept
+        XSTD_PP_CONSTEXPR_INTRINSIC auto operator()(__uint128_t x) const noexcept
         {
                 return popcount{}(get<0>(x)) + popcount{}(get<1>(x));
         }
@@ -247,14 +247,14 @@ XSTD_PP_CONSTEXPR_INTRINSIC auto bsf(UIntType x) noexcept
 #if defined(__GNUG__)
 
 template<class UIntType>
-constexpr auto clznz(UIntType x) // Throws: Nothing.
+XSTD_PP_CONSTEXPR_INTRINSIC auto clznz(UIntType x) // Throws: Nothing.
 {
         assert(x != 0);
         return builtin::clznz{}(x);
 }
 
 template<class UIntType>
-constexpr auto bsrnz(UIntType x) // Throws: Nothing.
+XSTD_PP_CONSTEXPR_INTRINSIC auto bsrnz(UIntType x) // Throws: Nothing.
 {
         assert(x != 0);
         return std::numeric_limits<UIntType>::digits - 1 - builtin::clznz{}(x);
