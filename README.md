@@ -25,7 +25,7 @@ These header-only libraries are actively being tested with the following conform
 | Platform | Compiler       | Minimum version | Continuous integration |
 | :------- | :------------- | --------------: | :--------------------: |
 | Linux    | Clang <br> GCC |     6.0<br> 7.3 | [![codecov](https://codecov.io/gh/rhalbersma/xstd/branch/master/graph/badge.svg)](https://codecov.io/gh/rhalbersma/xstd) <br> [![Build Status](https://travis-ci.org/rhalbersma/xstd.svg)](https://travis-ci.org/rhalbersma/xstd) |
-| Windows  | Visual Studio  |            15.6 | [![Build status](https://ci.appveyor.com/api/projects/status/nu193iqabu749mpx?svg=true)](https://ci.appveyor.com/project/rhalbersma/xstd) |
+| Windows  | Visual Studio  |            15.7 | [![Build status](https://ci.appveyor.com/api/projects/status/nu193iqabu749mpx?svg=true)](https://ci.appveyor.com/project/rhalbersma/xstd) |
 
 License
 -------
