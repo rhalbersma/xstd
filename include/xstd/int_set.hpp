@@ -833,18 +833,10 @@ private:
         constexpr static auto ones = ~zero;
         constexpr static auto sane = ones >> excess_bits;
 
-        constexpr static auto bit1_table = []() {
-                auto table = std::array<block_type, block_size>{};
-                for (auto i = 0; i < block_size; ++i) {
-                        table[static_cast<std::size_t>(i)] = static_cast<block_type>(1) << i;
-                }
-                return table;
-        }();
-
         constexpr static auto bit1(value_type const n) // Throws: Nothing.
         {
                 assert(0 <= n); assert(n < block_size);
-                return bit1_table[static_cast<std::size_t>(n)];
+                return static_cast<block_type>(1) << n;
         }
 
         constexpr static auto which(value_type const n) // Throws: Nothing.
