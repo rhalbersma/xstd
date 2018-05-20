@@ -30,7 +30,6 @@ script:
 
 after_success:
 - |
-  lcov --capture --directory .. --output-file coverage.info
   bash <(curl -s https://codecov.io/bash)
 
 notifications:
