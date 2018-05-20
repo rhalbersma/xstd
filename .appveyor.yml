@@ -17,10 +17,6 @@ configuration:
   - Debug
   - Release
     
-build:
-    parallel: true
-    verbosity: minimal
-
 before_build:
 - cmd: >-
     cd %APPVEYOR_BUILD_FOLDER%
