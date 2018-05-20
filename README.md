@@ -20,7 +20,7 @@ An `int_set<N>` is a modern reimagining of `std::bitset<N>`, keeping what time h
 Requirements
 ------------
 
-These header-only libraries are contiuously being tested with the following conforming [C++17](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4659.pdf) compilers:
+These header-only libraries are continuously being tested with the following conforming [C++17](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4659.pdf) compilers:
 
 | Platform | Compiler       | Versions | Build |
 | :------- | :------------- | :------- | :---- |
