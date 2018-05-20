@@ -30,7 +30,7 @@ script:
 
 after_success:
 - |
-  if [["${CXX_COMPILER}" == "g++-7"]]; then
+  if [[ "${CXX_COMPILER}" == "g++-7" ]]; then
     bash <(curl -s https://codecov.io/bash)
   fi
 
