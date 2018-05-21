@@ -6,10 +6,10 @@
 #include <xstd/cstdlib.hpp>             // div, floored_div, euclidean_div
 #include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_SUITE_END
 #include <algorithm>                    // transform
-#include <array>                        // array
 #include <cstdlib>                      // div, div_t
-#include <iosfwd>                       // basic_ostream
+#include <iterator>                     // back_inserter
 #include <utility>                      // pair
+#include <vector>                       // vector
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
@@ -33,22 +33,23 @@ BOOST_AUTO_TEST_CASE(Sign)
 
 // http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf
 
-auto const input = std::array<std::pair<int, int>, 8>
-{{
+auto const input = std::vector<std::pair<int, int>>
+{
         {+8, +3}, {+8, -3}, {-8, +3}, {-8, -3},
         {+1, +2}, {+1, -2}, {-1, +2}, {-1, -2}
-}};
+};
 
 BOOST_AUTO_TEST_CASE(StdDiv)
 {
-        auto const std_div = std::array<xstd::div_t, 8>
-        {{
+        auto const std_div = std::vector<xstd::div_t>
+        {
                 {+2, +2}, {-2, +2}, {-2, -2}, {+2, -2},
                 { 0, +1}, { 0, +1}, { 0, -1}, { 0, -1}
-        }};
+        };
 
-        std::array<xstd::div_t, 8> std_res{};
-        std::transform(input.begin(), input.end(), std_res.begin(), [](auto const& p) -> xstd::div_t {
+        std::vector<xstd::div_t> std_res;
+        std::transform(input.begin(), input.end(), std::back_inserter(std_res), [](auto const& p) 
+                -> xstd::div_t {
                 auto const d = std::div(p.first, p.second);
                 return { d.quot, d.rem };
         });
@@ -61,14 +62,14 @@ BOOST_AUTO_TEST_CASE(StdDiv)
 
 BOOST_AUTO_TEST_CASE(TruncatedDiv)
 {
-        auto const div = std::array<xstd::div_t, 8>
-        {{
+        auto const div = std::vector<xstd::div_t>
+        {
                 {+2, +2}, {-2, +2}, {-2, -2}, {+2, -2},
                 { 0, +1}, { 0, +1}, { 0, -1}, { 0, -1}
-        }};
+        };
 
-        std::array<xstd::div_t, 8> truncated_res{};
-        std::transform(input.begin(), input.end(), truncated_res.begin(), [](auto const& p) {
+        std::vector<xstd::div_t> truncated_res;
+        std::transform(input.begin(), input.end(), std::back_inserter(truncated_res), [](auto const& p) {
                 return xstd::div(p.first, p.second);
         });
 
@@ -80,14 +81,14 @@ BOOST_AUTO_TEST_CASE(TruncatedDiv)
 
 BOOST_AUTO_TEST_CASE(EuclideanDiv)
 {
-        auto const euclidean_div = std::array<xstd::div_t, 8>
-        {{
+        auto const euclidean_div = std::vector<xstd::div_t>
+        {
                 {+2, +2}, {-2, +2}, {-3, +1}, {+3, +1},
                 { 0, +1}, { 0, +1}, {-1, +1}, {+1, +1}
-        }};
+        };
 
-        std::array<xstd::div_t, 8> euclidean_res{};
-        std::transform(input.begin(), input.end(), euclidean_res.begin(), [](auto const& p) {
+        std::vector<xstd::div_t> euclidean_res;
+        std::transform(input.begin(), input.end(), std::back_inserter(euclidean_res), [](auto const& p) {
                 return xstd::euclidean_div(p.first, p.second);
         });
 
@@ -99,14 +100,14 @@ BOOST_AUTO_TEST_CASE(EuclideanDiv)
 
 BOOST_AUTO_TEST_CASE(FlooredDiv)
 {
-        auto const floored_div = std::array<xstd::div_t, 8>
-        {{
+        auto const floored_div = std::vector<xstd::div_t>
+        {
                 {+2, +2}, {-3, -1}, {-3, +1}, {+2, -2},
                 { 0, +1}, {-1, -1}, {-1, +1}, { 0, -1}
-        }};
+        };
 
-        std::array<xstd::div_t, 8> floored_res{};
-        std::transform(input.begin(), input.end(), floored_res.begin(), [](auto const& p) {
+        std::vector<xstd::div_t> floored_res;
+        std::transform(input.begin(), input.end(), std::back_inserter(floored_res), [](auto const& p) {
                 return xstd::floored_div(p.first, p.second);
         });
 

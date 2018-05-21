@@ -12,21 +12,19 @@
 
 namespace xstd {
 
-// a constexpr version of std::abs(int)
-constexpr int abs(int n)
+constexpr auto abs(int const n)
 {
         return n < 0 ? -n : n;
 }
 
-// http://stackoverflow.com/a/4609795/819272
-constexpr int sign(int n) noexcept
+constexpr auto sign(int const n) noexcept
 {
         return static_cast<int>(0 < n) - static_cast<int>(n < 0);
 }
 
 struct div_t { int quot, rem; };
 
-constexpr bool operator==(div_t const& lhs, div_t const& rhs) noexcept
+constexpr auto operator==(div_t const& lhs, div_t const& rhs) noexcept
 {
         constexpr auto tied = [](auto const& d) {
                 return std::tie(d.quot, d.rem);
@@ -34,16 +32,15 @@ constexpr bool operator==(div_t const& lhs, div_t const& rhs) noexcept
         return tied(lhs) == tied(rhs);
 }
 
-constexpr bool operator!=(div_t const& lhs, div_t const& rhs) noexcept
+constexpr auto operator!=(div_t const& lhs, div_t const& rhs) noexcept
 {
         return !(lhs == rhs);
 }
 
 template<class CharT, class Traits>
-std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>& ostr, div_t const& d)
+auto& operator<<(std::basic_ostream<CharT, Traits>& ostr, div_t const& d)
 {
-        ostr << '[' << d.quot << ',' << d.rem << ']';
-        return ostr;
+        return ostr << '[' << d.quot << ',' << d.rem << ']';
 }
 
 // C++ Standard [expr.mul]/4
@@ -55,7 +52,8 @@ std::basic_ostream<CharT, Traits>& operator<<(std::basic_ostream<CharT, Traits>&
 // rem: Ada, Clojure, Erlang, Haskell, Julia, Lisp, Prolog
 // remainder: Ruby, Scheme
 // mod: Fortran, OCaml
-constexpr div_t div(int D, int d) // Throws: Nothing.
+constexpr auto div(int D, int d) // Throws: Nothing.
+        -> div_t
 {
         assert(d != 0);
         auto const qT = D / d;
@@ -69,7 +67,8 @@ constexpr div_t div(int D, int d) // Throws: Nothing.
 // https://en.wikipedia.org/wiki/Euclidean_division
 // mod: Maple, Pascal
 // modulo: Scheme
-constexpr div_t euclidean_div(int D, int d) // Throws: Nothing.
+constexpr auto euclidean_div(int D, int d) // Throws: Nothing.
+        -> div_t
 {
         assert(d != 0);
         auto const divT = div(D, d);
@@ -86,7 +85,8 @@ constexpr div_t euclidean_div(int D, int d) // Throws: Nothing.
 // %%: R
 // mod: Ada, Clojure, Haskell, Julia, Lisp, ML, Prolog
 // modulo: Fortran, Ruby
-constexpr div_t floored_div(int D, int d) // Throws: Nothing.
+constexpr auto floored_div(int D, int d) // Throws: Nothing.
+        -> div_t
 {
         assert(d != 0);
         auto const divT = div(D, d);
