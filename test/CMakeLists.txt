@@ -23,7 +23,6 @@ set(cxx_compile_options_warnings
         -Wno-disabled-macro-expansion
         -Wno-exit-time-destructors
         -Wno-global-constructors
-        -Wno-range-loop-analysis
     >
     $<$<CXX_COMPILER_ID:GNU>:
         -Wall
