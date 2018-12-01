@@ -18,13 +18,15 @@ configuration:
 
 before_build:
 - cmd: >-
+    set PATH="%BOOST_LIBRARYDIR%;%PATH%"
+
     cd %APPVEYOR_BUILD_FOLDER%
 
     mkdir build
 
     cd build
 
-    cmake .. -G "%GENERATOR%" -DCMAKE_BUILD_TYPE="%configuration%" -DBOOST_ROOT="%BOOST_ROOT%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%"
+    cmake .. -G "%GENERATOR%" -DCMAKE_BUILD_TYPE="%configuration%"
 
 build_script:
 - cmake --build .
