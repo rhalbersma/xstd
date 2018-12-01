@@ -18,7 +18,7 @@ configuration:
 
 before_build:
 - cmd: >-
-    set PATH="%BOOST_LIBRARYDIR%;%PATH%"
+    set PATH=%BOOST_LIBRARYDIR%;%PATH%
 
     cd %APPVEYOR_BUILD_FOLDER%
 
