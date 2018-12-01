@@ -5,10 +5,12 @@ image:
 environment:
   BOOST_ROOT: C:/Libraries/boost_1_67_0
   matrix:
-    - GENERATOR: "Visual Studio 15 2017"
-      BOOST_LIBRARYDIR: C:/Libraries/boost_1_67_0/lib32-msvc-14.1
-    - GENERATOR: "Visual Studio 15 2017 Win64"
-      BOOST_LIBRARYDIR: C:/Libraries/boost_1_67_0/lib64-msvc-14.1
+    - platform: x86
+      GENERATOR: "Visual Studio 15 2017"
+      BOOST_LIBRARYDIR: %BOOST_ROOT%/lib32-msvc-14.1
+    - platform: x64
+      GENERATOR: "Visual Studio 15 2017 Win64"
+      BOOST_LIBRARYDIR: %BOOST_ROOT%/lib64-msvc-14.1
 
 configuration:
   - Debug
@@ -22,7 +24,7 @@ before_build:
 
     cd build
 
-    cmake .. -G "%GENERATOR%" -DCMAKE_BUILD_TYPE="%configuration%"
+    cmake .. -G "%GENERATOR%" -DCMAKE_BUILD_TYPE="%configuration%" -DBOOST_LIBRARYDIR="%BOOST_LIBRARYDIR%"
 
 build_script:
 - cmake --build .
