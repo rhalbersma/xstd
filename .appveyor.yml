@@ -3,8 +3,8 @@ image:
   - Visual Studio 2017 Preview
 
 environment:
+  BOOST_ROOT: C:/Libraries/boost_1_67_0
   matrix:
-    BOOST_ROOT: C:/Libraries/boost_1_67_0
     - generator: "Visual Studio 15 2017"
       BOOST_LIBRARYDIR: C:/Libraries/boost_1_67_0/lib32-msvc-14.1
       PATH: "%BOOST_LIBRARYDIR%;%PATH%"
