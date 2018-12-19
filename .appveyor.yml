@@ -13,19 +13,24 @@ configuration:
   - Debug
   - Release
 
-before_build:
+cache:
+- c:\tools\vcpkg\installed\
+
+install:
 - cmd: >-
     vcpkg upgrade
 
     vcpkg install boost-test:"%platform%"-windows
 
+before_build:
+- cmd: >-
     cd %APPVEYOR_BUILD_FOLDER%
 
     mkdir build
 
     cd build
 
-    cmake .. -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -G "%GENERATOR%"
+    cmake .. -G "%GENERATOR%" -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake
 
 build_script:
 - cmake --build . --config "%configuration%"
