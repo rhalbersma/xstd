@@ -17,9 +17,11 @@ cache:
 
 install:
 - cmd: >-
+    set VCPKG_ARCH="%platform%"-windows
+
     vcpkg upgrade
 
-    vcpkg install boost-test:"%platform%"-windows
+    vcpkg install boost-test
 
 before_build:
 - cmd: >-
