@@ -2,9 +2,12 @@ image:
   - Visual Studio 2017
   - Visual Studio 2017 Preview
 
-platform:
-  - x86
-  - x64
+environment:
+  matrix:
+    - platform: x86
+      GENERATOR: "Visual Studio 15 2017"
+    - platform: x64
+      GENERATOR: "Visual Studio 15 2017 Win64"
 
 configuration:
   - Debug
@@ -12,6 +15,8 @@ configuration:
 
 before_build:
 - cmd: >-
+    vcpkg upgrade
+
     vcpkg install boost-test:"%platform%"-windows
 
     cd %APPVEYOR_BUILD_FOLDER%
