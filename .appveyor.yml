@@ -19,7 +19,7 @@ install:
 - cmd: >-
     vcpkg upgrade
 
-    vcpkg install boost-test
+    vcpkg install boost-test:"%platform%"-windows
 
 before_build:
 - cmd: >-
