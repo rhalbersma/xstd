@@ -25,10 +25,10 @@ before_build:
 
     cd build
 
-    cmake .. -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -G "%GENERATOR%" -DCMAKE_BUILD_TYPE="%configuration%"
+    cmake .. -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -G "%GENERATOR%"
 
 build_script:
-- cmake --build .
+- cmake --build --config "%configuration%" .
 
 test_script:
 - ctest
