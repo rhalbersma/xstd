@@ -28,7 +28,7 @@ before_build:
     cmake .. -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -G "%GENERATOR%"
 
 build_script:
-- cmake --build --config "%configuration%" .
+- cmake --build . --config "%configuration%"
 
 test_script:
 - ctest
