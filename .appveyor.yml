@@ -12,7 +12,7 @@ configuration:
 
 before_build:
 - cmd: >-
-    vcpkg install boost:"%platform%"-windows
+    vcpkg install boost-test:"%platform%"-windows
 
     cd %APPVEYOR_BUILD_FOLDER%
 
