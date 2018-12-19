@@ -1,6 +1,5 @@
 image:
   - Visual Studio 2017
-  - Visual Studio 2017 Preview
 
 environment:
   matrix:
@@ -20,7 +19,7 @@ install:
 - cmd: >-
     vcpkg upgrade
 
-    vcpkg install boost-test:"%platform%"-windows
+    vcpkg install boost-test
 
 before_build:
 - cmd: >-
