@@ -17,7 +17,8 @@ cache:
   - c:\tools\vcpkg\installed\
 
 install:
-  - vcpkg install --triplet "%platform%"-windows boost-test
+  - vcpkg install --triplet "%platform%"-windows
+    boost-test
 
 before_build:
   - cd %APPVEYOR_BUILD_FOLDER%
