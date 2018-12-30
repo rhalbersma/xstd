@@ -8,7 +8,7 @@ Extensions to the C++ Standard Library
 
 | Header          | Additions         | Description | Reference |
 | :-------------- | :---------------- | :---------- | :---------|
-| `<cstddef>`     | `operator "" _zu` | User-defined literals for `size_t` | [P0330R2](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0330r2.html) |
+| `<cstddef>`     | `operator "" _zu` | User-defined literals for `size_t` | [P0330R3](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0330r3.html) |
 | `<cstdlib>`     | `abs` <br> `div` <br> `euclidean_div` <br> `floored_div` <br> `sign` | `constexpr std::abs(int)` <br> `constexpr std::div(int, int)` <br> Euclidean instead of truncated division <br> Floored instead of truncated division <br> `constexpr boost::math::sign` | [P0533R3](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0533r3.pdf) <br> [P0533R3](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2018/p0533r3.pdf) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) <br> [Boost.Math](https://www.boost.org/doc/libs/1_67_0/libs/math/doc/html/math_toolkit/sign_functions.html) |
 | `<type_traits>` | `to_underlying_type` | Converts an enum to its underlying type | [Effective Modern C++](http://shop.oreilly.com/product/0636920033707.do), Item 10 | 
 
