@@ -7,7 +7,7 @@
 
 #include <cassert>      // assert
 #include <cstddef>      // size_t
-#include <iosfwd>       // basic_ostream
+#include <iosfwd>       // basic_istream, basic_ostream
 #include <tuple>        // tie
 #include <type_traits>  // enable_if_t, is_integral_v, is_signed_v
 
@@ -47,7 +47,19 @@ constexpr auto operator!=(div_t const& lhs, div_t const& rhs) noexcept
 template<class CharT, class Traits>
 auto& operator<<(std::basic_ostream<CharT, Traits>& ostr, div_t const& d)
 {
-        return ostr << '[' << d.quot << ',' << d.rem << ']';
+        return ostr << ostr.widen('[') << d.quot << ostr.widen(',') << d.rem << ostr.widen(']');
+}
+
+template<class CharT, class Traits>
+auto& operator>>(std::basic_istream<CharT, Traits>& istr, div_t& d)
+{
+        CharT c;
+        istr >> c; assert(c == istr.widen('['));
+        istr >> d.quot;
+        istr >> c; assert(c == istr.widene(','));
+        istr >> d.rem;
+        istr >> c; assert(c == istr.widen(']'));
+        return istr;
 }
 
 // C++ Standard [expr.mul]/4

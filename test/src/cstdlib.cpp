@@ -4,11 +4,12 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/cstdlib.hpp>             // div, floored_div, euclidean_div
-#include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES, BOOST_AUTO_TEST_SUITE_END, 
-                                        // BOOST_CHECK_EQUAL, BOOST_CHECK_EQUAL_COLLECTIONS, BOOST_CHECK_NE
+#include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_SUITE_END,
+                                        // BOOST_CHECK_EQUAL, BOOST_CHECK_EQUAL_COLLECTIONS
 #include <algorithm>                    // transform
 #include <cstdlib>                      // div, div_t
 #include <iterator>                     // back_inserter
+#include <sstream>                      // stringstream
 #include <utility>                      // pair
 #include <vector>                       // vector
 
@@ -49,7 +50,7 @@ BOOST_AUTO_TEST_CASE(StdDiv)
         };
 
         std::vector<xstd::div_t> std_res;
-        std::transform(input.begin(), input.end(), std::back_inserter(std_res), [](auto const& p) 
+        std::transform(input.begin(), input.end(), std::back_inserter(std_res), [](auto const& p)
                 -> xstd::div_t {
                 auto const d = std::div(p.first, p.second);
                 return { d.quot, d.rem };
@@ -118,11 +119,12 @@ BOOST_AUTO_TEST_CASE(FlooredDiv)
         );
 }
 
-BOOST_AUTO_TEST_CASE_EXPECTED_FAILURES(OutputOperatorCoverage, 1)
-
-BOOST_AUTO_TEST_CASE(OutputOperatorCoverage)
+BOOST_AUTO_TEST_CASE(IOStreamsOperators)
 {
-        BOOST_CHECK_NE((xstd::div_t{1, 0}), (xstd::div_t{1, 0}));
+        xstd::div_t const a { 1, 1 };
+        std::stringstream sstr; sstr << a;
+        xstd::div_t b;          sstr >> b;
+        BOOST_CHECK_EQUAL(a, b);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
