@@ -56,7 +56,7 @@ auto& operator>>(std::basic_istream<CharT, Traits>& istr, div_t& d)
         CharT c;
         istr >> c; assert(c == istr.widen('['));
         istr >> d.quot;
-        istr >> c; assert(c == istr.widene(','));
+        istr >> c; assert(c == istr.widen(','));
         istr >> d.rem;
         istr >> c; assert(c == istr.widen(']'));
         return istr;
