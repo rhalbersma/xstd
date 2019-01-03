@@ -9,12 +9,12 @@
 #include <cstddef>      // size_t
 #include <iosfwd>       // basic_istream, basic_ostream
 #include <tuple>        // tie
-#include <type_traits>  // enable_if_t, is_integral_v, is_signed_v
+#include <type_traits>  // enable_if_t, is_arithmetic_v
 
 namespace xstd {
 
 template<class T, std::enable_if_t<
-        std::is_signed_v<T> && std::is_integral_v<T>
+        std::is_arithmetic_v<T>
 >...>
 constexpr auto abs(T const n) noexcept
 {
@@ -22,7 +22,7 @@ constexpr auto abs(T const n) noexcept
 }
 
 template<class T, std::enable_if_t<
-        std::is_signed_v<T> && std::is_integral_v<T>
+        std::is_arithmetic_v<T>
 >...>
 constexpr auto sign(T const n) noexcept
 {
