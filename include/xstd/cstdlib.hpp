@@ -9,17 +9,24 @@
 #include <cstddef>      // size_t
 #include <iosfwd>       // basic_ostream
 #include <tuple>        // tie
+#include <type_traits>  // enable_if_t, is_integral_v, is_signed_v
 
 namespace xstd {
 
-constexpr auto abs(int const n)
+template<class T, std::enable_if_t<
+        std::is_signed_v<T> && std::is_integral_v<T>
+>...>
+constexpr auto abs(T const n) noexcept
 {
         return n < 0 ? -n : n;
 }
 
-constexpr auto sign(int const n) noexcept
+template<class T, std::enable_if_t<
+        std::is_signed_v<T> && std::is_integral_v<T>
+>...>
+constexpr auto sign(T const n) noexcept
 {
-        return static_cast<int>(0 < n) - static_cast<int>(n < 0);
+        return static_cast<T>(0 < n) - static_cast<T>(n < 0);
 }
 
 struct div_t { int quot, rem; };
