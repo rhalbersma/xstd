@@ -16,17 +16,18 @@ namespace xstd {
 template<class T, std::enable_if_t<
         std::is_arithmetic_v<T>
 >...>
-constexpr auto abs(T const n) noexcept
+constexpr auto abs(T const& x) noexcept
 {
-        return n < 0 ? -n : n;
+        return x < 0 ? -x : x;
 }
 
 template<class T, std::enable_if_t<
         std::is_arithmetic_v<T>
 >...>
-constexpr auto sign(T const n) noexcept
+constexpr auto sign(T const& x) noexcept
+        -> int
 {
-        return static_cast<T>(0 < n) - static_cast<T>(n < 0);
+        return static_cast<int>(0 < x) - static_cast<int>(x < 0);
 }
 
 struct div_t { int quot, rem; };

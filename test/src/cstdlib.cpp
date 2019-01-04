@@ -122,8 +122,10 @@ BOOST_AUTO_TEST_CASE(FlooredDiv)
 BOOST_AUTO_TEST_CASE(IOStreamsOperators)
 {
         xstd::div_t const a { 1, 1 };
-        std::stringstream sstr; sstr << a;
-        xstd::div_t b;          sstr >> b;
+        xstd::div_t b;
+        std::stringstream sstr;
+        sstr << a;
+        sstr >> b;
         BOOST_CHECK_EQUAL(a, b);
 }
 
