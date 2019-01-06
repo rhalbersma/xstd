@@ -38,4 +38,18 @@ BOOST_AUTO_TEST_CASE(ToUnderlyingType)
         BOOST_CHECK_EQUAL(to_underlying_type(e5_<e5{}>{}), static_cast<unsigned>(0));
 }
 
+BOOST_AUTO_TEST_CASE(IsAnyOf)
+{
+        BOOST_CHECK((is_any_of_v<e1, e1, e2, e3, e4, e5>));
+        BOOST_CHECK((is_any_of_v<e2, e1, e2, e3, e4, e5>));
+        BOOST_CHECK((is_any_of_v<e3, e1, e2, e3, e4, e5>));
+        BOOST_CHECK((is_any_of_v<e4, e1, e2, e3, e4, e5>));
+        BOOST_CHECK((is_any_of_v<e5, e1, e2, e3, e4, e5>));
+        BOOST_CHECK((!is_any_of_v<int, e1, e2, e3, e4, e5>));
+        BOOST_CHECK((!is_any_of_v<bool, e1, e2, e3, e4, e5>));
+        BOOST_CHECK((!is_any_of_v<char, e1, e2, e3, e4, e5>));
+        BOOST_CHECK((!is_any_of_v<unsigned char, e1, e2, e3, e4, e5>));
+        BOOST_CHECK((!is_any_of_v<unsigned, e1, e2, e3, e4, e5>));
+}
+
 BOOST_AUTO_TEST_SUITE_END()
