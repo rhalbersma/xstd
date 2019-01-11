@@ -31,4 +31,27 @@ using is_any_of = std::disjunction<std::is_same<T, Args>...>;
 template<class T, class... Args>
 constexpr auto is_any_of_v = is_any_of<T, Args...>::value;
 
+namespace block_adl {
+
+template<class Tag>
+struct tagged_empty
+{
+        tagged_empty() = default;
+
+        template<class... Args>
+        constexpr explicit tagged_empty(Args&&...) noexcept {}
+};
+
+template<bool Condition, class Base>
+struct conditional_empty
+:
+        std::conditional_t<Condition, Base, tagged_empty<Base>>
+{
+        static_assert(std::is_empty_v<tagged_empty<Base>>);
+};
+
+}       // namespace block_adl
+
+using block_adl::conditional_empty;
+
 }       // namespace xstd
