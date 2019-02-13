@@ -47,7 +47,7 @@ script:
 after_success:
 - |
   if [[ "${CODE_COVERAGE}" == "true" ]]; then
-    sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-8
+    sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-8 10
     bash <(curl -s https://codecov.io/bash)
   fi
 
