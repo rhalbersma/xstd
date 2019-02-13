@@ -8,7 +8,7 @@ set(project_include_dir
 
 add_library(xstd INTERFACE)
 target_include_directories(xstd INTERFACE ${project_include_dir})
-target_compile_features(xstd INTERFACE cxx_std_20)
+target_compile_features(xstd INTERFACE cxx_std_17)
 
 include(CTest)
 add_subdirectory(test)
