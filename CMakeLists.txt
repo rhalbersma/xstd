@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.12)
 project(xstd CXX)
 
 set(project_include_dir
@@ -8,7 +8,7 @@ set(project_include_dir
 
 add_library(xstd INTERFACE)
 target_include_directories(xstd INTERFACE ${project_include_dir})
-target_compile_features(xstd INTERFACE cxx_std_17)
+target_compile_features(xstd INTERFACE cxx_std_20)
 
 include(CTest)
 add_subdirectory(test)
