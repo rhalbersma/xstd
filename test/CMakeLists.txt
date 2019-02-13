@@ -43,16 +43,16 @@ set(cxx_compile_options_warnings
     >
 )
 
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    set(cxx_compile_options_coverage
-        -g
-        --coverage
-    )
+# if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+#     set(cxx_compile_options_coverage
+#         -g
+#         --coverage
+#     )
 
-    set(cxx_linker_options_coverage
-        --coverage
-    )
-endif()
+#     set(cxx_linker_options_coverage
+#         --coverage
+#     )
+# endif()
 
 set(test_include_dir ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(test_source_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)
