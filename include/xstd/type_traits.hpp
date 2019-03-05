@@ -26,7 +26,7 @@ constexpr auto to_underlying_type(std::integral_constant<Enumeration, N>) noexce
 }
 
 template<class T, class... Args>
-constexpr auto is_any_of = (std::is_same_v<T, Args...> || ...);
+constexpr auto is_any_of = (std::is_same_v<T, Args> || ...);
 
 namespace block_adl {
 
