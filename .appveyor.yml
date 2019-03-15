@@ -1,13 +1,13 @@
 image:
-  - Visual Studio 2017
+  - Visual Studio 2019 Preview
 
 environment:
   APPVEYOR_SAVE_CACHE_ON_ERROR: true
   matrix:
     - platform: x86
-      GENERATOR: "Visual Studio 15 2017"
+      GENERATOR: "Visual Studio 16 2019"
     - platform: x64
-      GENERATOR: "Visual Studio 15 2017 Win64"
+      GENERATOR: "Visual Studio 16 2019 Win64"
 
 configuration:
   - Debug
@@ -20,15 +20,15 @@ install:
   - vcpkg install --triplet "%platform%"-windows
     boost-test
 
-  ############################################################################
-  # Install a recent CMake
-  ############################################################################
-  - set CMAKE_URL="https://cmake.org/files/v3.14/cmake-3.14.0-win64-x64.zip"
-  - appveyor DownloadFile %CMAKE_URL% -FileName cmake.zip
-  - 7z x cmake.zip -oC:\projects\deps > nul
-  - move C:\projects\deps\cmake-* C:\projects\deps\cmake # Move to a version-agnostic directory
-  - set PATH=C:\projects\deps\cmake\bin;%PATH%
-  - cmake --version    
+############################################################################
+# Install a recent CMake
+############################################################################
+- set CMAKE_URL="https://cmake.org/files/v3.14/cmake-3.14.0-win64-x64.zip"
+- appveyor DownloadFile %CMAKE_URL% -FileName cmake.zip
+- 7z x cmake.zip -oC:\projects\deps > nul
+- move C:\projects\deps\cmake-* C:\projects\deps\cmake # Move to a version-agnostic directory
+- set PATH=C:\projects\deps\cmake\bin;%PATH%
+- cmake --version
 
 before_build:
   - cd %APPVEYOR_BUILD_FOLDER%
