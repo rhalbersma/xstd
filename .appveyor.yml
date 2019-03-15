@@ -19,6 +19,8 @@ cache:
 install:
   - vcpkg install --triplet "%platform%"-windows
     boost-test
+    cmake
+  - cmake --version
 
 before_build:
   - cd %APPVEYOR_BUILD_FOLDER%
