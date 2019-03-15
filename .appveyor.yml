@@ -33,6 +33,7 @@ install:
   - cmake --version
 
 before_build:
+  - set path=C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin;C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\MSBuild\Current\Bin;%path%
   - cd %APPVEYOR_BUILD_FOLDER%
   - mkdir build
   - cd build
