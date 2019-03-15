@@ -19,7 +19,7 @@ cache:
 install:
   - vcpkg install --triplet "%platform%"-windows
     boost-test
-    cmake
+  - vcpkg install cmake
   - cmake --version
 
 before_build:
