@@ -6,8 +6,10 @@ environment:
   matrix:
     - platform: x86
       GENERATOR: "Visual Studio 16 2019"
+      ARCH: Win32
     - platform: x64
-      GENERATOR: "Visual Studio 16 2019 Win64"
+      GENERATOR: "Visual Studio 16 2019"
+      ARCH: x64
 
 configuration:
   - Debug
@@ -34,7 +36,7 @@ before_build:
   - cd %APPVEYOR_BUILD_FOLDER%
   - mkdir build
   - cd build
-  - cmake .. -G "%GENERATOR%"
+  - cmake .. -G "%GENERATOR%" -A "%ARCH%"
     "-DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake"
 
 build_script:
