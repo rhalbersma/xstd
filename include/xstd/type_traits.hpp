@@ -12,7 +12,7 @@ namespace xstd {
 template<class Enumeration, std::enable_if_t<
         std::is_enum_v<Enumeration>
 >...>
-constexpr auto to_underlying_type(Enumeration e) noexcept
+constexpr auto to_utype(Enumeration e) noexcept
 {
         return static_cast<std::underlying_type_t<Enumeration>>(e);
 }
@@ -20,35 +20,35 @@ constexpr auto to_underlying_type(Enumeration e) noexcept
 template<class Enumeration, Enumeration N, std::enable_if_t<
         std::is_enum_v<Enumeration>
 >...>
-constexpr auto to_underlying_type(std::integral_constant<Enumeration, N>) noexcept
+constexpr auto to_utype(std::integral_constant<Enumeration, N>) noexcept
 {
         return static_cast<std::underlying_type_t<Enumeration>>(N);
 }
 
 template<class T, class... Args>
-constexpr auto is_any_of = (std::is_same_v<T, Args> || ...);
+constexpr auto any_of = (std::is_same_v<T, Args> || ...);
 
 namespace block_adl {
 
 template<class Tag>
-struct tagged_empty
+struct empty
 {
-        tagged_empty() = default;
+        empty() = default;
 
         template<class... Args>
-        constexpr explicit tagged_empty(Args&&...) noexcept {}
+        constexpr explicit empty(Args&&...) noexcept {}
 };
 
 template<bool Condition, class Base>
-struct conditional_empty
+struct or_empty
 :
-        std::conditional_t<Condition, Base, tagged_empty<Base>>
+        std::conditional_t<Condition, Base, empty<Base>>
 {
-        static_assert(std::is_empty_v<tagged_empty<Base>>);
+        static_assert(std::is_empty_v<empty<Base>>);
 };
 
 }       // namespace block_adl
 
-using block_adl::conditional_empty;
+using block_adl::or_empty;
 
 }       // namespace xstd
