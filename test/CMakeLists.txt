@@ -16,6 +16,7 @@ set(cxx_compile_definitions
 set(cxx_compile_options_warnings
     $<$<CXX_COMPILER_ID:MSVC>:
         /W4
+        /permissive-
         /WX
     >
     $<$<CXX_COMPILER_ID:Clang>:
@@ -26,6 +27,7 @@ set(cxx_compile_options_warnings
         -Wno-disabled-macro-expansion
         -Wno-exit-time-destructors
         -Wno-global-constructors
+        -Wno-used-but-marked-unused
     >
     $<$<CXX_COMPILER_ID:GNU>:
         -Wall
