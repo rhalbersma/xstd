@@ -105,12 +105,26 @@ install:
     sudo dpkg -i gcc-latest.deb
     sudo ln -s /opt/gcc-latest/bin/gcc /usr/bin/gcc-10
     sudo ln -s /opt/gcc-latest/bin/g++ /usr/bin/g++-10
-    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10
     sudo ldconfig /opt/gcc-latest/lib64
   fi
 
 ################################################################################
-# Install the latest Boost and build Boost.Test (compiled with g++-9)
+# Set gcc version to latest available
+################################################################################
+
+- |
+  if [[ "${CXX}" == "g++-7" ]]; then
+    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 70 --slave /usr/bin/g++ g++ /usr/bin/g++-7
+  elif [[ "${CXX}" == "g++-8" ]]; then
+    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 80 --slave /usr/bin/g++ g++ /usr/bin/g++-8
+  elif [[ "${CXX}" == "g++-9" ]]; then
+    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 90 --slave /usr/bin/g++ g++ /usr/bin/g++-9
+  elif [[ "${CXX}" == "g++-10" ]]; then
+    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10
+  fi
+
+################################################################################
+# Install the latest Boost and build Boost.Test (compiled with the latest gcc)
 ################################################################################
 - |
   BOOST_VERSION=1.70.0
@@ -123,10 +137,10 @@ install:
   if [[ "${STDLIB}" == "libc++" ]]; then
     sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-9 90 --slave /usr/bin/clang++ clang++ /usr/bin/clang++-9
     ./bootstrap.sh --with-toolset=clang --with-libraries=${BOOST_LIBS}
-    sudo ./b2 -j10 install toolset=clang ${BOOST_BUILD_TYPE} cxxflags="-stdlib=libc++"
+    sudo ./b2 -d1 -j10 install toolset=clang ${BOOST_BUILD_TYPE} cxxflags="-stdlib=libc++"
   else
     ./bootstrap.sh --with-toolset=gcc   --with-libraries=${BOOST_LIBS}
-    sudo ./b2 -j10 install toolset=gcc   ${BOOST_BUILD_TYPE}
+    sudo ./b2 -d1 -j10 install toolset=gcc   ${BOOST_BUILD_TYPE}
   fi
 
 ################################################################################
