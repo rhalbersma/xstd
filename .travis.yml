@@ -113,6 +113,8 @@ install:
 ################################################################################
 
 - |
+  sudo update-alternatives --remove-all gcc
+  sudo update-alternatives --remove-all g++
   if [[ "${CXX}" == "g++-7" ]]; then
     sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 70 --slave /usr/bin/g++ g++ /usr/bin/g++-7
   elif [[ "${CXX}" == "g++-8" ]]; then
