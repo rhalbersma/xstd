@@ -48,7 +48,7 @@ matrix:
             - sourceline: 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial main'
               key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
 
-    - env: CXX_COMPILER=clang++-9 CXX_STDLIB=libc++
+    - env: CXX_COMPILER=clang++-9 CXX_STDLIB=libc++-9
       addons:
         apt:
           packages:
@@ -109,7 +109,7 @@ install:
   fi
 
 ################################################################################
-# Set gcc version to latest available
+# Set gcc to latest version that is installed
 ################################################################################
 
 - |
@@ -136,13 +136,13 @@ install:
   BOOST_BUILD_TYPE="link=static variant=release"
   mkdir -p ${BOOST_DIR} && travis_retry wget --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xj -C ${BOOST_DIR}
   cd ${BOOST_DIR}
-  if [[ "${STDLIB}" == "libc++" ]]; then
+  if [[ "${CXX_STDLIB}" == "libc++" ]]; then
     sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-9 90 --slave /usr/bin/clang++ clang++ /usr/bin/clang++-9
     ./bootstrap.sh --with-toolset=clang --with-libraries=${BOOST_LIBS}
-    sudo ./b2 -d1 -j10 install toolset=clang ${BOOST_BUILD_TYPE} cxxflags="-stdlib=libc++"
+    sudo ./b2 -d0 -j10 install toolset=clang ${BOOST_BUILD_TYPE} cxxflags="-stdlib=libc++"
   else
     ./bootstrap.sh --with-toolset=gcc   --with-libraries=${BOOST_LIBS}
-    sudo ./b2 -d1 -j10 install toolset=gcc   ${BOOST_BUILD_TYPE}
+    sudo ./b2 -d0 -j10 install toolset=gcc   ${BOOST_BUILD_TYPE}
   fi
 
 ################################################################################
