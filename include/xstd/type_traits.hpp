@@ -13,15 +13,15 @@ template<class T, class... Args>
 inline constexpr auto any_of = (std::is_same_v<T, Args> || ...);
 
 template<class Tag>
-struct empty_base
+struct tagged_empty
 {
-        empty_base() = default;
+        tagged_empty() = default;
 
         template<class... Args>
-        constexpr explicit empty_base(Args&&...) noexcept {}
+        constexpr explicit tagged_empty(Args&&...) noexcept {}
 };
 
 template<bool Condition, class Base>
-using or_empty = std::conditional_t<Condition, Base, empty_base<Base>>;
+using or_empty = std::conditional_t<Condition, Base, tagged_empty<Base>>;
 
 }       // namespace xstd
