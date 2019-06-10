@@ -3,7 +3,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/type_traits.hpp>         // any_of
+#include <xstd/utility.hpp>             // to_underlying
 #include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_CASE, BOOST_CHECK_EQUAL, BOOST_AUTO_TEST_SUITE_END
 #include <type_traits>                  // integral_constant
 
@@ -23,18 +23,19 @@ template<e3 N> using e3_ = std::integral_constant<e3, N>;
 template<e4 N> using e4_ = std::integral_constant<e4, N>;
 template<e5 N> using e5_ = std::integral_constant<e5, N>;
 
-BOOST_AUTO_TEST_CASE(IsAnyOf)
+BOOST_AUTO_TEST_CASE(ToUnderlyingType)
 {
-        BOOST_CHECK((any_of<e1, e1, e2, e3, e4, e5>));
-        BOOST_CHECK((any_of<e2, e1, e2, e3, e4, e5>));
-        BOOST_CHECK((any_of<e3, e1, e2, e3, e4, e5>));
-        BOOST_CHECK((any_of<e4, e1, e2, e3, e4, e5>));
-        BOOST_CHECK((any_of<e5, e1, e2, e3, e4, e5>));
-        BOOST_CHECK((!any_of<int, e1, e2, e3, e4, e5>));
-        BOOST_CHECK((!any_of<bool, e1, e2, e3, e4, e5>));
-        BOOST_CHECK((!any_of<char, e1, e2, e3, e4, e5>));
-        BOOST_CHECK((!any_of<unsigned char, e1, e2, e3, e4, e5>));
-        BOOST_CHECK((!any_of<unsigned, e1, e2, e3, e4, e5>));
+        BOOST_CHECK_EQUAL(to_underlying(e1{}), 0);
+        BOOST_CHECK_EQUAL(to_underlying(e2{}), false);
+        BOOST_CHECK_EQUAL(to_underlying(e3{}), static_cast<char>(0));
+        BOOST_CHECK_EQUAL(to_underlying(e4{}), static_cast<unsigned char>(0));
+        BOOST_CHECK_EQUAL(to_underlying(e5{}), static_cast<unsigned>(0));
+
+        BOOST_CHECK_EQUAL(to_underlying(e1_<e1{}>{}), 0);
+        BOOST_CHECK_EQUAL(to_underlying(e2_<e2{}>{}), false);
+        BOOST_CHECK_EQUAL(to_underlying(e3_<e3{}>{}), static_cast<char>(0));
+        BOOST_CHECK_EQUAL(to_underlying(e4_<e4{}>{}), static_cast<unsigned char>(0));
+        BOOST_CHECK_EQUAL(to_underlying(e5_<e5{}>{}), static_cast<unsigned>(0));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

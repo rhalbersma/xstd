@@ -14,7 +14,7 @@ In rough order of work to be done.
 Addition to `<type_traits>`
 
         template<class E>
-        constexpr auto to_utype(E e) noexcept
+        constexpr auto to_underlying(E e) noexcept
         {
                 return static_cast<std::underlying_type_t<E>>(e);
         }
