@@ -9,10 +9,10 @@ Extensions to the C++ Standard Library
 | Header          | Additions          | Description | Reference |
 | :-----          | :--------          | :---------- | :-------- |
 | `<array>`       | `array_from_types` | Creates an `array` from a type list | none |
-| `<cstddef>`     | `operator "" _zu`  | User-defined literals for `size_t` | [P0330R4](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0330r4.html) |
-| `<cstdlib>`     | `abs` <br> `div` <br> `euclidean_div` <br> `floored_div` <br> `sign` | `constexpr std::abs(int)` <br> `constexpr std::div(int, int)` <br> Euclidean instead of truncated division <br> Floored instead of truncated division <br> `constexpr boost::math::sign` | [P0533R4](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0533r4.pdf) <br> [P0533R4](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0533r4.pdf) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) <br> [Boost.Math](https://www.boost.org/doc/libs/1_67_0/libs/math/doc/html/math_toolkit/sign_functions.html) |
+| `<cstddef>`     | `operator "" _zu`  | User-defined literals for `size_t` | [p0330r6](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0330r6.html) |
+| `<cstdlib>`     | `abs` <br> `div` <br> `euclidean_div` <br> `floored_div` <br> `sign` | `constexpr std::abs(int)` <br> `constexpr std::div(int, int)` <br> Euclidean instead of truncated division <br> Floored instead of truncated division <br> `constexpr boost::math::sign` | [p0533r5](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0533r5.pdf) <br> [p0533r5](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p0533r5.pdf) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) <br> [Boost.Math](https://www.boost.org/doc/libs/1_67_0/libs/math/doc/html/math_toolkit/sign_functions.html) |
 | `<type_traits>` | `any_of<T, Xs...>` <br> `tagged_empty<Tag>` <br> `or_empty<B, T>` | `(is_same_v<T, Xs> or ...)` <br> tagged empty base class <br> `conditional_t<B, T, tagged_empty<T>>` | none  <br> none <br> none |
-| `<utility>`     |  `to_underlying`   | Converts an enum to its underlying type | [Effective Modern C++](http://shop.oreilly.com/product/0636920033707.do), Item 10 |
+| `<utility>`     |  `to_underlying`   | Converts an enum to its underlying type | [p1682r0](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1682r0.html) |
 
 Requirements
 ------------
@@ -22,7 +22,7 @@ These header-only libraries are continuously being tested with the following con
 | Platform | Compiler | Versions | Build |
 | :------- | :------- | :------- | :---- |
 | Linux    | Clang <br> GCC | 6.0, 7, 8, 9-SVN<br> 7.4 8.3, 9.1, 10.0-SVN | [![codecov](https://codecov.io/gh/rhalbersma/xstd/branch/master/graph/badge.svg)](https://codecov.io/gh/rhalbersma/xstd) <br> [![Build Status](https://travis-ci.org/rhalbersma/xstd.svg)](https://travis-ci.org/rhalbersma/xstd) |
-| Windows  | Visual Studio  |                                     15.9.11 | [![Build status](https://ci.appveyor.com/api/projects/status/nu193iqabu749mpx?svg=true)](https://ci.appveyor.com/project/rhalbersma/xstd) |
+| Windows  | Visual Studio  |                                     15.9.14 | [![Build status](https://ci.appveyor.com/api/projects/status/nu193iqabu749mpx?svg=true)](https://ci.appveyor.com/project/rhalbersma/xstd) |
 
 License
 -------
