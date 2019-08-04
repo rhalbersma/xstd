@@ -11,7 +11,7 @@ namespace xstd {
 inline namespace literals {
 inline namespace support_literals {
 
-constexpr auto operator "" _zu(unsigned long long u)
+constexpr auto operator "" _uz(unsigned long long u)
 {
         return static_cast<std::size_t>(u);
 }
