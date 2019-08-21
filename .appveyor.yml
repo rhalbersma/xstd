@@ -18,8 +18,8 @@ shallow_clone: true
 build:
   verbosity: detailed
 
-cache:
-  - c:\tools\vcpkg\installed\
+#cache:
+#  - c:\tools\vcpkg\installed\
 
 install:
   - vcpkg install --triplet "%platform%"-windows
