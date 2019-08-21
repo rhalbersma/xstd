@@ -19,7 +19,7 @@ build:
   verbosity: detailed
 
 cache:
-#  - c:\tools\vcpkg\installed\
+  - c:\tools\vcpkg\installed\
 
 install:
   - vcpkg install --triplet "%platform%"-windows
