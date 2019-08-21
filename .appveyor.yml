@@ -26,7 +26,6 @@ install:
     boost-test
 
 before_build:
-  - vcpkg upgrade --no-dry-run
   - cd %APPVEYOR_BUILD_FOLDER%
   - mkdir build
   - cd build
