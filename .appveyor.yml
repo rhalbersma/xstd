@@ -5,10 +5,11 @@ environment:
       GENERATOR: "Visual Studio 15 2017"
     - image: Visual Studio 2019
       GENERATOR: "Visual Studio 16 2019"
-    - platform: x86
-      PLATFORM: "Win32"
-    - platform: x64
-      PLATFORM: "x64"
+    - image: Visual Studio 2019 Preview
+      GENERATOR: "Visual Studio 16 2019"
+
+platform:
+  - x64
 
 configuration:
   - Debug
@@ -31,7 +32,7 @@ before_build:
   - mkdir build
   - cd build
   - cmake --version
-  - cmake .. -G "%GENERATOR%" -A "%PLATFORM%"
+  - cmake .. -G "%GENERATOR%" -A "%platform%"
     "-DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake"
 
 build_script:
