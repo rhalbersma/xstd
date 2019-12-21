@@ -1,10 +1,6 @@
-environment:
-  APPVEYOR_SAVE_CACHE_ON_ERROR: true
-  matrix:
-    - image: Visual Studio 2019
-      GENERATOR: "Visual Studio 16 2019"
-    - image: Visual Studio 2019 Preview
-      GENERATOR: "Visual Studio 16 2019"
+image:
+  - Visual Studio 2019
+  - Visual Studio 2019 Preview
 
 platform:
   - x64
@@ -12,6 +8,10 @@ platform:
 configuration:
   - Debug
   - Release
+
+environment:
+  APPVEYOR_SAVE_CACHE_ON_ERROR: true
+  GENERATOR: "Visual Studio 16 2019"
 
 shallow_clone: true
 
