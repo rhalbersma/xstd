@@ -1,6 +1,5 @@
 image:
   - Visual Studio 2019
-    GENERATOR: "Visual Studio 16 2019"
 
 platform:
   - x86
@@ -12,6 +11,7 @@ configuration:
 
 environment:
   APPVEYOR_SAVE_CACHE_ON_ERROR: true
+  GENERATOR: "Visual Studio 16 2019"
 
 shallow_clone: true
 
