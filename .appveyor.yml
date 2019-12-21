@@ -1,17 +1,17 @@
 image:
   - Visual Studio 2019
+    GENERATOR: "Visual Studio 16 2019"
 
-environment:
-  APPVEYOR_SAVE_CACHE_ON_ERROR: true
-  matrix:
-    - platform: x86
-      GENERATOR: "Visual Studio 16 2019"
-    - platform: x64
-      GENERATOR: "Visual Studio 16 2019 Win64"
+platform:
+  - x86
+  - x64
 
 configuration:
   - Debug
   - Release
+
+environment:
+  APPVEYOR_SAVE_CACHE_ON_ERROR: true
 
 shallow_clone: true
 
@@ -30,7 +30,7 @@ before_build:
   - mkdir build
   - cd build
   - cmake --version
-  - cmake .. -G "%GENERATOR%"
+  - cmake .. -G "%GENERATOR%" -A %platform%
     "-DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake"
 
 build_script:
