@@ -174,17 +174,17 @@ before_script:
   if [[ "${CXX_STDLIB}" == "libc++" ]]; then
     cmake .. \
       -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
-      -DCMAKE_CXX_FLAGS="-stdlib=libc++"
+      -DCMAKE_CXX_FLAGS="-stdlib=libc++" \
       -DBoost_NO_BOOST_CMAKE=ON
   elif [[ "${CODE_COVERAGE}" == "true" ]]; then
     cmake .. \
       -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
       -DCMAKE_CXX_FLAGS="--coverage" \
-      -DCMAKE_EXE_LINKER_FLAGS="--coverage"
+      -DCMAKE_EXE_LINKER_FLAGS="--coverage" \
       -DBoost_NO_BOOST_CMAKE=ON
   else
     cmake .. \
-      -DCMAKE_CXX_COMPILER=${CXX_COMPILER}
+      -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
       -DBoost_NO_BOOST_CMAKE=ON
   fi
 
