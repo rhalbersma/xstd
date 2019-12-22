@@ -64,7 +64,7 @@ foreach(t ${targets})
     add_executable(${target_id} src/${t})
 
     target_link_libraries(${target_id} PRIVATE
-        xstd
+        ${CMAKE_PROJECT_NAME}
         Boost::unit_test_framework
     )
 
