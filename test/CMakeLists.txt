@@ -42,6 +42,7 @@ set(cxx_compile_options_warnings
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:
         -Werror
         -pedantic-errors
+        #-Wno-padded
     >
 )
 
@@ -51,9 +52,15 @@ set(cxx_compile_options_debugsym
     >
 )
 
-set(test_include_dir ${CMAKE_CURRENT_SOURCE_DIR}/include)
-set(test_source_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)
-file(GLOB_RECURSE targets RELATIVE ${test_source_dir} *.cpp)
+set(cxx_compile_options_mbig_obj
+    $<$<AND:$<CXX_COMPILER_ID:GNU>,$<PLATFORM_ID:Windows>>:
+	    -Wa,-mbig-obj
+    >
+)
+
+set(current_include_dir ${CMAKE_CURRENT_SOURCE_DIR}/include)
+set(current_source_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)
+file(GLOB_RECURSE targets RELATIVE ${current_source_dir} *.cpp)
 
 foreach(t ${targets})
     get_filename_component(target_path ${t} PATH)
@@ -69,7 +76,7 @@ foreach(t ${targets})
     )
 
     target_include_directories(${target_id} PRIVATE
-        ${test_include_dir}
+        ${current_include_dir}
     )
 
     target_compile_definitions(${target_id} PRIVATE
@@ -79,6 +86,7 @@ foreach(t ${targets})
     target_compile_options(${target_id} PRIVATE
         ${cxx_compile_options_warnings}
         ${cxx_compile_options_debugsym}
+        ${cxx_compile_options_mbig_obj}
     )
 
     add_test(${target_id} ${target_id})
