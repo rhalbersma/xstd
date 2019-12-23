@@ -34,11 +34,11 @@ BOOST_AUTO_TEST_CASE(Sign)
 
 // http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf
 
-auto const input = std::vector<std::pair<int, int>>
-{
+auto const input = std::array<std::pair<int, int>, 8>
+{{
         {+8, +3}, {+8, -3}, {-8, +3}, {-8, -3},
         {+1, +2}, {+1, -2}, {-1, +2}, {-1, -2}
-};
+}};
 
 BOOST_AUTO_TEST_CASE(StdDiv)
 {
