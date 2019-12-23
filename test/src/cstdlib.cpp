@@ -6,6 +6,7 @@
 #include <xstd/cstdlib.hpp>             // div, floored_div, euclidean_div
 #include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_CHECK_EQUAL, BOOST_CHECK_EQUAL_COLLECTIONS
 #include <algorithm>                    // transform
+#include <array>                        // array
 #include <cstdlib>                      // div, div_t
 #include <iterator>                     // back_inserter
 #include <sstream>                      // stringstream
