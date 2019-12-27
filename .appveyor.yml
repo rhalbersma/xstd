@@ -31,7 +31,7 @@ cache:
   - c:\tools\vcpkg\installed\
 
 install:
-  - vcpkg install --triplet "%platform%"-windows
+  - vcpkg install --triplet %platform%-windows
     boost-test
 
 before_build:
