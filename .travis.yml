@@ -190,7 +190,7 @@ before_script:
 
 script:
 - |
-  cmake --build .
+  cmake --build . -v
   ctest
 
 after_success:
