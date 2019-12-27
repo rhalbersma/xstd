@@ -120,21 +120,34 @@ install:
   fi
 
 ################################################################################
-# Set gcc to latest version that is installed
+# Set gcc, g++ and gcov to latest versions that are installed
 ################################################################################
 
 - |
   if [[ "${CXX_STDLIB}" == "g++-7" ]]; then
-    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 70 --slave /usr/bin/g++ g++ /usr/bin/g++-7
+    sudo update-alternatives \
+    --install /usr/bin/gcc  gcc  /usr/bin/gcc-7 70 \
+    --slave   /usr/bin/g++  g++  /usr/bin/g++-7 \
+    --slave   /usr/bin/gcov gcov /usr/bin/gcov-7
   elif [[ "${CXX_STDLIB}" == "g++-8" ]]; then
-    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 80 --slave /usr/bin/g++ g++ /usr/bin/g++-8
+    sudo update-alternatives \
+    --install /usr/bin/gcc  gcc  /usr/bin/gcc-8 80 \
+    --slave   /usr/bin/g++  g++  /usr/bin/g++-8 \
+    --slave   /usr/bin/gcov gcov /usr/bin/gcov-8
   elif [[ "${CXX_STDLIB}" == "g++-9" ]]; then
-    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 90 --slave /usr/bin/g++ g++ /usr/bin/g++-9
+    sudo update-alternatives \
+    --install /usr/bin/gcc  gcc  /usr/bin/gcc-9 90 \
+    --slave   /usr/bin/g++  g++  /usr/bin/g++-9 \
+    --slave   /usr/bin/gcov gcov /usr/bin/gcov-9
   elif [[ "${CXX_STDLIB}" == "g++-10" ]]; then
-    sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10
+    sudo update-alternatives \
+    --install /usr/bin/gcc  gcc  /usr/bin/gcc-10 100 \
+    --slave   /usr/bin/g++  g++  /usr/bin/g++-10 \
+    --slave   /usr/bin/gcov gcov /usr/bin/gcov-10
   fi
   gcc --version
   g++ --version
+  gcov --version
 
 ################################################################################
 # Install the latest Boost and build Boost.Test (compiled with the latest gcc)
