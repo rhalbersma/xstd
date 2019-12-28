@@ -163,7 +163,7 @@ install:
   BOOST_BUILD_TYPE="link=static variant=release"
   mkdir -p ${BOOST_DIR} && travis_retry wget --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xj -C ${BOOST_DIR}
   cd ${BOOST_DIR}
-  if [[ "${STDLIB" == "libstdc++" ]]; then
+  if [[ "${STDLIB}" == "libstdc++" ]]; then
     ./bootstrap.sh --with-toolset=gcc   --with-libraries=${BOOST_LIBS}
     sudo ./b2 -d0 -j10 install toolset=gcc   ${BOOST_BUILD_TYPE}
   elif [[ "${STDLIB}" == "libc++" ]]; then
