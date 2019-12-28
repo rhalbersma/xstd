@@ -152,7 +152,7 @@ install:
     gcov --version
   fi
 
-################################################################################
+  ################################################################################
 # Install the latest Boost and build Boost.Test (compiled with the latest gcc)
 ################################################################################
 - |
@@ -163,12 +163,12 @@ install:
   BOOST_BUILD_TYPE="link=static variant=release"
   mkdir -p ${BOOST_DIR} && travis_retry wget --quiet -O - ${BOOST_URL} | tar --strip-components=1 -xj -C ${BOOST_DIR}
   cd ${BOOST_DIR}
-  if [[ "${STDLIB}" == "libc++" ]]; then
-    ./bootstrap.sh --with-toolset=clang --with-libraries=${BOOST_LIBS}
-    sudo ./b2 -d0 -j10 install toolset=clang ${BOOST_BUILD_TYPE} cxxflags="-stdlib=libc++"
-  else
+  if [[ "${STDLIB" == "libstdc++" ]]; then
     ./bootstrap.sh --with-toolset=gcc   --with-libraries=${BOOST_LIBS}
     sudo ./b2 -d0 -j10 install toolset=gcc   ${BOOST_BUILD_TYPE}
+  elif [[ "${STDLIB}" == "libc++" ]]; then
+    ./bootstrap.sh --with-toolset=clang --with-libraries=${BOOST_LIBS}
+    sudo ./b2 -d0 -j10 install toolset=clang ${BOOST_BUILD_TYPE} cxxflags="-stdlib=libc++"
   fi
 
 ################################################################################
@@ -186,7 +186,11 @@ before_script:
 - |
   cd ${TRAVIS_BUILD_DIR}
   mkdir build && cd build
-  CXX_COMPILER=${TOOLSET}-${TOOLSET_VER}
+  if [[ "${TOOLSET}" == "clang" ]]; then
+    CXX_COMPILER=clang++-${TOOLSET_VER}
+  elif [[ "${TOOLSET}" == "gcc" ]]; then
+    CXX_COMPILER=g++-${TOOLSET_VER}
+  fi
   if [[ "${TOOLSET}" == "clang" && "${STDLIB}" == "libc++" ]]; then
     cmake ..                               \
       -DCMAKE_CXX_COMPILER=${CXX_COMPILER} \
