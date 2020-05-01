@@ -27,12 +27,12 @@ set(cxx_compile_options_warnings
     >
     $<$<CXX_COMPILER_ID:Clang>:
         -Weverything
-        -Wno-unknown-warning-option     # forward compatibility for new Clang warnings
+        -Wno-unknown-warning-option         # forward compatibility for new Clang warnings
         -Wno-c++98-compat
         -Wno-c++98-compat-pedantic
-        -Wno-disabled-macro-expansion   # triggered by Boost.Test
-        -Wno-global-constructors        # triggered by Boost.Test
-        -Wno-used-but-marked-unused     # triggered by Boost.Test
+        -Wno-disabled-macro-expansion       # triggered by Boost.Test
+        -Wno-global-constructors            # triggered by Boost.Test
+        -Wno-used-but-marked-unused         # triggered by Boost.Test
     >
     $<$<CXX_COMPILER_ID:GNU>:
         -Wall
