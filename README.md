@@ -1,10 +1,8 @@
-[![Language](https://img.shields.io/badge/language-C++-blue.svg)](https://isocpp.org/) 
-[![Standard](https://img.shields.io/badge/c%2B%2B-17-blue.svg)](https://en.wikipedia.org/wiki/C%2B%2B#Standardization)
-[![License](https://img.shields.io/badge/license-Boost-blue.svg)](https://opensource.org/licenses/BSL-1.0) 
-[![](https://tokei.rs/b1/github/rhalbersma/xstd)](https://github.com/rhalbersma/xstd)
+# Extensions to the C++ Standard Library
 
-Extensions to the C++ Standard Library
---------------------------------------
+[![Language](https://img.shields.io/badge/language-C++-blue.svg)](https://isocpp.org/)
+[![Standard](https://img.shields.io/badge/c%2B%2B-17-blue.svg)](https://en.wikipedia.org/wiki/C%2B%2B#Standardization)
+[![License](https://img.shields.io/badge/license-Boost-blue.svg)](https://opensource.org/licenses/BSL-1.0)
 
 | Header          | Additions          | Description | Reference |
 | :-----          | :--------          | :---------- | :-------- |
@@ -14,19 +12,17 @@ Extensions to the C++ Standard Library
 | `<type_traits>` | `any_of<T, Xs...>` <br> `tagged_empty<Tag>` <br> `or_empty<B, T>` | `(is_same_v<T, Xs> or ...)` <br> tagged empty base class <br> `conditional_t<B, T, tagged_empty<T>>` | none  <br> none <br> none |
 | `<utility>`     |  `to_underlying`   | Convert an enum to its underlying type | [p1682r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1682r1.html) |
 
-Requirements
-------------
+## Requirements
 
 These header-only libraries are continuously being tested with the following conforming [C++17](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/n4659.pdf) compilers in [C++20](http://www.open-std.org/jtc1/sc22/wg21/prot/14882fdis/n4860.pdf) mode:
 
 | Platform | Compiler | Versions | Build |
 | :------- | :------- | :------- | :---- |
 | Linux    | Clang <br> GCC | 9, 10, 11-SVN<br> 9, 10, 11-SVN | [![codecov](https://codecov.io/gh/rhalbersma/xstd/branch/master/graph/badge.svg)](https://codecov.io/gh/rhalbersma/xstd) <br> [![Build Status](https://travis-ci.org/rhalbersma/xstd.svg)](https://travis-ci.org/rhalbersma/xstd) |
-| Windows  | Visual Studio  | 2017, 2019                    | [![Build status](https://ci.appveyor.com/api/projects/status/nu193iqabu749mpx?svg=true)](https://ci.appveyor.com/project/rhalbersma/xstd) |
+| Windows  | Visual Studio  | 2017, 2019                      | [![Build status](https://ci.appveyor.com/api/projects/status/nu193iqabu749mpx?svg=true)](https://ci.appveyor.com/project/rhalbersma/xstd) |
 
-License
--------
+## License
 
 Copyright Rein Halbersma 2014-2020.  
 Distributed under the [Boost Software License, Version 1.0](http://www.boost.org/users/license.html).  
-(See accompanying file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+(See accompanying file LICENSE_1_0.txt or copy at [http://www.boost.org/LICENSE_1_0.txt](http://www.boost.org/LICENSE_1_0.txt))
