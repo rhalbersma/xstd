@@ -9,21 +9,19 @@
 #include <cstddef>      // size_t
 #include <iosfwd>       // basic_istream, basic_ostream
 #include <tuple>        // tie
-#include <type_traits>  // enable_if_t, is_arithmetic_v
+#include <type_traits>  // is_arithmetic_v
 
 namespace xstd {
 
-template<class T, std::enable_if_t<
-        std::is_arithmetic_v<T>
->...>
+template<class T>
+        requires std::is_arithmetic_v<T>
 constexpr auto abs(T const& x) noexcept
 {
         return x < 0 ? -x : x;
 }
 
-template<class T, std::enable_if_t<
-        std::is_arithmetic_v<T>
->...>
+template<class T>
+        requires std::is_arithmetic_v<T>
 constexpr auto sign(T const& x) noexcept
         -> int
 {
