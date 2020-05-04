@@ -15,8 +15,7 @@ struct array_from_types;
 template<template<class...> class L, class... T>
 struct array_from_types<L<T...>>
 {
-        template<class UnaryFunction>
-        constexpr auto operator()(UnaryFunction fun) const
+        constexpr auto operator()(auto fun) const noexcept((noexcept(fun(T{})) && ...))
         {
                 return std::array{fun(T{})...};
         }

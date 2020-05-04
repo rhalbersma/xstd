@@ -16,9 +16,7 @@ template<class Tag>
 struct tagged_empty
 {
         tagged_empty() = default;
-
-        template<class... Args>
-        constexpr explicit tagged_empty(Args&&...) noexcept {}
+        constexpr explicit tagged_empty(auto&&...) noexcept {}
 };
 
 template<bool Condition, class Base>
