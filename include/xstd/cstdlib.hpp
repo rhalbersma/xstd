@@ -15,33 +15,24 @@ namespace xstd {
 
 template<class T>
         requires std::is_arithmetic_v<T>
-constexpr auto abs(T const& x) noexcept
+[[nodiscard]] constexpr auto abs(T const& x) noexcept
 {
         return x < 0 ? -x : x;
 }
 
 template<class T>
         requires std::is_arithmetic_v<T>
-constexpr auto sign(T const& x) noexcept
+[[nodiscard]] constexpr auto sign(T const& x) noexcept
         -> int
 {
         return static_cast<int>(0 < x) - static_cast<int>(x < 0);
 }
 
-struct div_t { int quot, rem; };
-
-constexpr auto operator==(div_t const& lhs, div_t const& rhs) noexcept
-{
-        constexpr auto tied = [](auto const& d) {
-                return std::tie(d.quot, d.rem);
-        };
-        return tied(lhs) == tied(rhs);
-}
-
-constexpr auto operator!=(div_t const& lhs, div_t const& rhs) noexcept
-{
-        return !(lhs == rhs);
-}
+struct div_t 
+{ 
+        int quot, rem; 
+        [[nodiscard]] bool operator==(div_t const&) const = default;
+};
 
 template<class CharT, class Traits>
 auto& operator<<(std::basic_ostream<CharT, Traits>& ostr, div_t const& d)
@@ -70,7 +61,7 @@ auto& operator>>(std::basic_istream<CharT, Traits>& istr, div_t& d)
 // rem: Ada, Clojure, Erlang, Haskell, Julia, Lisp, Prolog
 // remainder: Ruby, Scheme
 // mod: Fortran, OCaml
-constexpr auto div(int D, int d) // Throws: Nothing.
+[[nodiscard]] constexpr auto div(int D, int d) // Throws: Nothing.
         -> div_t
 {
         assert(d != 0);
@@ -85,7 +76,7 @@ constexpr auto div(int D, int d) // Throws: Nothing.
 // https://en.wikipedia.org/wiki/Euclidean_division
 // mod: Maple, Pascal
 // modulo: Scheme
-constexpr auto euclidean_div(int D, int d) // Throws: Nothing.
+[[nodiscard]] constexpr auto euclidean_div(int D, int d) // Throws: Nothing.
         -> div_t
 {
         assert(d != 0);
@@ -103,7 +94,7 @@ constexpr auto euclidean_div(int D, int d) // Throws: Nothing.
 // %%: R
 // mod: Ada, Clojure, Haskell, Julia, Lisp, ML, Prolog
 // modulo: Fortran, Ruby
-constexpr auto floored_div(int D, int d) // Throws: Nothing.
+[[nodiscard]] constexpr auto floored_div(int D, int d) // Throws: Nothing.
         -> div_t
 {
         assert(d != 0);

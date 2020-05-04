@@ -11,14 +11,14 @@ namespace xstd {
 
 template<class Enumeration>
         requires std::is_enum_v<Enumeration>
-constexpr auto to_underlying(Enumeration e) noexcept
+[[nodiscard]] constexpr auto to_underlying(Enumeration e) noexcept
 {
         return static_cast<std::underlying_type_t<Enumeration>>(e);
 }
 
 template<class Enumeration, Enumeration N>
         requires std::is_enum_v<Enumeration>
-constexpr auto to_underlying(std::integral_constant<Enumeration, N>) noexcept
+[[nodiscard]] constexpr auto to_underlying(std::integral_constant<Enumeration, N>) noexcept
 {
         return static_cast<std::underlying_type_t<Enumeration>>(N);
 }
