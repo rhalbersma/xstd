@@ -10,7 +10,7 @@
 | `<xstd/array.hpp>`       | `array_from_types` | Create an `array` from a type list | none |
 | `<xstd/cstddef.hpp>`     | `operator "" _uz`  | User-defined literals for `size_t` | [p0330r8](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p0330r8.html) |
 | `<xstd/cstdlib.hpp>`     | `abs` <br> `div` <br> `euclidean_div` <br> `floored_div` <br> `sign` | `constexpr std::abs(int)` <br> `constexpr std::div(int, int)` <br> Euclidean division <br> Floored division <br> `constexpr boost::math::sign` | [p0533r6](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p0533r6.pdf) <br> [p0533r6](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p0533r6.pdf) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) <br> [Boost.Math](https://www.boost.org/doc/libs/1_67_0/libs/math/doc/html/math_toolkit/sign_functions.html) |
-| `<xstd/type_traits.hpp>` | `is_specialization_of` | Check if a type is a class template specialization | [p2098r0](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r0.pdf) |
+| `<xstd/type_traits.hpp>` | `is_specialization_of` |Is a type a class template specialization? | [p2098r0](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r0.pdf) |
 | `<xstd/utility.hpp>`     |  `to_underlying`   | Convert an enum to its underlying type | [p1682r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1682r1.html) |
 
 ## Requirements
