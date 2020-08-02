@@ -19,4 +19,13 @@ inline constexpr auto is_specialization_of_v<Primary<Args...>, Primary> = true;
 template<class T, template<class...> class Primary>
 using is_specialization_of = std::bool_constant<is_specialization_of_v<T, Primary>>;
 
+template<class T, template<class, auto...> class Primary>
+inline constexpr auto is_nontype_specialization_of_v = false;
+
+template<template<class, auto...> class Primary, class T, auto... Ns>
+inline constexpr auto is_nontype_specialization_of_v<Primary<T, Ns...>, Primary> = true;
+
+template<class T, template<class, auto...> class Primary>
+using is_nontype_specialization_of = std::bool_constant<is_nontype_specialization_of_v<T, Primary>>;
+
 }       // namespace xstd
