@@ -5,10 +5,9 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <type_traits>  // bool_constant
+#include <type_traits>  // bool_constant, integral_constant
 
 namespace xstd {
-
 
 template<class T, template<class...> class Primary>
 inline constexpr auto is_specialization_of_v = false;
@@ -19,13 +18,13 @@ inline constexpr auto is_specialization_of_v<Primary<Args...>, Primary> = true;
 template<class T, template<class...> class Primary>
 using is_specialization_of = std::bool_constant<is_specialization_of_v<T, Primary>>;
 
-template<class T, template<class, auto...> class Primary>
-inline constexpr auto is_nontype_specialization_of_v = false;
+template<class T, class U>
+inline constexpr auto is_integral_constant_v = false;
 
-template<template<class, auto...> class Primary, class T, auto... Ns>
-inline constexpr auto is_nontype_specialization_of_v<Primary<T, Ns...>, Primary> = true;
+template<class U, U N>
+inline constexpr auto is_integral_constant_v<std::integral_constant<U, N>, U> = true;
 
-template<class T, template<class, auto...> class Primary>
-using is_nontype_specialization_of = std::bool_constant<is_nontype_specialization_of_v<T, Primary>>;
+template<class T, class U>
+using is_integral_constant = std::bool_constant<is_integral_constant_v<T, U>>;
 
 }       // namespace xstd
