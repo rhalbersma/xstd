@@ -14,16 +14,15 @@
 namespace xstd {
 
 template<class T>
-        requires std::is_arithmetic_v<T>
 [[nodiscard]] constexpr auto abs(T const& x) noexcept
+        requires std::is_arithmetic_v<T>
 {
         return x < 0 ? -x : x;
 }
 
 template<class T>
-        requires std::is_arithmetic_v<T>
 [[nodiscard]] constexpr auto sign(T const& x) noexcept
-        -> int
+        requires std::is_arithmetic_v<T>
 {
         return static_cast<int>(0 < x) - static_cast<int>(x < 0);
 }
@@ -31,7 +30,7 @@ template<class T>
 struct div_t
 {
         int quot, rem;
-        [[nodiscard]] bool operator==(div_t const&) const = default;
+        bool operator==(div_t const&) const = default;
 };
 
 template<class CharT, class Traits>
@@ -61,31 +60,31 @@ auto& operator>>(std::basic_istream<CharT, Traits>& istr, div_t& d)
 // rem: Ada, Clojure, Erlang, Haskell, Julia, Lisp, Prolog
 // remainder: Ruby, Scheme
 // mod: Fortran, OCaml
-[[nodiscard]] constexpr auto div(int D, int d) // Throws: Nothing.
+[[nodiscard]] constexpr auto div(int numer, int denom) noexcept
         -> div_t
 {
-        assert(d != 0);
-        auto const qT = D / d;
-        auto const rT = D % d;
-        assert(D == d * qT + rT);
-        assert(abs(rT) < abs(d));
-        assert(sign(rT) == sign(D)|| rT == 0);
+        assert(denom != 0);
+        auto const qT = numer / denom;
+        auto const rT = numer % denom;
+        assert(numer == denom * qT + rT);
+        assert(abs(rT) < abs(denom));
+        assert(sign(rT) == sign(numer)|| rT == 0);
         return { qT, rT };
 }
 
 // https://en.wikipedia.org/wiki/Euclidean_division
 // mod: Maple, Pascal
 // modulo: Scheme
-[[nodiscard]] constexpr auto euclidean_div(int D, int d) // Throws: Nothing.
+[[nodiscard]] constexpr auto euclidean_div(int numer, int denom) noexcept
         -> div_t
 {
-        assert(d != 0);
-        auto const divT = div(D, d);
-        auto const I = divT.rem >= 0 ? 0 : (d > 0 ? 1 : -1);
+        assert(denom != 0);
+        auto const divT = div(numer, denom);
+        auto const I = divT.rem >= 0 ? 0 : (denom > 0 ? 1 : -1);
         auto const qE = divT.quot - I;
-        auto const rE = divT.rem + I * d;
-        assert(D == d * qE + rE);
-        assert(abs(rE) < abs(d));
+        auto const rE = divT.rem + I * denom;
+        assert(numer == denom * qE + rE);
+        assert(abs(rE) < abs(denom));
         assert(sign(rE) >= 0);
         return { qE, rE };
 }
@@ -94,17 +93,17 @@ auto& operator>>(std::basic_istream<CharT, Traits>& istr, div_t& d)
 // %%: R
 // mod: Ada, Clojure, Haskell, Julia, Lisp, ML, Prolog
 // modulo: Fortran, Ruby
-[[nodiscard]] constexpr auto floored_div(int D, int d) // Throws: Nothing.
+[[nodiscard]] constexpr auto floored_div(int numer, int denom) noexcept
         -> div_t
 {
-        assert(d != 0);
-        auto const divT = div(D, d);
-        auto const I = sign(divT.rem) == -sign(d) ? 1 : 0;
+        assert(denom != 0);
+        auto const divT = div(numer, denom);
+        auto const I = sign(divT.rem) == -sign(denom) ? 1 : 0;
         auto const qF = divT.quot - I;
-        auto const rF = divT.rem + I * d;
-        assert(D == d * qF + rF);
-        assert(abs(rF) < abs(d));
-        assert(sign(rF) == sign(d));
+        auto const rF = divT.rem + I * denom;
+        assert(numer == denom * qF + rF);
+        assert(abs(rF) < abs(denom));
+        assert(sign(rF) == sign(denom));
         return { qF, rF };
 }
 

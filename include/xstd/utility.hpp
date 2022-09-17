@@ -10,15 +10,15 @@
 namespace xstd {
 
 template<class Enum>
-        requires std::is_enum_v<Enum>
 [[nodiscard]] constexpr auto to_underlying(Enum e) noexcept
+        requires std::is_enum_v<Enum>
 {
         return static_cast<std::underlying_type_t<Enum>>(e);
 }
 
 template<class Enum, Enum N>
-        requires std::is_enum_v<Enum>
 [[nodiscard]] constexpr auto to_underlying(std::integral_constant<Enum, N>) noexcept
+        requires std::is_enum_v<Enum>
 {
         return std::integral_constant<std::underlying_type_t<Enum>, to_underlying(N)>();
 }

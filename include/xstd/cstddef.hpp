@@ -11,7 +11,7 @@ namespace xstd {
 inline namespace literals {
 inline namespace support_literals {
 
-constexpr auto operator "" _uz(unsigned long long u) noexcept
+[[nodiscard]] constexpr auto operator "" _uz(unsigned long long u) noexcept
 {
         return static_cast<std::size_t>(u);
 }
