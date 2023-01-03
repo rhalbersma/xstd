@@ -22,16 +22,4 @@ struct array_from_types<L<T...>>
         }
 };
 
-template<class Tag>
-struct tagged_empty
-{
-        tagged_empty() = default;
-
-        template<class... Args>
-        constexpr explicit tagged_empty(Args&&...) noexcept {}
-};
-
-template<bool Condition, class Base>
-using or_empty = std::conditional_t<Condition, Base, tagged_empty<Base>>;
-
 }       // namespace xstd

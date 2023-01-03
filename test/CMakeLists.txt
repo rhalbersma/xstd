@@ -30,6 +30,7 @@ set(cxx_compile_options_warnings
         -Wno-unknown-warning-option         # forward compatibility for new Clang warnings
         -Wno-c++98-compat
         -Wno-c++98-compat-pedantic
+        -Wno-reserved-identifier            # bug in Clang-13 https://bugs.llvm.org/show_bug.cgi?id=50644
         -Wno-disabled-macro-expansion       # triggered by Boost.Test
         -Wno-global-constructors            # triggered by Boost.Test
         -Wno-used-but-marked-unused         # triggered by Boost.Test

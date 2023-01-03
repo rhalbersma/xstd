@@ -20,8 +20,8 @@ inline constexpr auto is_complex_v = is_complex<T>::value;
 
 BOOST_AUTO_TEST_CASE(IsSpecializationOf)
 {
-        BOOST_CHECK((    is_complex_v<std::complex<int>>));
-        BOOST_CHECK((not is_complex_v<int>));
+        BOOST_CHECK(( is_complex_v<std::complex<int>>));
+        BOOST_CHECK((!is_complex_v<int>));
 }
 
 template<int N>
@@ -29,12 +29,12 @@ using int_ = std::integral_constant<int, N>;
 
 BOOST_AUTO_TEST_CASE(IsIntegralConstant)
 {
-        BOOST_CHECK((    is_integral_constant_v<std:: true_type, bool>));
-        BOOST_CHECK((    is_integral_constant_v<std::false_type, bool>));
-        BOOST_CHECK((not is_integral_constant_v<bool, bool>));
+        BOOST_CHECK(( is_integral_constant_v<std:: true_type, bool>));
+        BOOST_CHECK(( is_integral_constant_v<std::false_type, bool>));
+        BOOST_CHECK((!is_integral_constant_v<bool, bool>));
 
-        BOOST_CHECK((    is_integral_constant_v<int_<0>, int>));
-        BOOST_CHECK((not is_integral_constant_v<int,     int>));
+        BOOST_CHECK(( is_integral_constant_v<int_<0>, int>));
+        BOOST_CHECK((!is_integral_constant_v<int,     int>));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
