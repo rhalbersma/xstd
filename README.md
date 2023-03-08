@@ -17,11 +17,11 @@
 
 These header-only libraries are continuously being tested with the following conforming [C++20](http://www.open-std.org/jtc1/sc22/wg21/prot/14882fdis/n4860.pdf) compilers:
 
-| Platform | Compiler       | Versions           | Build |
-| :------- | :-------       | :-------           | :---- |
-| Linux    | GCC            | 10, 11, 12, 13-SVN | CI currently being ported to GitHub Actions |
-| Linux    | Clang          | 13, 14, 15, 16-SVN | CI currently being ported to GitHub Actions |
-| Windows  | Visual Studio  | 2019, 2022         | CI currently being ported to GitHub Actions |
+| Platform | Compiler       | Versions       | Build |
+| :------- | :-------       | :-------       | :---- |
+| Linux    | GCC            | 11, 12, 13-SVN | CI currently being ported to GitHub Actions |
+| Linux    | Clang          | 15, 16, 17-SVN | CI currently being ported to GitHub Actions |
+| Windows  | Visual Studio  | 2019, 2022     | CI currently being ported to GitHub Actions |
 
 ## License
 
