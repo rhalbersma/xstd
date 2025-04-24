@@ -6,12 +6,12 @@
 set(Boost_USE_STATIC_LIBS ON)
 
 find_package(
-    Boost REQUIRED COMPONENTS
+    Boost CONFIG REQUIRED COMPONENTS
     unit_test_framework
 )
 
 set(cxx_compile_definitions
-    BOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE
+    BOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE  # https://github.com/boostorg/config/issues/207
     BOOST_ALL_NO_LIB
     BOOST_TEST_MAIN
     $<$<CXX_COMPILER_ID:MSVC>:
@@ -30,7 +30,6 @@ set(cxx_compile_options_warnings
         -Wno-unknown-warning-option         # forward compatibility for new Clang warnings
         -Wno-c++98-compat
         -Wno-c++98-compat-pedantic
-        -Wno-reserved-identifier            # bug in Clang-13 https://bugs.llvm.org/show_bug.cgi?id=50644
         -Wno-disabled-macro-expansion       # triggered by Boost.Test
         -Wno-global-constructors            # triggered by Boost.Test
         -Wno-used-but-marked-unused         # triggered by Boost.Test
