@@ -66,11 +66,17 @@ jobs:
 
           # setup.exe (the already-installed VS Installer engine) has a
           # different CLI surface than the vs_buildtools.exe bootstrapper -
-          # no --wait flag; --quiet already blocks until done.
+          # no --wait flag; --quiet already blocks until done. A bare
+          # component --add silently no-op'd (confirmed: no new dd_*.log
+          # appeared at all), so add the whole workload plus recommended
+          # components instead, matching what the original working
+          # side-by-side install always did.
           $setup = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\setup.exe"
           & $setup modify --quiet --norestart --nocache `
             --installPath "$($instance.installationPath)" `
-            --add Microsoft.VisualStudio.Component.VC.Preview.Tools.x86.x64
+            --add Microsoft.VisualStudio.Workload.VCTools `
+            --add Microsoft.VisualStudio.Component.VC.Preview.Tools.x86.x64 `
+            --includeRecommended --includeOptional
           $setupExit = $LASTEXITCODE
 
           # setup.exe has been seen to exit 0 even when it didn't actually
