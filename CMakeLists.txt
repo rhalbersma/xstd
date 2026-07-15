@@ -3,7 +3,7 @@
 #    (See accompanying file LICENSE_1_0.txt or copy at
 #          http://www.boost.org/LICENSE_1_0.txt)
 
-cmake_minimum_required(VERSION 3.17)
+cmake_minimum_required(VERSION 3.20)
 project(
     xstd
     HOMEPAGE_URL https://github.com/rhalbersma/${PROJECT_NAME}
@@ -25,7 +25,15 @@ target_include_directories(
 
 target_compile_features(
     ${PROJECT_NAME} INTERFACE
-    cxx_std_20
+    cxx_std_23
+)
+
+# MSVC has no stable /std:c++23 switch yet; /std:c++23preview is incomplete,
+# so track /std:c++latest instead. This overrides whatever CMake's cxx_std_23
+# feature would otherwise select for MSVC.
+target_compile_options(
+    ${PROJECT_NAME} INTERFACE
+    $<$<CXX_COMPILER_ID:MSVC>:/std:c++latest>
 )
 
 include(CTest)
