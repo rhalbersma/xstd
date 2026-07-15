@@ -66,17 +66,21 @@ jobs:
           & $setup modify --quiet --norestart --nocache `
             --installPath "$($instance.installationPath)" `
             --add Microsoft.VisualStudio.Component.VC.Preview.Tools.x86.x64
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error "setup.exe modify failed with exit code $LASTEXITCODE"
-            exit 1
-          }
+          $setupExit = $LASTEXITCODE
 
-          # setup.exe has been seen to exit 0 even when it only printed a
-          # usage/argument error, so don't just trust the exit code: confirm
-          # the component actually landed before moving on.
+          # setup.exe has been seen to exit 0 even when it didn't actually
+          # add the component, so don't just trust the exit code: confirm
+          # it actually landed before moving on.
           $verify = & $vswhere -requires Microsoft.VisualStudio.Component.VC.Preview.Tools.x86.x64 -format json | ConvertFrom-Json
-          if (-not $verify) {
-            Write-Error "Preview toolset component not found after setup.exe modify"
+          if ($setupExit -ne 0 -or -not $verify) {
+            Write-Error "Preview toolset not present after setup.exe modify (exit code $setupExit). Dumping the newest VS Installer log:"
+            $log = Get-ChildItem "$env:TEMP\dd_*.log" -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+            if ($log) {
+              Write-Error "--- $($log.FullName) (last 150 lines) ---"
+              Get-Content $log.FullName -Tail 150 | ForEach-Object { Write-Error $_ }
+            } else {
+              Write-Error "No dd_*.log found under $env:TEMP"
+            }
             exit 1
           }
 
