@@ -94,5 +94,5 @@ foreach(t ${targets})
         xstd_test_options
     )
 
-    add_test(NAME ${target_id} COMMAND ${target_id})
+    add_test(NAME ${target_id} COMMAND ${target_id} --log_level=all)
 endforeach()
