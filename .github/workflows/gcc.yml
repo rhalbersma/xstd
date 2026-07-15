@@ -53,20 +53,21 @@ jobs:
       - name: Install GCC trunk snapshot
         if: matrix.trunk
         run: |
-          wget -q https://kayari.org/gcc-latest/gcc-latest.deb
+          wget -q https://kayari.org/gcc-latest/gcc-latest.deb -O gcc-latest.deb
           sudo dpkg -i gcc-latest.deb || sudo apt-get install -f -y
-          echo "/opt/gcc-latest/bin" >> "$GITHUB_PATH"
-          for tool in gcc g++ cc c++ cpp gcc-ar gcc-nm gcc-ranlib gcov gcov-dump gcov-tool; do
-            if [ -x "/opt/gcc-latest/bin/${tool}" ]; then
-              sudo ln -sf "/opt/gcc-latest/bin/${tool}" "/usr/bin/${tool}-${{ matrix.version }}"
-            fi
-          done
-          sudo ln -sf /opt/gcc-latest/bin/gcc /usr/bin/${{ matrix.cc }}
-          sudo ln -sf /opt/gcc-latest/bin/g++ /usr/bin/${{ matrix.cxx }}
-          echo /opt/gcc-latest/lib64 | sudo tee /etc/ld.so.conf.d/gcc-latest.conf
+          sudo ln -sf /opt/gcc-latest/bin/gcc        /usr/bin/${{ matrix.cc }}
+          sudo ln -sf /opt/gcc-latest/bin/g++        /usr/bin/${{ matrix.cxx }}
+          sudo ln -sf /opt/gcc-latest/bin/gcov       /usr/bin/gcov-${{ matrix.version }}
+          sudo ln -sf /opt/gcc-latest/bin/gcov-dump  /usr/bin/gcov-dump-${{ matrix.version }}
+          sudo ln -sf /opt/gcc-latest/bin/gcov-tool  /usr/bin/gcov-tool-${{ matrix.version }}
+          sudo ln -sf /opt/gcc-latest/bin/gcc-ar     /usr/bin/gcc-ar-${{ matrix.version }}
+          sudo ln -sf /opt/gcc-latest/bin/gcc-nm     /usr/bin/gcc-nm-${{ matrix.version }}
+          sudo ln -sf /opt/gcc-latest/bin/gcc-ranlib /usr/bin/gcc-ranlib-${{ matrix.version }}
+          printf '%s\n' \
+            '# Multiarch support' \
+            /opt/gcc-latest/lib \
+            /opt/gcc-latest/lib64 | sudo tee /etc/ld.so.conf.d/gcc-latest.conf > /dev/null
           sudo ldconfig
-          echo "LD_RUN_PATH=/opt/gcc-latest/lib64" >> "$GITHUB_ENV"
-          echo "LD_LIBRARY_PATH=/opt/gcc-latest/lib64:${LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
           ${{ matrix.cc }} --version
           ${{ matrix.cxx }} --version
 
