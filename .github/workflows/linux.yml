@@ -79,6 +79,7 @@ jobs:
           sudo ln -sf /opt/gcc-latest/bin/gcc /usr/bin/${{ matrix.cc }}
           sudo ln -sf /opt/gcc-latest/bin/g++ /usr/bin/${{ matrix.cxx }}
           sudo ldconfig /opt/gcc-latest/lib64
+          echo "LD_LIBRARY_PATH=/opt/gcc-latest/lib64:${LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
           ${{ matrix.cc }} --version
           ${{ matrix.cxx }} --version
 
