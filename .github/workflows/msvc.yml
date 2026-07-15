@@ -76,6 +76,18 @@ jobs:
             --add Microsoft.VisualStudio.Workload.VCTools `
             --includeRecommended
 
+          # Don't assume where the Insiders instance landed: ask vswhere,
+          # which Microsoft ships specifically for this.
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $instance = & $vswhere -prerelease -products * -format json | ConvertFrom-Json |
+            Where-Object { $_.channelId -like "*Insiders*" } |
+            Select-Object -First 1
+          if (-not $instance) {
+            Write-Error "No VS Insiders instance found by vswhere"
+            exit 1
+          }
+          echo "VS_PREVIEW_INSTANCE=$($instance.installationPath)" >> $env:GITHUB_ENV
+
       - name: Install Boost.Test
         shell: pwsh
         run: vcpkg install boost-test:${{ matrix.triplet }}
@@ -96,7 +108,7 @@ jobs:
           cmake -S . -B build
           -G "${{ matrix.generator }}" -A ${{ matrix.arch }}
           -T ${{ matrix.toolset }}
-          -DCMAKE_GENERATOR_INSTANCE="C:/Program Files/Microsoft Visual Studio/18/Insiders"
+          "-DCMAKE_GENERATOR_INSTANCE=$env:VS_PREVIEW_INSTANCE"
           "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
 
       - name: Build
