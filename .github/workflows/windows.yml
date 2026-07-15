@@ -1,0 +1,52 @@
+#          Copyright Rein Halbersma 2014-2025.
+# Distributed under the Boost Software License, Version 1.0.
+#    (See accompanying file LICENSE_1_0.txt or copy at
+#          http://www.boost.org/LICENSE_1_0.txt)
+
+name: Windows
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: MSVC ${{ matrix.vs }} (${{ matrix.arch }})
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - vs: 2022
+            generator: "Visual Studio 17 2022"
+            arch: x64
+            triplet: x64-windows
+          - vs: 2022
+            generator: "Visual Studio 17 2022"
+            arch: Win32
+            triplet: x86-windows
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Boost.Test
+        shell: pwsh
+        run: vcpkg install boost-test:${{ matrix.triplet }}
+
+      - name: Configure
+        shell: pwsh
+        run: >
+          cmake -S . -B build
+          -G "${{ matrix.generator }}" -A ${{ matrix.arch }}
+          "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+
+      - name: Build
+        shell: pwsh
+        run: cmake --build build --config Release -v
+
+      - name: Test
+        shell: pwsh
+        run: ctest --test-dir build -C Release --output-on-failure

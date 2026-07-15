@@ -4,6 +4,8 @@
 [![Standard](https://img.shields.io/badge/c%2B%2B-20-blue.svg)](https://en.wikipedia.org/wiki/C%2B%2B#Standardization)
 [![License](https://img.shields.io/badge/license-Boost-blue.svg)](https://opensource.org/licenses/BSL-1.0)
 [![Lines of Code](https://tokei.rs/b1/github/rhalbersma/xstd?category=code)](https://github.com/rhalbersma/xstd)
+[![Linux](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml)
+[![Windows](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml)
 
 | Header                   | Additions          | Description | Reference |
 | :-----                   | :--------          | :---------- | :-------- |
@@ -17,11 +19,11 @@
 
 These header-only libraries are continuously being tested with the following conforming [C++20](http://www.open-std.org/jtc1/sc22/wg21/prot/14882fdis/n4860.pdf) compilers:
 
-| Platform | Compiler       | Versions       | Build |
-| :------- | :-------       | :-------       | :---- |
-| Linux    | GCC            | 11, 12, 13-SVN | CI currently being ported to GitHub Actions |
-| Linux    | Clang          | 15, 16, 17-SVN | CI currently being ported to GitHub Actions |
-| Windows  | Visual Studio  | 2019, 2022     | CI currently being ported to GitHub Actions |
+| Platform | Compiler       | Versions   | Build |
+| :------- | :-------       | :-------   | :---- |
+| Linux    | GCC            | 11, 12, 13 | [![Linux](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml) |
+| Linux    | Clang          | 15, 16, 17 | [![Linux](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml) |
+| Windows  | Visual Studio  | 2022       | [![Windows](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml) |
 
 ## License
 
