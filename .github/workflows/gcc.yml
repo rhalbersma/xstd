@@ -53,11 +53,19 @@ jobs:
       - name: Install GCC trunk snapshot
         if: matrix.trunk
         run: |
-          wget -q http://kayari.org/gcc-latest/gcc-latest.deb
+          wget -q https://kayari.org/gcc-latest/gcc-latest.deb
           sudo dpkg -i gcc-latest.deb || sudo apt-get install -f -y
+          echo "/opt/gcc-latest/bin" >> "$GITHUB_PATH"
+          for tool in gcc g++ cc c++ cpp gcc-ar gcc-nm gcc-ranlib gcov gcov-dump gcov-tool; do
+            if [ -x "/opt/gcc-latest/bin/${tool}" ]; then
+              sudo ln -sf "/opt/gcc-latest/bin/${tool}" "/usr/bin/${tool}-${{ matrix.version }}"
+            fi
+          done
           sudo ln -sf /opt/gcc-latest/bin/gcc /usr/bin/${{ matrix.cc }}
           sudo ln -sf /opt/gcc-latest/bin/g++ /usr/bin/${{ matrix.cxx }}
-          sudo ldconfig /opt/gcc-latest/lib64
+          echo /opt/gcc-latest/lib64 | sudo tee /etc/ld.so.conf.d/gcc-latest.conf
+          sudo ldconfig
+          echo "LD_RUN_PATH=/opt/gcc-latest/lib64" >> "$GITHUB_ENV"
           echo "LD_LIBRARY_PATH=/opt/gcc-latest/lib64:${LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
           ${{ matrix.cc }} --version
           ${{ matrix.cxx }} --version
