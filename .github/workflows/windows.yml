@@ -16,7 +16,7 @@ jobs:
   build:
     name: MSVC ${{ matrix.vs }} (${{ matrix.arch }})
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.preview }}
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
       matrix:
@@ -24,33 +24,56 @@ jobs:
           - vs: 2022
             os: windows-2022
             generator: "Visual Studio 17 2022"
+            toolset: "host=x64"
             arch: x64
             triplet: x64-windows
-            preview: false
+            experimental: false
+            preview_channel: false
           - vs: 2022
             os: windows-2022
             generator: "Visual Studio 17 2022"
+            toolset: "host=x64"
             arch: Win32
             triplet: x86-windows
-            preview: false
+            experimental: false
+            preview_channel: false
           - vs: 2026
             os: windows-2025
             generator: "Visual Studio 18 2026"
+            toolset: "host=x64"
             arch: x64
             triplet: x64-windows
-            preview: false
+            experimental: false
+            preview_channel: false
           - vs: 2026
             os: windows-2025
             generator: "Visual Studio 18 2026"
+            toolset: "host=x64"
             arch: Win32
             triplet: x86-windows
-            preview: false
+            experimental: false
+            preview_channel: false
           - vs: 2026-Preview
             os: windows-2025
             generator: "Visual Studio 18 2026"
+            toolset: "version=Preview,host=x64"
             arch: x64
             triplet: x64-windows
-            preview: true
+            experimental: true
+            preview_channel: true
+          # clang-cl: Clang's MSVC-compatible driver, using the MSVC STL and
+          # linker rather than libc++. Exercises Clang's diagnostics (this
+          # repo builds with -Weverything -Werror under Clang) against the
+          # same code MSVC builds, using whichever LLVM the runner image
+          # bundles. Best-effort: see continue-on-error above.
+          - vs: 2022-ClangCL
+            os: windows-2022
+            generator: "Visual Studio 17 2022"
+            toolset: "ClangCL,host=x64"
+            arch: x64
+            triplet: x64-windows
+            experimental: true
+            preview_channel: false
 
     steps:
       - uses: actions/checkout@v4
@@ -60,7 +83,7 @@ jobs:
       # This is not an officially supported CI configuration, so this leg is
       # allowed to fail (see continue-on-error above).
       - name: Install MSVC Preview channel
-        if: matrix.preview
+        if: matrix.preview_channel
         shell: pwsh
         run: |
           Invoke-WebRequest -Uri https://aka.ms/vs/18/insiders/channel -OutFile VisualStudio.chman
@@ -76,20 +99,21 @@ jobs:
         run: vcpkg install boost-test:${{ matrix.triplet }}
 
       - name: Configure
-        if: "!matrix.preview"
+        if: "!matrix.preview_channel"
         shell: pwsh
         run: >
           cmake -S . -B build
           -G "${{ matrix.generator }}" -A ${{ matrix.arch }}
+          -T ${{ matrix.toolset }}
           "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
 
       - name: Configure (preview toolset)
-        if: matrix.preview
+        if: matrix.preview_channel
         shell: pwsh
         run: >
           cmake -S . -B build
           -G "${{ matrix.generator }}" -A ${{ matrix.arch }}
-          -T version=Preview
+          -T ${{ matrix.toolset }}
           -DCMAKE_GENERATOR_INSTANCE="C:/Program Files/Microsoft Visual Studio/18/Insiders"
           "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
 
