@@ -1,0 +1,62 @@
+#          Copyright Rein Halbersma 2014-2025.
+# Distributed under the Boost Software License, Version 1.0.
+#    (See accompanying file LICENSE_1_0.txt or copy at
+#          http://www.boost.org/LICENSE_1_0.txt)
+
+name: Clang
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Clang ${{ matrix.label }}
+    runs-on: ubuntu-22.04
+    continue-on-error: ${{ matrix.trunk }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: "21"
+            version: 21
+            cc: clang-21
+            cxx: clang++-21
+            trunk: false
+          - label: "22"
+            version: 22
+            cc: clang-22
+            cxx: clang++-22
+            trunk: false
+          - label: 23-SVN
+            version: 23
+            cc: clang-23
+            cxx: clang++-23
+            trunk: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Clang ${{ matrix.version }}
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh ${{ matrix.version }}
+
+      - name: Install Boost.Test
+        run: sudo apt-get install -y libboost-test-dev
+
+      - name: Configure
+        run: >
+          cmake -S . -B build
+          -DCMAKE_C_COMPILER=${{ matrix.cc }}
+          -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
+
+      - name: Build
+        run: cmake --build build -v
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure

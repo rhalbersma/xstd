@@ -3,7 +3,7 @@
 #    (See accompanying file LICENSE_1_0.txt or copy at
 #          http://www.boost.org/LICENSE_1_0.txt)
 
-name: Windows
+name: MSVC
 
 on:
   push:
@@ -16,7 +16,7 @@ jobs:
   build:
     name: MSVC ${{ matrix.vs }} (${{ matrix.arch }})
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.experimental }}
+    continue-on-error: ${{ matrix.preview_channel }}
     strategy:
       fail-fast: false
       matrix:
@@ -27,7 +27,6 @@ jobs:
             toolset: "host=x64"
             arch: x64
             triplet: x64-windows
-            experimental: false
             preview_channel: false
           - vs: 2022
             os: windows-2022
@@ -35,7 +34,6 @@ jobs:
             toolset: "host=x64"
             arch: Win32
             triplet: x86-windows
-            experimental: false
             preview_channel: false
           - vs: 2026
             os: windows-2025
@@ -43,7 +41,6 @@ jobs:
             toolset: "host=x64"
             arch: x64
             triplet: x64-windows
-            experimental: false
             preview_channel: false
           - vs: 2026
             os: windows-2025
@@ -51,7 +48,6 @@ jobs:
             toolset: "host=x64"
             arch: Win32
             triplet: x86-windows
-            experimental: false
             preview_channel: false
           - vs: 2026-Preview
             os: windows-2025
@@ -59,21 +55,7 @@ jobs:
             toolset: "version=Preview,host=x64"
             arch: x64
             triplet: x64-windows
-            experimental: true
             preview_channel: true
-          # clang-cl: Clang's MSVC-compatible driver, using the MSVC STL and
-          # linker rather than libc++. Exercises Clang's diagnostics (this
-          # repo builds with -Weverything -Werror under Clang) against the
-          # same code MSVC builds, using whichever LLVM the runner image
-          # bundles. Best-effort: see continue-on-error above.
-          - vs: 2022-ClangCL
-            os: windows-2022
-            generator: "Visual Studio 17 2022"
-            toolset: "ClangCL,host=x64"
-            arch: x64
-            triplet: x64-windows
-            experimental: true
-            preview_channel: false
 
     steps:
       - uses: actions/checkout@v4

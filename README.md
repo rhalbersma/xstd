@@ -4,8 +4,10 @@
 [![Standard](https://img.shields.io/badge/c%2B%2B-23-blue.svg)](https://en.wikipedia.org/wiki/C%2B%2B#Standardization)
 [![License](https://img.shields.io/badge/license-Boost-blue.svg)](https://opensource.org/licenses/BSL-1.0)
 [![Lines of Code](https://tokei.rs/b1/github/rhalbersma/xstd?category=code)](https://github.com/rhalbersma/xstd)
-[![Linux](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml)
-[![Windows](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml)
+[![GCC](https://github.com/rhalbersma/xstd/actions/workflows/gcc.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/gcc.yml)
+[![Clang](https://github.com/rhalbersma/xstd/actions/workflows/clang.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang.yml)
+[![clang-cl](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml)
+[![MSVC](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml)
 
 | Header                   | Additions          | Description | Reference |
 | :-----                   | :--------          | :---------- | :-------- |
@@ -20,10 +22,10 @@ These header-only libraries are continuously being tested with the following con
 
 | Platform | Compiler | Older stable | Latest stable | Trunk / Preview | Build |
 | :------- | :------- | :------------ | :------------- | :---------------- | :---- |
-| Linux    | GCC      | 15             | 16              | 17-SVN             | [![Linux](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml) |
-| Linux    | Clang    | 21             | 22              | 23-SVN             | [![Linux](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml) |
-| Windows  | Clang (`clang-cl`) | —    | 20.1.8 (bundled) | —               | [![Windows](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml) |
-| Windows  | MSVC     | 2022           | 2026            | 2026-Preview       | [![Windows](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml) |
+| Linux    | GCC      | 15             | 16              | 17-SVN             | [![GCC](https://github.com/rhalbersma/xstd/actions/workflows/gcc.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/gcc.yml) |
+| Linux    | Clang    | 21             | 22              | 23-SVN             | [![Clang](https://github.com/rhalbersma/xstd/actions/workflows/clang.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang.yml) |
+| Windows  | Clang (`clang-cl`) | —    | 20.1.8 (bundled) | —               | [![clang-cl](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml) |
+| Windows  | MSVC     | 2022           | 2026            | 2026-Preview       | [![MSVC](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml) |
 
 The `Trunk / Preview` column is allowed to fail independently and does not affect the badges above. The `clang-cl` leg tests Clang's diagnostics against the MSVC STL, using whichever LLVM version the Windows runner image bundles. MSVC has no stable `/std:c++23` switch yet, so both MSVC rows build with `/std:c++latest`.
 

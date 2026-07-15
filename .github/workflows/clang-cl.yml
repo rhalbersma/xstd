@@ -1,0 +1,55 @@
+#          Copyright Rein Halbersma 2014-2025.
+# Distributed under the Boost Software License, Version 1.0.
+#    (See accompanying file LICENSE_1_0.txt or copy at
+#          http://www.boost.org/LICENSE_1_0.txt)
+
+name: clang-cl
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    # clang-cl: Clang's MSVC-compatible driver, using the MSVC STL and linker
+    # rather than libc++. Exercises Clang's diagnostics (this repo builds
+    # with -Weverything -Werror under Clang) against the same code MSVC
+    # builds, using whichever LLVM the runner image bundles. Best-effort:
+    # see continue-on-error below.
+    name: clang-cl (${{ matrix.arch }})
+    runs-on: windows-2022
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - generator: "Visual Studio 17 2022"
+            toolset: "ClangCL,host=x64"
+            arch: x64
+            triplet: x64-windows
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Boost.Test
+        shell: pwsh
+        run: vcpkg install boost-test:${{ matrix.triplet }}
+
+      - name: Configure
+        shell: pwsh
+        run: >
+          cmake -S . -B build
+          -G "${{ matrix.generator }}" -A ${{ matrix.arch }}
+          -T ${{ matrix.toolset }}
+          "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+
+      - name: Build
+        shell: pwsh
+        run: cmake --build build --config Release -v
+
+      - name: Test
+        shell: pwsh
+        run: ctest --test-dir build -C Release --output-on-failure
