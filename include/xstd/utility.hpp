@@ -6,21 +6,17 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <type_traits>  // integral_constant, is_enum_v, underlying_type_t
+#include <utility>      // to_underlying
 
 namespace xstd {
 
-template<class Enum>
-[[nodiscard]] constexpr auto to_underlying(Enum e) noexcept
-        requires std::is_enum_v<Enum>
-{
-        return static_cast<std::underlying_type_t<Enum>>(e);
-}
-
+// std::to_underlying (P1682R3) only takes a plain enum value; this overload
+// preserves compile-time-constant-ness for an integral_constant-wrapped enum.
 template<class Enum, Enum N>
 [[nodiscard]] constexpr auto to_underlying(std::integral_constant<Enum, N>) noexcept
         requires std::is_enum_v<Enum>
 {
-        return std::integral_constant<std::underlying_type_t<Enum>, to_underlying(N)>();
+        return std::integral_constant<std::underlying_type_t<Enum>, std::to_underlying(N)>();
 }
 
 }       // namespace xstd
