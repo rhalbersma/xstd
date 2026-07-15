@@ -42,8 +42,7 @@ struct div_t
 template<class CharT, class Traits>
 auto& operator<<(std::basic_ostream<CharT, Traits>& ostr XSTD_LIFETIMEBOUND, div_t const& d)
 {
-        ostr << ostr.widen('[') << d.quot << ostr.widen(',') << d.rem << ostr.widen(']');
-        return ostr;
+        return ostr << ostr.widen('[') << d.quot << ostr.widen(',') << d.rem << ostr.widen(']');
 }
 
 template<class CharT, class Traits>
