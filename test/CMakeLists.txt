@@ -1,4 +1,4 @@
-#          Copyright Rein Halbersma 2014-2025.
+#          Copyright Rein Halbersma 2014-2026.
 # Distributed under the Boost Software License, Version 1.0.
 #    (See accompanying file LICENSE_1_0.txt or copy at
 #          http://www.boost.org/LICENSE_1_0.txt)
@@ -9,6 +9,9 @@ find_package(
     Boost CONFIG REQUIRED COMPONENTS
     unit_test_framework
 )
+
+add_library(xstd_test_options INTERFACE)
+option(XSTD_WARNINGS_AS_ERRORS "Treat warnings as errors in xstd tests" ${PROJECT_IS_TOP_LEVEL})
 
 set(cxx_compile_definitions
     BOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE  # https://github.com/boostorg/config/issues/207
@@ -23,7 +26,6 @@ set(cxx_compile_options_warnings
     $<$<CXX_COMPILER_ID:MSVC>:
         /W4
         /permissive-
-        /WX
     >
     $<$<CXX_COMPILER_ID:Clang>:
         -Weverything
@@ -34,6 +36,7 @@ set(cxx_compile_options_warnings
         -Wno-global-constructors            # triggered by Boost.Test
         -Wno-used-but-marked-unused         # triggered by Boost.Test
         -Wno-c2y-extensions                 # triggered by Boost.Test's use of __COUNTER__
+        -Wno-lifetime-safety-lifetimebound-violation  # can't verify chained operator<< returns ostr
     >
     $<$<CXX_COMPILER_ID:GNU>:
         -Wall
@@ -46,7 +49,6 @@ set(cxx_compile_options_warnings
         -Wsign-promo
     >
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:
-        -Werror
         -pedantic-errors
     >
 )
@@ -57,8 +59,25 @@ set(cxx_compile_options_mbig_obj
     >
 )
 
+target_compile_definitions(
+    xstd_test_options INTERFACE
+    ${cxx_compile_definitions}
+)
+target_compile_options(
+    xstd_test_options INTERFACE
+    ${cxx_compile_options_warnings}
+    ${cxx_compile_options_mbig_obj}
+    $<$<AND:$<BOOL:${XSTD_WARNINGS_AS_ERRORS}>,$<CXX_COMPILER_ID:MSVC>>:/WX>
+    $<$<AND:$<BOOL:${XSTD_WARNINGS_AS_ERRORS}>,$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>>:-Werror>
+)
+
 set(current_source_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)
-file(GLOB_RECURSE targets RELATIVE ${current_source_dir} *.cpp)
+file(
+    GLOB_RECURSE targets
+    CONFIGURE_DEPENDS
+    RELATIVE ${current_source_dir}
+    ${current_source_dir}/*.cpp
+)
 
 foreach(t ${targets})
     get_filename_component(target_path ${t} PATH)
@@ -70,20 +89,10 @@ foreach(t ${targets})
 
     target_link_libraries(
         ${target_id} PRIVATE
-        ${CMAKE_PROJECT_NAME}
+        ${PROJECT_NAME}::${PROJECT_NAME}
         Boost::unit_test_framework
+        xstd_test_options
     )
 
-    target_compile_definitions(
-        ${target_id} PRIVATE
-        ${cxx_compile_definitions}
-    )
-
-    target_compile_options(
-        ${target_id} PRIVATE
-        ${cxx_compile_options_warnings}
-        ${cxx_compile_options_mbig_obj}
-    )
-
-    add_test(${target_id} ${target_id})
+    add_test(NAME ${target_id} COMMAND ${target_id})
 endforeach()

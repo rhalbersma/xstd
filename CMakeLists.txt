@@ -1,22 +1,27 @@
-#          Copyright Rein Halbersma 2014-2025.
+#          Copyright Rein Halbersma 2014-2026.
 # Distributed under the Boost Software License, Version 1.0.
 #    (See accompanying file LICENSE_1_0.txt or copy at
 #          http://www.boost.org/LICENSE_1_0.txt)
 
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.28)
 project(
     xstd
-    HOMEPAGE_URL https://github.com/rhalbersma/${PROJECT_NAME}
+    VERSION 0.1.0
+    DESCRIPTION "Extensions to the C++ Standard Library"
+    HOMEPAGE_URL "https://github.com/rhalbersma/xstd"
     LANGUAGES CXX
 )
+
+include(GNUInstallDirs)
 
 add_library(
     ${PROJECT_NAME} INTERFACE
 )
+add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 set(project_include_dir
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 target_include_directories(
     ${PROJECT_NAME} INTERFACE
@@ -36,5 +41,23 @@ target_compile_options(
     $<$<CXX_COMPILER_ID:MSVC>:/std:c++latest>
 )
 
-include(CTest)
-add_subdirectory(test)
+option(XSTD_BUILD_TESTING "Build xstd tests" ${PROJECT_IS_TOP_LEVEL})
+
+if(XSTD_BUILD_TESTING)
+    include(CTest)
+    add_subdirectory(test)
+endif()
+
+install(
+    TARGETS ${PROJECT_NAME}
+    EXPORT ${PROJECT_NAME}Targets
+)
+install(
+    DIRECTORY include/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+install(
+    EXPORT ${PROJECT_NAME}Targets
+    NAMESPACE ${PROJECT_NAME}::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+)
