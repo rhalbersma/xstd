@@ -14,7 +14,7 @@ on:
 
 jobs:
   build:
-    name: MSVC ${{ matrix.vs }} (${{ matrix.arch }})
+    name: MSVC ${{ matrix.vs }}
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.preview_channel }}
     strategy:
@@ -25,36 +25,16 @@ jobs:
             os: windows-2022
             generator: "Visual Studio 17 2022"
             toolset: "host=x64"
-            arch: x64
-            triplet: x64-windows
-            preview_channel: false
-          - vs: 2022
-            os: windows-2022
-            generator: "Visual Studio 17 2022"
-            toolset: "host=x64"
-            arch: Win32
-            triplet: x86-windows
             preview_channel: false
           - vs: 2026
             os: windows-2025
             generator: "Visual Studio 18 2026"
             toolset: "host=x64"
-            arch: x64
-            triplet: x64-windows
-            preview_channel: false
-          - vs: 2026
-            os: windows-2025
-            generator: "Visual Studio 18 2026"
-            toolset: "host=x64"
-            arch: Win32
-            triplet: x86-windows
             preview_channel: false
           - vs: 2026-Preview
             os: windows-2025
             generator: "Visual Studio 18 2026"
             toolset: "version=Preview,host=x64"
-            arch: x64
-            triplet: x64-windows
             preview_channel: true
 
     steps:
@@ -76,28 +56,32 @@ jobs:
             --add Microsoft.VisualStudio.Workload.VCTools `
             --includeRecommended
 
-          # Don't assume where the Insiders instance landed: ask vswhere,
-          # which Microsoft ships specifically for this.
+          # Don't assume where the Insiders instance landed, and don't rely on
+          # channelId string matching (its format has changed on us before):
+          # vswhere's -prerelease flag surfaces a boolean isPrerelease field
+          # per instance, which is the documented, stable way to identify it.
           $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-          $instance = & $vswhere -prerelease -products * -format json | ConvertFrom-Json |
-            Where-Object { $_.channelId -like "*Insiders*" } |
-            Select-Object -First 1
+          $allInstances = & $vswhere -prerelease -products * -format json | ConvertFrom-Json
+          $instance = $allInstances | Where-Object { $_.isPrerelease } | Select-Object -First 1
           if (-not $instance) {
-            Write-Error "No VS Insiders instance found by vswhere"
+            Write-Error "No prerelease VS instance found by vswhere. All instances seen:"
+            foreach ($i in $allInstances) {
+              Write-Error "  path=$($i.installationPath) channelId=$($i.channelId) isPrerelease=$($i.isPrerelease) installationVersion=$($i.installationVersion)"
+            }
             exit 1
           }
           echo "VS_PREVIEW_INSTANCE=$($instance.installationPath)" >> $env:GITHUB_ENV
 
       - name: Install Boost.Test
         shell: pwsh
-        run: vcpkg install boost-test:${{ matrix.triplet }}
+        run: vcpkg install boost-test:x64-windows
 
       - name: Configure
         if: "!matrix.preview_channel"
         shell: pwsh
         run: >
           cmake -S . -B build
-          -G "${{ matrix.generator }}" -A ${{ matrix.arch }}
+          -G "${{ matrix.generator }}" -A x64
           -T ${{ matrix.toolset }}
           "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
 
@@ -106,7 +90,7 @@ jobs:
         shell: pwsh
         run: >
           cmake -S . -B build
-          -G "${{ matrix.generator }}" -A ${{ matrix.arch }}
+          -G "${{ matrix.generator }}" -A x64
           -T ${{ matrix.toolset }}
           "-DCMAKE_GENERATOR_INSTANCE=$env:VS_PREVIEW_INSTANCE"
           "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
