@@ -59,12 +59,24 @@ jobs:
             exit 1
           }
 
+          # setup.exe (the already-installed VS Installer engine) has a
+          # different CLI surface than the vs_buildtools.exe bootstrapper -
+          # no --wait flag; --quiet already blocks until done.
           $setup = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\setup.exe"
-          & $setup modify --quiet --wait --norestart --nocache `
+          & $setup modify --quiet --norestart --nocache `
             --installPath "$($instance.installationPath)" `
             --add Microsoft.VisualStudio.Component.VC.Preview.Tools.x86.x64
           if ($LASTEXITCODE -ne 0) {
             Write-Error "setup.exe modify failed with exit code $LASTEXITCODE"
+            exit 1
+          }
+
+          # setup.exe has been seen to exit 0 even when it only printed a
+          # usage/argument error, so don't just trust the exit code: confirm
+          # the component actually landed before moving on.
+          $verify = & $vswhere -requires Microsoft.VisualStudio.Component.VC.Preview.Tools.x86.x64 -format json | ConvertFrom-Json
+          if (-not $verify) {
+            Write-Error "Preview toolset component not found after setup.exe modify"
             exit 1
           }
 
