@@ -15,32 +15,82 @@ on:
 jobs:
   build:
     name: MSVC ${{ matrix.vs }} (${{ matrix.arch }})
-    runs-on: windows-2022
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.preview }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - vs: 2022
+            os: windows-2022
             generator: "Visual Studio 17 2022"
             arch: x64
             triplet: x64-windows
+            preview: false
           - vs: 2022
+            os: windows-2022
             generator: "Visual Studio 17 2022"
             arch: Win32
             triplet: x86-windows
+            preview: false
+          - vs: 2026
+            os: windows-2025
+            generator: "Visual Studio 18 2026"
+            arch: x64
+            triplet: x64-windows
+            preview: false
+          - vs: 2026
+            os: windows-2025
+            generator: "Visual Studio 18 2026"
+            arch: Win32
+            triplet: x86-windows
+            preview: false
+          - vs: 2026-Preview
+            os: windows-2025
+            generator: "Visual Studio 18 2026"
+            arch: x64
+            triplet: x64-windows
+            preview: true
 
     steps:
       - uses: actions/checkout@v4
+
+      # Best-effort: installs the VS 2026 Insiders channel side-by-side with
+      # the pre-installed Stable channel, to get at the MSVC Preview toolset.
+      # This is not an officially supported CI configuration, so this leg is
+      # allowed to fail (see continue-on-error above).
+      - name: Install MSVC Preview channel
+        if: matrix.preview
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri https://aka.ms/vs/18/insiders/channel -OutFile VisualStudio.chman
+          Invoke-WebRequest -Uri https://aka.ms/vs/18/insiders/vs_buildtools.exe -OutFile vs_buildtools.exe
+          ./vs_buildtools.exe --quiet --wait --norestart --nocache `
+            --channelUri VisualStudio.chman `
+            --installChannelUri VisualStudio.chman `
+            --add Microsoft.VisualStudio.Workload.VCTools `
+            --includeRecommended
 
       - name: Install Boost.Test
         shell: pwsh
         run: vcpkg install boost-test:${{ matrix.triplet }}
 
       - name: Configure
+        if: "!matrix.preview"
         shell: pwsh
         run: >
           cmake -S . -B build
           -G "${{ matrix.generator }}" -A ${{ matrix.arch }}
+          "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+
+      - name: Configure (preview toolset)
+        if: matrix.preview
+        shell: pwsh
+        run: >
+          cmake -S . -B build
+          -G "${{ matrix.generator }}" -A ${{ matrix.arch }}
+          -T version=Preview
+          -DCMAKE_GENERATOR_INSTANCE="C:/Program Files/Microsoft Visual Studio/18/Insiders"
           "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
 
       - name: Build

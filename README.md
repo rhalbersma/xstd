@@ -19,11 +19,13 @@
 
 These header-only libraries are continuously being tested with the following conforming [C++20](http://www.open-std.org/jtc1/sc22/wg21/prot/14882fdis/n4860.pdf) compilers:
 
-| Platform | Compiler       | Versions   | Build |
-| :------- | :-------       | :-------   | :---- |
-| Linux    | GCC            | 11, 12, 13 | [![Linux](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml) |
-| Linux    | Clang          | 15, 16, 17 | [![Linux](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml) |
-| Windows  | Visual Studio  | 2022       | [![Windows](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml) |
+| Platform | Compiler       | Versions                 | Build |
+| :------- | :-------       | :-------                 | :---- |
+| Linux    | GCC            | 15, 16, 17-SVN            | [![Linux](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml) |
+| Linux    | Clang          | 21, 22, 23-SVN            | [![Linux](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml) |
+| Windows  | Visual Studio  | 2022, 2026, 2026-Preview  | [![Windows](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml) |
+
+The `-SVN` and `-Preview` legs track each compiler's trunk / preview channel and are allowed to fail without affecting the badges above.
 
 ## License
 
