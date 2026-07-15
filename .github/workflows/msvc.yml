@@ -52,10 +52,15 @@ jobs:
         if: matrix.preview_channel
         shell: pwsh
         run: |
+          # Write-Error is a terminating error in GitHub Actions' pwsh steps
+          # (ErrorActionPreference=Stop), which was silently swallowing every
+          # diagnostic line after the first Write-Error call in here. Use
+          # Write-Host for anything meant to actually be seen, and reserve
+          # exit 1 as the real terminator.
           $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
           $instance = & $vswhere -products * -format json | ConvertFrom-Json | Select-Object -First 1
           if (-not $instance) {
-            Write-Error "No VS instance found by vswhere to add the Preview toolset to"
+            Write-Host "No VS instance found by vswhere to add the Preview toolset to"
             exit 1
           }
 
@@ -73,13 +78,13 @@ jobs:
           # it actually landed before moving on.
           $verify = & $vswhere -requires Microsoft.VisualStudio.Component.VC.Preview.Tools.x86.x64 -format json | ConvertFrom-Json
           if ($setupExit -ne 0 -or -not $verify) {
-            Write-Error "Preview toolset not present after setup.exe modify (exit code $setupExit). Dumping the newest VS Installer log:"
+            Write-Host "Preview toolset not present after setup.exe modify (exit code $setupExit). Dumping the newest VS Installer log:"
             $log = Get-ChildItem "$env:TEMP\dd_*.log" -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
             if ($log) {
-              Write-Error "--- $($log.FullName) (last 150 lines) ---"
-              Get-Content $log.FullName -Tail 150 | ForEach-Object { Write-Error $_ }
+              Write-Host "--- $($log.FullName) (last 150 lines) ---"
+              Get-Content $log.FullName -Tail 150 | ForEach-Object { Write-Host $_ }
             } else {
-              Write-Error "No dd_*.log found under $env:TEMP"
+              Write-Host "No dd_*.log found under $env:TEMP"
             }
             exit 1
           }
