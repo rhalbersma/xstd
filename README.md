@@ -17,15 +17,15 @@
 
 ## Requirements
 
-These header-only libraries are continuously being tested with the following conforming [C++20](http://www.open-std.org/jtc1/sc22/wg21/prot/14882fdis/n4860.pdf) compilers:
+These header-only libraries are continuously being tested with the following conforming [C++20](http://www.open-std.org/jtc1/sc22/wg21/prot/14882fdis/n4860.pdf) compilers. Following the model of [apt.llvm.org](https://apt.llvm.org/), we support the latest two stable releases of each compiler, plus its current development / preview branch, on a best-effort basis:
 
-| Platform | Compiler       | Versions                 | Build |
-| :------- | :-------       | :-------                 | :---- |
-| Linux    | GCC            | 15, 16, 17-SVN            | [![Linux](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml) |
-| Linux    | Clang          | 21, 22, 23-SVN            | [![Linux](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml) |
-| Windows  | Visual Studio  | 2022, 2026, 2026-Preview  | [![Windows](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml) |
+| Platform | Compiler | Older stable | Latest stable | Trunk / Preview | Build |
+| :------- | :------- | :------------ | :------------- | :---------------- | :---- |
+| Linux    | GCC      | 15             | 16              | 17-SVN             | [![Linux](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml) |
+| Linux    | Clang    | 21             | 22              | 23-SVN             | [![Linux](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml) |
+| Windows  | MSVC     | 2022           | 2026            | 2026-Preview       | [![Windows](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml) |
 
-The `-SVN` and `-Preview` legs track each compiler's trunk / preview channel and are allowed to fail without affecting the badges above.
+The `Trunk / Preview` column is allowed to fail independently and does not affect the badges above.
 
 ## License
 
