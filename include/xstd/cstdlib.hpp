@@ -11,6 +11,12 @@
 #include <tuple>        // tie
 #include <type_traits>  // is_arithmetic_v
 
+#if defined(__clang__)
+#define XSTD_LIFETIMEBOUND [[clang::lifetimebound]]
+#else
+#define XSTD_LIFETIMEBOUND
+#endif
+
 namespace xstd {
 
 template<class T>
@@ -34,13 +40,13 @@ struct div_t
 };
 
 template<class CharT, class Traits>
-auto& operator<<(std::basic_ostream<CharT, Traits>& ostr, div_t const& d)
+auto& operator<<(std::basic_ostream<CharT, Traits>& ostr XSTD_LIFETIMEBOUND, div_t const& d)
 {
         return ostr << ostr.widen('[') << d.quot << ostr.widen(',') << d.rem << ostr.widen(']');
 }
 
 template<class CharT, class Traits>
-auto& operator>>(std::basic_istream<CharT, Traits>& istr, div_t& d)
+auto& operator>>(std::basic_istream<CharT, Traits>& istr XSTD_LIFETIMEBOUND, div_t& d)
 {
         CharT c;
         istr >> c; assert(c == istr.widen('['));
@@ -108,3 +114,5 @@ auto& operator>>(std::basic_istream<CharT, Traits>& istr, div_t& d)
 }
 
 }       // namespace xstd
+
+#undef XSTD_LIFETIMEBOUND
