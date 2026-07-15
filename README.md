@@ -23,8 +23,8 @@ These header-only libraries are continuously being tested with the following con
 | :------- | :------- | :------------ | :------------- | :---------------- | :---- |
 | Linux    | GCC      | 15             | 16              | 17-SVN             | [![Linux](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml) |
 | Linux    | Clang    | 21             | 22              | 23-SVN             | [![Linux](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/linux.yml) |
+| Windows  | Clang (`clang-cl`) | —    | 20.1.8 (bundled) | —               | [![Windows](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml) |
 | Windows  | MSVC     | 2022           | 2026            | 2026-Preview       | [![Windows](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml) |
-| Windows  | Clang (`clang-cl`) | —    | —               | bundled            | [![Windows](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/windows.yml) |
 
 The `Trunk / Preview` column is allowed to fail independently and does not affect the badges above. The `clang-cl` leg tests Clang's diagnostics against the MSVC STL, using whichever LLVM version the Windows runner image bundles.
 
