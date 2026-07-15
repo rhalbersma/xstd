@@ -13,6 +13,14 @@ find_package(
 add_library(xstd_test_options INTERFACE)
 option(XSTD_WARNINGS_AS_ERRORS "Treat warnings as errors in xstd tests" ${PROJECT_IS_TOP_LEVEL})
 
+# clang-cl reports CXX_COMPILER_ID Clang but only understands its MSVC-style
+# driver flags, not GNU-style ones like -pedantic-errors.
+if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+    set(xstd_is_clang_cl ON)
+else()
+    set(xstd_is_clang_cl OFF)
+endif()
+
 set(cxx_compile_definitions
     BOOST_CONFIG_SUPPRESS_OUTDATED_MESSAGE  # https://github.com/boostorg/config/issues/207
     BOOST_ALL_NO_LIB
@@ -48,7 +56,7 @@ set(cxx_compile_options_warnings
         -Wsign-conversion
         -Wsign-promo
     >
-    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>:
+    $<$<AND:$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>,$<NOT:$<BOOL:${xstd_is_clang_cl}>>>:
         -pedantic-errors
     >
 )
