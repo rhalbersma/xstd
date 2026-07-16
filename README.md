@@ -27,6 +27,53 @@ target_link_libraries(my_target PRIVATE xstd::xstd)
 
 The target publishes the `include/` directory and requires C++23. You can also include individual headers directly, such as `<xstd/cstdlib.hpp>` or `<xstd/type_traits.hpp>`.
 
+## Examples
+
+### Compile-time enum conversion
+
+`xstd::to_underlying` complements `std::to_underlying` by preserving an enum value that is wrapped in `std::integral_constant`:
+
+```cpp
+#include <type_traits>
+#include <xstd/utility.hpp>
+
+enum class color : unsigned { red = 1 };
+
+using red = std::integral_constant<color, color::red>;
+using value = decltype(xstd::to_underlying(red{}));
+
+static_assert(value::value == 1);
+static_assert(std::is_same_v<value, std::integral_constant<unsigned, 1>>);
+```
+
+### Division helpers
+
+`xstd::euclidean_div` and `xstd::floored_div` make the desired division convention explicit for negative inputs:
+
+```cpp
+#include <xstd/cstdlib.hpp>
+
+constexpr auto euclidean = xstd::euclidean_div(-8, 3);
+static_assert(euclidean.quot == -3);
+static_assert(euclidean.rem == 1);
+
+constexpr auto floored = xstd::floored_div(-8, 3);
+static_assert(floored.quot == -3);
+static_assert(floored.rem == 1);
+```
+
+### Type traits
+
+`xstd::is_specialization_of` checks whether a type is a specialization of a class template with type parameters:
+
+```cpp
+#include <complex>
+#include <xstd/type_traits.hpp>
+
+static_assert(xstd::is_specialization_of_v<std::complex<double>, std::complex>);
+static_assert(!xstd::is_specialization_of_v<int, std::complex>);
+```
+
 ## Building and testing
 
 Configure, build, and run the test suite with CMake and CTest:
@@ -44,6 +91,15 @@ Tests require Boost.UnitTest.
 - `include/xstd/` contains the public header-only library code.
 - `test/src/` contains Boost.Test unit tests, with one executable generated per `.cpp` file.
 - `doc/` contains historical proposal documents and design notes that provide background but are not the current public API.
+
+## Contributing
+
+When adding or changing a public utility:
+
+1. Add or update the relevant header under `include/xstd/`.
+2. Add or update matching tests under `test/src/`; CMake creates one test executable per `.cpp` file in that directory.
+3. Run the CMake and CTest workflow above locally.
+4. Update the feature table and examples in this README when the public API changes.
 
 ## Requirements
 
