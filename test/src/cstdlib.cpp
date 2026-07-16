@@ -4,7 +4,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/cstdlib.hpp>             // div, floored_div, euclidean_div
-#include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_CHECK, BOOST_CHECK_EQUAL, BOOST_REQUIRE_EQUAL
+#include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_CHECK_EQUAL, BOOST_CHECK_EQUAL_COLLECTIONS
 #include <algorithm>                    // transform
 #include <array>                        // array
 #include <cstdlib>                      // div, div_t
@@ -51,21 +51,6 @@ auto const input = std::array<std::pair<int, int>, 8>
         {+1, +2}, {+1, -2}, {-1, +2}, {-1, -2}
 }};
 
-void check_equal(xstd::div_t actual, xstd::div_t expected)
-{
-        BOOST_CHECK_EQUAL(actual.quot, expected.quot);
-        BOOST_CHECK_EQUAL(actual.rem, expected.rem);
-}
-
-template<class Sequence1, class Sequence2>
-void check_equal_ranges(Sequence1 const& actual, Sequence2 const& expected)
-{
-        BOOST_REQUIRE_EQUAL(actual.size(), expected.size());
-        for (auto i = 0uz; i != actual.size(); ++i) {
-                check_equal(actual[i], expected[i]);
-        }
-}
-
 BOOST_AUTO_TEST_CASE(StdDiv)
 {
         auto const std_div = std::vector<xstd::div_t>
@@ -81,7 +66,10 @@ BOOST_AUTO_TEST_CASE(StdDiv)
                 return { d.quot, d.rem };
         });
 
-        check_equal_ranges(std_res, std_div);
+        BOOST_CHECK_EQUAL_COLLECTIONS(
+                std_res.begin(), std_res.end(),
+                std_div.begin(), std_div.end()
+        );
 }
 
 BOOST_AUTO_TEST_CASE(TruncatedDiv)
@@ -97,7 +85,10 @@ BOOST_AUTO_TEST_CASE(TruncatedDiv)
                 return xstd::div(p.first, p.second);
         });
 
-        check_equal_ranges(truncated_res, div);
+        BOOST_CHECK_EQUAL_COLLECTIONS(
+                truncated_res.begin(), truncated_res.end(),
+                div.begin(), div.end()
+        );
 }
 
 BOOST_AUTO_TEST_CASE(EuclideanDiv)
@@ -113,7 +104,10 @@ BOOST_AUTO_TEST_CASE(EuclideanDiv)
                 return xstd::euclidean_div(p.first, p.second);
         });
 
-        check_equal_ranges(euclidean_res, euclidean_div);
+        BOOST_CHECK_EQUAL_COLLECTIONS(
+                euclidean_res.begin(), euclidean_res.end(),
+                euclidean_div.begin(), euclidean_div.end()
+        );
 }
 
 
@@ -131,9 +125,9 @@ BOOST_AUTO_TEST_CASE(ExactDivisions)
 
         for (auto i = 0uz; i != exact_input.size(); ++i) {
                 auto const [numer, denom] = exact_input[i];
-                check_equal(xstd::div(numer, denom), expected[i]);
-                check_equal(xstd::euclidean_div(numer, denom), expected[i]);
-                check_equal(xstd::floored_div(numer, denom), expected[i]);
+                BOOST_CHECK_EQUAL(xstd::div(numer, denom), expected[i]);
+                BOOST_CHECK_EQUAL(xstd::euclidean_div(numer, denom), expected[i]);
+                BOOST_CHECK_EQUAL(xstd::floored_div(numer, denom), expected[i]);
         }
 }
 
@@ -142,17 +136,17 @@ BOOST_AUTO_TEST_CASE(BoundaryDivisions)
 {
         using limits = std::numeric_limits<int>;
 
-        check_equal(xstd::div(limits::min(), +1), xstd::div_t{limits::min(), 0});
-        check_equal(xstd::euclidean_div(limits::min(), +1), xstd::div_t{limits::min(), 0});
-        check_equal(xstd::floored_div(limits::min(), +1), xstd::div_t{limits::min(), 0});
+        BOOST_CHECK_EQUAL(xstd::div(limits::min(), +1), xstd::div_t{limits::min(), 0});
+        BOOST_CHECK_EQUAL(xstd::euclidean_div(limits::min(), +1), xstd::div_t{limits::min(), 0});
+        BOOST_CHECK_EQUAL(xstd::floored_div(limits::min(), +1), xstd::div_t{limits::min(), 0});
 
-        check_equal(xstd::div(+1, limits::min()), xstd::div_t{0, +1});
-        check_equal(xstd::euclidean_div(+1, limits::min()), xstd::div_t{0, +1});
-        check_equal(xstd::floored_div(+1, limits::min()), xstd::div_t{-1, limits::min() + 1});
+        BOOST_CHECK_EQUAL(xstd::div(+1, limits::min()), xstd::div_t{0, +1});
+        BOOST_CHECK_EQUAL(xstd::euclidean_div(+1, limits::min()), xstd::div_t{0, +1});
+        BOOST_CHECK_EQUAL(xstd::floored_div(+1, limits::min()), xstd::div_t{-1, limits::min() + 1});
 
-        check_equal(xstd::div(limits::max(), -1), xstd::div_t{-limits::max(), 0});
-        check_equal(xstd::euclidean_div(limits::max(), -1), xstd::div_t{-limits::max(), 0});
-        check_equal(xstd::floored_div(limits::max(), -1), xstd::div_t{-limits::max(), 0});
+        BOOST_CHECK_EQUAL(xstd::div(limits::max(), -1), xstd::div_t{-limits::max(), 0});
+        BOOST_CHECK_EQUAL(xstd::euclidean_div(limits::max(), -1), xstd::div_t{-limits::max(), 0});
+        BOOST_CHECK_EQUAL(xstd::floored_div(limits::max(), -1), xstd::div_t{-limits::max(), 0});
 }
 
 BOOST_AUTO_TEST_CASE(FlooredDiv)
@@ -168,7 +162,10 @@ BOOST_AUTO_TEST_CASE(FlooredDiv)
                 return xstd::floored_div(p.first, p.second);
         });
 
-        check_equal_ranges(floored_res, floored_div);
+        BOOST_CHECK_EQUAL_COLLECTIONS(
+                floored_res.begin(), floored_res.end(),
+                floored_div.begin(), floored_div.end()
+        );
 }
 
 BOOST_AUTO_TEST_CASE(Formatter)

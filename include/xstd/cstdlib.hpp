@@ -6,7 +6,8 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <cassert>      // assert
-#include <format>       // formatter
+#include <format>       // format, formatter
+#include <iosfwd>       // basic_istream, basic_ostream
 #include <limits>       // numeric_limits
 #include <tuple>        // tie, tuple
 #include <type_traits>  // is_arithmetic_v
@@ -32,6 +33,25 @@ struct div_t
         int quot, rem;
         bool operator==(div_t const&) const = default;
 };
+
+template<class CharT, class Traits>
+auto& operator<<(std::basic_ostream<CharT, Traits>& ostr, div_t const& d)
+{
+        ostr << std::format("({},{})", d.quot, d.rem);
+        return ostr;
+}
+
+template<class CharT, class Traits>
+auto& operator>>(std::basic_istream<CharT, Traits>& istr, div_t& d)
+{
+        CharT c;
+        istr >> c; assert(c == istr.widen('('));
+        istr >> d.quot;
+        istr >> c; assert(c == istr.widen(','));
+        istr >> d.rem;
+        istr >> c; assert(c == istr.widen(')'));
+        return istr;
+}
 
 namespace detail {
 
