@@ -84,7 +84,7 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-Tests require Boost.UnitTest.
+Tests require Boost.Test.
 
 ## Project layout
 
