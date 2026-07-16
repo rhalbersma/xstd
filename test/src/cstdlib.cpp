@@ -13,6 +13,14 @@
 #include <utility>                      // pair
 #include <vector>                       // vector
 
+// The whole point of these functions (p0533-style) is being usable in
+// constant expressions; verify that at compile time.
+static_assert(xstd::abs(-2) == 2);
+static_assert(xstd::sign(-2) == -1);
+static_assert(xstd::div(+8, +3) == xstd::div_t{+2, +2});
+static_assert(xstd::euclidean_div(-8, +3) == xstd::div_t{-3, +1});
+static_assert(xstd::floored_div(-8, +3) == xstd::div_t{-3, +1});
+
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
 BOOST_AUTO_TEST_CASE(Abs)

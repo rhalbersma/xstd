@@ -10,7 +10,7 @@
 
 using namespace xstd;
 
-BOOST_AUTO_TEST_SUITE(TypeTraits)
+BOOST_AUTO_TEST_SUITE(Utility)
 
 enum class e1 {};
 enum class e2 : bool {};
