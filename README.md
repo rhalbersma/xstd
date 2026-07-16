@@ -103,7 +103,7 @@ When adding or changing a public utility:
 
 ## Requirements
 
-These header-only libraries are continuously being tested with the following conforming [C++23](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2022/n4950.pdf) compilers. Following the model of [apt.llvm.org](https://apt.llvm.org/), we support the latest two stable releases of each compiler, plus its current development / preview branch, on a best-effort basis:
+These header-only libraries are continuously being tested with the following conforming [C++23](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4950.pdf) compilers. Following the model of [apt.llvm.org](https://apt.llvm.org/), we support the latest two stable releases of each compiler, plus its current development / preview branch, on a best-effort basis:
 
 | Platform | Compiler | Older stable | Latest stable | Trunk / Preview | Build |
 | :------- | :------- | :------------ | :------------- | :---------------- | :---- |
