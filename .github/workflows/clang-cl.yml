@@ -60,7 +60,7 @@ jobs:
         shell: pwsh
         env:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-        run: vcpkg install boost-test:${{ matrix.triplet }}
+        run: vcpkg install --triplet ${{ matrix.triplet }}
 
       - name: Configure
         shell: pwsh

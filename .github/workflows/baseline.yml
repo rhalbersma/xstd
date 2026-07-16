@@ -1,0 +1,102 @@
+#          Copyright Rein Halbersma 2014-2026.
+# Distributed under the Boost Software License, Version 1.0.
+#    (See accompanying file LICENSE_1_0.txt or copy at
+#          http://www.boost.org/LICENSE_1_0.txt)
+
+name: Baseline
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: GCC 15
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install GCC 15
+        run: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get update
+          sudo apt-get install -y g++-15
+
+      # Export the two env vars vcpkg's "x-gha" binary source needs to talk
+      # to the GitHub Actions cache service, so built packages are reused
+      # across runs instead of recompiled from scratch every time.
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      - name: Install dependencies
+        env:
+          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+        run: vcpkg install --triplet x64-linux
+
+      - name: Configure
+        run: >
+          cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_C_COMPILER=gcc-15
+          -DCMAKE_CXX_COMPILER=g++-15
+          -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
+
+      - name: Build
+        run: cmake --build build -v
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Install
+        run: cmake --install build --prefix "$GITHUB_WORKSPACE/xstd-prefix"
+
+      - name: Consume installed package
+        run: |
+          mkdir consumer
+          cd consumer
+          cat > CMakeLists.txt << 'CMAKE'
+          cmake_minimum_required(VERSION 3.28)
+          project(consumer LANGUAGES CXX)
+          find_package(xstd 0.1 CONFIG REQUIRED)
+          add_executable(main main.cpp)
+          target_link_libraries(main PRIVATE xstd::xstd)
+          CMAKE
+          cat > main.cpp << 'CPP'
+          #include <xstd/array.hpp>
+          #include <xstd/cstdlib.hpp>
+          #include <xstd/type_traits.hpp>
+          #include <xstd/utility.hpp>
+          #include <complex>
+          #include <format>
+          #include <string>
+          #include <tuple>
+          #include <type_traits>
+
+          enum class color : unsigned { red = 1 };
+
+          int main()
+          {
+                  static_assert(xstd::array_from_types<std::tuple<int, char>>()([](auto x) {
+                          return sizeof(x);
+                  }).size() == 2);
+                  static_assert(xstd::is_specialization_of_v<std::complex<double>, std::complex>);
+                  static_assert(decltype(xstd::to_underlying(std::integral_constant<color, color::red>()))::value == 1);
+                  static_assert(xstd::euclidean_div(-8, 3).rem == 1);
+
+                  auto const d = xstd::floored_div(-8, 3);
+                  return std::format("{}", d) == "(-3, 1)" ? 0 : 1;
+          }
+          CPP
+          cmake -S . -B build \
+            -DCMAKE_CXX_COMPILER=g++-15 \
+            -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/xstd-prefix"
+          cmake --build build -v
+          ./build/main

@@ -1,0 +1,10 @@
+{
+  "name": "xstd",
+  "version-string": "0.1.0",
+  "description": "Extensions to the C++ Standard Library",
+  "homepage": "https://github.com/rhalbersma/xstd",
+  "license": "BSL-1.0",
+  "dependencies": [
+    "boost-test"
+  ]
+}
