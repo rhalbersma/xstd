@@ -56,12 +56,6 @@ set(cxx_compile_options_warnings
     >
 )
 
-set(cxx_compile_options_mbig_obj
-    $<$<AND:$<CXX_COMPILER_ID:GNU>,$<PLATFORM_ID:Windows>>:
-	    -Wa,-mbig-obj
-    >
-)
-
 target_compile_definitions(
     xstd_test_options INTERFACE
     ${cxx_compile_definitions}
@@ -69,7 +63,6 @@ target_compile_definitions(
 target_compile_options(
     xstd_test_options INTERFACE
     ${cxx_compile_options_warnings}
-    ${cxx_compile_options_mbig_obj}
     $<$<AND:$<BOOL:${XSTD_WARNINGS_AS_ERRORS}>,$<CXX_COMPILER_ID:MSVC>>:/WX>
     $<$<AND:$<BOOL:${XSTD_WARNINGS_AS_ERRORS}>,$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>>:-Werror>
 )
