@@ -122,11 +122,12 @@ cmake --build --preset dev
 ctest --preset dev
 ```
 
-Tests require Boost.Test. The checked-in vcpkg manifest declares that dependency for vcpkg-based builds:
+Tests require Boost.Test. The checked-in vcpkg manifest declares that dependency for vcpkg-based builds, and the `*-vcpkg` presets pick up the toolchain from the `VCPKG_ROOT` environment variable:
 
 ```sh
-vcpkg install --triplet x64-linux
-cmake --preset dev -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
+cmake --preset dev-vcpkg
+cmake --build --preset dev-vcpkg
+ctest --preset dev-vcpkg
 ```
 
 Alternatively, install Boost.Test with your system package manager and point CMake at the package if it is not found automatically.
