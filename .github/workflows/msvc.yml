@@ -34,63 +34,52 @@ jobs:
           - vs: 2026-Preview
             os: windows-2025
             generator: "Visual Studio 18 2026"
-            toolset: "version=Preview,host=x64"
             preview_channel: true
 
     steps:
       - uses: actions/checkout@v4
 
-      # Best-effort, currently broken: the windows-2025 runner image now
-      # ships VS 2026 Stable preinstalled, so the old approach (a separate
-      # Insiders channel installed side-by-side via vs_buildtools.exe)
-      # silently no-ops - the bootstrapper unpacks itself and exits without
-      # installing anything. Adding the Preview toolset to the existing
-      # instance via the VS Installer's own "setup.exe modify" was the next
-      # attempt (first with just the Preview component, then with the full
-      # VCTools workload + --includeRecommended --includeOptional) but that
-      # no-ops too: no new %TEMP%\dd_*.log ever appears, exit code 0, nothing
-      # installed. Root cause not yet identified - possibly setup.exe modify
-      # needs different permissions/flags in this runner environment, or the
-      # Preview toolset simply isn't obtainable this way on this image.
-      # continue-on-error means this doesn't block anything; left failing
-      # with the diagnostics below rather than guessing further.
+      # Best-effort: the windows-2025 runner image ships VS 2026 Stable
+      # preinstalled, and the Preview MSVC toolset is an optional component
+      # on the Stable channel (see the "MSVC Build Tools Preview: How to Opt
+      # In" C++ team blog posts), so it can be added to the existing
+      # instance with the VS Installer's own "modify" command. Two hard-won
+      # gotchas live here:
+      #   1. setup.exe is a GUI-subsystem executable: PowerShell's call
+      #      operator (&) does NOT wait for it, silently leaving a stale
+      #      $LASTEXITCODE and letting the job kill the install as an orphan
+      #      process at teardown. Start-Process -Wait is required (GitHub's
+      #      own runner-images build scripts do the same, treating exit
+      #      codes 0 and 3010 as success).
+      #   2. CMake's "-T version=" only accepts numeric toolset versions,
+      #      not "Preview", so the installed preview version is discovered
+      #      afterwards and passed to Configure via $GITHUB_ENV.
       - name: Install MSVC Preview toolset
         if: matrix.preview_channel
         shell: pwsh
         run: |
-          # Write-Error is a terminating error in GitHub Actions' pwsh steps
-          # (ErrorActionPreference=Stop), which was silently swallowing every
-          # diagnostic line after the first Write-Error call in here. Use
-          # Write-Host for anything meant to actually be seen, and reserve
-          # exit 1 as the real terminator.
           $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
           $instance = & $vswhere -products * -format json | ConvertFrom-Json | Select-Object -First 1
           if (-not $instance) {
             Write-Host "No VS instance found by vswhere to add the Preview toolset to"
             exit 1
           }
+          $installPath = $instance.installationPath
 
-          # setup.exe (the already-installed VS Installer engine) has a
-          # different CLI surface than the vs_buildtools.exe bootstrapper -
-          # no --wait flag; --quiet already blocks until done. A bare
-          # component --add silently no-op'd (confirmed: no new dd_*.log
-          # appeared at all), so add the whole workload plus recommended
-          # components instead, matching what the original working
-          # side-by-side install always did.
           $setup = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\setup.exe"
-          & $setup modify --quiet --norestart --nocache `
-            --installPath "$($instance.installationPath)" `
-            --add Microsoft.VisualStudio.Workload.VCTools `
-            --add Microsoft.VisualStudio.Component.VC.Preview.Tools.x86.x64 `
-            --includeRecommended --includeOptional
-          $setupExit = $LASTEXITCODE
+          $proc = Start-Process -FilePath $setup -Wait -PassThru -ArgumentList (
+            'modify', '--quiet', '--norestart', '--nocache',
+            '--installPath', "`"$installPath`"",
+            '--add', 'Microsoft.VisualStudio.Component.VC.Preview.Tools.x86.x64'
+          )
+          # 3010 = success, reboot required
+          $ok = $proc.ExitCode -eq 0 -or $proc.ExitCode -eq 3010
 
-          # setup.exe has been seen to exit 0 even when it didn't actually
-          # add the component, so don't just trust the exit code: confirm
-          # it actually landed before moving on.
-          $verify = & $vswhere -requires Microsoft.VisualStudio.Component.VC.Preview.Tools.x86.x64 -format json | ConvertFrom-Json
-          if ($setupExit -ne 0 -or -not $verify) {
-            Write-Host "Preview toolset not present after setup.exe modify (exit code $setupExit). Dumping the newest VS Installer log:"
+          $verify = & $vswhere -products * -requires Microsoft.VisualStudio.Component.VC.Preview.Tools.x86.x64 -format json | ConvertFrom-Json
+          if (-not $ok -or -not $verify) {
+            Write-Host "Preview toolset not present after setup.exe modify (exit code $($proc.ExitCode))."
+            Write-Host "Toolsets present under VC\Tools\MSVC:"
+            Get-ChildItem "$installPath\VC\Tools\MSVC" -Directory -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "  $($_.Name)" }
             $log = Get-ChildItem "$env:TEMP\dd_*.log" -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
             if ($log) {
               Write-Host "--- $($log.FullName) (last 150 lines) ---"
@@ -101,16 +90,35 @@ jobs:
             exit 1
           }
 
+          # CMake can't be told "version=Preview"; find the preview
+          # toolset's actual version number (the highest one installed).
+          $default = (Get-Content "$installPath\VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt").Trim()
+          $newest = Get-ChildItem "$installPath\VC\Tools\MSVC" -Directory |
+            Sort-Object { [version]$_.Name } -Descending |
+            Select-Object -First 1 -ExpandProperty Name
+          Write-Host "Default toolset: $default; newest (preview) toolset: $newest"
+          echo "VC_PREVIEW_TOOLSET=$newest" >> $env:GITHUB_ENV
+
       - name: Install Boost.Test
         shell: pwsh
         run: vcpkg install boost-test:x64-windows
 
       - name: Configure
+        if: "!matrix.preview_channel"
         shell: pwsh
         run: >
           cmake -S . -B build
           -G "${{ matrix.generator }}" -A x64
           -T ${{ matrix.toolset }}
+          "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+
+      - name: Configure (preview toolset)
+        if: matrix.preview_channel
+        shell: pwsh
+        run: >
+          cmake -S . -B build
+          -G "${{ matrix.generator }}" -A x64
+          -T "version=$env:VC_PREVIEW_TOOLSET,host=x64"
           "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
 
       - name: Build
