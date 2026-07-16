@@ -99,44 +99,13 @@ jobs:
           Write-Host "Default toolset: $default; newest (preview) toolset: $newest"
           echo "VC_PREVIEW_TOOLSET=$newest" >> $env:GITHUB_ENV
 
-      # Build the latest Boost release from source with MSVC instead of
-      # taking vcpkg's prebuilt/pinned version. The version is resolved via
-      # the GitHub API so this doesn't go stale; the token avoids anonymous
-      # rate limits on shared runner IPs. On the preview leg Boost is built
-      # with the default (stable) MSVC toolset while the tests use the
-      # preview one - fine, since MSVC guarantees binary compatibility
-      # across toolset versions since VS 2015.
-      - name: Install Boost.Test (from source)
+      # MSVC guarantees binary compatibility across toolset versions since
+      # VS 2015, so vcpkg's Boost (built with the default/stable toolset)
+      # links fine against code compiled with the preview toolset too - no
+      # need to rebuild Boost itself from source for the preview leg.
+      - name: Install Boost.Test
         shell: pwsh
-        run: |
-          $headers = @{ Authorization = "Bearer ${{ github.token }}" }
-          # /releases/latest can return a beta (boostorg doesn't always flag
-          # them as prerelease), so list releases and keep strict boost-X.Y.Z
-          $release = (Invoke-RestMethod -Uri "https://api.github.com/repos/boostorg/boost/releases?per_page=20" -Headers $headers) |
-            Where-Object { $_.tag_name -match '^boost-\d+\.\d+\.\d+$' } | Select-Object -First 1
-          $tag = $release.tag_name
-          $ver = $tag -replace '^boost-', ''
-          Invoke-WebRequest -Uri "https://github.com/boostorg/boost/releases/download/$tag/boost-$ver-b2-nodocs.tar.gz" -OutFile boost.tar.gz
-          tar -xzf boost.tar.gz
-          cd "boost-$ver"
-
-          # b2's engine bootstrap (build.bat) doesn't recognize VS 2026 yet
-          # ("Unknown toolset: vcunk" on the windows-2025 image; its support
-          # ends at vc143), but it does support clang-win, and every VS
-          # install bundles clang-cl. Put the bundled LLVM on PATH and
-          # bootstrap the b2 engine with it; the Boost libraries themselves
-          # are still built with toolset=msvc below.
-          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-          $clangcl = & $vswhere -latest -products * -find 'VC\Tools\Llvm\x64\bin\clang-cl.exe' | Select-Object -First 1
-          if (-not $clangcl) {
-            Write-Host "clang-cl.exe not found via vswhere"
-            exit 1
-          }
-          $env:PATH = (Split-Path $clangcl) + ";" + $env:PATH
-          .\bootstrap.bat clang-win
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-          .\b2 install --prefix=C:\boost-latest --with-test toolset=msvc address-model=64 variant=release link=static threading=multi
-          if ($LASTEXITCODE -ne 0) { exit 1 }
+        run: vcpkg install boost-test:x64-windows
 
       - name: Configure
         if: "!matrix.preview_channel"
@@ -145,8 +114,7 @@ jobs:
           cmake -S . -B build
           -G "${{ matrix.generator }}" -A x64
           -T ${{ matrix.toolset }}
-          -DCMAKE_PREFIX_PATH=C:/boost-latest
-          -DBoost_NO_SYSTEM_PATHS=ON
+          "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
 
       - name: Configure (preview toolset)
         if: matrix.preview_channel
@@ -155,8 +123,7 @@ jobs:
           cmake -S . -B build
           -G "${{ matrix.generator }}" -A x64
           -T "version=$env:VC_PREVIEW_TOOLSET,host=x64"
-          -DCMAKE_PREFIX_PATH=C:/boost-latest
-          -DBoost_NO_SYSTEM_PATHS=ON
+          "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
 
       - name: Build
         shell: pwsh

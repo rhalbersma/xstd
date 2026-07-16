@@ -29,46 +29,14 @@ jobs:
           - generator: "Visual Studio 17 2022"
             toolset: "ClangCL,host=x64"
             arch: x64
+            triplet: x64-windows
 
     steps:
       - uses: actions/checkout@v4
 
-      # Build the latest Boost release from source with clang-cl itself
-      # (b2's clang-win toolset), so the whole binary is produced by one
-      # toolchain instead of taking vcpkg's prebuilt/pinned version. The
-      # version is resolved via the GitHub API so this doesn't go stale;
-      # the token avoids anonymous rate limits on shared runner IPs.
-      - name: Install Boost.Test (from source)
+      - name: Install Boost.Test
         shell: pwsh
-        run: |
-          $headers = @{ Authorization = "Bearer ${{ github.token }}" }
-          # /releases/latest can return a beta (boostorg doesn't always flag
-          # them as prerelease), so list releases and keep strict boost-X.Y.Z
-          $release = (Invoke-RestMethod -Uri "https://api.github.com/repos/boostorg/boost/releases?per_page=20" -Headers $headers) |
-            Where-Object { $_.tag_name -match '^boost-\d+\.\d+\.\d+$' } | Select-Object -First 1
-          $tag = $release.tag_name
-          $ver = $tag -replace '^boost-', ''
-          Invoke-WebRequest -Uri "https://github.com/boostorg/boost/releases/download/$tag/boost-$ver-b2-nodocs.tar.gz" -OutFile boost.tar.gz
-          tar -xzf boost.tar.gz
-          cd "boost-$ver"
-
-          # CMake's ClangCL toolset uses the clang-cl bundled with Visual
-          # Studio, but PATH has a newer standalone LLVM; if b2 picks up the
-          # latter, BoostConfig rejects the libs over the compiler-version
-          # tag in their names (clangw20 vs clangw19). Pin b2 to the exact
-          # same clang-cl binary the VS toolset will use.
-          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-          $clangcl = & $vswhere -latest -products * -find 'VC\Tools\Llvm\x64\bin\clang-cl.exe' | Select-Object -First 1
-          if (-not $clangcl) {
-            Write-Host "clang-cl.exe not found via vswhere"
-            exit 1
-          }
-          "using clang-win : : `"$($clangcl -replace '\\', '/')`" ;" | Set-Content user-config.jam
-
-          .\bootstrap.bat
-          if ($LASTEXITCODE -ne 0) { exit 1 }
-          .\b2 install --prefix=C:\boost-latest --user-config=user-config.jam --with-test toolset=clang-win address-model=64 variant=release link=static threading=multi
-          if ($LASTEXITCODE -ne 0) { exit 1 }
+        run: vcpkg install boost-test:${{ matrix.triplet }}
 
       - name: Configure
         shell: pwsh
@@ -76,8 +44,7 @@ jobs:
           cmake -S . -B build
           -G "${{ matrix.generator }}" -A ${{ matrix.arch }}
           -T ${{ matrix.toolset }}
-          -DCMAKE_PREFIX_PATH=C:/boost-latest
-          -DBoost_NO_SYSTEM_PATHS=ON
+          "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
 
       - name: Build
         shell: pwsh
