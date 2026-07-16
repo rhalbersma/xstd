@@ -6,6 +6,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <array>        // array
+#include <type_traits>  // type_identity
 
 namespace xstd {
 
@@ -15,9 +16,9 @@ struct array_from_types;
 template<template<class...> class L, class... T>
 struct array_from_types<L<T...>>
 {
-        [[nodiscard]] constexpr auto operator()(auto fun) const noexcept((noexcept(fun(T())) && ...))
+        [[nodiscard]] constexpr auto operator()(auto fun) const noexcept((noexcept(fun(std::type_identity<T>())) && ...))
         {
-                return std::array{fun(T())...};
+                return std::array{fun(std::type_identity<T>())...};
         }
 };
 

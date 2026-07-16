@@ -117,7 +117,7 @@ jobs:
         shell: pwsh
         env:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-        run: vcpkg install boost-test:x64-windows
+        run: vcpkg install --triplet x64-windows
 
       - name: Configure
         if: "!matrix.preview_channel"
