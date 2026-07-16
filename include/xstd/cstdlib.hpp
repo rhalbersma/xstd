@@ -6,9 +6,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <cassert>      // assert
-#include <cstddef>      // size_t
 #include <iosfwd>       // basic_istream, basic_ostream
-#include <tuple>        // tie
 #include <type_traits>  // is_arithmetic_v
 
 #if defined(__clang__)
@@ -74,7 +72,7 @@ auto& operator>>(std::basic_istream<CharT, Traits>& istr XSTD_LIFETIMEBOUND, div
         auto const rT = numer % denom;
         assert(numer == denom * qT + rT);
         assert(abs(rT) < abs(denom));
-        assert(sign(rT) == sign(numer)|| rT == 0);
+        assert(sign(rT) == sign(numer) || rT == 0);
         return { qT, rT };
 }
 

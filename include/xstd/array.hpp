@@ -6,7 +6,6 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <array>        // array
-#include <type_traits>  // conditional_t
 
 namespace xstd {
 
