@@ -33,11 +33,6 @@ struct div_t
         bool operator==(div_t const&) const = default;
 };
 
-[[nodiscard]] constexpr auto as_tuple(div_t const& d) noexcept
-{
-        return std::tie(d.quot, d.rem);
-}
-
 namespace detail {
 
 [[nodiscard]] constexpr auto magnitude(int x) noexcept
@@ -114,6 +109,6 @@ struct std::formatter<xstd::div_t, CharT>
         template<class FormatContext>
         auto format(xstd::div_t const& d, FormatContext& ctx) const
         {
-                return std::formatter<std::tuple<int const&, int const&>, CharT>::format(xstd::as_tuple(d), ctx);
+                return std::formatter<std::tuple<int const&, int const&>, CharT>::format(std::tie(d.quot, d.rem), ctx);
         }
 };

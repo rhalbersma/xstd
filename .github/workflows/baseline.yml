@@ -84,8 +84,8 @@ jobs:
 
           int main()
           {
-                  static_assert(xstd::array_from_types<std::tuple<int, char>>()([](auto x) {
-                          return sizeof(x);
+                  static_assert(xstd::array_from_types<std::tuple<int, char>>()([]<class T>(std::type_identity<T>) {
+                          return sizeof(T);
                   }).size() == 2);
                   static_assert(xstd::is_specialization_of_v<std::complex<double>, std::complex>);
                   static_assert(decltype(xstd::to_underlying(std::integral_constant<color, color::red>()))::value == 1);
@@ -98,5 +98,86 @@ jobs:
           cmake -S . -B build \
             -DCMAKE_CXX_COMPILER=g++-15 \
             -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/xstd-prefix"
+          cmake --build build -v
+          ./build/main
+
+
+      - name: Consume with add_subdirectory
+        run: |
+          mkdir consumer-add-subdirectory
+          cd consumer-add-subdirectory
+          cat > CMakeLists.txt << 'CMAKE'
+          cmake_minimum_required(VERSION 3.28)
+          project(consumer_add_subdirectory LANGUAGES CXX)
+          set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+          add_subdirectory("$ENV{GITHUB_WORKSPACE}" xstd-build)
+          add_executable(main main.cpp)
+          target_link_libraries(main PRIVATE xstd::xstd)
+          CMAKE
+          cat > main.cpp << 'CPP'
+          #include <xstd/array.hpp>
+          #include <xstd/cstdlib.hpp>
+          #include <xstd/type_traits.hpp>
+          #include <xstd/utility.hpp>
+          #include <complex>
+          #include <format>
+          #include <tuple>
+          #include <type_traits>
+
+          enum class color : unsigned { red = 1 };
+
+          int main()
+          {
+                  static_assert(xstd::array_from_types<std::tuple<int, char>>()([]<class T>(std::type_identity<T>) {
+                          return sizeof(T);
+                  }).size() == 2);
+                  static_assert(xstd::is_specialization_of_v<std::complex<double>, std::complex>);
+                  static_assert(decltype(xstd::to_underlying(std::integral_constant<color, color::red>()))::value == 1);
+                  auto const d = xstd::euclidean_div(-8, 3);
+                  return std::format("{}", d) == "(-3, 1)" ? 0 : 1;
+          }
+          CPP
+          cmake -S . -B build -DCMAKE_CXX_COMPILER=g++-15
+          cmake --build build -v
+          ./build/main
+
+      - name: Consume with FetchContent
+        run: |
+          mkdir consumer-fetch-content
+          cd consumer-fetch-content
+          cat > CMakeLists.txt << 'CMAKE'
+          cmake_minimum_required(VERSION 3.28)
+          project(consumer_fetch_content LANGUAGES CXX)
+          include(FetchContent)
+          set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+          FetchContent_Declare(xstd SOURCE_DIR "$ENV{GITHUB_WORKSPACE}")
+          FetchContent_MakeAvailable(xstd)
+          add_executable(main main.cpp)
+          target_link_libraries(main PRIVATE xstd::xstd)
+          CMAKE
+          cat > main.cpp << 'CPP'
+          #include <xstd/array.hpp>
+          #include <xstd/cstdlib.hpp>
+          #include <xstd/type_traits.hpp>
+          #include <xstd/utility.hpp>
+          #include <complex>
+          #include <format>
+          #include <tuple>
+          #include <type_traits>
+
+          enum class color : unsigned { red = 1 };
+
+          int main()
+          {
+                  static_assert(xstd::array_from_types<std::tuple<int, char>>()([]<class T>(std::type_identity<T>) {
+                          return sizeof(T);
+                  }).size() == 2);
+                  static_assert(xstd::is_specialization_of_v<std::complex<double>, std::complex>);
+                  static_assert(decltype(xstd::to_underlying(std::integral_constant<color, color::red>()))::value == 1);
+                  auto const d = xstd::floored_div(-8, 3);
+                  return std::format("{}", d) == "(-3, 1)" ? 0 : 1;
+          }
+          CPP
+          cmake -S . -B build -DCMAKE_CXX_COMPILER=g++-15
           cmake --build build -v
           ./build/main

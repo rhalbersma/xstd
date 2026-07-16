@@ -19,13 +19,36 @@ xstd is a header-only C++23 library for small standard-library extensions that c
 
 ## Using xstd
 
-Link the header-only CMake target from your own target:
+Link the header-only CMake target from your own target. When consuming an installed package:
 
 ```cmake
+find_package(xstd 0.1 CONFIG REQUIRED)
 target_link_libraries(my_target PRIVATE xstd::xstd)
 ```
 
-The target publishes the `include/` directory and requires C++23. You can also include individual headers directly, such as `<xstd/cstdlib.hpp>` or `<xstd/type_traits.hpp>`.
+When vendoring the repository as a subdirectory, disable tests unless you also want to build xstd's Boost.Test suite:
+
+```cmake
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+add_subdirectory(external/xstd)
+target_link_libraries(my_target PRIVATE xstd::xstd)
+```
+
+When using `FetchContent`:
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(
+    xstd
+    GIT_REPOSITORY https://github.com/rhalbersma/xstd.git
+    GIT_TAG master # or a release tag
+)
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(xstd)
+target_link_libraries(my_target PRIVATE xstd::xstd)
+```
+
+The target publishes the public headers and requires C++23. You can also include individual headers directly, such as `<xstd/cstdlib.hpp>` or `<xstd/type_traits.hpp>`.
 
 ## Examples
 
@@ -67,7 +90,7 @@ auto const text = std::format("{}", floored); // "(-3, 1)"
 
 `xstd::div`, `xstd::euclidean_div`, and `xstd::floored_div` require a nonzero denominator. Like built-in signed integer division, `INT_MIN / -1` is outside their contract for `int` inputs. `xstd::div` follows C++'s truncated division semantics, `xstd::euclidean_div` always returns a nonnegative remainder, and `xstd::floored_div` returns a remainder with the divisor's sign unless the remainder is zero.
 
-Formatting `xstd::div_t` requires C++23 standard-library support for formatting tuple-like values, because its formatter delegates to `std::formatter<std::tuple<int const&, int const&>>` through `xstd::as_tuple`. This is covered by the continuously tested compiler and standard-library versions below.
+Formatting `xstd::div_t` requires C++23 standard-library support for formatting tuple-like values, because its formatter delegates to `std::formatter<std::tuple<int const&, int const&>>` through `std::tie`. This is covered by the continuously tested compiler and standard-library versions below.
 
 `xstd::abs` and `xstd::sign` accept arithmetic types; for unsigned inputs, `abs` is the identity, and for `bool`, `sign(true) == 1` while `sign(false) == 0`.
 

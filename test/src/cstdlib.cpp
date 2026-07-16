@@ -12,7 +12,6 @@
 #include <iterator>                     // back_inserter
 #include <limits>                       // numeric_limits
 #include <string>                       // string
-#include <tuple>                        // tuple
 #include <utility>                      // pair
 #include <vector>                       // vector
 
@@ -23,8 +22,6 @@ static_assert(xstd::sign(-2) == -1);
 static_assert(xstd::div(+8, +3) == xstd::div_t{+2, +2});
 static_assert(xstd::euclidean_div(-8, +3) == xstd::div_t{-3, +1});
 static_assert(xstd::floored_div(-8, +3) == xstd::div_t{-3, +1});
-constexpr auto tuple_input = xstd::div_t{+2, -2};
-static_assert(xstd::as_tuple(tuple_input) == std::tuple{+2, -2});
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
@@ -177,7 +174,6 @@ BOOST_AUTO_TEST_CASE(FlooredDiv)
 BOOST_AUTO_TEST_CASE(Formatter)
 {
         xstd::div_t const d { 1, -2 };
-        BOOST_CHECK((xstd::as_tuple(d) == std::tuple(1, -2)));
         BOOST_CHECK_EQUAL(std::format("{}", d), "(1, -2)");
         BOOST_CHECK_EQUAL(std::format(L"{}", d), std::wstring(L"(1, -2)"));
 }

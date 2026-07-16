@@ -194,8 +194,8 @@ jobs:
 
           int main()
           {
-                  static_assert(xstd::array_from_types<std::tuple<int, char>>()([](auto x) {
-                          return sizeof(x);
+                  static_assert(xstd::array_from_types<std::tuple<int, char>>()([]<class T>(std::type_identity<T>) {
+                          return sizeof(T);
                   }).size() == 2);
                   static_assert(xstd::is_specialization_of_v<std::complex<double>, std::complex>);
                   static_assert(decltype(xstd::to_underlying(std::integral_constant<color, color::red>()))::value == 1);
