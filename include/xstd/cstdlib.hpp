@@ -34,25 +34,6 @@ struct div_t
         bool operator==(div_t const&) const = default;
 };
 
-template<class CharT, class Traits>
-auto& operator<<(std::basic_ostream<CharT, Traits>& ostr, div_t const& d)
-{
-        ostr << std::format("({},{})", d.quot, d.rem);
-        return ostr;
-}
-
-template<class CharT, class Traits>
-auto& operator>>(std::basic_istream<CharT, Traits>& istr, div_t& d)
-{
-        CharT c;
-        istr >> c; assert(c == istr.widen('('));
-        istr >> d.quot;
-        istr >> c; assert(c == istr.widen(','));
-        istr >> d.rem;
-        istr >> c; assert(c == istr.widen(')'));
-        return istr;
-}
-
 namespace detail {
 
 [[nodiscard]] constexpr auto magnitude(int x) noexcept
@@ -132,3 +113,36 @@ struct std::formatter<xstd::div_t, CharT>
                 return std::formatter<std::tuple<int const&, int const&>, CharT>::format(std::tie(d.quot, d.rem), ctx);
         }
 };
+
+namespace xstd {
+
+// The stream inserters delegate to std::format (hence they are defined below
+// the formatter specialization), so that streaming and formatting a div_t
+// produce identical text. The .c_str() detour keeps them usable with any
+// Traits, which the basic_string inserter would reject.
+
+template<class Traits>
+auto& operator<<(std::basic_ostream<char, Traits>& ostr, div_t const& d)
+{
+        return ostr << std::format("{}", d).c_str();
+}
+
+template<class Traits>
+auto& operator<<(std::basic_ostream<wchar_t, Traits>& ostr, div_t const& d)
+{
+        return ostr << std::format(L"{}", d).c_str();
+}
+
+template<class CharT, class Traits>
+auto& operator>>(std::basic_istream<CharT, Traits>& istr, div_t& d)
+{
+        CharT c;
+        istr >> c; assert(c == istr.widen('('));
+        istr >> d.quot;
+        istr >> c; assert(c == istr.widen(','));
+        istr >> d.rem;
+        istr >> c; assert(c == istr.widen(')'));
+        return istr;
+}
+
+}       // namespace xstd

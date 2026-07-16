@@ -11,6 +11,7 @@
 #include <format>                       // format
 #include <iterator>                     // back_inserter
 #include <limits>                       // numeric_limits
+#include <sstream>                      // istringstream, ostringstream, stringstream, wostringstream
 #include <string>                       // string
 #include <utility>                      // pair
 #include <vector>                       // vector
@@ -173,6 +174,21 @@ BOOST_AUTO_TEST_CASE(Formatter)
         xstd::div_t const d { 1, -2 };
         BOOST_CHECK_EQUAL(std::format("{}", d), "(1, -2)");
         BOOST_CHECK_EQUAL(std::format(L"{}", d), std::wstring(L"(1, -2)"));
+}
+
+BOOST_AUTO_TEST_CASE(StreamInsertion)
+{
+        xstd::div_t const d { 1, -2 };
+
+        std::ostringstream oss;
+        oss << d;
+        BOOST_CHECK_EQUAL(oss.str(), "(1, -2)");
+        BOOST_CHECK_EQUAL(oss.str(), std::format("{}", d));
+
+        std::wostringstream woss;
+        woss << d;
+        BOOST_CHECK(woss.str() == L"(1, -2)");
+        BOOST_CHECK(woss.str() == std::format(L"{}", d));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
