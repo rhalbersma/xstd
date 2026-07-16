@@ -109,7 +109,9 @@ jobs:
           cat > CMakeLists.txt << 'CMAKE'
           cmake_minimum_required(VERSION 3.28)
           project(consumer_add_subdirectory LANGUAGES CXX)
-          set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+          # no BUILD_TESTING workaround: xstd only builds its tests (and
+          # requires Boost.Test) when it is the top-level project, which
+          # this consumer configure would fail on if that gating regressed
           add_subdirectory("$ENV{GITHUB_WORKSPACE}" xstd-build)
           add_executable(main main.cpp)
           target_link_libraries(main PRIVATE xstd::xstd)
@@ -149,7 +151,6 @@ jobs:
           cmake_minimum_required(VERSION 3.28)
           project(consumer_fetch_content LANGUAGES CXX)
           include(FetchContent)
-          set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
           FetchContent_Declare(xstd SOURCE_DIR "$ENV{GITHUB_WORKSPACE}")
           FetchContent_MakeAvailable(xstd)
           add_executable(main main.cpp)

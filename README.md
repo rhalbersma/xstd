@@ -26,10 +26,9 @@ find_package(xstd 0.1 CONFIG REQUIRED)
 target_link_libraries(my_target PRIVATE xstd::xstd)
 ```
 
-When vendoring the repository as a subdirectory, disable tests unless you also want to build xstd's Boost.Test suite:
+When vendoring the repository as a subdirectory (xstd's own tests and their Boost.Test dependency are only built when xstd is the top-level project, so nothing needs to be disabled):
 
 ```cmake
-set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 add_subdirectory(external/xstd)
 target_link_libraries(my_target PRIVATE xstd::xstd)
 ```
@@ -43,7 +42,6 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/rhalbersma/xstd.git
     GIT_TAG master # or a release tag
 )
-set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(xstd)
 target_link_libraries(my_target PRIVATE xstd::xstd)
 ```

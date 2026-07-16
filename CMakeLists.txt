@@ -44,10 +44,15 @@ target_sources(
         include/xstd/utility.hpp
 )
 
-include(CTest)
-
-if(BUILD_TESTING)
-    add_subdirectory(test)
+# Tests (and their Boost.Test dependency) only exist when xstd itself is
+# being developed. Consumers vendoring this directory via add_subdirectory
+# or FetchContent get just the header-only target, with no BUILD_TESTING
+# workaround required on their side.
+if(PROJECT_IS_TOP_LEVEL)
+    include(CTest)
+    if(BUILD_TESTING)
+        add_subdirectory(test)
+    endif()
 endif()
 
 install(
