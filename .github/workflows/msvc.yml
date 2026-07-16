@@ -14,7 +14,7 @@ on:
 
 jobs:
   build:
-    name: MSVC ${{ matrix.vs }} (${{ matrix.arch }})
+    name: MSVC ${{ matrix.vs }}
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.preview_channel }}
     strategy:
@@ -25,79 +25,90 @@ jobs:
             os: windows-2022
             generator: "Visual Studio 17 2022"
             toolset: "host=x64"
-            arch: x64
-            triplet: x64-windows
-            preview_channel: false
-          - vs: 2022
-            os: windows-2022
-            generator: "Visual Studio 17 2022"
-            toolset: "host=x64"
-            arch: Win32
-            triplet: x86-windows
             preview_channel: false
           - vs: 2026
             os: windows-2025
             generator: "Visual Studio 18 2026"
             toolset: "host=x64"
-            arch: x64
-            triplet: x64-windows
-            preview_channel: false
-          - vs: 2026
-            os: windows-2025
-            generator: "Visual Studio 18 2026"
-            toolset: "host=x64"
-            arch: Win32
-            triplet: x86-windows
             preview_channel: false
           - vs: 2026-Preview
             os: windows-2025
             generator: "Visual Studio 18 2026"
-            toolset: "version=Preview,host=x64"
-            arch: x64
-            triplet: x64-windows
             preview_channel: true
 
     steps:
       - uses: actions/checkout@v4
 
-      # Best-effort: installs the VS 2026 Insiders channel side-by-side with
-      # the pre-installed Stable channel, to get at the MSVC Preview toolset.
-      # This is not an officially supported CI configuration, so this leg is
-      # allowed to fail (see continue-on-error above).
-      - name: Install MSVC Preview channel
+      # Best-effort: the windows-2025 runner image ships VS 2026 Stable
+      # preinstalled, and the Preview MSVC toolset is an optional component
+      # on the Stable channel (see the "MSVC Build Tools Preview: How to Opt
+      # In" C++ team blog posts), so it can be added to the existing
+      # instance with the VS Installer's own "modify" command. Two hard-won
+      # gotchas live here:
+      #   1. setup.exe is a GUI-subsystem executable: PowerShell's call
+      #      operator (&) does NOT wait for it, silently leaving a stale
+      #      $LASTEXITCODE and letting the job kill the install as an orphan
+      #      process at teardown. Start-Process -Wait is required (GitHub's
+      #      own runner-images build scripts do the same, treating exit
+      #      codes 0 and 3010 as success).
+      #   2. CMake's "-T version=" only accepts numeric toolset versions,
+      #      not "Preview", so the installed preview version is discovered
+      #      afterwards and passed to Configure via $GITHUB_ENV.
+      - name: Install MSVC Preview toolset
         if: matrix.preview_channel
         shell: pwsh
         run: |
-          Invoke-WebRequest -Uri https://aka.ms/vs/18/insiders/channel -OutFile VisualStudio.chman
-          Invoke-WebRequest -Uri https://aka.ms/vs/18/insiders/vs_buildtools.exe -OutFile vs_buildtools.exe
-          ./vs_buildtools.exe --quiet --wait --norestart --nocache `
-            --channelUri VisualStudio.chman `
-            --installChannelUri VisualStudio.chman `
-            --add Microsoft.VisualStudio.Workload.VCTools `
-            --includeRecommended
-
-          # Don't assume where the Insiders instance landed: ask vswhere,
-          # which Microsoft ships specifically for this.
           $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-          $instance = & $vswhere -prerelease -products * -format json | ConvertFrom-Json |
-            Where-Object { $_.channelId -like "*Insiders*" } |
-            Select-Object -First 1
+          $instance = & $vswhere -products * -format json | ConvertFrom-Json | Select-Object -First 1
           if (-not $instance) {
-            Write-Error "No VS Insiders instance found by vswhere"
+            Write-Host "No VS instance found by vswhere to add the Preview toolset to"
             exit 1
           }
-          echo "VS_PREVIEW_INSTANCE=$($instance.installationPath)" >> $env:GITHUB_ENV
+          $installPath = $instance.installationPath
+
+          $setup = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\setup.exe"
+          $proc = Start-Process -FilePath $setup -Wait -PassThru -ArgumentList (
+            'modify', '--quiet', '--norestart', '--nocache',
+            '--installPath', "`"$installPath`"",
+            '--add', 'Microsoft.VisualStudio.Component.VC.Preview.Tools.x86.x64'
+          )
+          # 3010 = success, reboot required
+          $ok = $proc.ExitCode -eq 0 -or $proc.ExitCode -eq 3010
+
+          $verify = & $vswhere -products * -requires Microsoft.VisualStudio.Component.VC.Preview.Tools.x86.x64 -format json | ConvertFrom-Json
+          if (-not $ok -or -not $verify) {
+            Write-Host "Preview toolset not present after setup.exe modify (exit code $($proc.ExitCode))."
+            Write-Host "Toolsets present under VC\Tools\MSVC:"
+            Get-ChildItem "$installPath\VC\Tools\MSVC" -Directory -ErrorAction SilentlyContinue | ForEach-Object { Write-Host "  $($_.Name)" }
+            $log = Get-ChildItem "$env:TEMP\dd_*.log" -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+            if ($log) {
+              Write-Host "--- $($log.FullName) (last 150 lines) ---"
+              Get-Content $log.FullName -Tail 150 | ForEach-Object { Write-Host $_ }
+            } else {
+              Write-Host "No dd_*.log found under $env:TEMP"
+            }
+            exit 1
+          }
+
+          # CMake can't be told "version=Preview"; find the preview
+          # toolset's actual version number (the highest one installed).
+          $default = (Get-Content "$installPath\VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt").Trim()
+          $newest = Get-ChildItem "$installPath\VC\Tools\MSVC" -Directory |
+            Sort-Object { [version]$_.Name } -Descending |
+            Select-Object -First 1 -ExpandProperty Name
+          Write-Host "Default toolset: $default; newest (preview) toolset: $newest"
+          echo "VC_PREVIEW_TOOLSET=$newest" >> $env:GITHUB_ENV
 
       - name: Install Boost.Test
         shell: pwsh
-        run: vcpkg install boost-test:${{ matrix.triplet }}
+        run: vcpkg install boost-test:x64-windows
 
       - name: Configure
         if: "!matrix.preview_channel"
         shell: pwsh
         run: >
           cmake -S . -B build
-          -G "${{ matrix.generator }}" -A ${{ matrix.arch }}
+          -G "${{ matrix.generator }}" -A x64
           -T ${{ matrix.toolset }}
           "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
 
@@ -106,9 +117,8 @@ jobs:
         shell: pwsh
         run: >
           cmake -S . -B build
-          -G "${{ matrix.generator }}" -A ${{ matrix.arch }}
-          -T ${{ matrix.toolset }}
-          "-DCMAKE_GENERATOR_INSTANCE=$env:VS_PREVIEW_INSTANCE"
+          -G "${{ matrix.generator }}" -A x64
+          -T "version=$env:VC_PREVIEW_TOOLSET,host=x64"
           "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
 
       - name: Build
