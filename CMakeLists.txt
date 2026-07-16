@@ -19,15 +19,9 @@ add_library(
 )
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
-set(project_include_dir
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-)
-target_include_directories(
-    ${PROJECT_NAME} INTERFACE
-    ${project_include_dir}
-)
-
+# No target_include_directories: the HEADERS file set below adds its base
+# directory to the build interface, and install(TARGETS ... FILE_SET) adds
+# the install destination to the install interface.
 target_compile_features(
     ${PROJECT_NAME} INTERFACE
     cxx_std_23

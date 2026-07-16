@@ -3,6 +3,9 @@
 #    (See accompanying file LICENSE_1_0.txt or copy at
 #          http://www.boost.org/LICENSE_1_0.txt)
 
+# strict -std=c++23 rather than the default gnu++23 dialect
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 add_library(xstd_test_options INTERFACE)
 option(XSTD_WARNINGS_AS_ERRORS "Treat warnings as errors in xstd tests" ${PROJECT_IS_TOP_LEVEL})
 
@@ -100,7 +103,9 @@ foreach(h ${public_headers})
     add_test(NAME header.${header_test_id} COMMAND header.${header_test_id})
 endforeach()
 
-set(Boost_USE_STATIC_LIBS ON)
+if(NOT DEFINED Boost_USE_STATIC_LIBS)
+    set(Boost_USE_STATIC_LIBS ON)
+endif()
 
 find_package(
     Boost CONFIG REQUIRED COMPONENTS
@@ -116,8 +121,8 @@ file(
 )
 
 foreach(t ${targets})
-    get_filename_component(target_path ${t} PATH)
-    get_filename_component(target_name_we ${t} NAME_WE)
+    cmake_path(GET t PARENT_PATH target_path)
+    cmake_path(GET t STEM target_name_we)
     string(REPLACE "/" "." target_id ${target_path}/${target_name_we})
     string(REGEX REPLACE "^[.]" "" target_id ${target_id})
 
