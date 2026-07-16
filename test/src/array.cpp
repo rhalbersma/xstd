@@ -19,8 +19,8 @@ struct type_list {};
 
 BOOST_AUTO_TEST_CASE(ArrayFromTypes)
 {
-        constexpr auto sizes = array_from_types<type_list<int, double, char>>()([](auto x) {
-                return sizeof(x);
+        constexpr auto sizes = array_from_types<type_list<int, double, char>>()([]<class T>(std::type_identity<T>) {
+                return sizeof(T);
         });
 
         static_assert(std::is_same_v<decltype(sizes), std::array<std::size_t, 3> const>);
@@ -31,6 +31,11 @@ BOOST_AUTO_TEST_CASE(ArrayFromTypes)
         BOOST_CHECK_EQUAL(sizes[2], sizeof(char));
 }
 
+struct non_default_constructible
+{
+        non_default_constructible() = delete;
+};
+
 BOOST_AUTO_TEST_CASE(WorksWithAnyTypeList)
 {
         // any variadic class template works as the type list, e.g. std::tuple
@@ -40,6 +45,14 @@ BOOST_AUTO_TEST_CASE(WorksWithAnyTypeList)
         BOOST_CHECK_EQUAL(ones.size(), 2u);
         BOOST_CHECK_EQUAL(ones[0], 1);
         BOOST_CHECK_EQUAL(ones[1], 1);
+}
+
+BOOST_AUTO_TEST_CASE(WorksWithNonDefaultConstructibleTypes)
+{
+        constexpr auto sizes = array_from_types<type_list<non_default_constructible>>()([]<class T>(std::type_identity<T>) {
+                return sizeof(T);
+        });
+        static_assert(sizes == std::array{sizeof(non_default_constructible)});
 }
 
 BOOST_AUTO_TEST_SUITE_END()

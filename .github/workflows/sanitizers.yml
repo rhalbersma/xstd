@@ -3,7 +3,7 @@
 #    (See accompanying file LICENSE_1_0.txt or copy at
 #          http://www.boost.org/LICENSE_1_0.txt)
 
-name: Clang
+name: Sanitizers
 
 on:
   push:
@@ -14,37 +14,27 @@ on:
 
 jobs:
   build:
-    name: Clang ${{ matrix.label }}
+    name: GCC 15 ${{ matrix.name }}
     runs-on: ubuntu-22.04
-    continue-on-error: ${{ matrix.trunk }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - label: "21"
-            version: 21
-            cc: clang-21
-            cxx: clang++-21
-            trunk: false
-          - label: "22"
-            version: 22
-            cc: clang-22
-            cxx: clang++-22
-            trunk: false
-          - label: 23-SVN
-            version: 23
-            cc: clang-23
-            cxx: clang++-23
-            trunk: true
+          - name: ASan
+            flags: -fsanitize=address -fno-omit-frame-pointer -g
+            env: ASAN_OPTIONS=detect_leaks=0
+          - name: UBSan
+            flags: -fsanitize=undefined -fno-sanitize-recover=undefined -g
+            env: UBSAN_OPTIONS=print_stacktrace=1
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Clang ${{ matrix.version }}
+      - name: Install GCC 15
         run: |
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh ${{ matrix.version }}
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get update
+          sudo apt-get install -y g++-15
 
       # Export the two env vars vcpkg's "x-gha" binary source needs to talk
       # to the GitHub Actions cache service, so built packages are reused
@@ -56,11 +46,6 @@ jobs:
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
-      # Ubuntu 22.04's libboost-test-dev is Boost 1.74 (2020); vcpkg tracks
-      # recent Boost releases instead. apt.llvm.org's Clang packages
-      # (including the dev/SVN build) link against the system libstdc++ like
-      # every other apt-installed compiler on the runner - no separate
-      # bundled runtime, so no ABI mismatch with vcpkg's Boost.Test either.
       - name: Install Boost.Test
         env:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
@@ -69,12 +54,15 @@ jobs:
       - name: Configure
         run: >
           cmake -S . -B build
-          -DCMAKE_C_COMPILER=${{ matrix.cc }}
-          -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
+          -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_C_COMPILER=gcc-15
+          -DCMAKE_CXX_COMPILER=g++-15
+          -DCMAKE_CXX_FLAGS="${{ matrix.flags }}"
+          -DCMAKE_EXE_LINKER_FLAGS="${{ matrix.flags }}"
           -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
 
       - name: Build
         run: cmake --build build -v
 
       - name: Test
-        run: ctest --test-dir build --output-on-failure
+        run: env ${{ matrix.env }} ctest --test-dir build --output-on-failure

@@ -13,19 +13,42 @@ xstd is a header-only C++23 library for small standard-library extensions that c
 | Header                   | Additions          | Description | Reference |
 | :-----                   | :--------          | :---------- | :-------- |
 | `<xstd/array.hpp>`       | `array_from_types` | Create an `array` from a type list | none |
-| `<xstd/cstdlib.hpp>`     | `abs` <br> `div` <br> `euclidean_div` <br> `floored_div` <br> `sign` | `constexpr std::abs(int)` <br> `constexpr std::div(int, int)` <br> Euclidean division <br> Floored division <br> `constexpr boost::math::sign` | [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) <br> [Boost.Math](https://www.boost.org/doc/libs/1_80_0/libs/math/doc/html/math_toolkit/sign_functions.html) |
+| `<xstd/cstdlib.hpp>`     | `abs` <br> `div` <br> `euclidean_div` <br> `floored_div` <br> `sign` | `constexpr std::abs(int)` <br> `constexpr std::div(int, int)` with tuple-style `std::format` support <br> Euclidean division <br> Floored division <br> `constexpr boost::math::sign` | [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) <br> [Boost.Math](https://www.boost.org/doc/libs/1_80_0/libs/math/doc/html/math_toolkit/sign_functions.html) |
 | `<xstd/type_traits.hpp>` | `is_specialization_of` <br> `is_integral_constant` <br> `tagged_empty` <br> `optional_type` | Is a type a class template specialization? <br> Is a type an `integral_constant`? <br> A tagged empty type <br> An optional type | [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> none <br> none <br> none |
 | `<xstd/utility.hpp>`     | `to_underlying`    | Preserve a compile-time constant through `std::to_underlying` (C++23) | none |
 
 ## Using xstd
 
-Link the header-only CMake target from your own target:
+Link the header-only CMake target from your own target. When consuming an installed package:
 
 ```cmake
+find_package(xstd 0.1 CONFIG REQUIRED)
 target_link_libraries(my_target PRIVATE xstd::xstd)
 ```
 
-The target publishes the `include/` directory and requires C++23. You can also include individual headers directly, such as `<xstd/cstdlib.hpp>` or `<xstd/type_traits.hpp>`.
+When vendoring the repository as a subdirectory, disable tests unless you also want to build xstd's Boost.Test suite:
+
+```cmake
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+add_subdirectory(external/xstd)
+target_link_libraries(my_target PRIVATE xstd::xstd)
+```
+
+When using `FetchContent`:
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(
+    xstd
+    GIT_REPOSITORY https://github.com/rhalbersma/xstd.git
+    GIT_TAG master # or a release tag
+)
+set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(xstd)
+target_link_libraries(my_target PRIVATE xstd::xstd)
+```
+
+The target publishes the public headers and requires C++23. You can also include individual headers directly, such as `<xstd/cstdlib.hpp>` or `<xstd/type_traits.hpp>`.
 
 ## Examples
 
@@ -51,6 +74,7 @@ static_assert(std::is_same_v<value, std::integral_constant<unsigned, 1>>);
 `xstd::euclidean_div` and `xstd::floored_div` make the desired division convention explicit for negative inputs:
 
 ```cpp
+#include <format>
 #include <xstd/cstdlib.hpp>
 
 constexpr auto euclidean = xstd::euclidean_div(-8, 3);
@@ -60,7 +84,15 @@ static_assert(euclidean.rem == 1);
 constexpr auto floored = xstd::floored_div(-8, 3);
 static_assert(floored.quot == -3);
 static_assert(floored.rem == 1);
+
+auto const text = std::format("{}", floored); // "(-3, 1)"
 ```
+
+`xstd::div`, `xstd::euclidean_div`, and `xstd::floored_div` require a nonzero denominator. Like built-in signed integer division, `INT_MIN / -1` is outside their contract for `int` inputs. `xstd::div` follows C++'s truncated division semantics, `xstd::euclidean_div` always returns a nonnegative remainder, and `xstd::floored_div` returns a remainder with the divisor's sign unless the remainder is zero.
+
+Formatting `xstd::div_t` requires C++23 standard-library support for formatting tuple-like values, because its formatter delegates to `std::formatter<std::tuple<int const&, int const&>>` through `std::tie`. This is covered by the continuously tested compiler and standard-library versions below.
+
+`xstd::abs` and `xstd::sign` accept arithmetic types; for unsigned inputs, `abs` is the identity, and for `bool`, `sign(true) == 1` while `sign(false) == 0`.
 
 ### Type traits
 
@@ -84,7 +116,22 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-Tests require Boost.Test.
+The repository also provides CMake presets for common local configurations:
+
+```sh
+cmake --preset dev
+cmake --build --preset dev
+ctest --preset dev
+```
+
+Tests require Boost.Test. The checked-in vcpkg manifest declares that dependency for vcpkg-based builds:
+
+```sh
+vcpkg install --triplet x64-linux
+cmake --preset dev -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
+```
+
+Alternatively, install Boost.Test with your system package manager and point CMake at the package if it is not found automatically.
 
 ## Project layout
 
@@ -112,7 +159,7 @@ These header-only libraries are continuously being tested with the following con
 | Windows  | Clang-CL | 19.1.5 (VS 2022, bundled) | 20.1.8 (VS 2026, bundled) | —               | [![Clang-CL](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml) |
 | Windows  | MSVC     | 2022           | 2026            | 2026-Preview       | [![MSVC](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml) |
 
-The `Trunk / Preview` column is allowed to fail independently and does not affect the badges above. The `clang-cl` leg tests Clang's diagnostics against the MSVC STL, using whichever LLVM version each Visual Studio version bundles; there's no separate `Trunk / Preview` entry for it, since "Clang tools for Windows" is a single VS component shared by the stable and preview MSVC toolsets alike. MSVC has no stable `/std:c++23` switch yet, so both MSVC rows build with `/std:c++latest`.
+The `Trunk / Preview` column is allowed to fail independently and does not affect the badges above. The `clang-cl` leg tests Clang's diagnostics against the MSVC STL, using whichever LLVM version each Visual Studio version bundles; there's no separate `Trunk / Preview` entry for it, since "Clang tools for Windows" is a single VS component shared by the stable and preview MSVC toolsets alike. The CMake target requests C++23 through `target_compile_features(... cxx_std_23)`, letting CMake select the appropriate standard flag for each supported compiler.
 
 ## License
 

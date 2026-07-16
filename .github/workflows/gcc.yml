@@ -95,7 +95,7 @@ jobs:
         if: "!matrix.trunk"
         env:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-        run: vcpkg install boost-test:x64-linux
+        run: vcpkg install --triplet x64-linux
 
       # The distro's/vcpkg's prebuilt Boost.Test is compiled by an older,
       # ABI-stable GCC. Linking it against the trunk snapshot breaks
@@ -180,9 +180,30 @@ jobs:
           target_link_libraries(main PRIVATE xstd::xstd)
           EOF
           cat > main.cpp << 'EOF'
+          #include <xstd/array.hpp>
           #include <xstd/cstdlib.hpp>
-          static_assert(xstd::euclidean_div(-8, 3).rem == 1);
-          int main() {}
+          #include <xstd/type_traits.hpp>
+          #include <xstd/utility.hpp>
+          #include <complex>
+          #include <format>
+          #include <string>
+          #include <tuple>
+          #include <type_traits>
+
+          enum class color : unsigned { red = 1 };
+
+          int main()
+          {
+                  static_assert(xstd::array_from_types<std::tuple<int, char>>()([]<class T>(std::type_identity<T>) {
+                          return sizeof(T);
+                  }).size() == 2);
+                  static_assert(xstd::is_specialization_of_v<std::complex<double>, std::complex>);
+                  static_assert(decltype(xstd::to_underlying(std::integral_constant<color, color::red>()))::value == 1);
+                  static_assert(xstd::euclidean_div(-8, 3).rem == 1);
+
+                  auto const d = xstd::floored_div(-8, 3);
+                  return std::format("{}", d) == "(-3, 1)" ? 0 : 1;
+          }
           EOF
           cmake -S . -B build \
             -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \

@@ -6,14 +6,10 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <cassert>      // assert
-#include <iosfwd>       // basic_istream, basic_ostream
+#include <format>       // formatter
+#include <limits>       // numeric_limits
+#include <tuple>        // tie, tuple
 #include <type_traits>  // is_arithmetic_v
-
-#if defined(__clang__)
-#define XSTD_LIFETIMEBOUND [[clang::lifetimebound]]
-#else
-#define XSTD_LIFETIMEBOUND
-#endif
 
 namespace xstd {
 
@@ -37,23 +33,15 @@ struct div_t
         bool operator==(div_t const&) const = default;
 };
 
-template<class CharT, class Traits>
-auto& operator<<(std::basic_ostream<CharT, Traits>& ostr XSTD_LIFETIMEBOUND, div_t const& d)
+namespace detail {
+
+[[nodiscard]] constexpr auto magnitude(int x) noexcept
 {
-        return ostr << ostr.widen('[') << d.quot << ostr.widen(',') << d.rem << ostr.widen(']');
+        auto const y = static_cast<long long>(x);
+        return y < 0 ? -y : y;
 }
 
-template<class CharT, class Traits>
-auto& operator>>(std::basic_istream<CharT, Traits>& istr XSTD_LIFETIMEBOUND, div_t& d)
-{
-        CharT c;
-        istr >> c; assert(c == istr.widen('['));
-        istr >> d.quot;
-        istr >> c; assert(c == istr.widen(','));
-        istr >> d.rem;
-        istr >> c; assert(c == istr.widen(']'));
-        return istr;
-}
+}       // namespace detail
 
 // C++ Standard [expr.mul]/4
 // https://en.wikipedia.org/wiki/Modulo_operation
@@ -68,10 +56,11 @@ auto& operator>>(std::basic_istream<CharT, Traits>& istr XSTD_LIFETIMEBOUND, div
         -> div_t
 {
         assert(denom != 0);
+        assert(!(numer == std::numeric_limits<int>::min() && denom == -1));
         auto const qT = numer / denom;
         auto const rT = numer % denom;
-        assert(numer == denom * qT + rT);
-        assert(abs(rT) < abs(denom));
+        assert(static_cast<long long>(numer) == static_cast<long long>(denom) * qT + rT);
+        assert(detail::magnitude(rT) < detail::magnitude(denom));
         assert(sign(rT) == sign(numer) || rT == 0);
         return { qT, rT };
 }
@@ -87,8 +76,8 @@ auto& operator>>(std::basic_istream<CharT, Traits>& istr XSTD_LIFETIMEBOUND, div
         auto const I = divT.rem >= 0 ? 0 : (denom > 0 ? 1 : -1);
         auto const qE = divT.quot - I;
         auto const rE = divT.rem + I * denom;
-        assert(numer == denom * qE + rE);
-        assert(abs(rE) < abs(denom));
+        assert(static_cast<long long>(numer) == static_cast<long long>(denom) * qE + rE);
+        assert(detail::magnitude(rE) < detail::magnitude(denom));
         assert(sign(rE) >= 0);
         return { qE, rE };
 }
@@ -105,12 +94,21 @@ auto& operator>>(std::basic_istream<CharT, Traits>& istr XSTD_LIFETIMEBOUND, div
         auto const I = sign(divT.rem) == -sign(denom) ? 1 : 0;
         auto const qF = divT.quot - I;
         auto const rF = divT.rem + I * denom;
-        assert(numer == denom * qF + rF);
-        assert(abs(rF) < abs(denom));
-        assert(sign(rF) == sign(denom));
+        assert(static_cast<long long>(numer) == static_cast<long long>(denom) * qF + rF);
+        assert(detail::magnitude(rF) < detail::magnitude(denom));
+        assert(rF == 0 || sign(rF) == sign(denom));
         return { qF, rF };
 }
 
 }       // namespace xstd
 
-#undef XSTD_LIFETIMEBOUND
+template<class CharT>
+struct std::formatter<xstd::div_t, CharT>
+        : std::formatter<std::tuple<int const&, int const&>, CharT>
+{
+        template<class FormatContext>
+        auto format(xstd::div_t const& d, FormatContext& ctx) const
+        {
+                return std::formatter<std::tuple<int const&, int const&>, CharT>::format(std::tie(d.quot, d.rem), ctx);
+        }
+};

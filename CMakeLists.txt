@@ -33,28 +33,27 @@ target_compile_features(
     cxx_std_23
 )
 
-# MSVC has no stable /std:c++23 switch yet; /std:c++23preview is incomplete,
-# so track /std:c++latest instead. This overrides whatever CMake's cxx_std_23
-# feature would otherwise select for MSVC.
-target_compile_options(
+target_sources(
     ${PROJECT_NAME} INTERFACE
-    $<$<CXX_COMPILER_ID:MSVC>:/std:c++latest>
+    FILE_SET HEADERS
+    BASE_DIRS include
+    FILES
+        include/xstd/array.hpp
+        include/xstd/cstdlib.hpp
+        include/xstd/type_traits.hpp
+        include/xstd/utility.hpp
 )
 
-option(XSTD_BUILD_TESTING "Build xstd tests" ${PROJECT_IS_TOP_LEVEL})
+include(CTest)
 
-if(XSTD_BUILD_TESTING)
-    include(CTest)
+if(BUILD_TESTING)
     add_subdirectory(test)
 endif()
 
 install(
     TARGETS ${PROJECT_NAME}
     EXPORT ${PROJECT_NAME}Targets
-)
-install(
-    DIRECTORY include/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    FILE_SET HEADERS
 )
 install(
     EXPORT ${PROJECT_NAME}Targets
