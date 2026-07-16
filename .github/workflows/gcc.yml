@@ -158,3 +158,34 @@ jobs:
 
       - name: Test
         run: ctest --test-dir build --output-on-failure
+
+      # Verify the install rules and that a downstream consumer can locate
+      # the installed package via find_package(xstd CONFIG). Once per
+      # matrix (on the latest stable leg) is enough: the install/consume
+      # path is compiler-independent.
+      - name: Install (package smoke test)
+        if: matrix.version == 16
+        run: cmake --install build --prefix "$GITHUB_WORKSPACE/xstd-prefix"
+
+      - name: Consume installed package
+        if: matrix.version == 16
+        run: |
+          mkdir consumer
+          cd consumer
+          cat > CMakeLists.txt << 'EOF'
+          cmake_minimum_required(VERSION 3.28)
+          project(consumer LANGUAGES CXX)
+          find_package(xstd 0.1 CONFIG REQUIRED)
+          add_executable(main main.cpp)
+          target_link_libraries(main PRIVATE xstd::xstd)
+          EOF
+          cat > main.cpp << 'EOF'
+          #include <xstd/cstdlib.hpp>
+          static_assert(xstd::euclidean_div(-8, 3).rem == 1);
+          int main() {}
+          EOF
+          cmake -S . -B build \
+            -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
+            -DCMAKE_PREFIX_PATH="$GITHUB_WORKSPACE/xstd-prefix"
+          cmake --build build -v
+          ./build/main
