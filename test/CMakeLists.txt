@@ -3,36 +3,6 @@
 #    (See accompanying file LICENSE_1_0.txt or copy at
 #          http://www.boost.org/LICENSE_1_0.txt)
 
-set(public_header_dir ${PROJECT_SOURCE_DIR}/include)
-file(
-    GLOB_RECURSE public_headers
-    CONFIGURE_DEPENDS
-    RELATIVE ${public_header_dir}
-    ${public_header_dir}/xstd/*.hpp
-)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/header_self_sufficiency)
-
-foreach(h ${public_headers})
-    string(REPLACE "/" "." header_test_id ${h})
-    string(REGEX REPLACE "[.]hpp$" "" header_test_id ${header_test_id})
-    set(header_test_source ${CMAKE_CURRENT_BINARY_DIR}/header_self_sufficiency/${header_test_id}.cpp)
-    file(
-        WRITE ${header_test_source}
-        "#include <${h}>\nint main() {}\n"
-    )
-
-    add_executable(header.${header_test_id} ${header_test_source})
-    target_link_libraries(header.${header_test_id} PRIVATE ${PROJECT_NAME}::${PROJECT_NAME})
-    add_test(NAME header.${header_test_id} COMMAND header.${header_test_id})
-endforeach()
-
-set(Boost_USE_STATIC_LIBS ON)
-
-find_package(
-    Boost CONFIG REQUIRED COMPONENTS
-    unit_test_framework
-)
-
 add_library(xstd_test_options INTERFACE)
 option(XSTD_WARNINGS_AS_ERRORS "Treat warnings as errors in xstd tests" ${PROJECT_IS_TOP_LEVEL})
 
@@ -99,6 +69,42 @@ target_compile_options(
     ${cxx_compile_options_mbig_obj}
     $<$<AND:$<BOOL:${XSTD_WARNINGS_AS_ERRORS}>,$<CXX_COMPILER_ID:MSVC>>:/WX>
     $<$<AND:$<BOOL:${XSTD_WARNINGS_AS_ERRORS}>,$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>>:-Werror>
+)
+
+# Each public header is compiled as its own translation unit (linked against
+# the same warning flags as the unit tests), proving it is self-sufficient.
+set(public_header_dir ${PROJECT_SOURCE_DIR}/include)
+file(
+    GLOB_RECURSE public_headers
+    CONFIGURE_DEPENDS
+    RELATIVE ${public_header_dir}
+    ${public_header_dir}/xstd/*.hpp
+)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/header_self_sufficiency)
+
+foreach(h ${public_headers})
+    string(REPLACE "/" "." header_test_id ${h})
+    string(REGEX REPLACE "[.]hpp$" "" header_test_id ${header_test_id})
+    set(header_test_source ${CMAKE_CURRENT_BINARY_DIR}/header_self_sufficiency/${header_test_id}.cpp)
+    file(
+        WRITE ${header_test_source}
+        "#include <${h}>\nint main() {}\n"
+    )
+
+    add_executable(header.${header_test_id} ${header_test_source})
+    target_link_libraries(
+        header.${header_test_id} PRIVATE
+        ${PROJECT_NAME}::${PROJECT_NAME}
+        xstd_test_options
+    )
+    add_test(NAME header.${header_test_id} COMMAND header.${header_test_id})
+endforeach()
+
+set(Boost_USE_STATIC_LIBS ON)
+
+find_package(
+    Boost CONFIG REQUIRED COMPONENTS
+    unit_test_framework
 )
 
 set(current_source_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)
