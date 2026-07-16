@@ -169,17 +169,17 @@ BOOST_AUTO_TEST_CASE(BoundaryDivisions)
 {
         using limits = std::numeric_limits<int>;
 
-        BOOST_CHECK_EQUAL(xstd::div(limits::min(), +1), xstd::div_t{limits::min(), 0});
-        BOOST_CHECK_EQUAL(xstd::euclidean_div(limits::min(), +1), xstd::div_t{limits::min(), 0});
-        BOOST_CHECK_EQUAL(xstd::floored_div(limits::min(), +1), xstd::div_t{limits::min(), 0});
+        BOOST_CHECK_EQUAL(xstd::div(limits::min(), +1), (xstd::div_t{limits::min(), 0}));
+        BOOST_CHECK_EQUAL(xstd::euclidean_div(limits::min(), +1), (xstd::div_t{limits::min(), 0}));
+        BOOST_CHECK_EQUAL(xstd::floored_div(limits::min(), +1), (xstd::div_t{limits::min(), 0}));
 
-        BOOST_CHECK_EQUAL(xstd::div(+1, limits::min()), xstd::div_t{0, +1});
-        BOOST_CHECK_EQUAL(xstd::euclidean_div(+1, limits::min()), xstd::div_t{0, +1});
-        BOOST_CHECK_EQUAL(xstd::floored_div(+1, limits::min()), xstd::div_t{-1, limits::min() + 1});
+        BOOST_CHECK_EQUAL(xstd::div(+1, limits::min()), (xstd::div_t{0, +1}));
+        BOOST_CHECK_EQUAL(xstd::euclidean_div(+1, limits::min()), (xstd::div_t{0, +1}));
+        BOOST_CHECK_EQUAL(xstd::floored_div(+1, limits::min()), (xstd::div_t{-1, limits::min() + 1}));
 
-        BOOST_CHECK_EQUAL(xstd::div(limits::max(), -1), xstd::div_t{-limits::max(), 0});
-        BOOST_CHECK_EQUAL(xstd::euclidean_div(limits::max(), -1), xstd::div_t{-limits::max(), 0});
-        BOOST_CHECK_EQUAL(xstd::floored_div(limits::max(), -1), xstd::div_t{-limits::max(), 0});
+        BOOST_CHECK_EQUAL(xstd::div(limits::max(), -1), (xstd::div_t{-limits::max(), 0}));
+        BOOST_CHECK_EQUAL(xstd::euclidean_div(limits::max(), -1), (xstd::div_t{-limits::max(), 0}));
+        BOOST_CHECK_EQUAL(xstd::floored_div(limits::max(), -1), (xstd::div_t{-limits::max(), 0}));
 }
 
 BOOST_AUTO_TEST_CASE(FlooredDiv)
@@ -205,7 +205,7 @@ BOOST_AUTO_TEST_CASE(Formatter)
 {
         xstd::div_t const d { 1, -2 };
         BOOST_CHECK_EQUAL(std::format("{}", d), "(1, -2)");
-        BOOST_CHECK_EQUAL(std::format(L"{}", d), std::wstring(L"(1, -2)"));
+        BOOST_CHECK(std::format(L"{}", d) == std::wstring(L"(1, -2)"));      // wide strings aren't printable by Boost.Test
 }
 
 BOOST_AUTO_TEST_CASE(StreamInsertion)
