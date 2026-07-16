@@ -79,7 +79,9 @@ jobs:
       # the token avoids anonymous rate limits on shared runner IPs.
       - name: Install Boost.Test (from source)
         run: |
-          boost_tag=$(curl -fsSL -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/boostorg/boost/releases/latest | grep -m1 '"tag_name"' | cut -d'"' -f4)
+          # /releases/latest can return a beta (boostorg doesn't always flag
+          # them as prerelease), so list releases and keep strict boost-X.Y.Z
+          boost_tag=$(curl -fsSL -H "Authorization: Bearer ${{ github.token }}" "https://api.github.com/repos/boostorg/boost/releases?per_page=20" | grep '"tag_name"' | cut -d'"' -f4 | grep -E -m1 '^boost-[0-9]+\.[0-9]+\.[0-9]+$')
           boost_ver=${boost_tag#boost-}
           wget -q "https://github.com/boostorg/boost/releases/download/${boost_tag}/boost-${boost_ver}-b2-nodocs.tar.gz" -O boost.tar.gz
           tar xzf boost.tar.gz

@@ -42,15 +42,32 @@ jobs:
         shell: pwsh
         run: |
           $headers = @{ Authorization = "Bearer ${{ github.token }}" }
-          $release = Invoke-RestMethod -Uri https://api.github.com/repos/boostorg/boost/releases/latest -Headers $headers
+          # /releases/latest can return a beta (boostorg doesn't always flag
+          # them as prerelease), so list releases and keep strict boost-X.Y.Z
+          $release = (Invoke-RestMethod -Uri "https://api.github.com/repos/boostorg/boost/releases?per_page=20" -Headers $headers) |
+            Where-Object { $_.tag_name -match '^boost-\d+\.\d+\.\d+$' } | Select-Object -First 1
           $tag = $release.tag_name
           $ver = $tag -replace '^boost-', ''
           Invoke-WebRequest -Uri "https://github.com/boostorg/boost/releases/download/$tag/boost-$ver-b2-nodocs.tar.gz" -OutFile boost.tar.gz
           tar -xzf boost.tar.gz
           cd "boost-$ver"
+
+          # CMake's ClangCL toolset uses the clang-cl bundled with Visual
+          # Studio, but PATH has a newer standalone LLVM; if b2 picks up the
+          # latter, BoostConfig rejects the libs over the compiler-version
+          # tag in their names (clangw20 vs clangw19). Pin b2 to the exact
+          # same clang-cl binary the VS toolset will use.
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $clangcl = & $vswhere -latest -products * -find 'VC\Tools\Llvm\x64\bin\clang-cl.exe' | Select-Object -First 1
+          if (-not $clangcl) {
+            Write-Host "clang-cl.exe not found via vswhere"
+            exit 1
+          }
+          "using clang-win : : `"$($clangcl -replace '\\', '/')`" ;" | Set-Content user-config.jam
+
           .\bootstrap.bat
           if ($LASTEXITCODE -ne 0) { exit 1 }
-          .\b2 install --prefix=C:\boost-latest --with-test toolset=clang-win address-model=64 variant=release link=static threading=multi
+          .\b2 install --prefix=C:\boost-latest --user-config=user-config.jam --with-test toolset=clang-win address-model=64 variant=release link=static threading=multi
           if ($LASTEXITCODE -ne 0) { exit 1 }
 
       - name: Configure

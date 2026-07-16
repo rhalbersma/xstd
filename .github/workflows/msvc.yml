@@ -110,7 +110,10 @@ jobs:
         shell: pwsh
         run: |
           $headers = @{ Authorization = "Bearer ${{ github.token }}" }
-          $release = Invoke-RestMethod -Uri https://api.github.com/repos/boostorg/boost/releases/latest -Headers $headers
+          # /releases/latest can return a beta (boostorg doesn't always flag
+          # them as prerelease), so list releases and keep strict boost-X.Y.Z
+          $release = (Invoke-RestMethod -Uri "https://api.github.com/repos/boostorg/boost/releases?per_page=20" -Headers $headers) |
+            Where-Object { $_.tag_name -match '^boost-\d+\.\d+\.\d+$' } | Select-Object -First 1
           $tag = $release.tag_name
           $ver = $tag -replace '^boost-', ''
           Invoke-WebRequest -Uri "https://github.com/boostorg/boost/releases/download/$tag/boost-$ver-b2-nodocs.tar.gz" -OutFile boost.tar.gz
