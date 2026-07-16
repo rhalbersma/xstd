@@ -161,6 +161,8 @@ These header-only libraries are continuously being tested with the following con
 
 The `Trunk / Preview` column is allowed to fail independently and does not affect the badges above. The `clang-cl` leg tests Clang's diagnostics against the MSVC STL, using whichever LLVM version each Visual Studio version bundles; there's no separate `Trunk / Preview` entry for it, since "Clang tools for Windows" is a single VS component shared by the stable and preview MSVC toolsets alike. The CMake target requests C++23 through `target_compile_features(... cxx_std_23)`, letting CMake select the appropriate standard flag for each supported compiler.
 
+All three mainstream standard libraries are exercised: libstdc++ (GCC and Clang legs), the MSVC STL (MSVC and Clang-CL legs), and libc++ (a best-effort `libc++` leg of the Clang workflow, which rebuilds Boost.Test against libc++ through the vcpkg overlay triplet in `.github/vcpkg`). macOS / AppleClang is currently not tested; the library is expected to work with any toolchain that implements the C++23 features above, including `std::format` for tuple-like types.
+
 ## License
 
 Copyright Rein Halbersma 2014-2026.

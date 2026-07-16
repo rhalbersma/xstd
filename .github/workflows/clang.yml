@@ -23,7 +23,7 @@ jobs:
   build:
     name: Clang ${{ matrix.label }}
     runs-on: ubuntu-22.04
-    continue-on-error: ${{ matrix.trunk }}
+    continue-on-error: ${{ matrix.best_effort }}
     strategy:
       fail-fast: false
       matrix:
@@ -32,17 +32,40 @@ jobs:
             version: 21
             cc: clang-21
             cxx: clang++-21
-            trunk: false
+            stdlib: libstdc++
+            triplet: x64-linux
+            cxxflags: ""
+            best_effort: false
           - label: "22"
             version: 22
             cc: clang-22
             cxx: clang++-22
-            trunk: false
+            stdlib: libstdc++
+            triplet: x64-linux
+            cxxflags: ""
+            best_effort: false
+          # The MSVC STL and libstdc++ are covered by the other workflows;
+          # this leg adds the third mainstream standard library. Boost.Test
+          # is rebuilt against libc++ through the overlay triplet in
+          # .github/vcpkg (a libstdc++ Boost would not link). Best-effort
+          # until the vcpkg overlay path has proven itself; promote it to a
+          # required leg (best_effort: false) once it is green on master.
+          - label: 22 libc++
+            version: 22
+            cc: clang-22
+            cxx: clang++-22
+            stdlib: libc++
+            triplet: x64-linux-libcxx
+            cxxflags: "-stdlib=libc++"
+            best_effort: true
           - label: 23-SVN
             version: 23
             cc: clang-23
             cxx: clang++-23
-            trunk: true
+            stdlib: libstdc++
+            triplet: x64-linux
+            cxxflags: ""
+            best_effort: true
 
     steps:
       - uses: actions/checkout@v4
@@ -52,6 +75,10 @@ jobs:
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           sudo ./llvm.sh ${{ matrix.version }}
+
+      - name: Install libc++ ${{ matrix.version }}
+        if: matrix.stdlib == 'libc++'
+        run: sudo apt-get install -y libc++-${{ matrix.version }}-dev libc++abi-${{ matrix.version }}-dev
 
       # Export the two env vars vcpkg's "x-gha" binary source needs to talk
       # to the GitHub Actions cache service, so built packages are reused
@@ -68,17 +95,25 @@ jobs:
       # (including the dev/SVN build) link against the system libstdc++ like
       # every other apt-installed compiler on the runner - no separate
       # bundled runtime, so no ABI mismatch with vcpkg's Boost.Test either.
+      # The libc++ leg instead selects the overlay triplet, which rebuilds
+      # Boost.Test with Clang against libc++.
       - name: Install Boost.Test
         env:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-        run: vcpkg install --triplet x64-linux
+        run: >
+          vcpkg install
+          --triplet ${{ matrix.triplet }}
+          --overlay-triplets "$GITHUB_WORKSPACE/.github/vcpkg/triplets"
 
       - name: Configure
         run: >
           cmake -S . -B build
           -DCMAKE_C_COMPILER=${{ matrix.cc }}
           -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
+          "-DCMAKE_CXX_FLAGS=${{ matrix.cxxflags }}"
           -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
+          -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
+          -DVCPKG_OVERLAY_TRIPLETS=$GITHUB_WORKSPACE/.github/vcpkg/triplets
 
       - name: Build
         run: cmake --build build -v
