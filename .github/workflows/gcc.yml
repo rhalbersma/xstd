@@ -126,7 +126,7 @@ jobs:
       - name: Cache Boost (trunk)
         if: matrix.trunk
         id: cache-boost-trunk
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: /opt/boost-latest
           key: boost-trunk-${{ runner.os }}-${{ steps.gcc-trunk.outputs.version }}-${{ steps.boost-version.outputs.tag }}
