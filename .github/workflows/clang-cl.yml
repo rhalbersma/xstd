@@ -17,16 +17,28 @@ jobs:
     # clang-cl: Clang's MSVC-compatible driver, using the MSVC STL and linker
     # rather than libc++. Exercises Clang's diagnostics (this repo builds
     # with -Weverything -Werror under Clang) against the same code MSVC
-    # builds, using whichever LLVM the runner image bundles. Best-effort:
-    # see continue-on-error below.
-    name: clang-cl (${{ matrix.arch }})
-    runs-on: windows-2022
+    # builds, using whichever LLVM each Visual Studio version bundles (19.1.5
+    # for VS 2022, 20.1.8 for VS 2026). There's no separate entry for the
+    # VS 2026 Preview channel: "Clang tools for Windows" is a single VS
+    # component shared by the stable and preview MSVC toolsets alike, so it'd
+    # be the exact same clang-cl.exe as the VS 2026 (stable) row - testing it
+    # again there would add no coverage. Best-effort: see continue-on-error.
+    name: clang-cl (${{ matrix.vs }})
+    runs-on: ${{ matrix.os }}
     continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
         include:
-          - generator: "Visual Studio 17 2022"
+          - vs: 2022
+            os: windows-2022
+            generator: "Visual Studio 17 2022"
+            toolset: "ClangCL,host=x64"
+            arch: x64
+            triplet: x64-windows
+          - vs: 2026
+            os: windows-2025
+            generator: "Visual Studio 18 2026"
             toolset: "ClangCL,host=x64"
             arch: x64
             triplet: x64-windows
