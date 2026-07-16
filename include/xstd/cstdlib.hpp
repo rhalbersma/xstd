@@ -6,23 +6,31 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <cassert>      // assert
-#include <format>       // formatter
+#include <format>       // format, formatter
+#include <ios>          // ios_base
+#include <iosfwd>       // basic_istream, basic_ostream
 #include <limits>       // numeric_limits
 #include <tuple>        // tie, tuple
-#include <type_traits>  // is_arithmetic_v
+#include <type_traits>  // is_arithmetic_v, is_integral_v, is_same_v, is_signed_v
 
 namespace xstd {
 
+// a constexpr version of std::abs(int) (P0533). As with the built-in unary
+// minus, the result is promoted for integral types narrower than int, which
+// also makes abs(x) well-defined for their most negative values.
 template<class T>
 [[nodiscard]] constexpr auto abs(T const& x) noexcept
-        requires std::is_arithmetic_v<T>
+        requires (std::is_arithmetic_v<T> && !std::is_same_v<T, bool>)
 {
+        if constexpr (std::is_integral_v<T> && std::is_signed_v<T> && std::is_same_v<decltype(-x), T>) {
+                assert(x != std::numeric_limits<T>::min());     // -x would overflow
+        }
         return x < 0 ? -x : x;
 }
 
 template<class T>
 [[nodiscard]] constexpr auto sign(T const& x) noexcept
-        requires std::is_arithmetic_v<T>
+        requires (std::is_arithmetic_v<T> && !std::is_same_v<T, bool>)
 {
         return static_cast<int>(0 < x) - static_cast<int>(x < 0);
 }
@@ -112,3 +120,49 @@ struct std::formatter<xstd::div_t, CharT>
                 return std::formatter<std::tuple<int const&, int const&>, CharT>::format(std::tie(d.quot, d.rem), ctx);
         }
 };
+
+namespace xstd {
+
+// The stream inserters delegate to std::format (hence they are defined below
+// the formatter specialization), so that streaming and formatting a div_t
+// produce identical text. The .c_str() detour keeps them usable with any
+// Traits, which the basic_string inserter would reject.
+
+template<class Traits>
+auto& operator<<(std::basic_ostream<char, Traits>& ostr, div_t const& d)
+{
+        return ostr << std::format("{}", d).c_str();
+}
+
+template<class Traits>
+auto& operator<<(std::basic_ostream<wchar_t, Traits>& ostr, div_t const& d)
+{
+        return ostr << std::format(L"{}", d).c_str();
+}
+
+// Extracts a div_t from text of the form "(quot, rem)", as produced by
+// operator<< and std::format. Malformed input is a runtime condition, not a
+// contract violation, so - following the conventions of the standard
+// library's extractors - it sets failbit and leaves d unmodified.
+template<class CharT, class Traits>
+auto& operator>>(std::basic_istream<CharT, Traits>& istr, div_t& d)
+{
+        auto const expect = [&istr](char token) {
+                auto c = CharT();
+                if (istr >> c && !Traits::eq(c, istr.widen(token))) {
+                        istr.setstate(std::ios_base::failbit);
+                }
+        };
+        auto parsed = div_t{};
+        expect('(');
+        istr >> parsed.quot;
+        expect(',');
+        istr >> parsed.rem;
+        expect(')');
+        if (istr) {
+                d = parsed;
+        }
+        return istr;
+}
+
+}       // namespace xstd

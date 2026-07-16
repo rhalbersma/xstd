@@ -6,7 +6,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <compare>      // strong_ordering (tagged_empty's defaulted <=>)
-#include <type_traits>  // bool_constant, conditional_t, integral_constant
+#include <type_traits>  // bool_constant, conditional_t, integral_constant, is_same_v, remove_cvref_t
 
 namespace xstd {
 
@@ -32,7 +32,13 @@ template<class Tag>
 struct tagged_empty
 {
         tagged_empty() = default;
-        constexpr explicit tagged_empty(auto&&...) noexcept {}
+
+        // constrained so that this catch-all never hijacks copy or move
+        // construction from the (trivial) special member functions
+        template<class... Args>
+                requires (!(std::is_same_v<std::remove_cvref_t<Args>, tagged_empty> || ...))
+        constexpr explicit tagged_empty(Args&&...) noexcept {}
+
         auto operator<=>(tagged_empty const&) const = default;
 };
 

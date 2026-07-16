@@ -3,7 +3,7 @@
 #    (See accompanying file LICENSE_1_0.txt or copy at
 #          http://www.boost.org/LICENSE_1_0.txt)
 
-name: Sanitizers
+name: Clang-Tidy
 
 permissions:
   contents: read
@@ -20,28 +20,19 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    name: GCC 15 ${{ matrix.name }}
+  tidy:
+    name: clang-tidy 22
     runs-on: ubuntu-22.04
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: ASan
-            flags: -fsanitize=address -fno-omit-frame-pointer -g
-            env: ASAN_OPTIONS=detect_leaks=0
-          - name: UBSan
-            flags: -fsanitize=undefined -fno-sanitize-recover=undefined -g
-            env: UBSAN_OPTIONS=print_stacktrace=1
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install GCC 15
+      - name: Install Clang 22 and clang-tidy 22
         run: |
-          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-          sudo apt-get update
-          sudo apt-get install -y g++-15
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 22
+          sudo apt-get install -y clang-tidy-22
 
       # Export the two env vars vcpkg's "x-gha" binary source needs to talk
       # to the GitHub Actions cache service, so built packages are reused
@@ -53,6 +44,8 @@ jobs:
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
+      # Only needed so that the test tree (and with it the compile database
+      # entries below) configures; clang-tidy itself never links Boost.
       - name: Install Boost.Test
         env:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
@@ -61,15 +54,17 @@ jobs:
       - name: Configure
         run: >
           cmake -S . -B build
-          -DCMAKE_BUILD_TYPE=Debug
-          -DCMAKE_C_COMPILER=gcc-15
-          -DCMAKE_CXX_COMPILER=g++-15
-          -DCMAKE_CXX_FLAGS="${{ matrix.flags }}"
-          -DCMAKE_EXE_LINKER_FLAGS="${{ matrix.flags }}"
+          -DCMAKE_C_COMPILER=clang-22
+          -DCMAKE_CXX_COMPILER=clang++-22
+          -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
           -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
 
-      - name: Build
-        run: cmake --build build -v
-
-      - name: Test
-        run: env ${{ matrix.env }} ctest --test-dir build --output-on-failure
+      # Analyze the public headers through the generated header
+      # self-sufficiency translation units. The Boost.Test sources are left
+      # out on purpose: the test macros drown the signal in noise. The
+      # check selection and per-check suppressions live in .clang-tidy;
+      # WarningsAsErrors there makes any finding fail this job.
+      - name: Run clang-tidy over the public headers
+        run: >
+          run-clang-tidy-22 -quiet -p build
+          "$GITHUB_WORKSPACE/build/test/header_self_sufficiency/.*"

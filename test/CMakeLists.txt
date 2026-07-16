@@ -3,35 +3,8 @@
 #    (See accompanying file LICENSE_1_0.txt or copy at
 #          http://www.boost.org/LICENSE_1_0.txt)
 
-set(public_header_dir ${PROJECT_SOURCE_DIR}/include)
-file(
-    GLOB_RECURSE public_headers
-    CONFIGURE_DEPENDS
-    RELATIVE ${public_header_dir}
-    ${public_header_dir}/xstd/*.hpp
-)
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/header_self_sufficiency)
-
-foreach(h ${public_headers})
-    string(REPLACE "/" "." header_test_id ${h})
-    string(REGEX REPLACE "[.]hpp$" "" header_test_id ${header_test_id})
-    set(header_test_source ${CMAKE_CURRENT_BINARY_DIR}/header_self_sufficiency/${header_test_id}.cpp)
-    file(
-        WRITE ${header_test_source}
-        "#include <${h}>\nint main() {}\n"
-    )
-
-    add_executable(header.${header_test_id} ${header_test_source})
-    target_link_libraries(header.${header_test_id} PRIVATE ${PROJECT_NAME}::${PROJECT_NAME})
-    add_test(NAME header.${header_test_id} COMMAND header.${header_test_id})
-endforeach()
-
-set(Boost_USE_STATIC_LIBS ON)
-
-find_package(
-    Boost CONFIG REQUIRED COMPONENTS
-    unit_test_framework
-)
+# strict -std=c++23 rather than the default gnu++23 dialect
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(xstd_test_options INTERFACE)
 option(XSTD_WARNINGS_AS_ERRORS "Treat warnings as errors in xstd tests" ${PROJECT_IS_TOP_LEVEL})
@@ -67,7 +40,6 @@ set(cxx_compile_options_warnings
         -Wno-global-constructors            # triggered by Boost.Test
         -Wno-used-but-marked-unused         # triggered by Boost.Test
         -Wno-c2y-extensions                 # triggered by Boost.Test's use of __COUNTER__
-        -Wno-lifetime-safety-lifetimebound-violation  # can't verify chained operator<< returns ostr
     >
     $<$<CXX_COMPILER_ID:GNU>:
         -Wall
@@ -84,12 +56,6 @@ set(cxx_compile_options_warnings
     >
 )
 
-set(cxx_compile_options_mbig_obj
-    $<$<AND:$<CXX_COMPILER_ID:GNU>,$<PLATFORM_ID:Windows>>:
-	    -Wa,-mbig-obj
-    >
-)
-
 target_compile_definitions(
     xstd_test_options INTERFACE
     ${cxx_compile_definitions}
@@ -97,9 +63,46 @@ target_compile_definitions(
 target_compile_options(
     xstd_test_options INTERFACE
     ${cxx_compile_options_warnings}
-    ${cxx_compile_options_mbig_obj}
     $<$<AND:$<BOOL:${XSTD_WARNINGS_AS_ERRORS}>,$<CXX_COMPILER_ID:MSVC>>:/WX>
     $<$<AND:$<BOOL:${XSTD_WARNINGS_AS_ERRORS}>,$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>>:-Werror>
+)
+
+# Each public header is compiled as its own translation unit (linked against
+# the same warning flags as the unit tests), proving it is self-sufficient.
+set(public_header_dir ${PROJECT_SOURCE_DIR}/include)
+file(
+    GLOB_RECURSE public_headers
+    CONFIGURE_DEPENDS
+    RELATIVE ${public_header_dir}
+    ${public_header_dir}/xstd/*.hpp
+)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/header_self_sufficiency)
+
+foreach(h ${public_headers})
+    string(REPLACE "/" "." header_test_id ${h})
+    string(REGEX REPLACE "[.]hpp$" "" header_test_id ${header_test_id})
+    set(header_test_source ${CMAKE_CURRENT_BINARY_DIR}/header_self_sufficiency/${header_test_id}.cpp)
+    file(
+        WRITE ${header_test_source}
+        "#include <${h}>\nint main() {}\n"
+    )
+
+    add_executable(header.${header_test_id} ${header_test_source})
+    target_link_libraries(
+        header.${header_test_id} PRIVATE
+        ${PROJECT_NAME}::${PROJECT_NAME}
+        xstd_test_options
+    )
+    add_test(NAME header.${header_test_id} COMMAND header.${header_test_id})
+endforeach()
+
+if(NOT DEFINED Boost_USE_STATIC_LIBS)
+    set(Boost_USE_STATIC_LIBS ON)
+endif()
+
+find_package(
+    Boost CONFIG REQUIRED COMPONENTS
+    unit_test_framework
 )
 
 set(current_source_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -111,8 +114,8 @@ file(
 )
 
 foreach(t ${targets})
-    get_filename_component(target_path ${t} PATH)
-    get_filename_component(target_name_we ${t} NAME_WE)
+    cmake_path(GET t PARENT_PATH target_path)
+    cmake_path(GET t STEM target_name_we)
     string(REPLACE "/" "." target_id ${target_path}/${target_name_we})
     string(REGEX REPLACE "^[.]" "" target_id ${target_id})
 
