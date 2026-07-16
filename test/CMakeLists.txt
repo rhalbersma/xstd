@@ -3,6 +3,29 @@
 #    (See accompanying file LICENSE_1_0.txt or copy at
 #          http://www.boost.org/LICENSE_1_0.txt)
 
+set(public_header_dir ${PROJECT_SOURCE_DIR}/include)
+file(
+    GLOB_RECURSE public_headers
+    CONFIGURE_DEPENDS
+    RELATIVE ${public_header_dir}
+    ${public_header_dir}/xstd/*.hpp
+)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/header_self_sufficiency)
+
+foreach(h ${public_headers})
+    string(REPLACE "/" "." header_test_id ${h})
+    string(REGEX REPLACE "[.]hpp$" "" header_test_id ${header_test_id})
+    set(header_test_source ${CMAKE_CURRENT_BINARY_DIR}/header_self_sufficiency/${header_test_id}.cpp)
+    file(
+        WRITE ${header_test_source}
+        "#include <${h}>\nint main() {}\n"
+    )
+
+    add_executable(header.${header_test_id} ${header_test_source})
+    target_link_libraries(header.${header_test_id} PRIVATE ${PROJECT_NAME}::${PROJECT_NAME})
+    add_test(NAME header.${header_test_id} COMMAND header.${header_test_id})
+endforeach()
+
 set(Boost_USE_STATIC_LIBS ON)
 
 find_package(
