@@ -11,20 +11,26 @@
 #include <iosfwd>       // basic_istream, basic_ostream
 #include <limits>       // numeric_limits
 #include <tuple>        // tie, tuple
-#include <type_traits>  // is_arithmetic_v
+#include <type_traits>  // is_arithmetic_v, is_integral_v, is_same_v, is_signed_v
 
 namespace xstd {
 
+// a constexpr version of std::abs(int) (P0533). As with the built-in unary
+// minus, the result is promoted for integral types narrower than int, which
+// also makes abs(x) well-defined for their most negative values.
 template<class T>
 [[nodiscard]] constexpr auto abs(T const& x) noexcept
-        requires std::is_arithmetic_v<T>
+        requires (std::is_arithmetic_v<T> && !std::is_same_v<T, bool>)
 {
+        if constexpr (std::is_integral_v<T> && std::is_signed_v<T> && std::is_same_v<decltype(-x), T>) {
+                assert(x != std::numeric_limits<T>::min());     // -x would overflow
+        }
         return x < 0 ? -x : x;
 }
 
 template<class T>
 [[nodiscard]] constexpr auto sign(T const& x) noexcept
-        requires std::is_arithmetic_v<T>
+        requires (std::is_arithmetic_v<T> && !std::is_same_v<T, bool>)
 {
         return static_cast<int>(0 < x) - static_cast<int>(x < 0);
 }

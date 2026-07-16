@@ -26,6 +26,25 @@ static_assert(xstd::floored_div(-8, +3) == xstd::div_t{-3, +1});
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
+template<class T>
+concept has_abs = requires(T x) { xstd::abs(x); };
+
+template<class T>
+concept has_sign = requires(T x) { xstd::sign(x); };
+
+// abs and sign accept arithmetic types except bool, and reject anything else
+static_assert( has_abs<int>  &&  has_sign<int>);
+static_assert( has_abs<char> &&  has_sign<char>);
+static_assert( has_abs<double> && has_sign<double>);
+static_assert( has_abs<unsigned> && has_sign<unsigned>);
+static_assert(!has_abs<bool> && !has_sign<bool>);
+static_assert(!has_abs<void*> && !has_sign<void*>);
+
+// as with the built-in unary minus, the result is promoted for integral
+// types narrower than int, which makes abs of their lowest values well-defined
+static_assert(std::is_same_v<decltype(xstd::abs(short())), int>);
+static_assert(xstd::abs(std::numeric_limits<short>::min()) == -(std::numeric_limits<short>::min() + 1) + 1);
+
 BOOST_AUTO_TEST_CASE(Abs)
 {
         BOOST_CHECK_EQUAL(xstd::abs(-2), 2);
@@ -33,6 +52,14 @@ BOOST_AUTO_TEST_CASE(Abs)
         BOOST_CHECK_EQUAL(xstd::abs( 0), 0);
         BOOST_CHECK_EQUAL(xstd::abs(+1), 1);
         BOOST_CHECK_EQUAL(xstd::abs(+2), 2);
+
+        BOOST_CHECK_EQUAL(xstd::abs(-2.5), 2.5);
+        BOOST_CHECK_EQUAL(xstd::abs(+2.5), 2.5);
+        BOOST_CHECK_EQUAL(xstd::abs(7u), 7u);           // the identity for unsigned types
+
+        using limits = std::numeric_limits<int>;
+        BOOST_CHECK_EQUAL(xstd::abs(limits::max()), limits::max());
+        BOOST_CHECK_EQUAL(xstd::abs(limits::min() + 1), limits::max());
 }
 
 BOOST_AUTO_TEST_CASE(Sign)
@@ -42,6 +69,11 @@ BOOST_AUTO_TEST_CASE(Sign)
         BOOST_CHECK_EQUAL(xstd::sign( 0),  0);
         BOOST_CHECK_EQUAL(xstd::sign(+1), +1);
         BOOST_CHECK_EQUAL(xstd::sign(+2), +1);
+
+        BOOST_CHECK_EQUAL(xstd::sign(-2.5), -1);
+        BOOST_CHECK_EQUAL(xstd::sign(+0.0),  0);
+        BOOST_CHECK_EQUAL(xstd::sign(-0.0),  0);
+        BOOST_CHECK_EQUAL(xstd::sign(3u),   +1);
 }
 
 // http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf

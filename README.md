@@ -92,7 +92,7 @@ auto const text = std::format("{}", floored); // "(-3, 1)"
 
 Formatting `xstd::div_t` requires C++23 standard-library support for formatting tuple-like values, because its formatter delegates to `std::formatter<std::tuple<int const&, int const&>>` through `std::tie`. This is covered by the continuously tested compiler and standard-library versions below.
 
-`xstd::abs` and `xstd::sign` accept arithmetic types; for unsigned inputs, `abs` is the identity, and for `bool`, `sign(true) == 1` while `sign(false) == 0`.
+`xstd::abs` and `xstd::sign` accept arithmetic types other than `bool`; for unsigned inputs, `abs` is the identity. Like the built-in unary minus, `abs` promotes integral types narrower than `int`, which makes it well-defined even for their most negative values. For `int` and wider signed integer types, the most negative value is outside `abs`'s contract (guarded by an `assert`), just like `INT_MIN / -1` is for the division helpers.
 
 ### Type traits
 
