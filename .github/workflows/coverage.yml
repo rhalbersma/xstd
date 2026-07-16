@@ -5,6 +5,14 @@
 
 name: Coverage
 
+permissions:
+  contents: read
+  id-token: write   # tokenless Codecov upload via GitHub OIDC
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [ master ]
@@ -59,6 +67,8 @@ jobs:
       - name: Test
         run: ctest --test-dir build --output-on-failure
 
+      # The library is small enough that full line coverage of include/ is a
+      # realistic bar; --fail-under-line turns any regression into a red job.
       - name: Generate coverage report
         run: >
           gcovr --root .
@@ -66,9 +76,30 @@ jobs:
           --exclude 'test/.*'
           --exclude 'build/.*'
           --print-summary
-          --xml-pretty --output coverage.xml
+          --fail-under-line 100
+          --txt coverage.txt
+          --xml-pretty --xml coverage.xml
+
+      - name: Publish coverage summary
+        if: always()
+        run: |
+          {
+            echo '### Line coverage (gcovr, include/ only)'
+            echo '```'
+            cat coverage.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload to Codecov
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          files: coverage.xml
+          use_oidc: true
+          fail_ci_if_error: false
 
       - name: Upload coverage report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage-xml

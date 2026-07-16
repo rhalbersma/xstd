@@ -7,6 +7,11 @@
   },
   "configurePresets": [
     {
+      "name": "vcpkg",
+      "hidden": true,
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+    },
+    {
       "name": "dev",
       "displayName": "Developer debug build",
       "binaryDir": "${sourceDir}/build/dev",
@@ -34,6 +39,18 @@
         "CMAKE_BUILD_TYPE": "Release",
         "BUILD_TESTING": "OFF"
       }
+    },
+    {
+      "name": "dev-vcpkg",
+      "displayName": "Developer debug build (Boost.Test via vcpkg, needs VCPKG_ROOT)",
+      "inherits": ["dev", "vcpkg"],
+      "binaryDir": "${sourceDir}/build/dev-vcpkg"
+    },
+    {
+      "name": "release-vcpkg",
+      "displayName": "Release build (Boost.Test via vcpkg, needs VCPKG_ROOT)",
+      "inherits": ["release", "vcpkg"],
+      "binaryDir": "${sourceDir}/build/release-vcpkg"
     }
   ],
   "buildPresets": [
@@ -48,6 +65,14 @@
     {
       "name": "no-tests",
       "configurePreset": "no-tests"
+    },
+    {
+      "name": "dev-vcpkg",
+      "configurePreset": "dev-vcpkg"
+    },
+    {
+      "name": "release-vcpkg",
+      "configurePreset": "release-vcpkg"
     }
   ],
   "testPresets": [
@@ -61,6 +86,20 @@
     {
       "name": "release",
       "configurePreset": "release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "dev-vcpkg",
+      "configurePreset": "dev-vcpkg",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "release-vcpkg",
+      "configurePreset": "release-vcpkg",
       "output": {
         "outputOnFailure": true
       }

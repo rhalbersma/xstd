@@ -6,7 +6,7 @@
 #include <xstd/type_traits.hpp>         // is_specialization_of, is_integral_constant, tagged_empty, optional_type
 #include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_CHECK
 #include <complex>                      // complex
-#include <type_traits>                  // integral_constant, is_constructible_v, is_convertible_v, is_empty_v, is_same_v
+#include <type_traits>                  // integral_constant, is_constructible_v, is_convertible_v, is_empty_v, is_same_v, is_trivially_constructible_v, is_trivially_copyable_v
 
 using namespace xstd;
 
@@ -51,6 +51,13 @@ BOOST_AUTO_TEST_CASE(TaggedEmpty)
         // constructible from anything, but only explicitly
         static_assert( std::is_constructible_v<empty1, int, double>);
         static_assert(!std::is_convertible_v<int, empty1>);
+
+        // the catch-all constructor never hijacks copy/move construction,
+        // not even from a non-const lvalue
+        static_assert(std::is_trivially_copyable_v<empty1>);
+        static_assert(std::is_trivially_constructible_v<empty1, empty1&>);
+        static_assert(std::is_trivially_constructible_v<empty1, empty1 const&>);
+        static_assert(std::is_trivially_constructible_v<empty1, empty1&&>);
 
         // stateless: all instances compare equal, regardless of construction
         static_assert(empty1(1, 2.0) == empty1());

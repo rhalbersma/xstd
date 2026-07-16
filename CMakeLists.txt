@@ -19,15 +19,9 @@ add_library(
 )
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
-set(project_include_dir
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-)
-target_include_directories(
-    ${PROJECT_NAME} INTERFACE
-    ${project_include_dir}
-)
-
+# No target_include_directories: the HEADERS file set below adds its base
+# directory to the build interface, and install(TARGETS ... FILE_SET) adds
+# the install destination to the install interface.
 target_compile_features(
     ${PROJECT_NAME} INTERFACE
     cxx_std_23
@@ -44,10 +38,15 @@ target_sources(
         include/xstd/utility.hpp
 )
 
-include(CTest)
-
-if(BUILD_TESTING)
-    add_subdirectory(test)
+# Tests (and their Boost.Test dependency) only exist when xstd itself is
+# being developed. Consumers vendoring this directory via add_subdirectory
+# or FetchContent get just the header-only target, with no BUILD_TESTING
+# workaround required on their side.
+if(PROJECT_IS_TOP_LEVEL)
+    include(CTest)
+    if(BUILD_TESTING)
+        add_subdirectory(test)
+    endif()
 endif()
 
 install(

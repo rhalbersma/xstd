@@ -7,6 +7,7 @@
 [![Clang](https://github.com/rhalbersma/xstd/actions/workflows/clang.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang.yml)
 [![Clang-CL](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml)
 [![MSVC](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml)
+[![Coverage](https://codecov.io/gh/rhalbersma/xstd/branch/master/graph/badge.svg)](https://codecov.io/gh/rhalbersma/xstd)
 
 xstd is a header-only C++23 library for small standard-library extensions that can be implemented portably with stable compiler technology. It aims to prototype future-stdlib-style facilities without requiring experimental language features.
 
@@ -26,10 +27,9 @@ find_package(xstd 0.1 CONFIG REQUIRED)
 target_link_libraries(my_target PRIVATE xstd::xstd)
 ```
 
-When vendoring the repository as a subdirectory, disable tests unless you also want to build xstd's Boost.Test suite:
+When vendoring the repository as a subdirectory (xstd's own tests and their Boost.Test dependency are only built when xstd is the top-level project, so nothing needs to be disabled):
 
 ```cmake
-set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 add_subdirectory(external/xstd)
 target_link_libraries(my_target PRIVATE xstd::xstd)
 ```
@@ -43,7 +43,6 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/rhalbersma/xstd.git
     GIT_TAG master # or a release tag
 )
-set(BUILD_TESTING OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(xstd)
 target_link_libraries(my_target PRIVATE xstd::xstd)
 ```
@@ -92,7 +91,7 @@ auto const text = std::format("{}", floored); // "(-3, 1)"
 
 Formatting `xstd::div_t` requires C++23 standard-library support for formatting tuple-like values, because its formatter delegates to `std::formatter<std::tuple<int const&, int const&>>` through `std::tie`. This is covered by the continuously tested compiler and standard-library versions below.
 
-`xstd::abs` and `xstd::sign` accept arithmetic types; for unsigned inputs, `abs` is the identity, and for `bool`, `sign(true) == 1` while `sign(false) == 0`.
+`xstd::abs` and `xstd::sign` accept arithmetic types other than `bool`; for unsigned inputs, `abs` is the identity. Like the built-in unary minus, `abs` promotes integral types narrower than `int`, which makes it well-defined even for their most negative values. For `int` and wider signed integer types, the most negative value is outside `abs`'s contract (guarded by an `assert`), just like `INT_MIN / -1` is for the division helpers.
 
 ### Type traits
 
@@ -124,11 +123,12 @@ cmake --build --preset dev
 ctest --preset dev
 ```
 
-Tests require Boost.Test. The checked-in vcpkg manifest declares that dependency for vcpkg-based builds:
+Tests require Boost.Test. The checked-in vcpkg manifest declares that dependency for vcpkg-based builds, and the `*-vcpkg` presets pick up the toolchain from the `VCPKG_ROOT` environment variable:
 
 ```sh
-vcpkg install --triplet x64-linux
-cmake --preset dev -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
+cmake --preset dev-vcpkg
+cmake --build --preset dev-vcpkg
+ctest --preset dev-vcpkg
 ```
 
 Alternatively, install Boost.Test with your system package manager and point CMake at the package if it is not found automatically.
@@ -160,6 +160,8 @@ These header-only libraries are continuously being tested with the following con
 | Windows  | MSVC     | 2022           | 2026            | 2026-Preview       | [![MSVC](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml) |
 
 The `Trunk / Preview` column is allowed to fail independently and does not affect the badges above. The `clang-cl` leg tests Clang's diagnostics against the MSVC STL, using whichever LLVM version each Visual Studio version bundles; there's no separate `Trunk / Preview` entry for it, since "Clang tools for Windows" is a single VS component shared by the stable and preview MSVC toolsets alike. The CMake target requests C++23 through `target_compile_features(... cxx_std_23)`, letting CMake select the appropriate standard flag for each supported compiler.
+
+All three mainstream standard libraries are exercised: libstdc++ (GCC and Clang legs), the MSVC STL (MSVC and Clang-CL legs), and libc++ (a best-effort `libc++` leg of the Clang workflow, which rebuilds Boost.Test against libc++ through the vcpkg overlay triplet in `.github/vcpkg`). macOS / AppleClang is currently not tested; the library is expected to work with any toolchain that implements the C++23 features above, including `std::format` for tuple-like types.
 
 ## License
 
