@@ -46,18 +46,32 @@ jobs:
           chmod +x llvm.sh
           sudo ./llvm.sh ${{ matrix.version }}
 
-      # Unlike GCC's trunk snapshot, apt.llvm.org's Clang packages (including
-      # the dev/SVN build) link against the system libstdc++ like every other
-      # apt-installed compiler - no separate bundled runtime, so no ABI
-      # mismatch with the distro's prebuilt Boost.Test.
+      # Export the two env vars vcpkg's "x-gha" binary source needs to talk
+      # to the GitHub Actions cache service, so built packages are reused
+      # across runs instead of recompiled from scratch every time.
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      # Ubuntu 22.04's libboost-test-dev is Boost 1.74 (2020); vcpkg tracks
+      # recent Boost releases instead. apt.llvm.org's Clang packages
+      # (including the dev/SVN build) link against the system libstdc++ like
+      # every other apt-installed compiler on the runner - no separate
+      # bundled runtime, so no ABI mismatch with vcpkg's Boost.Test either.
       - name: Install Boost.Test
-        run: sudo apt-get install -y libboost-test-dev
+        env:
+          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+        run: vcpkg install boost-test:x64-linux
 
       - name: Configure
         run: >
           cmake -S . -B build
           -DCMAKE_C_COMPILER=${{ matrix.cc }}
           -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
+          -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
 
       - name: Build
         run: cmake --build build -v

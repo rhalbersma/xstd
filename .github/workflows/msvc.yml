@@ -99,12 +99,24 @@ jobs:
           Write-Host "Default toolset: $default; newest (preview) toolset: $newest"
           echo "VC_PREVIEW_TOOLSET=$newest" >> $env:GITHUB_ENV
 
+      # Export the two env vars vcpkg's "x-gha" binary source needs to talk
+      # to the GitHub Actions cache service, so built packages are reused
+      # across runs instead of recompiled from scratch every time.
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
       # MSVC guarantees binary compatibility across toolset versions since
       # VS 2015, so vcpkg's Boost (built with the default/stable toolset)
       # links fine against code compiled with the preview toolset too - no
       # need to rebuild Boost itself from source for the preview leg.
       - name: Install Boost.Test
         shell: pwsh
+        env:
+          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
         run: vcpkg install boost-test:x64-windows
 
       - name: Configure

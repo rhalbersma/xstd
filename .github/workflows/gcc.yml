@@ -50,8 +50,12 @@ jobs:
       # Best-effort: installs Jonathan Wakely's binary snapshot of GCC trunk
       # (see https://jwakely.github.io/pkg-gcc-latest/). Not an official GCC
       # release, so this leg is allowed to fail (see continue-on-error above).
+      # The version banner includes the snapshot's build date, which we use
+      # below to key the Boost cache so it invalidates whenever the snapshot
+      # actually changes.
       - name: Install GCC trunk snapshot
         if: matrix.trunk
+        id: gcc-trunk
         run: |
           wget -q https://kayari.org/gcc-latest/gcc-latest.deb -O gcc-latest.deb
           sudo dpkg -i gcc-latest.deb || sudo apt-get install -f -y
@@ -70,25 +74,60 @@ jobs:
           sudo ldconfig
           ${{ matrix.cc }} --version
           ${{ matrix.cxx }} --version
+          echo "version=$(${{ matrix.cxx }} --version | head -1)" >> "$GITHUB_OUTPUT"
 
+      # Export the two env vars vcpkg's "x-gha" binary source needs to talk
+      # to the GitHub Actions cache service, so built packages are reused
+      # across runs instead of recompiled from scratch every time.
+      - name: Export GitHub Actions cache environment variables
+        if: "!matrix.trunk"
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      # Ubuntu 22.04's libboost-test-dev is Boost 1.74 (2020); vcpkg tracks
+      # recent Boost releases instead. All apt-installed GCCs share the
+      # system libstdc++, so ABI is consistent regardless of which one built
+      # vcpkg's Boost.
       - name: Install Boost.Test (stable)
         if: "!matrix.trunk"
-        run: sudo apt-get install -y libboost-test-dev
+        env:
+          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+        run: vcpkg install boost-test:x64-linux
 
-      # The distro's libboost-test is a prebuilt static archive compiled by an
-      # older, ABI-stable GCC. Linking it against the trunk snapshot breaks
+      # The distro's/vcpkg's prebuilt Boost.Test is compiled by an older,
+      # ABI-stable GCC. Linking it against the trunk snapshot breaks
       # Boost.Test's runtime parameter registration ("Test setup error:
       # Parameter catch_system_errors"), because the snapshot ships its own,
       # newer libstdc++ (unlike apt-installed compilers, which all share the
       # system one). Building Boost.Test from source with the same trunk
-      # compiler avoids the mismatch. Version is resolved via the GitHub API
-      # so this doesn't go stale; the token avoids anonymous rate limits.
-      - name: Install Boost.Test (from source, trunk)
+      # compiler avoids the mismatch. The Boost version is resolved via the
+      # GitHub API so this doesn't go stale; the resulting build is cached
+      # (keyed on the exact trunk snapshot + Boost version) since a rebuild
+      # otherwise costs several minutes on every run.
+      - name: Resolve latest Boost version
         if: matrix.trunk
+        id: boost-version
         run: |
           # /releases/latest can return a beta (boostorg doesn't always flag
           # them as prerelease), so list releases and keep strict boost-X.Y.Z
           boost_tag=$(curl -fsSL -H "Authorization: Bearer ${{ github.token }}" "https://api.github.com/repos/boostorg/boost/releases?per_page=20" | grep '"tag_name"' | cut -d'"' -f4 | grep -E -m1 '^boost-[0-9]+\.[0-9]+\.[0-9]+$')
+          echo "tag=$boost_tag" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Boost (trunk)
+        if: matrix.trunk
+        id: cache-boost-trunk
+        uses: actions/cache@v4
+        with:
+          path: /opt/boost-latest
+          key: boost-trunk-${{ runner.os }}-${{ steps.gcc-trunk.outputs.version }}-${{ steps.boost-version.outputs.tag }}
+
+      - name: Install Boost.Test (from source, trunk)
+        if: matrix.trunk && steps.cache-boost-trunk.outputs.cache-hit != 'true'
+        run: |
+          boost_tag=${{ steps.boost-version.outputs.tag }}
           boost_ver=${boost_tag#boost-}
           wget -q "https://github.com/boostorg/boost/releases/download/${boost_tag}/boost-${boost_ver}-b2-nodocs.tar.gz" -O boost.tar.gz
           tar xzf boost.tar.gz
@@ -97,12 +136,22 @@ jobs:
           ./bootstrap.sh --prefix=/opt/boost-latest --with-libraries=test
           ./b2 install -j"$(nproc)" --prefix=/opt/boost-latest --user-config=user-config.jam toolset=gcc-trunk variant=release link=static threading=multi
 
-      - name: Configure
+      - name: Configure (stable)
+        if: "!matrix.trunk"
         run: >
           cmake -S . -B build
           -DCMAKE_C_COMPILER=${{ matrix.cc }}
           -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
-          ${{ matrix.trunk && '-DCMAKE_PREFIX_PATH=/opt/boost-latest -DBoost_NO_SYSTEM_PATHS=ON' || '' }}
+          -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
+
+      - name: Configure (trunk)
+        if: matrix.trunk
+        run: >
+          cmake -S . -B build
+          -DCMAKE_C_COMPILER=${{ matrix.cc }}
+          -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
+          -DCMAKE_PREFIX_PATH=/opt/boost-latest
+          -DBoost_NO_SYSTEM_PATHS=ON
 
       - name: Build
         run: cmake --build build -v
