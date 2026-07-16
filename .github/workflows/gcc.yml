@@ -71,35 +71,30 @@ jobs:
           ${{ matrix.cc }} --version
           ${{ matrix.cxx }} --version
 
-      - name: Install Boost.Test (stable)
-        if: "!matrix.trunk"
-        run: sudo apt-get install -y libboost-test-dev
-
-      # The distro's libboost-test is a prebuilt static archive compiled by an
-      # older, ABI-stable GCC. Linking it against the trunk snapshot has been
-      # observed to break Boost.Test's runtime parameter registration
-      # ("Test setup error: Parameter catch_system_errors"). Building
-      # Boost.Test from source with the same trunk compiler avoids the
-      # mismatch. Version is resolved at runtime so this doesn't go stale.
-      - name: Install Boost.Test (from source, trunk)
-        if: matrix.trunk
+      # Build the latest Boost release from source with the same compiler as
+      # the tests, so the whole binary is produced by one toolchain (prebuilt
+      # distro packages are both ancient and compiled by an older GCC, which
+      # broke Boost.Test's runtime parameter registration on the trunk leg).
+      # The version is resolved via the GitHub API so this doesn't go stale;
+      # the token avoids anonymous rate limits on shared runner IPs.
+      - name: Install Boost.Test (from source)
         run: |
-          boost_tag=$(curl -fsSL https://api.github.com/repos/boostorg/boost/releases/latest | grep -m1 '"tag_name"' | cut -d'"' -f4)
+          boost_tag=$(curl -fsSL -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/boostorg/boost/releases/latest | grep -m1 '"tag_name"' | cut -d'"' -f4)
           boost_ver=${boost_tag#boost-}
           wget -q "https://github.com/boostorg/boost/releases/download/${boost_tag}/boost-${boost_ver}-b2-nodocs.tar.gz" -O boost.tar.gz
           tar xzf boost.tar.gz
           cd "boost-${boost_ver}"
-          echo "using gcc : trunk : ${{ matrix.cxx }} ;" > user-config.jam
+          echo "using gcc : ci : ${{ matrix.cxx }} ;" > user-config.jam
           ./bootstrap.sh --prefix=/opt/boost-latest --with-libraries=test
-          ./b2 install -j"$(nproc)" --prefix=/opt/boost-latest --user-config=user-config.jam toolset=gcc-trunk variant=release link=static threading=multi
-          echo "BOOST_ROOT=/opt/boost-latest" >> "$GITHUB_ENV"
+          ./b2 install -j"$(nproc)" --prefix=/opt/boost-latest --user-config=user-config.jam toolset=gcc-ci variant=release link=static threading=multi
 
       - name: Configure
         run: >
           cmake -S . -B build
           -DCMAKE_C_COMPILER=${{ matrix.cc }}
           -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
-          ${{ matrix.trunk && '-DCMAKE_PREFIX_PATH=/opt/boost-latest -DBoost_NO_SYSTEM_PATHS=ON' || '' }}
+          -DCMAKE_PREFIX_PATH=/opt/boost-latest
+          -DBoost_NO_SYSTEM_PATHS=ON
 
       - name: Build
         run: cmake --build build -v

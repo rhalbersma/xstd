@@ -46,14 +46,29 @@ jobs:
           chmod +x llvm.sh
           sudo ./llvm.sh ${{ matrix.version }}
 
-      - name: Install Boost.Test
-        run: sudo apt-get install -y libboost-test-dev
+      # Build the latest Boost release from source with the same compiler as
+      # the tests, so the whole binary is produced by one toolchain (the
+      # distro's libboost-test is both ancient and compiled by an older GCC).
+      # The version is resolved via the GitHub API so this doesn't go stale;
+      # the token avoids anonymous rate limits on shared runner IPs.
+      - name: Install Boost.Test (from source)
+        run: |
+          boost_tag=$(curl -fsSL -H "Authorization: Bearer ${{ github.token }}" https://api.github.com/repos/boostorg/boost/releases/latest | grep -m1 '"tag_name"' | cut -d'"' -f4)
+          boost_ver=${boost_tag#boost-}
+          wget -q "https://github.com/boostorg/boost/releases/download/${boost_tag}/boost-${boost_ver}-b2-nodocs.tar.gz" -O boost.tar.gz
+          tar xzf boost.tar.gz
+          cd "boost-${boost_ver}"
+          echo "using clang : ci : ${{ matrix.cxx }} ;" > user-config.jam
+          ./bootstrap.sh --prefix=/opt/boost-latest --with-libraries=test
+          ./b2 install -j"$(nproc)" --prefix=/opt/boost-latest --user-config=user-config.jam toolset=clang-ci variant=release link=static threading=multi
 
       - name: Configure
         run: >
           cmake -S . -B build
           -DCMAKE_C_COMPILER=${{ matrix.cc }}
           -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
+          -DCMAKE_PREFIX_PATH=/opt/boost-latest
+          -DBoost_NO_SYSTEM_PATHS=ON
 
       - name: Build
         run: cmake --build build -v

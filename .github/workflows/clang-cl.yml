@@ -29,14 +29,29 @@ jobs:
           - generator: "Visual Studio 17 2022"
             toolset: "ClangCL,host=x64"
             arch: x64
-            triplet: x64-windows
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Boost.Test
+      # Build the latest Boost release from source with clang-cl itself
+      # (b2's clang-win toolset), so the whole binary is produced by one
+      # toolchain instead of taking vcpkg's prebuilt/pinned version. The
+      # version is resolved via the GitHub API so this doesn't go stale;
+      # the token avoids anonymous rate limits on shared runner IPs.
+      - name: Install Boost.Test (from source)
         shell: pwsh
-        run: vcpkg install boost-test:${{ matrix.triplet }}
+        run: |
+          $headers = @{ Authorization = "Bearer ${{ github.token }}" }
+          $release = Invoke-RestMethod -Uri https://api.github.com/repos/boostorg/boost/releases/latest -Headers $headers
+          $tag = $release.tag_name
+          $ver = $tag -replace '^boost-', ''
+          Invoke-WebRequest -Uri "https://github.com/boostorg/boost/releases/download/$tag/boost-$ver-b2-nodocs.tar.gz" -OutFile boost.tar.gz
+          tar -xzf boost.tar.gz
+          cd "boost-$ver"
+          .\bootstrap.bat
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          .\b2 install --prefix=C:\boost-latest --with-test toolset=clang-win address-model=64 variant=release link=static threading=multi
+          if ($LASTEXITCODE -ne 0) { exit 1 }
 
       - name: Configure
         shell: pwsh
@@ -44,7 +59,8 @@ jobs:
           cmake -S . -B build
           -G "${{ matrix.generator }}" -A ${{ matrix.arch }}
           -T ${{ matrix.toolset }}
-          "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          -DCMAKE_PREFIX_PATH=C:/boost-latest
+          -DBoost_NO_SYSTEM_PATHS=ON
 
       - name: Build
         shell: pwsh
