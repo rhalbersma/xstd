@@ -119,7 +119,21 @@ jobs:
           Invoke-WebRequest -Uri "https://github.com/boostorg/boost/releases/download/$tag/boost-$ver-b2-nodocs.tar.gz" -OutFile boost.tar.gz
           tar -xzf boost.tar.gz
           cd "boost-$ver"
-          .\bootstrap.bat
+
+          # b2's engine bootstrap (build.bat) doesn't recognize VS 2026 yet
+          # ("Unknown toolset: vcunk" on the windows-2025 image; its support
+          # ends at vc143), but it does support clang-win, and every VS
+          # install bundles clang-cl. Put the bundled LLVM on PATH and
+          # bootstrap the b2 engine with it; the Boost libraries themselves
+          # are still built with toolset=msvc below.
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $clangcl = & $vswhere -latest -products * -find 'VC\Tools\Llvm\x64\bin\clang-cl.exe' | Select-Object -First 1
+          if (-not $clangcl) {
+            Write-Host "clang-cl.exe not found via vswhere"
+            exit 1
+          }
+          $env:PATH = (Split-Path $clangcl) + ";" + $env:PATH
+          .\bootstrap.bat clang-win
           if ($LASTEXITCODE -ne 0) { exit 1 }
           .\b2 install --prefix=C:\boost-latest --with-test toolset=msvc address-model=64 variant=release link=static threading=multi
           if ($LASTEXITCODE -ne 0) { exit 1 }
