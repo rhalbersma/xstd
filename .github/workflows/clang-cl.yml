@@ -51,7 +51,7 @@ jobs:
             triplet: x64-windows
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Export the two env vars vcpkg's "x-gha" binary source needs to talk
       # to the GitHub Actions cache service, so built packages are reused

@@ -44,7 +44,7 @@ jobs:
             preview_channel: true
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # Best-effort: the windows-2025 runner image ships VS 2026 Stable
       # preinstalled, and the Preview MSVC toolset is an optional component
