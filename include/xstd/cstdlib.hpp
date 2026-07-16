@@ -7,6 +7,7 @@
 
 #include <cassert>      // assert
 #include <format>       // format, formatter
+#include <ios>          // ios_base
 #include <iosfwd>       // basic_istream, basic_ostream
 #include <limits>       // numeric_limits
 #include <tuple>        // tie, tuple
@@ -133,15 +134,28 @@ auto& operator<<(std::basic_ostream<wchar_t, Traits>& ostr, div_t const& d)
         return ostr << std::format(L"{}", d).c_str();
 }
 
+// Extracts a div_t from text of the form "(quot, rem)", as produced by
+// operator<< and std::format. Malformed input is a runtime condition, not a
+// contract violation, so - following the conventions of the standard
+// library's extractors - it sets failbit and leaves d unmodified.
 template<class CharT, class Traits>
 auto& operator>>(std::basic_istream<CharT, Traits>& istr, div_t& d)
 {
-        CharT c;
-        istr >> c; assert(c == istr.widen('('));
-        istr >> d.quot;
-        istr >> c; assert(c == istr.widen(','));
-        istr >> d.rem;
-        istr >> c; assert(c == istr.widen(')'));
+        auto const expect = [&istr](char token) {
+                auto c = CharT();
+                if (istr >> c && !Traits::eq(c, istr.widen(token))) {
+                        istr.setstate(std::ios_base::failbit);
+                }
+        };
+        auto parsed = div_t{};
+        expect('(');
+        istr >> parsed.quot;
+        expect(',');
+        istr >> parsed.rem;
+        expect(')');
+        if (istr) {
+                d = parsed;
+        }
         return istr;
 }
 

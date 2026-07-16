@@ -4,7 +4,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/cstdlib.hpp>             // div, floored_div, euclidean_div
-#include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_CHECK_EQUAL, BOOST_CHECK_EQUAL_COLLECTIONS
+#include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_CHECK, BOOST_CHECK_EQUAL, BOOST_CHECK_EQUAL_COLLECTIONS, BOOST_CHECK_MESSAGE
 #include <algorithm>                    // transform
 #include <array>                        // array
 #include <cstdlib>                      // div, div_t
@@ -189,6 +189,42 @@ BOOST_AUTO_TEST_CASE(StreamInsertion)
         woss << d;
         BOOST_CHECK(woss.str() == L"(1, -2)");
         BOOST_CHECK(woss.str() == std::format(L"{}", d));
+}
+
+BOOST_AUTO_TEST_CASE(StreamExtraction)
+{
+        std::istringstream iss("(1, -2)");
+        xstd::div_t d{};
+        iss >> d;
+        BOOST_CHECK(!iss.fail());
+        BOOST_CHECK_EQUAL(d, (xstd::div_t{1, -2}));
+
+        // whitespace between the tokens is optional
+        std::istringstream compact("(1,-2)");
+        xstd::div_t c{};
+        compact >> c;
+        BOOST_CHECK(!compact.fail());
+        BOOST_CHECK_EQUAL(c, (xstd::div_t{1, -2}));
+
+        // insertion and extraction round-trip
+        auto const original = xstd::div_t{-3, +1};
+        std::stringstream ss;
+        ss << original;
+        xstd::div_t roundtripped{};
+        ss >> roundtripped;
+        BOOST_CHECK(!ss.fail());
+        BOOST_CHECK_EQUAL(roundtripped, original);
+}
+
+BOOST_AUTO_TEST_CASE(StreamExtractionFailure)
+{
+        for (auto const malformed : { "", "garbage", "1, -2)", "(x, -2)", "(1; -2)", "(1, x)", "(1, -2(" }) {
+                std::istringstream iss(malformed);
+                auto d = xstd::div_t{+7, -9};
+                iss >> d;
+                BOOST_CHECK_MESSAGE(iss.fail(), std::format("'{}' must set failbit", malformed));
+                BOOST_CHECK_EQUAL(d, (xstd::div_t{+7, -9}));    // d is left unmodified
+        }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
