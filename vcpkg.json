@@ -4,7 +4,15 @@
   "description": "Extensions to the C++ Standard Library",
   "homepage": "https://github.com/rhalbersma/xstd",
   "license": "BSL-1.0",
-  "dependencies": [
-    "boost-test"
-  ]
+  "default-features": [
+    "test"
+  ],
+  "features": {
+    "test": {
+      "description": "Build the Boost.Test-based unit tests",
+      "dependencies": [
+        "boost-test"
+      ]
+    }
+  }
 }
