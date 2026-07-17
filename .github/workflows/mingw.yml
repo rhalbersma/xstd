@@ -23,7 +23,6 @@ jobs:
   build:
     name: MinGW ${{ matrix.label }}
     runs-on: windows-2022
-    continue-on-error: ${{ matrix.snapshot }}
     strategy:
       fail-fast: false
       matrix:

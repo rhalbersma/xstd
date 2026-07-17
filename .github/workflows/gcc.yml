@@ -23,7 +23,6 @@ jobs:
   build:
     name: GCC ${{ matrix.label }}
     runs-on: ubuntu-22.04
-    continue-on-error: ${{ matrix.trunk }}
     strategy:
       fail-fast: false
       matrix:
@@ -54,9 +53,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ${{ matrix.cxx }}
 
-      # Best-effort: installs Jonathan Wakely's binary snapshot of GCC trunk
-      # (see https://jwakely.github.io/pkg-gcc-latest/). Not an official GCC
-      # release, so this leg is allowed to fail (see continue-on-error above).
+      # Installs Jonathan Wakely's binary snapshot of GCC trunk (see
+      # https://jwakely.github.io/pkg-gcc-latest/). Not an official GCC
+      # release, but this leg is required like any other: xstd tracks trunk
+      # deliberately and expects to adapt to it rather than ignore it.
       # The version banner includes the snapshot's build date, which we use
       # below to key the Boost cache so it invalidates whenever the snapshot
       # actually changes.
