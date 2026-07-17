@@ -3,7 +3,7 @@
 #    (See accompanying file LICENSE_1_0.txt or copy at
 #          http://www.boost.org/LICENSE_1_0.txt)
 
-name: Baseline
+name: Consumption
 
 permissions:
   contents: read
@@ -33,34 +33,19 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y g++-15
 
-      # Export the two env vars vcpkg's "x-gha" binary source needs to talk
-      # to the GitHub Actions cache service, so built packages are reused
-      # across runs instead of recompiled from scratch every time.
-      - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v9
-        with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
-
-      - name: Install dependencies
-        env:
-          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-        run: vcpkg install --triplet x64-linux
-
+      # xstd's own build+test on GCC 15 is already covered by gcc.yml's
+      # "15" leg; this workflow only exists to verify the three consumption
+      # models documented in the README (find_package, add_subdirectory,
+      # FetchContent), so -DBUILD_TESTING=OFF skips xstd's own tests here
+      # and avoids needing vcpkg/Boost.Test at all. xstd is a pure
+      # INTERFACE library, so there is nothing to actually build - only
+      # configure and install.
       - name: Configure
         run: >
           cmake -S . -B build
-          -DCMAKE_BUILD_TYPE=Debug
           -DCMAKE_C_COMPILER=gcc-15
           -DCMAKE_CXX_COMPILER=g++-15
-          -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
-
-      - name: Build
-        run: cmake --build build -v
-
-      - name: Test
-        run: ctest --test-dir build --output-on-failure
+          -DBUILD_TESTING=OFF
 
       - name: Install
         run: cmake --install build --prefix "$GITHUB_WORKSPACE/xstd-prefix"
