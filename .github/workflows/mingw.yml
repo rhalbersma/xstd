@@ -147,10 +147,14 @@ jobs:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
         run: vcpkg install --triplet x64-mingw-dynamic
 
+      # Ninja rather than "MinGW Makefiles": the latter needs
+      # mingw32-make.exe specifically, which WinLibs' archive doesn't
+      # bundle (CMAKE_MAKE_PROGRAM ends up unset). Ninja is preinstalled on
+      # the windows-2022 runner image and works with any compiler on PATH.
       - name: Configure
         if: steps.winlibs.outputs.found == 'true'
         run: >
-          cmake -S . -B build -G "MinGW Makefiles"
+          cmake -S . -B build -G Ninja
           -DCMAKE_C_COMPILER=gcc
           -DCMAKE_CXX_COMPILER=g++
           -DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
