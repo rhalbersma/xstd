@@ -116,9 +116,15 @@ jobs:
           mv C:/winlibs_extract/mingw64 C:/winlibs
           rm -rf C:/winlibs_extract
 
+      # -Encoding utf8 writes a UTF-8 BOM, which corrupts $GITHUB_PATH's
+      # parsing on Windows (the runner ends up not prepending the entry to
+      # PATH at all) - every test executable then fails at startup with
+      # 0xc0000135 (STATUS_DLL_NOT_FOUND) since WinLibs' own runtime DLLs
+      # (libstdc++-6.dll, libgcc_s_seh-1.dll, libwinpthread-1.dll) are never
+      # found. utf8NoBOM avoids this.
       - name: Add WinLibs to PATH
         if: steps.winlibs.outputs.found == 'true'
-        run: echo "C:\winlibs\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        run: echo "C:\winlibs\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8NoBOM -Append
 
       - name: Report toolchain version
         if: steps.winlibs.outputs.found == 'true'
