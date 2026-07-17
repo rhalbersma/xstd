@@ -39,7 +39,7 @@ target_link_libraries(my_target PRIVATE xstd::xstd)
 If you've already installed xstd yourself (e.g. `cmake --install`, or your own package manager integration), use `find_package` instead:
 
 ```cmake
-find_package(xstd 0.1 CONFIG REQUIRED)
+find_package(xstd 0.1.0 CONFIG REQUIRED)
 target_link_libraries(my_target PRIVATE xstd::xstd)
 ```
 
