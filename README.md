@@ -158,7 +158,7 @@ These header-only libraries are continuously being tested with the following con
 | Linux    | GCC      | 15             | 16              | 17-SVN             | [![GCC](https://github.com/rhalbersma/xstd/actions/workflows/gcc.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/gcc.yml) |
 | Linux    | Clang    | 21             | 22              | 23-SVN             | [![Clang](https://github.com/rhalbersma/xstd/actions/workflows/clang.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang.yml) |
 | macOS    | AppleClang | 17.0.0 (Xcode 16.4, bundled) | 21.0.0 (Xcode 26.5, bundled) | —          | [![AppleClang](https://github.com/rhalbersma/xstd/actions/workflows/appleclang.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/appleclang.yml) |
-| Windows  | MinGW    | GCC 15         | GCC 16          | GCC snapshot       | [![MinGW](https://github.com/rhalbersma/xstd/actions/workflows/mingw.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/mingw.yml) |
+| Windows  | MinGW    | 15             | 16              | 17-SVN             | [![MinGW](https://github.com/rhalbersma/xstd/actions/workflows/mingw.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/mingw.yml) |
 | Windows  | Clang-CL | 19.1.5 (VS 2022, bundled) | 20.1.8 (VS 2026, bundled) | —               | [![Clang-CL](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml) |
 | Windows  | MSVC     | 2022 (17.11+)  | 2026            | 2026-Preview       | [![MSVC](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml) |
 
