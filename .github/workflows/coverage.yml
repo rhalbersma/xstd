@@ -69,12 +69,18 @@ jobs:
 
       # The library is small enough that full line coverage of include/ is a
       # realistic bar; --fail-under-line turns any regression into a red job.
+      # assert(...) lines are excluded: they're contract checks that only
+      # fire on inputs the library documents as UB (e.g. INT_MIN / -1), so
+      # their failure path is intentionally unreachable in a correct,
+      # fully-tested program - chasing 100% including those would mean
+      # exercising undefined behavior on purpose.
       - name: Generate coverage report
         run: >
           gcovr --root .
           --gcov-executable gcov-15
           --exclude 'test/.*'
           --exclude 'build/.*'
+          --exclude-lines-by-pattern '^\s*assert\('
           --print-summary
           --fail-under-line 100
           --txt coverage.txt
