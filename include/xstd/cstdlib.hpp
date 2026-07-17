@@ -6,8 +6,10 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <cassert>      // assert
+#include <format>       // format, formatter
 #include <limits>       // numeric_limits
 #include <ostream>      // ostream
+#include <tuple>        // tie, tuple
 #include <type_traits>  // is_arithmetic_v, is_integral_v, is_same_v, is_signed_v
 
 namespace xstd {
@@ -105,11 +107,22 @@ namespace detail {
         return { qF, rF };
 }
 
-// div_t is not an I/O type; this minimal inserter exists so that assertion
-// frameworks (e.g. Boost.Test's BOOST_CHECK_EQUAL) can print it on failure.
+}       // namespace xstd
+
+template<>
+struct std::formatter<xstd::div_t> : std::formatter<std::tuple<int const&, int const&>>
+{
+        auto format(xstd::div_t const& d, auto& ctx) const
+        {
+                return std::formatter<std::tuple<int const&, int const&>>::format(std::tie(d.quot, d.rem), ctx);
+        }
+};
+
+namespace xstd {
+
 inline auto& operator<<(std::ostream& ostr, div_t const& d)
 {
-        return ostr << '(' << d.quot << ", " << d.rem << ')';
+        return ostr << std::format("{}", d);
 }
 
 }       // namespace xstd

@@ -8,6 +8,7 @@
 #include <algorithm>                    // transform
 #include <array>                        // array
 #include <cstdlib>                      // div, div_t
+#include <format>                       // format
 #include <iterator>                     // back_inserter
 #include <limits>                       // numeric_limits
 #include <sstream>                      // ostringstream
@@ -199,7 +200,11 @@ BOOST_AUTO_TEST_CASE(FlooredDiv)
         );
 }
 
-// The inserter only exists so that Boost.Test can print div_t on failure.
+BOOST_AUTO_TEST_CASE(Formatter)
+{
+        BOOST_CHECK_EQUAL(std::format("{}", xstd::div_t{ 1, -2 }), "(1, -2)");
+}
+
 BOOST_AUTO_TEST_CASE(StreamInsertion)
 {
         std::ostringstream oss;
