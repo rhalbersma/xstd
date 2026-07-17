@@ -23,7 +23,6 @@ jobs:
   build:
     name: Clang ${{ matrix.label }}
     runs-on: ubuntu-22.04
-    continue-on-error: ${{ matrix.best_effort }}
     strategy:
       fail-fast: false
       matrix:
@@ -35,7 +34,6 @@ jobs:
             stdlib: libstdc++
             triplet: x64-linux
             cxxflags: ""
-            best_effort: false
           - label: "22"
             version: 22
             cc: clang-22
@@ -43,13 +41,11 @@ jobs:
             stdlib: libstdc++
             triplet: x64-linux
             cxxflags: ""
-            best_effort: false
           # The MSVC STL and libstdc++ are covered by the other workflows;
           # this leg adds the third mainstream standard library. Boost.Test
           # is rebuilt against libc++ through the overlay triplet in
-          # .github/vcpkg (a libstdc++ Boost would not link). Best-effort
-          # until the vcpkg overlay path has proven itself; promote it to a
-          # required leg (best_effort: false) once it is green on master.
+          # .github/vcpkg (a libstdc++ Boost would not link). Required like
+          # every other leg.
           - label: 22 libc++
             version: 22
             cc: clang-22
@@ -57,7 +53,6 @@ jobs:
             stdlib: libc++
             triplet: x64-linux-libcxx
             cxxflags: "-stdlib=libc++"
-            best_effort: true
           - label: 23-SVN
             version: 23
             cc: clang-23
@@ -65,7 +60,6 @@ jobs:
             stdlib: libstdc++
             triplet: x64-linux
             cxxflags: ""
-            best_effort: false
 
     steps:
       - uses: actions/checkout@v7
