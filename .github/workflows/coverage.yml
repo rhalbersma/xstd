@@ -78,6 +78,22 @@ jobs:
       # counter to compiler-synthesized special member function bodies, so
       # a defaulted comparison reads as uncovered no matter how often it's
       # actually exercised.
+      # --exclude-throw-branches drops the branch gcc/gcov synthesizes at
+      # every call that could propagate an exception (std::format,
+      # std::ostringstream, any STL container - virtually all of this
+      # library's formatter/operator<< code): one side of that edge only
+      # fires on e.g. bad_alloc, so it isn't a code path a test can
+      # meaningfully hit. Without it, that noise made up roughly half of all
+      # reported branches; --exclude-unreachable-branches is its usual
+      # companion, stripping branches gcov attaches to lines with no real
+      # branching source (e.g. a closing brace).
+      # --exclude-lines-by-pattern only drops a matching line from the line
+      # metric; gcov's function/branch records for that line are separate
+      # and untouched by it, so the memberwise comparison a defaulted
+      # operator== synthesizes still shows up as an uncovered branch unless
+      # --exclude-branches-by-pattern is given too - with its own, anchored
+      # match (a leading .* is required; unlike --exclude-lines-by-pattern,
+      # this one won't match mid-line).
       - name: Generate coverage report
         run: >
           gcovr --root .
@@ -86,8 +102,13 @@ jobs:
           --exclude 'build/.*'
           --exclude-lines-by-pattern '^\s*assert\('
           --exclude-lines-by-pattern '=\s*default;'
+          --exclude-branches-by-pattern '^\s*assert\('
+          --exclude-branches-by-pattern '^\s*.*=\s*default;'
+          --exclude-throw-branches
+          --exclude-unreachable-branches
           --print-summary
           --fail-under-line 100
+          --fail-under-branch 100
           --txt coverage.txt
           --xml-pretty --xml coverage.xml
 

@@ -1,9 +1,10 @@
-#pragma once
-
 //          Copyright Rein Halbersma 2014-2026.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
+
+#ifndef XSTD_UTILITY_HPP
+#define XSTD_UTILITY_HPP
 
 #include <type_traits>  // integral_constant, is_enum_v, underlying_type_t
 #include <utility>      // to_underlying
@@ -20,3 +21,5 @@ template<class Enum, Enum N>
 }
 
 }       // namespace xstd
+
+#endif  // XSTD_UTILITY_HPP

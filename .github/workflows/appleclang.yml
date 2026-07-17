@@ -1,0 +1,95 @@
+#          Copyright Rein Halbersma 2014-2026.
+# Distributed under the Boost Software License, Version 1.0.
+#    (See accompanying file LICENSE_1_0.txt or copy at
+#          http://www.boost.org/LICENSE_1_0.txt)
+
+name: AppleClang
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: AppleClang ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.dev }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: older stable
+            os: macos-15
+            select_newest: false
+            dev: false
+          - label: latest stable
+            os: macos-26
+            select_newest: false
+            dev: false
+          # GitHub's macOS runner images preinstall the current beta Xcode
+          # alongside the default one once it becomes available; there's no
+          # open-source trunk/nightly AppleClang the way GCC/Clang have, so
+          # "dev" here means whatever the newest Xcode.app on the runner
+          # happens to be (often, but not always, a beta of the next Xcode
+          # major). Best-effort since that isn't guaranteed to be a fully
+          # working C++23 toolchain.
+          - label: dev (newest available)
+            os: macos-26
+            select_newest: true
+            dev: true
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Select newest available Xcode
+        if: matrix.select_newest
+        run: |
+          newest=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          echo "Selecting $newest"
+          sudo xcode-select -s "$newest/Contents/Developer"
+
+      - name: Report toolchain version
+        run: |
+          xcodebuild -version
+          clang++ --version
+
+      # Export the two env vars vcpkg's "x-gha" binary source needs to talk
+      # to the GitHub Actions cache service, so built packages are reused
+      # across runs instead of recompiled from scratch every time.
+      - name: Export GitHub Actions cache environment variables
+        uses: actions/github-script@v9
+        with:
+          script: |
+            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
+            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+
+      # GitHub-hosted macOS runners are arm64 since macos-14; vcpkg's
+      # arm64-osx triplet builds Boost.Test with whichever Xcode was
+      # selected above, so its libc++ ABI always matches the compiler under
+      # test.
+      - name: Install Boost.Test
+        env:
+          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+        run: vcpkg install --triplet arm64-osx
+
+      - name: Configure
+        run: >
+          cmake -S . -B build
+          -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
+          -DVCPKG_TARGET_TRIPLET=arm64-osx
+
+      - name: Build
+        run: cmake --build build -v
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
