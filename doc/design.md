@@ -6,6 +6,41 @@ curious reader might want. [README.md](../README.md) documents what each
 function does and its contract; this file documents *why* it looks the way
 it does.
 
+## Design philosophy
+
+Three themes run across the otherwise unrelated headers:
+
+- **`constexpr` all the things.** Every function xstd adds - the division
+  family, `abs`/`sign` and siblings, `array_from_types`, `to_underlying` -
+  is `constexpr`, including the ones that don't strictly need to be for
+  their primary use case. A library whose whole point is "make small,
+  general-purpose facilities available early" is of limited use if it
+  can't be used in a compile-time context; making that the default rather
+  than an afterthought is what lets `xstd::euclidean_div` or
+  `xstd::is_specialization_of` show up equally naturally in a
+  `static_assert` and in ordinary runtime code.
+- **`integral_constant` as a first-class overload target, not just a
+  trait-metaprogramming detail.** `xstd::to_underlying` doesn't just
+  accept a plain enum the way `std::to_underlying` does - it also accepts
+  an enum wrapped in `std::integral_constant` and returns the result
+  still wrapped, preserving its compile-time-constant-ness rather than
+  collapsing it to a runtime value. `xstd::is_integral_constant` exists so
+  generic code can detect that wrapping at all. The underlying idea: a
+  `std::integral_constant<Enum, E>` is a value of `Enum` that also happens
+  to carry its value in the type system, and library functions that take
+  `Enum` should be able to take that too, without the caller needing a
+  separate, differently-named entry point.
+- **Make integer division's rounding convention an explicit, spelled-out
+  choice instead of an implicit one.** Built-in `/` and `%` give C++'s
+  truncated-toward-zero convention and nothing else; different problems
+  want different conventions (Euclidean division's always-nonnegative
+  remainder, floored division's divisor-signed remainder), and picking
+  the wrong one silently for negative operands is a classic source of
+  off-by-one bugs. `xstd::div`/`xstd::euclidean_div`/`xstd::floored_div`
+  give each convention its own named function, at all 4 integer widths,
+  so the choice is visible at the call site instead of being buried in
+  which arithmetic operator happened to be used.
+
 ## API design
 
 ### `xstd::abs`/`xstd::labs`/`xstd::llabs`/`xstd::imaxabs`, `xstd::sign`/`xstd::lsign`/`xstd::llsign`/`xstd::imaxsign`
