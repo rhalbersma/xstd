@@ -285,41 +285,45 @@ namespace detail {
 
 }       // namespace xstd
 
+namespace std {
+
 template<>
-struct std::formatter<xstd::div_t> : std::formatter<std::tuple<int const&, int const&>>
+struct formatter<xstd::div_t> : formatter<std::tuple<int const&, int const&>>
 {
         auto format(xstd::div_t const& d, auto& ctx) const
         {
-                return std::formatter<std::tuple<int const&, int const&>>::format(std::tie(d.quot, d.rem), ctx);
+                return formatter<std::tuple<int const&, int const&>>::format(std::tie(d.quot, d.rem), ctx);
         }
 };
 
 template<>
-struct std::formatter<xstd::ldiv_t> : std::formatter<std::tuple<long const&, long const&>>
+struct formatter<xstd::ldiv_t> : formatter<std::tuple<long const&, long const&>>
 {
         auto format(xstd::ldiv_t const& d, auto& ctx) const
         {
-                return std::formatter<std::tuple<long const&, long const&>>::format(std::tie(d.quot, d.rem), ctx);
+                return formatter<std::tuple<long const&, long const&>>::format(std::tie(d.quot, d.rem), ctx);
         }
 };
 
 template<>
-struct std::formatter<xstd::lldiv_t> : std::formatter<std::tuple<long long const&, long long const&>>
+struct formatter<xstd::lldiv_t> : formatter<std::tuple<long long const&, long long const&>>
 {
         auto format(xstd::lldiv_t const& d, auto& ctx) const
         {
-                return std::formatter<std::tuple<long long const&, long long const&>>::format(std::tie(d.quot, d.rem), ctx);
+                return formatter<std::tuple<long long const&, long long const&>>::format(std::tie(d.quot, d.rem), ctx);
         }
 };
 
 template<>
-struct std::formatter<xstd::imaxdiv_t> : std::formatter<std::tuple<std::intmax_t const&, std::intmax_t const&>>
+struct formatter<xstd::imaxdiv_t> : formatter<std::tuple<std::intmax_t const&, std::intmax_t const&>>
 {
         auto format(xstd::imaxdiv_t const& d, auto& ctx) const
         {
-                return std::formatter<std::tuple<std::intmax_t const&, std::intmax_t const&>>::format(std::tie(d.quot, d.rem), ctx);
+                return formatter<std::tuple<std::intmax_t const&, std::intmax_t const&>>::format(std::tie(d.quot, d.rem), ctx);
         }
 };
+
+}       // namespace std
 
 namespace xstd {
 
