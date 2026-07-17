@@ -46,6 +46,36 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # The preview toolset's payload (~10 min of the ~15-20 min this leg
+      # otherwise takes) is re-downloaded from Microsoft's CDN on every run,
+      # because --nocache (below) tells the VS Installer to skip its local
+      # package-download cache entirely. That cache is keyed by package
+      # version, so it's safe to keep around across jobs as long as we know
+      # when to invalidate it: fetch just the channel manifest's ETag (a few
+      # KB, not the multi-hundred-MB payload) and use it as the cache key.
+      # Unchanged manifest -> cache hit -> setup.exe below finds the payload
+      # already on disk and mostly just registers it; changed manifest ->
+      # cache miss -> one full download, cached for the next run.
+      - name: Resolve preview channel manifest version
+        if: matrix.preview_channel
+        id: preview-channel
+        shell: pwsh
+        run: |
+          $resp = Invoke-WebRequest -Uri 'https://aka.ms/vs/18/pre/channel' -Method Head -UseBasicParsing
+          $version = $resp.Headers['ETag']
+          if (-not $version) { $version = $resp.Headers['Last-Modified'] }
+          Write-Host "Channel manifest version: $version"
+          echo "version=$version" >> $env:GITHUB_OUTPUT
+
+      - name: Cache VS Installer package downloads
+        if: matrix.preview_channel
+        uses: actions/cache@v4
+        with:
+          path: C:\ProgramData\Microsoft\VisualStudio\Packages
+          key: vs-preview-packages-${{ runner.os }}-${{ steps.preview-channel.outputs.version }}
+          restore-keys: |
+            vs-preview-packages-${{ runner.os }}-
+
       # Best-effort: the windows-2025 runner image ships VS 2026 Stable
       # preinstalled, and the Preview MSVC toolset is an optional component
       # on the Stable channel (see the "MSVC Build Tools Preview: How to Opt
@@ -75,7 +105,7 @@ jobs:
 
           $setup = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\setup.exe"
           $proc = Start-Process -FilePath $setup -Wait -PassThru -ArgumentList (
-            'modify', '--quiet', '--norestart', '--nocache',
+            'modify', '--quiet', '--norestart',
             '--installPath', "`"$installPath`"",
             '--add', 'Microsoft.VisualStudio.Component.VC.Preview.Tools.x86.x64'
           )
