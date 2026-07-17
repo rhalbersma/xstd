@@ -327,6 +327,11 @@ struct formatter<xstd::imaxdiv_t> : formatter<std::tuple<std::intmax_t const&, s
 
 namespace xstd {
 
+// narrow std::ostream only, not the full basic_ostream<charT, traits>
+// generality (no wide-character support): these exist solely so
+// Boost.Test can print div_t/ldiv_t/lldiv_t/imaxdiv_t values in test
+// diagnostics. Application code should format these types via
+// std::format/std::print directly rather than through operator<<.
 inline auto& operator<<(std::ostream& ostr, div_t const& d)
 {
         return ostr << std::format("{}", d);
