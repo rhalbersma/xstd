@@ -38,7 +38,7 @@ jobs:
             snapshot: true
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
 
       # WinLibs (https://winlibs.com) publishes standalone, versioned
       # GCC + MinGW-w64 + UCRT builds as dated GitHub releases rather than a
@@ -96,7 +96,7 @@ jobs:
       - name: Cache WinLibs toolchain
         if: steps.winlibs.outputs.found == 'true'
         id: cache-winlibs
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: C:\winlibs
           key: winlibs-${{ steps.winlibs.outputs.tag }}
@@ -134,7 +134,7 @@ jobs:
       # across runs instead of recompiled from scratch every time.
       - name: Export GitHub Actions cache environment variables
         if: steps.winlibs.outputs.found == 'true'
-        uses: actions/github-script@v9
+        uses: actions/github-script@373c709c69115d41ff229c7e5df9f8788daa9553 # v9
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
