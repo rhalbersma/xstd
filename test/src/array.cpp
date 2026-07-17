@@ -4,7 +4,8 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/array.hpp>               // array_from_types
-#include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_CHECK_EQUAL
+#include <xstd/test/constexpr_check.hpp> // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
+#include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <array>                        // array
 #include <cstddef>                      // size_t
 #include <tuple>                        // tuple
@@ -24,11 +25,10 @@ BOOST_AUTO_TEST_CASE(ArrayFromTypes)
         });
 
         static_assert(std::is_same_v<decltype(sizes), std::array<std::size_t, 3> const>);
-        static_assert(sizes == std::array{sizeof(int), sizeof(double), sizeof(char)});
 
-        BOOST_CHECK_EQUAL(sizes[0], sizeof(int));
-        BOOST_CHECK_EQUAL(sizes[1], sizeof(double));
-        BOOST_CHECK_EQUAL(sizes[2], sizeof(char));
+        XSTD_CONSTEXPR_CHECK_EQUAL(sizes[0], sizeof(int));
+        XSTD_CONSTEXPR_CHECK_EQUAL(sizes[1], sizeof(double));
+        XSTD_CONSTEXPR_CHECK_EQUAL(sizes[2], sizeof(char));
 }
 
 struct non_default_constructible
@@ -39,12 +39,12 @@ struct non_default_constructible
 BOOST_AUTO_TEST_CASE(WorksWithAnyTypeList)
 {
         // any variadic class template works as the type list, e.g. std::tuple
-        auto const ones = array_from_types<std::tuple<bool, char>>()([](auto) {
+        constexpr auto ones = array_from_types<std::tuple<bool, char>>()([](auto) {
                 return 1;
         });
-        BOOST_CHECK_EQUAL(ones.size(), 2u);
-        BOOST_CHECK_EQUAL(ones[0], 1);
-        BOOST_CHECK_EQUAL(ones[1], 1);
+        XSTD_CONSTEXPR_CHECK_EQUAL(ones.size(), 2u);
+        XSTD_CONSTEXPR_CHECK_EQUAL(ones[0], 1);
+        XSTD_CONSTEXPR_CHECK_EQUAL(ones[1], 1);
 }
 
 BOOST_AUTO_TEST_CASE(WorksWithNonDefaultConstructibleTypes)
@@ -53,6 +53,7 @@ BOOST_AUTO_TEST_CASE(WorksWithNonDefaultConstructibleTypes)
                 return sizeof(T);
         });
         static_assert(sizes == std::array{sizeof(non_default_constructible)});
+        XSTD_CONSTEXPR_CHECK_EQUAL(sizes[0], sizeof(non_default_constructible));
 }
 
 BOOST_AUTO_TEST_CASE(RequiresNonEmptyTypeList)
@@ -60,9 +61,8 @@ BOOST_AUTO_TEST_CASE(RequiresNonEmptyTypeList)
         // an empty type list leaves no type for std::array's CTAD to deduce,
         // so the call operator's constraint rejects it up front
         auto const fun = [](auto) { return 1; };
-        static_assert( std::is_invocable_v<array_from_types<type_list<int>>, decltype(fun)>);
-        static_assert(!std::is_invocable_v<array_from_types<type_list<>>,    decltype(fun)>);
-        BOOST_CHECK((!std::is_invocable_v<array_from_types<type_list<>>, decltype(fun)>));
+        static_assert(std::is_invocable_v<array_from_types<type_list<int>>, decltype(fun)>);
+        XSTD_CONSTEXPR_CHECK((!std::is_invocable_v<array_from_types<type_list<>>, decltype(fun)>));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
