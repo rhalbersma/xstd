@@ -132,7 +132,7 @@ GCC's trunk leg installs Jonathan Wakely's binary snapshot
 (https://jwakely.github.io/pkg-gcc-latest/) rather than building GCC from
 source. Because that snapshot ships its own, newer libstdc++ (unlike
 apt-installed compilers, which all share the system one), linking it
-against the distro's/vcpkg's prebuilt Boost.Test - built by an
+against vcpkg's prebuilt Boost.Test - built by an
 ABI-stable, older GCC - breaks Boost.Test's runtime parameter
 registration. Building Boost.Test from source with the same trunk compiler
 avoids the mismatch; the resulting build is cached, keyed on the exact

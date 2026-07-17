@@ -104,8 +104,8 @@ jobs:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
         run: vcpkg install --triplet x64-linux
 
-      # The distro's/vcpkg's prebuilt Boost.Test is compiled by an older,
-      # ABI-stable GCC. Linking it against the trunk snapshot breaks
+      # vcpkg's prebuilt Boost.Test is compiled by an older, ABI-stable GCC.
+      # Linking it against the trunk snapshot breaks
       # Boost.Test's runtime parameter registration ("Test setup error:
       # Parameter catch_system_errors"), because the snapshot ships its own,
       # newer libstdc++ (unlike apt-installed compilers, which all share the
