@@ -9,7 +9,7 @@
 #include <array>                        // array
 #include <cstddef>                      // size_t
 #include <tuple>                        // tuple
-#include <type_traits>                  // is_invocable_v, is_same_v
+#include <type_traits>                  // is_invocable_v, is_same_v, type_identity
 
 using namespace xstd;
 
