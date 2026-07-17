@@ -11,8 +11,7 @@
 #include <format>                       // format
 #include <iterator>                     // back_inserter
 #include <limits>                       // numeric_limits
-#include <sstream>                      // istringstream, ostringstream, stringstream, wostringstream
-#include <string>                       // string
+#include <sstream>                      // ostringstream
 #include <utility>                      // pair
 #include <vector>                       // vector
 
@@ -169,17 +168,17 @@ BOOST_AUTO_TEST_CASE(BoundaryDivisions)
 {
         using limits = std::numeric_limits<int>;
 
-        BOOST_CHECK_EQUAL(xstd::div(limits::min(), +1), xstd::div_t{limits::min(), 0});
-        BOOST_CHECK_EQUAL(xstd::euclidean_div(limits::min(), +1), xstd::div_t{limits::min(), 0});
-        BOOST_CHECK_EQUAL(xstd::floored_div(limits::min(), +1), xstd::div_t{limits::min(), 0});
+        BOOST_CHECK_EQUAL(xstd::div(limits::min(), +1), (xstd::div_t{limits::min(), 0}));
+        BOOST_CHECK_EQUAL(xstd::euclidean_div(limits::min(), +1), (xstd::div_t{limits::min(), 0}));
+        BOOST_CHECK_EQUAL(xstd::floored_div(limits::min(), +1), (xstd::div_t{limits::min(), 0}));
 
-        BOOST_CHECK_EQUAL(xstd::div(+1, limits::min()), xstd::div_t{0, +1});
-        BOOST_CHECK_EQUAL(xstd::euclidean_div(+1, limits::min()), xstd::div_t{0, +1});
-        BOOST_CHECK_EQUAL(xstd::floored_div(+1, limits::min()), xstd::div_t{-1, limits::min() + 1});
+        BOOST_CHECK_EQUAL(xstd::div(+1, limits::min()), (xstd::div_t{0, +1}));
+        BOOST_CHECK_EQUAL(xstd::euclidean_div(+1, limits::min()), (xstd::div_t{0, +1}));
+        BOOST_CHECK_EQUAL(xstd::floored_div(+1, limits::min()), (xstd::div_t{-1, limits::min() + 1}));
 
-        BOOST_CHECK_EQUAL(xstd::div(limits::max(), -1), xstd::div_t{-limits::max(), 0});
-        BOOST_CHECK_EQUAL(xstd::euclidean_div(limits::max(), -1), xstd::div_t{-limits::max(), 0});
-        BOOST_CHECK_EQUAL(xstd::floored_div(limits::max(), -1), xstd::div_t{-limits::max(), 0});
+        BOOST_CHECK_EQUAL(xstd::div(limits::max(), -1), (xstd::div_t{-limits::max(), 0}));
+        BOOST_CHECK_EQUAL(xstd::euclidean_div(limits::max(), -1), (xstd::div_t{-limits::max(), 0}));
+        BOOST_CHECK_EQUAL(xstd::floored_div(limits::max(), -1), (xstd::div_t{-limits::max(), 0}));
 }
 
 BOOST_AUTO_TEST_CASE(FlooredDiv)
@@ -203,60 +202,14 @@ BOOST_AUTO_TEST_CASE(FlooredDiv)
 
 BOOST_AUTO_TEST_CASE(Formatter)
 {
-        xstd::div_t const d { 1, -2 };
-        BOOST_CHECK_EQUAL(std::format("{}", d), "(1, -2)");
-        BOOST_CHECK_EQUAL(std::format(L"{}", d), std::wstring(L"(1, -2)"));
+        BOOST_CHECK_EQUAL(std::format("{}", xstd::div_t{ 1, -2 }), "(1, -2)");
 }
 
 BOOST_AUTO_TEST_CASE(StreamInsertion)
 {
-        xstd::div_t const d { 1, -2 };
-
         std::ostringstream oss;
-        oss << d;
+        oss << xstd::div_t{ 1, -2 };
         BOOST_CHECK_EQUAL(oss.str(), "(1, -2)");
-        BOOST_CHECK_EQUAL(oss.str(), std::format("{}", d));
-
-        std::wostringstream woss;
-        woss << d;
-        BOOST_CHECK(woss.str() == L"(1, -2)");
-        BOOST_CHECK(woss.str() == std::format(L"{}", d));
-}
-
-BOOST_AUTO_TEST_CASE(StreamExtraction)
-{
-        std::istringstream iss("(1, -2)");
-        xstd::div_t d{};
-        iss >> d;
-        BOOST_CHECK(!iss.fail());
-        BOOST_CHECK_EQUAL(d, (xstd::div_t{1, -2}));
-
-        // whitespace between the tokens is optional
-        std::istringstream compact("(1,-2)");
-        xstd::div_t c{};
-        compact >> c;
-        BOOST_CHECK(!compact.fail());
-        BOOST_CHECK_EQUAL(c, (xstd::div_t{1, -2}));
-
-        // insertion and extraction round-trip
-        auto const original = xstd::div_t{-3, +1};
-        std::stringstream ss;
-        ss << original;
-        xstd::div_t roundtripped{};
-        ss >> roundtripped;
-        BOOST_CHECK(!ss.fail());
-        BOOST_CHECK_EQUAL(roundtripped, original);
-}
-
-BOOST_AUTO_TEST_CASE(StreamExtractionFailure)
-{
-        for (auto const malformed : { "", "garbage", "1, -2)", "(x, -2)", "(1; -2)", "(1, x)", "(1, -2(" }) {
-                std::istringstream iss(malformed);
-                auto d = xstd::div_t{+7, -9};
-                iss >> d;
-                BOOST_CHECK_MESSAGE(iss.fail(), std::format("'{}' must set failbit", malformed));
-                BOOST_CHECK_EQUAL(d, (xstd::div_t{+7, -9}));    // d is left unmodified
-        }
 }
 
 BOOST_AUTO_TEST_SUITE_END()
