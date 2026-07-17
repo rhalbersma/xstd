@@ -30,7 +30,7 @@ jobs:
     # component shared by the stable and preview MSVC toolsets alike, so it'd
     # be the exact same clang-cl.exe as the VS 2026 (stable) row - testing it
     # again there would add no coverage. Best-effort: see continue-on-error.
-    name: Clang-CL (${{ matrix.vs }})
+    name: Clang-CL VS ${{ matrix.vs }}
     runs-on: ${{ matrix.os }}
     continue-on-error: true
     strategy:
