@@ -18,6 +18,8 @@
 // The whole point of these functions (p0533-style) is being usable in
 // constant expressions; verify that at compile time.
 static_assert(xstd::abs(-2) == 2);
+static_assert(xstd::labs(-2L) == 2L);
+static_assert(xstd::llabs(-2LL) == 2LL);
 static_assert(xstd::sign(-2) == -1);
 static_assert(xstd::div(+8, +3) == xstd::div_t{+2, +2});
 static_assert(xstd::euclidean_div(-8, +3) == xstd::div_t{-3, +1});
@@ -26,21 +28,19 @@ static_assert(xstd::floored_div(-8, +3) == xstd::div_t{-3, +1});
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
 template<class T>
-concept has_abs = requires(T x) { xstd::abs(x); };
-
-template<class T>
 concept has_sign = requires(T x) { xstd::sign(x); };
 
-// abs and sign accept arithmetic types except bool, and reject anything else
-static_assert( has_abs<int>  &&  has_sign<int>);
-static_assert( has_abs<char> &&  has_sign<char>);
-static_assert( has_abs<double> && has_sign<double>);
-static_assert( has_abs<unsigned> && has_sign<unsigned>);
-static_assert(!has_abs<bool> && !has_sign<bool>);
-static_assert(!has_abs<void*> && !has_sign<void*>);
+// sign accepts arithmetic types except bool, and rejects anything else
+static_assert( has_sign<int>);
+static_assert( has_sign<char>);
+static_assert( has_sign<double>);
+static_assert( has_sign<unsigned>);
+static_assert(!has_sign<bool>);
+static_assert(!has_sign<void*>);
 
-// as with the built-in unary minus, the result is promoted for integral
-// types narrower than int, which makes abs of their lowest values well-defined
+// abs/labs/llabs are plain <cstdlib>-style overloads (no templates, no
+// unsigned support): a short argument is promoted to int like any other
+// call, which keeps abs well-defined for its lowest value.
 static_assert(std::is_same_v<decltype(xstd::abs(short())), int>);
 static_assert(xstd::abs(std::numeric_limits<short>::min()) == -(std::numeric_limits<short>::min() + 1) + 1);
 
@@ -52,13 +52,29 @@ BOOST_AUTO_TEST_CASE(Abs)
         BOOST_CHECK_EQUAL(xstd::abs(+1), 1);
         BOOST_CHECK_EQUAL(xstd::abs(+2), 2);
 
-        BOOST_CHECK_EQUAL(xstd::abs(-2.5), 2.5);
-        BOOST_CHECK_EQUAL(xstd::abs(+2.5), 2.5);
-        BOOST_CHECK_EQUAL(xstd::abs(7u), 7u);           // the identity for unsigned types
-
         using limits = std::numeric_limits<int>;
         BOOST_CHECK_EQUAL(xstd::abs(limits::max()), limits::max());
         BOOST_CHECK_EQUAL(xstd::abs(limits::min() + 1), limits::max());
+}
+
+BOOST_AUTO_TEST_CASE(Labs)
+{
+        BOOST_CHECK_EQUAL(xstd::labs(-2L), 2L);
+        BOOST_CHECK_EQUAL(xstd::labs(+2L), 2L);
+
+        using limits = std::numeric_limits<long>;
+        BOOST_CHECK_EQUAL(xstd::labs(limits::max()), limits::max());
+        BOOST_CHECK_EQUAL(xstd::labs(limits::min() + 1), limits::max());
+}
+
+BOOST_AUTO_TEST_CASE(Llabs)
+{
+        BOOST_CHECK_EQUAL(xstd::llabs(-2LL), 2LL);
+        BOOST_CHECK_EQUAL(xstd::llabs(+2LL), 2LL);
+
+        using limits = std::numeric_limits<long long>;
+        BOOST_CHECK_EQUAL(xstd::llabs(limits::max()), limits::max());
+        BOOST_CHECK_EQUAL(xstd::llabs(limits::min() + 1), limits::max());
 }
 
 BOOST_AUTO_TEST_CASE(Sign)

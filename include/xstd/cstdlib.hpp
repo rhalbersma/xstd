@@ -10,20 +10,27 @@
 #include <limits>       // numeric_limits
 #include <ostream>      // ostream
 #include <tuple>        // tie, tuple
-#include <type_traits>  // is_arithmetic_v, is_integral_v, is_same_v, is_signed_v
+#include <type_traits>  // is_arithmetic_v, is_same_v
 
 namespace xstd {
 
-// a constexpr version of std::abs(int) (P0533). As with the built-in unary
-// minus, the result is promoted for integral types narrower than int, which
-// also makes abs(x) well-defined for their most negative values.
-template<class T>
-[[nodiscard]] constexpr auto abs(T const& x) noexcept
-        requires (std::is_arithmetic_v<T> && !std::is_same_v<T, bool>)
+// constexpr versions of <cstdlib>'s abs/labs/llabs (P0533). Non-template and
+// signed-only, mirroring <cstdlib>'s own overload set exactly.
+[[nodiscard]] constexpr auto abs(int x) noexcept -> int
 {
-        if constexpr (std::is_integral_v<T> && std::is_signed_v<T> && std::is_same_v<decltype(-x), T>) {
-                assert(x != std::numeric_limits<T>::min());     // -x would overflow
-        }
+        assert(x != std::numeric_limits<int>::min());     // -x would overflow
+        return x < 0 ? -x : x;
+}
+
+[[nodiscard]] constexpr auto labs(long x) noexcept -> long
+{
+        assert(x != std::numeric_limits<long>::min());     // -x would overflow
+        return x < 0 ? -x : x;
+}
+
+[[nodiscard]] constexpr auto llabs(long long x) noexcept -> long long
+{
+        assert(x != std::numeric_limits<long long>::min());     // -x would overflow
         return x < 0 ? -x : x;
 }
 
