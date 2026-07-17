@@ -329,26 +329,22 @@ namespace xstd {
 
 inline auto& operator<<(std::ostream& ostr, div_t const& d)
 {
-        ostr << std::format("{}", d);
-        return ostr;
+        return ostr << std::format("{}", d);
 }
 
 inline auto& operator<<(std::ostream& ostr, ldiv_t const& d)
 {
-        ostr << std::format("{}", d);
-        return ostr;
+        return ostr << std::format("{}", d);
 }
 
 inline auto& operator<<(std::ostream& ostr, lldiv_t const& d)
 {
-        ostr << std::format("{}", d);
-        return ostr;
+        return ostr << std::format("{}", d);
 }
 
 inline auto& operator<<(std::ostream& ostr, imaxdiv_t const& d)
 {
-        ostr << std::format("{}", d);
-        return ostr;
+        return ostr << std::format("{}", d);
 }
 
 }       // namespace xstd
