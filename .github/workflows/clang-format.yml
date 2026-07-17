@@ -1,0 +1,43 @@
+#          Copyright Rein Halbersma 2014-2026.
+# Distributed under the Boost Software License, Version 1.0.
+#    (See accompanying file LICENSE_1_0.txt or copy at
+#          http://www.boost.org/LICENSE_1_0.txt)
+
+name: Clang-Format
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  format:
+    name: clang-format 22
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Clang-Format 22
+        run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh 22
+          sudo apt-get install -y clang-format-22
+
+      # --dry-run --Werror turns any reformatting diff into a build failure
+      # instead of silently rewriting files; the exact diff (if any) shows
+      # up inline in this job's log via clang-format's own output.
+      - name: Check formatting of all headers and sources
+        run: |
+          find include test -regex '.*\.\(hpp\|cpp\)' -print0 \
+            | xargs -0 clang-format-22 --dry-run --Werror
