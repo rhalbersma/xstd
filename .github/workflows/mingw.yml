@@ -102,13 +102,19 @@ jobs:
           path: C:\winlibs
           key: winlibs-${{ steps.winlibs.outputs.tag }}
 
+      # Extracted into an isolated directory rather than straight to C:/:
+      # the windows-2022 runner already ships its own C:\mingw64 (Git for
+      # Windows' bundled toolchain), and 7-Zip's interactive overwrite
+      # prompt for the colliding files hangs indefinitely with no TTY to
+      # answer it, failing the step with "Break signaled" (exit 255).
       - name: Install WinLibs toolchain
         if: steps.winlibs.outputs.found == 'true' && steps.cache-winlibs.outputs.cache-hit != 'true'
         shell: bash
         run: |
           curl -fsSL "${{ steps.winlibs.outputs.url }}" -o winlibs.7z
-          7z x winlibs.7z -oC:/
-          mv C:/mingw64 C:/winlibs
+          7z x winlibs.7z -oC:/winlibs_extract
+          mv C:/winlibs_extract/mingw64 C:/winlibs
+          rm -rf C:/winlibs_extract
 
       - name: Add WinLibs to PATH
         if: steps.winlibs.outputs.found == 'true'
