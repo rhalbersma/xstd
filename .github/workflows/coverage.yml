@@ -15,9 +15,9 @@ concurrency:
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
 
       - name: Install GCC 15 and gcovr
         run: |
@@ -40,7 +40,7 @@ jobs:
       # to the GitHub Actions cache service, so built packages are reused
       # across runs instead of recompiled from scratch every time.
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v9
+        uses: actions/github-script@373c709c69115d41ff229c7e5df9f8788daa9553 # v9
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -130,7 +130,7 @@ jobs:
       # percentage below the gcovr-computed one.
       - name: Upload to Codecov
         if: always()
-        uses: codecov/codecov-action@v7
+        uses: codecov/codecov-action@a99c28d3f0da835de33ff2feb2e15691c7b9641f # v7
         with:
           files: coverage.xml
           plugins: noop
@@ -140,7 +140,7 @@ jobs:
 
       - name: Upload coverage report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
           name: coverage-xml
           path: coverage.xml

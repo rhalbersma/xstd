@@ -14,9 +14,9 @@ concurrency:
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -51,13 +51,13 @@ jobs:
             triplet: x64-windows
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
 
       # Export the two env vars vcpkg's "x-gha" binary source needs to talk
       # to the GitHub Actions cache service, so built packages are reused
       # across runs instead of recompiled from scratch every time.
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@v9
+        uses: actions/github-script@373c709c69115d41ff229c7e5df9f8788daa9553 # v9
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
