@@ -7,6 +7,8 @@
 [![Clang](https://github.com/rhalbersma/xstd/actions/workflows/clang.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang.yml)
 [![Clang-CL](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml)
 [![MSVC](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml)
+[![MinGW](https://github.com/rhalbersma/xstd/actions/workflows/mingw.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/mingw.yml)
+[![AppleClang](https://github.com/rhalbersma/xstd/actions/workflows/appleclang.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/appleclang.yml)
 [![Coverage](https://codecov.io/gh/rhalbersma/xstd/branch/master/graph/badge.svg)](https://codecov.io/gh/rhalbersma/xstd)
 
 xstd is a header-only C++23 library for small standard-library extensions that can be implemented portably with stable compiler technology. It aims to prototype future-stdlib-style facilities without requiring experimental language features.
@@ -145,12 +147,7 @@ Alternatively, install Boost.Test with your system package manager and point CMa
 
 ## Contributing
 
-When adding or changing a public utility:
-
-1. Add or update the relevant header under `include/xstd/`.
-2. Add or update matching tests under `test/src/`; CMake creates one test executable per `.cpp` file in that directory.
-3. Run the CMake and CTest workflow above locally.
-4. Update the feature table and examples in this README when the public API changes.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow and what a pull request must satisfy (full CI matrix, 100% line coverage, clean `clang-tidy`) before it can merge.
 
 ## Requirements
 
@@ -162,10 +159,12 @@ These header-only libraries are continuously being tested with the following con
 | Linux    | Clang    | 21             | 22              | 23-SVN             | [![Clang](https://github.com/rhalbersma/xstd/actions/workflows/clang.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang.yml) |
 | Windows  | Clang-CL | 19.1.5 (VS 2022, bundled) | 20.1.8 (VS 2026, bundled) | —               | [![Clang-CL](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml) |
 | Windows  | MSVC     | 2022 (17.11+)  | 2026            | 2026-Preview       | [![MSVC](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml) |
+| Windows  | MinGW    | GCC 15         | GCC 16          | GCC snapshot       | [![MinGW](https://github.com/rhalbersma/xstd/actions/workflows/mingw.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/mingw.yml) |
+| macOS    | AppleClang | previous Xcode generation (`macos-15`) | current Xcode generation (`macos-26`) | newest available Xcode on `macos-26` | [![AppleClang](https://github.com/rhalbersma/xstd/actions/workflows/appleclang.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/appleclang.yml) |
 
-The `Trunk / Preview` column is allowed to fail independently and does not affect the badges above. The `clang-cl` leg tests Clang's diagnostics against the MSVC STL, using whichever LLVM version each Visual Studio version bundles; there's no separate `Trunk / Preview` entry for it, since "Clang tools for Windows" is a single VS component shared by the stable and preview MSVC toolsets alike. On Windows, formatting `xstd::div_t` sets the effective minimum toolset: the C++23 `formatter` specializations for `std::pair` and `std::tuple` ([P2286R8](https://wg21.link/p2286r8)) first shipped in the MSVC STL of Visual Studio 2022 17.11 (MSVC toolset 19.41), so any VS 2022 release from 17.11 onwards works. The CMake target requests C++23 through `target_compile_features(... cxx_std_23)`, letting CMake select the appropriate standard flag for each supported compiler.
+The `Trunk / Preview` column is allowed to fail independently and does not affect the badges above. The `clang-cl` leg tests Clang's diagnostics against the MSVC STL, using whichever LLVM version each Visual Studio version bundles; there's no separate `Trunk / Preview` entry for it, since "Clang tools for Windows" is a single VS component shared by the stable and preview MSVC toolsets alike. The `MinGW` workflow pins GCC versions through [WinLibs](https://winlibs.com) standalone builds rather than a rolling package feed, resolving the matching release from the GitHub API at run time; its "dev" leg tracks whatever snapshot build WinLibs currently publishes between stable branches, which does not always exist and is allowed to no-op. AppleClang has no open-source trunk/nightly the way GCC and Clang do, so its "dev" leg instead selects the newest Xcode.app preinstalled on the runner image (often, but not guaranteed to be, a beta) rather than a specific pinned version. On Windows, formatting `xstd::div_t` sets the effective minimum toolset: the C++23 `formatter` specializations for `std::pair` and `std::tuple` ([P2286R8](https://wg21.link/p2286r8)) first shipped in the MSVC STL of Visual Studio 2022 17.11 (MSVC toolset 19.41), so any VS 2022 release from 17.11 onwards works. The CMake target requests C++23 through `target_compile_features(... cxx_std_23)`, letting CMake select the appropriate standard flag for each supported compiler.
 
-All three mainstream standard libraries are exercised: libstdc++ (GCC and Clang legs), the MSVC STL (MSVC and Clang-CL legs), and libc++ (a best-effort `libc++` leg of the Clang workflow, which rebuilds Boost.Test against libc++ through the vcpkg overlay triplet in `.github/vcpkg`). macOS / AppleClang is currently not tested; the library is expected to work with any toolchain that implements the C++23 features above, including `std::format` for tuple-like types.
+All three mainstream standard libraries are exercised: libstdc++ (GCC, Clang, and MinGW legs), the MSVC STL (MSVC and Clang-CL legs), and libc++ (a best-effort `libc++` leg of the Clang workflow, which rebuilds Boost.Test against libc++ through the vcpkg overlay triplet in `.github/vcpkg`, plus the AppleClang legs, which use macOS's libc++ by default). The library is expected to work with any toolchain that implements the C++23 features above, including `std::format` for tuple-like types.
 
 ## License
 
