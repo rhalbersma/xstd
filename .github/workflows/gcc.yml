@@ -94,10 +94,10 @@ jobs:
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
-      # Ubuntu 24.04's libboost-test-dev is Boost 1.83 (2023); vcpkg tracks
-      # recent Boost releases instead. All apt-installed GCCs share the
-      # system libstdc++, so ABI is consistent regardless of which one built
-      # vcpkg's Boost.
+      # vcpkg is used instead of the distro's boost package so xstd tracks
+      # recent Boost releases regardless of what the OS bundles. All
+      # apt-installed GCCs share the system libstdc++, so ABI is consistent
+      # regardless of which one built vcpkg's Boost.
       - name: Install Boost.Test (stable)
         if: "!matrix.trunk"
         env:

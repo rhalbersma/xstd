@@ -99,8 +99,9 @@ jobs:
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
-      # Ubuntu 24.04's libboost-test-dev is Boost 1.83 (2023); vcpkg tracks
-      # recent Boost releases instead. apt.llvm.org's Clang packages
+      # vcpkg is used instead of the distro's boost package so xstd tracks
+      # recent Boost releases regardless of what the OS bundles.
+      # apt.llvm.org's Clang packages
       # (including the dev/SVN build) link against the system libstdc++ like
       # every other apt-installed compiler on the runner - no separate
       # bundled runtime, so no ABI mismatch with vcpkg's Boost.Test either.
