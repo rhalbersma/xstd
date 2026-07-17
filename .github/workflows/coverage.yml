@@ -101,11 +101,19 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
+      # Without these, the Codecov CLI's own "gcov" plugin reruns raw gcov
+      # over every .gcno file it finds in build/ and blends that report in
+      # alongside coverage.xml - a second, unfiltered pass that knows
+      # nothing about the exclusions above, so excluded lines (assert(...),
+      # "= default;") count as uncovered again and drag the reported
+      # percentage below the gcovr-computed one.
       - name: Upload to Codecov
         if: always()
         uses: codecov/codecov-action@v7
         with:
           files: coverage.xml
+          plugins: noop
+          disable_search: true
           use_oidc: true
           fail_ci_if_error: false
 
