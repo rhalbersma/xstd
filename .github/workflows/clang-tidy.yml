@@ -22,7 +22,7 @@ on:
 jobs:
   tidy:
     name: clang-tidy 22
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v7
@@ -34,13 +34,13 @@ jobs:
           sudo ./llvm.sh 22
           sudo apt-get install -y clang-tidy-22
 
-      # Ubuntu 22.04's default libstdc++ (GCC 11) predates <format> entirely
-      # (added in libstdc++ 13), which xstd/cstdlib.hpp needs for div_t's
-      # std::formatter. Clang doesn't bundle its own standard library for
-      # -stdlib=libstdc++; it auto-selects the newest GCC installation's
-      # headers/runtime it can find, so installing a fresh g++ here (unused
-      # as a compiler, only for its libstdc++) is enough. Matches clang.yml's
-      # own fix for the same underlying problem.
+      # xstd/cstdlib.hpp's div_t formatter needs libstdc++'s <format> (and,
+      # more specifically, its std::formatter<tuple> support), so this
+      # installs a known-good g++ purely for its libstdc++, regardless of
+      # what the runner image's default GCC ships. Clang doesn't bundle its
+      # own standard library for -stdlib=libstdc++; it auto-selects the
+      # newest GCC installation's headers/runtime it can find, so this is
+      # enough. Matches clang.yml's own fix for the same underlying problem.
       - name: Install a <format>-capable libstdc++
         run: |
           sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test

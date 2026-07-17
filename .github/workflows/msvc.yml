@@ -23,7 +23,6 @@ jobs:
   build:
     name: MSVC ${{ matrix.vs }}
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.preview_channel }}
     strategy:
       fail-fast: false
       matrix:
@@ -76,8 +75,9 @@ jobs:
           restore-keys: |
             vs-preview-packages-${{ runner.os }}-
 
-      # Best-effort: the windows-2025 runner image ships VS 2026 Stable
-      # preinstalled, and the Preview MSVC toolset is an optional component
+      # This leg is required like any other: the windows-2025 runner image
+      # ships VS 2026 Stable preinstalled, and the Preview MSVC toolset is
+      # an optional component
       # on the Stable channel (see the "MSVC Build Tools Preview: How to Opt
       # In" C++ team blog posts), so it can be added to the existing
       # instance with the VS Installer's own "modify" command. Two hard-won

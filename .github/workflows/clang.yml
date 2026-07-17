@@ -22,8 +22,7 @@ on:
 jobs:
   build:
     name: Clang ${{ matrix.label }}
-    runs-on: ubuntu-22.04
-    continue-on-error: ${{ matrix.best_effort }}
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -35,7 +34,6 @@ jobs:
             stdlib: libstdc++
             triplet: x64-linux
             cxxflags: ""
-            best_effort: false
           - label: "22"
             version: 22
             cc: clang-22
@@ -43,13 +41,11 @@ jobs:
             stdlib: libstdc++
             triplet: x64-linux
             cxxflags: ""
-            best_effort: false
           # The MSVC STL and libstdc++ are covered by the other workflows;
           # this leg adds the third mainstream standard library. Boost.Test
           # is rebuilt against libc++ through the overlay triplet in
-          # .github/vcpkg (a libstdc++ Boost would not link). Best-effort
-          # until the vcpkg overlay path has proven itself; promote it to a
-          # required leg (best_effort: false) once it is green on master.
+          # .github/vcpkg (a libstdc++ Boost would not link). Required like
+          # every other leg.
           - label: 22 libc++
             version: 22
             cc: clang-22
@@ -57,7 +53,6 @@ jobs:
             stdlib: libc++
             triplet: x64-linux-libcxx
             cxxflags: "-stdlib=libc++"
-            best_effort: true
           - label: 23-SVN
             version: 23
             cc: clang-23
@@ -65,7 +60,6 @@ jobs:
             stdlib: libstdc++
             triplet: x64-linux
             cxxflags: ""
-            best_effort: true
 
     steps:
       - uses: actions/checkout@v7
@@ -80,14 +74,14 @@ jobs:
         if: matrix.stdlib == 'libc++'
         run: sudo apt-get install -y libc++-${{ matrix.version }}-dev libc++abi-${{ matrix.version }}-dev
 
-      # Ubuntu 22.04's default libstdc++ (GCC 11) predates the <format>
-      # header entirely (added in libstdc++ 13), which xstd/cstdlib.hpp
-      # needs for div_t's std::formatter. Clang doesn't bundle its own
-      # standard library for -stdlib=libstdc++; it auto-selects the newest
-      # GCC installation's headers/runtime it can find, so installing a
-      # fresh g++ here (unused as a compiler, only for its libstdc++) is
-      # enough - no --gcc-toolchain flag needed. Matches gcc.yml's own
-      # fix for the same underlying problem.
+      # xstd/cstdlib.hpp's div_t formatter needs libstdc++'s <format> (and,
+      # more specifically, its std::formatter<tuple> support), so this
+      # installs a known-good g++ purely for its libstdc++, regardless of
+      # what the runner image's default GCC ships. Clang doesn't bundle its
+      # own standard library for -stdlib=libstdc++; it auto-selects the
+      # newest GCC installation's headers/runtime it can find, so this is
+      # enough - no --gcc-toolchain flag needed. Matches gcc.yml's own fix
+      # for the same underlying problem.
       - name: Install a <format>-capable libstdc++
         if: matrix.stdlib == 'libstdc++'
         run: |
@@ -105,8 +99,9 @@ jobs:
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
-      # Ubuntu 22.04's libboost-test-dev is Boost 1.74 (2020); vcpkg tracks
-      # recent Boost releases instead. apt.llvm.org's Clang packages
+      # vcpkg is used instead of the distro's boost package so xstd tracks
+      # recent Boost releases regardless of what the OS bundles.
+      # apt.llvm.org's Clang packages
       # (including the dev/SVN build) link against the system libstdc++ like
       # every other apt-installed compiler on the runner - no separate
       # bundled runtime, so no ABI mismatch with vcpkg's Boost.Test either.

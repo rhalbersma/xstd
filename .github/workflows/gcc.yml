@@ -22,8 +22,7 @@ on:
 jobs:
   build:
     name: GCC ${{ matrix.label }}
-    runs-on: ubuntu-22.04
-    continue-on-error: ${{ matrix.trunk }}
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -54,9 +53,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ${{ matrix.cxx }}
 
-      # Best-effort: installs Jonathan Wakely's binary snapshot of GCC trunk
-      # (see https://jwakely.github.io/pkg-gcc-latest/). Not an official GCC
-      # release, so this leg is allowed to fail (see continue-on-error above).
+      # Installs Jonathan Wakely's binary snapshot of GCC trunk (see
+      # https://jwakely.github.io/pkg-gcc-latest/). Not an official GCC
+      # release, but this leg is required like any other: xstd tracks trunk
+      # deliberately and expects to adapt to it rather than ignore it.
       # The version banner includes the snapshot's build date, which we use
       # below to key the Boost cache so it invalidates whenever the snapshot
       # actually changes.
@@ -94,18 +94,18 @@ jobs:
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
-      # Ubuntu 22.04's libboost-test-dev is Boost 1.74 (2020); vcpkg tracks
-      # recent Boost releases instead. All apt-installed GCCs share the
-      # system libstdc++, so ABI is consistent regardless of which one built
-      # vcpkg's Boost.
+      # vcpkg is used instead of the distro's boost package so xstd tracks
+      # recent Boost releases regardless of what the OS bundles. All
+      # apt-installed GCCs share the system libstdc++, so ABI is consistent
+      # regardless of which one built vcpkg's Boost.
       - name: Install Boost.Test (stable)
         if: "!matrix.trunk"
         env:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
         run: vcpkg install --triplet x64-linux
 
-      # The distro's/vcpkg's prebuilt Boost.Test is compiled by an older,
-      # ABI-stable GCC. Linking it against the trunk snapshot breaks
+      # vcpkg's prebuilt Boost.Test is compiled by an older, ABI-stable GCC.
+      # Linking it against the trunk snapshot breaks
       # Boost.Test's runtime parameter registration ("Test setup error:
       # Parameter catch_system_errors"), because the snapshot ships its own,
       # newer libstdc++ (unlike apt-installed compilers, which all share the
