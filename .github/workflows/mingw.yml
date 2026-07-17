@@ -149,15 +149,20 @@ jobs:
 
       # Ninja rather than "MinGW Makefiles": the latter needs
       # mingw32-make.exe specifically, which WinLibs' archive doesn't
-      # bundle (CMAKE_MAKE_PROGRAM ends up unset). Ninja is preinstalled on
-      # the windows-2022 runner image and works with any compiler on PATH.
+      # bundle (CMAKE_MAKE_PROGRAM ends up unset). Ninja itself isn't
+      # preinstalled on windows-2022 either (dropped from the image in
+      # 20230918.1.0), hence the explicit choco install below.
+      - name: Install Ninja
+        if: steps.winlibs.outputs.found == 'true'
+        run: choco install ninja -y
+
       - name: Configure
         if: steps.winlibs.outputs.found == 'true'
         run: >
           cmake -S . -B build -G Ninja
           -DCMAKE_C_COMPILER=gcc
           -DCMAKE_CXX_COMPILER=g++
-          -DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
+          "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
           -DVCPKG_TARGET_TRIPLET=x64-mingw-dynamic
 
       - name: Build
