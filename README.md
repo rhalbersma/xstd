@@ -91,11 +91,11 @@ auto const text = std::format("{}", floored); // "(-3, 1)"
 
 `xstd::div`, `xstd::euclidean_div`, and `xstd::floored_div` require a nonzero denominator. Like built-in signed integer division, `INT_MIN / -1` is outside their contract for `int` inputs. `xstd::div` follows C++'s truncated division semantics, `xstd::euclidean_div` always returns a nonnegative remainder, and `xstd::floored_div` returns a remainder with the divisor's sign unless the remainder is zero. Each has 3 wider siblings following `<cstdlib>`/`<cinttypes>`'s own naming: `ldiv`/`euclidean_ldiv`/`floored_ldiv` for `long`, `lldiv`/`euclidean_lldiv`/`floored_lldiv` for `long long`, and `imaxdiv`/`euclidean_imaxdiv`/`floored_imaxdiv` for `intmax_t`, returning `xstd::ldiv_t`, `xstd::lldiv_t`, and `xstd::imaxdiv_t` respectively.
 
-Formatting any of these 4 `div_t`-like types requires C++23 standard-library support for formatting tuple-like values, because each formatter delegates to `std::formatter<std::tuple<T const&, T const&>>` through `std::tie`. This is covered by the continuously tested compiler and standard-library versions below. Each type also has a narrow `std::ostream& operator<<` overload (no wide-character support) that just forwards to `std::format`; it exists only so Boost.Test can print these types in test diagnostics, not as a general-purpose printing facility, so application code should prefer `std::format`/`std::print` directly.
+Formatting any of these 4 `div_t`-like types requires C++23 standard-library support for formatting tuple-like values. This is covered by the continuously tested compiler and standard-library versions below. Prefer `std::format`/`std::print` over the types' `operator<<`, which exists only for Boost.Test's diagnostics.
 
-`xstd::abs`, `xstd::labs`, `xstd::llabs`, and `xstd::imaxabs` are plain, non-template overloads mirroring `<cstdlib>`'s own `abs`/`labs`/`llabs` and `<cinttypes>`'s `imaxabs`: signed integral arguments only, no unsigned support. As with the built-in unary minus, the most negative value of each parameter type is outside its contract (guarded by an `assert`), just like `INT_MIN / -1` is for the division helpers. `xstd::sign`, `xstd::lsign`, `xstd::llsign`, and `xstd::imaxsign` aren't part of `<cstdlib>`, but follow the same plain, non-template style at the same 4 widths, each always returning a plain `int`. This differs from `boost::math::sign`, which is a single function template over any type; xstd deliberately narrows to 4 non-template, signed-integral-only overloads instead, for the same reasons as the `abs` family above.
+`xstd::abs`, `xstd::labs`, `xstd::llabs`, and `xstd::imaxabs` mirror `<cstdlib>`'s own `abs`/`labs`/`llabs` and `<cinttypes>`'s `imaxabs`: signed integral arguments only, no unsigned support. As with the built-in unary minus, the most negative value of each parameter type is outside its contract (guarded by an `assert`), just like `INT_MIN / -1` is for the division helpers. `xstd::sign`, `xstd::lsign`, `xstd::llsign`, and `xstd::imaxsign` aren't part of `<cstdlib>`, but follow the same 4-width naming, each always returning a plain `int`.
 
-`intmax_t` and `long` are the same type on some platforms (e.g. 64-bit Linux) and distinct types on others (e.g. Windows); the `imax`-prefixed names avoid the platform-dependent overload collision that naming them as `long`/`intmax_t` overloads of a single name would risk.
+See [doc/design.md](doc/design.md) for the rationale behind these APIs' shapes (why non-template, why `imax`-prefixed names, etc.).
 
 ### Type traits
 
@@ -109,7 +109,7 @@ static_assert(xstd::is_specialization_of_v<std::complex<double>, std::complex>);
 static_assert(!xstd::is_specialization_of_v<int, std::complex>);
 ```
 
-`xstd::is_specialization_of` isn't fully general: its `Primary` parameter is constrained to `template<class...> class`, so it only accepts class templates whose parameters are all types. A template with a non-type parameter, like `std::array` (`template<class, size_t>`), doesn't just evaluate to `false` here - passing it as the second argument is a hard compile error, since its template template parameter kind doesn't match `template<class...> class`. C++26 reflection may enable a more general version that also handles non-type template parameters.
+`xstd::is_specialization_of` isn't fully general: its `Primary` parameter is constrained to `template<class...> class`, so it only accepts class templates whose parameters are all types. A template with a non-type parameter, like `std::array` (`template<class, size_t>`), doesn't just evaluate to `false` here - passing it as the second argument is a hard compile error, since its template template parameter kind doesn't match `template<class...> class`. See [doc/design.md](doc/design.md) for why.
 
 ## Building and testing
 
@@ -143,7 +143,7 @@ Alternatively, install Boost.Test with your system package manager and point CMa
 
 - `include/xstd/` contains the public header-only library code.
 - `test/src/` contains Boost.Test unit tests, with one executable generated per `.cpp` file.
-- `doc/` contains historical proposal documents and design notes that provide background but are not the current public API.
+- `doc/` contains historical proposal documents and [design.md](doc/design.md), which explains the rationale behind API and CI/toolchain choices; none of it is the current public API.
 
 ## Contributing
 
@@ -151,7 +151,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow and what a p
 
 ## Requirements
 
-These header-only libraries are continuously being tested with the following conforming [C++23](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4950.pdf) compilers. Following the model of [apt.llvm.org](https://apt.llvm.org/), we support the latest two stable releases of each compiler, plus its current development branch, required to pass like any other leg: xstd tracks trunk deliberately and expects to adapt to it rather than treat it as optional.
+These header-only libraries are continuously being tested with the following conforming [C++23](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4950.pdf) compilers, against all three mainstream standard libraries (libstdc++, the MSVC STL, and libc++). Following the model of [apt.llvm.org](https://apt.llvm.org/), we support the latest two stable releases of each compiler, plus its current development branch. Every leg in the table below is required, including every `Trunk / Preview` entry: a break on trunk fails CI the same as a break on a stable release does.
 
 | Platform | Compiler | Older stable | Latest stable | Trunk / Preview | Build |
 | :------- | :------- | :------------ | :------------- | :---------------- | :---- |
@@ -162,9 +162,7 @@ These header-only libraries are continuously being tested with the following con
 | Windows  | Clang-CL | 19.1.5 (VS 2022) | 20.1.8 (VS 2026) | —               | [![Clang-CL](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml) |
 | Windows  | MSVC     | 2022 (17.11+)  | 2026            | 2026-Preview       | [![MSVC](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml) |
 
-Every leg in this table, including every `Trunk / Preview` entry (`17-SVN`, `23-SVN`, `2026-Preview`), is required: a break on trunk fails the workflow (and its badge above) just like a break on a stable release does. xstd tracks trunk deliberately rather than treating it as advisory. Neither `AppleClang` nor `Clang-CL` has a `Trunk / Preview` entry at all: Apple doesn't publish AppleClang dev snapshots the way LLVM does (the newest Xcode.app preinstalled on a runner image isn't reliably a distinct compiler), and "Clang tools for Windows" is a single VS component shared by the stable and preview MSVC toolsets alike, so it would just be the exact same `clang-cl.exe` as the `Latest stable` row. The `MinGW` workflow pins GCC versions through [WinLibs](https://winlibs.com) standalone builds rather than a rolling package feed, resolving the matching release from the GitHub API at run time; its `Trunk / Preview` leg tracks whatever snapshot build WinLibs currently publishes between stable branches - when no snapshot currently exists the leg no-ops rather than failing, but a snapshot that exists and fails to build is a required failure like any other. On Windows, formatting `xstd::div_t` sets the effective minimum toolset: the C++23 `formatter` specializations for `std::pair` and `std::tuple` ([P2286R8](https://wg21.link/p2286r8)) first shipped in the MSVC STL of Visual Studio 2022 17.11 (MSVC toolset 19.41), so any VS 2022 release from 17.11 onwards works. The CMake target requests C++23 through `target_compile_features(... cxx_std_23)`, letting CMake select the appropriate standard flag for each supported compiler.
-
-All three mainstream standard libraries are exercised: libstdc++ (GCC, Clang, and MinGW legs), the MSVC STL (MSVC and Clang-CL legs), and libc++ (the `libc++` leg of the Clang workflow, which rebuilds Boost.Test against libc++ through the vcpkg overlay triplet in `.github/vcpkg`, plus the AppleClang legs, which use macOS's libc++ by default). The library is expected to work with any toolchain that implements the C++23 features above, including `std::format` for tuple-like types.
+The library is expected to work with any toolchain that implements the C++23 features it uses, including `std::format` for tuple-like types. See [doc/design.md](doc/design.md) for why some platforms have no `Trunk / Preview` row, how each workflow provisions its trunk/preview toolchain, and the MSVC version that first shipped tuple `std::formatter` support.
 
 ## License
 
