@@ -22,7 +22,7 @@ on:
 jobs:
   build:
     name: GCC ${{ matrix.label }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
@@ -94,7 +94,7 @@ jobs:
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
-      # Ubuntu 22.04's libboost-test-dev is Boost 1.74 (2020); vcpkg tracks
+      # Ubuntu 24.04's libboost-test-dev is Boost 1.83 (2023); vcpkg tracks
       # recent Boost releases instead. All apt-installed GCCs share the
       # system libstdc++, so ABI is consistent regardless of which one built
       # vcpkg's Boost.
