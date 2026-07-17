@@ -6,12 +6,12 @@
 #ifndef XSTD_CSTDLIB_HPP
 #define XSTD_CSTDLIB_HPP
 
-#include <cassert>      // assert
-#include <cstdint>      // intmax_t, uintmax_t
-#include <format>       // format, formatter
-#include <limits>       // numeric_limits
-#include <ostream>      // ostream
-#include <tuple>        // tie, tuple
+#include <cassert> // assert
+#include <cstdint> // intmax_t, uintmax_t
+#include <format>  // format, formatter
+#include <limits>  // numeric_limits
+#include <ostream> // ostream
+#include <tuple>   // tie, tuple
 
 namespace xstd {
 
@@ -20,25 +20,25 @@ namespace xstd {
 // headers themselves.
 [[nodiscard]] constexpr int abs(int x) noexcept
 {
-        assert(x != std::numeric_limits<int>::min());     // -x would overflow
+        assert(x != std::numeric_limits<int>::min()); // -x would overflow
         return x < 0 ? -x : x;
 }
 
 [[nodiscard]] constexpr long labs(long x) noexcept
 {
-        assert(x != std::numeric_limits<long>::min());     // -x would overflow
+        assert(x != std::numeric_limits<long>::min()); // -x would overflow
         return x < 0 ? -x : x;
 }
 
 [[nodiscard]] constexpr long long llabs(long long x) noexcept
 {
-        assert(x != std::numeric_limits<long long>::min());     // -x would overflow
+        assert(x != std::numeric_limits<long long>::min()); // -x would overflow
         return x < 0 ? -x : x;
 }
 
 [[nodiscard]] constexpr std::intmax_t imaxabs(std::intmax_t x) noexcept
 {
-        assert(x != std::numeric_limits<std::intmax_t>::min());     // -x would overflow
+        assert(x != std::numeric_limits<std::intmax_t>::min()); // -x would overflow
         return x < 0 ? -x : x;
 }
 
@@ -117,7 +117,7 @@ namespace detail {
         return x < 0 ? static_cast<std::uintmax_t>(0) - static_cast<std::uintmax_t>(x) : static_cast<std::uintmax_t>(x);
 }
 
-}       // namespace detail
+} // namespace detail
 
 // C++ Standard [expr.mul]/4
 // https://en.wikipedia.org/wiki/Modulo_operation
@@ -143,7 +143,7 @@ namespace detail {
         assert(static_cast<long long>(numer) == (static_cast<long long>(denom) * qT) + rT);
         assert(detail::magnitude(rT) < detail::magnitude(denom));
         assert(sign(rT) == sign(numer) || rT == 0);
-        return { .quot = qT, .rem = rT };
+        return {.quot = qT, .rem = rT};
 }
 
 [[nodiscard]] constexpr ldiv_t ldiv(long numer, long denom) noexcept
@@ -154,7 +154,7 @@ namespace detail {
         auto const rT = numer % denom;
         assert(detail::lmagnitude(rT) < detail::lmagnitude(denom));
         assert(lsign(rT) == lsign(numer) || rT == 0);
-        return { .quot = qT, .rem = rT };
+        return {.quot = qT, .rem = rT};
 }
 
 [[nodiscard]] constexpr lldiv_t lldiv(long long numer, long long denom) noexcept
@@ -165,7 +165,7 @@ namespace detail {
         auto const rT = numer % denom;
         assert(detail::llmagnitude(rT) < detail::llmagnitude(denom));
         assert(llsign(rT) == llsign(numer) || rT == 0);
-        return { .quot = qT, .rem = rT };
+        return {.quot = qT, .rem = rT};
 }
 
 [[nodiscard]] constexpr imaxdiv_t imaxdiv(std::intmax_t numer, std::intmax_t denom) noexcept
@@ -176,7 +176,7 @@ namespace detail {
         auto const rT = numer % denom;
         assert(detail::imaxmagnitude(rT) < detail::imaxmagnitude(denom));
         assert(imaxsign(rT) == imaxsign(numer) || rT == 0);
-        return { .quot = qT, .rem = rT };
+        return {.quot = qT, .rem = rT};
 }
 
 // https://en.wikipedia.org/wiki/Euclidean_division
@@ -192,7 +192,7 @@ namespace detail {
         assert(static_cast<long long>(numer) == (static_cast<long long>(denom) * qE) + rE);
         assert(detail::magnitude(rE) < detail::magnitude(denom));
         assert(sign(rE) >= 0);
-        return { .quot = qE, .rem = rE };
+        return {.quot = qE, .rem = rE};
 }
 
 [[nodiscard]] constexpr ldiv_t euclidean_ldiv(long numer, long denom) noexcept
@@ -204,7 +204,7 @@ namespace detail {
         auto const rE = divT.rem + (I * denom);
         assert(detail::lmagnitude(rE) < detail::lmagnitude(denom));
         assert(lsign(rE) >= 0);
-        return { .quot = qE, .rem = rE };
+        return {.quot = qE, .rem = rE};
 }
 
 [[nodiscard]] constexpr lldiv_t euclidean_lldiv(long long numer, long long denom) noexcept
@@ -216,7 +216,7 @@ namespace detail {
         auto const rE = divT.rem + (I * denom);
         assert(detail::llmagnitude(rE) < detail::llmagnitude(denom));
         assert(llsign(rE) >= 0);
-        return { .quot = qE, .rem = rE };
+        return {.quot = qE, .rem = rE};
 }
 
 [[nodiscard]] constexpr imaxdiv_t euclidean_imaxdiv(std::intmax_t numer, std::intmax_t denom) noexcept
@@ -228,7 +228,7 @@ namespace detail {
         auto const rE = divT.rem + (I * denom);
         assert(detail::imaxmagnitude(rE) < detail::imaxmagnitude(denom));
         assert(imaxsign(rE) >= 0);
-        return { .quot = qE, .rem = rE };
+        return {.quot = qE, .rem = rE};
 }
 
 // %: Perl, Python, Ruby
@@ -245,7 +245,7 @@ namespace detail {
         assert(static_cast<long long>(numer) == (static_cast<long long>(denom) * qF) + rF);
         assert(detail::magnitude(rF) < detail::magnitude(denom));
         assert(rF == 0 || sign(rF) == sign(denom));
-        return { .quot = qF, .rem = rF };
+        return {.quot = qF, .rem = rF};
 }
 
 [[nodiscard]] constexpr ldiv_t floored_ldiv(long numer, long denom) noexcept
@@ -257,7 +257,7 @@ namespace detail {
         auto const rF = divT.rem + (I * denom);
         assert(detail::lmagnitude(rF) < detail::lmagnitude(denom));
         assert(rF == 0 || lsign(rF) == lsign(denom));
-        return { .quot = qF, .rem = rF };
+        return {.quot = qF, .rem = rF};
 }
 
 [[nodiscard]] constexpr lldiv_t floored_lldiv(long long numer, long long denom) noexcept
@@ -269,7 +269,7 @@ namespace detail {
         auto const rF = divT.rem + (I * denom);
         assert(detail::llmagnitude(rF) < detail::llmagnitude(denom));
         assert(rF == 0 || llsign(rF) == llsign(denom));
-        return { .quot = qF, .rem = rF };
+        return {.quot = qF, .rem = rF};
 }
 
 [[nodiscard]] constexpr imaxdiv_t floored_imaxdiv(std::intmax_t numer, std::intmax_t denom) noexcept
@@ -281,10 +281,10 @@ namespace detail {
         auto const rF = divT.rem + (I * denom);
         assert(detail::imaxmagnitude(rF) < detail::imaxmagnitude(denom));
         assert(rF == 0 || imaxsign(rF) == imaxsign(denom));
-        return { .quot = qF, .rem = rF };
+        return {.quot = qF, .rem = rF};
 }
 
-}       // namespace xstd
+} // namespace xstd
 
 // Specialized via qualified-id (template<> struct std::formatter<...>)
 // rather than inside a reopened "namespace std { ... }" block: both forms
@@ -355,6 +355,6 @@ inline auto& operator<<(std::ostream& ostr, imaxdiv_t const& d)
         return ostr << std::format("{}", d);
 }
 
-}       // namespace xstd
+} // namespace xstd
 
-#endif  // XSTD_CSTDLIB_HPP
+#endif // XSTD_CSTDLIB_HPP

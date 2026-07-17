@@ -3,19 +3,19 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/cstdlib.hpp>             // /(l{0,2}|imax)(abs|sign|div_t?|magnitude)/, /(euclidean|floored)_(l{0,2}|imax)div/
-#include <xstd/test/constexpr.hpp>      // XSTD_CONSTEXPR_CHECK_EQUAL
-#include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_CHECK_EQUAL, BOOST_CHECK_EQUAL_COLLECTIONS
-#include <algorithm>                    // transform
-#include <array>                        // array
-#include <cstdint>                      // intmax_t
-#include <cstdlib>                      // div, div_t
-#include <format>                       // format
-#include <iterator>                     // back_inserter
-#include <limits>                       // numeric_limits
-#include <sstream>                      // ostringstream
-#include <utility>                      // pair
-#include <vector>                       // vector
+#include <xstd/cstdlib.hpp>         // /(l{0,2}|imax)(abs|sign|div_t?|magnitude)/, /(euclidean|floored)_(l{0,2}|imax)div/
+#include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK_EQUAL
+#include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_CHECK_EQUAL, BOOST_CHECK_EQUAL_COLLECTIONS
+#include <algorithm>                // transform
+#include <array>                    // array
+#include <cstdint>                  // intmax_t
+#include <cstdlib>                  // div, div_t
+#include <format>                   // format
+#include <iterator>                 // back_inserter
+#include <limits>                   // numeric_limits
+#include <sstream>                  // ostringstream
+#include <utility>                  // pair
+#include <vector>                   // vector
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
@@ -23,7 +23,7 @@ BOOST_AUTO_TEST_CASE(Abs)
 {
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(-2), 2);
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(-1), 1);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs( 0), 0);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(0), 0);
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(+1), 1);
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(+2), 2);
 
@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(Sign)
 {
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(-2), -1);
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(-1), -1);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign( 0),  0);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(0), 0);
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(+1), +1);
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(+2), +1);
 }
@@ -79,51 +79,53 @@ BOOST_AUTO_TEST_CASE(Sign)
 BOOST_AUTO_TEST_CASE(Lsign)
 {
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::lsign(-2L), -1);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::lsign( 0L),  0);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::lsign(0L), 0);
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::lsign(+2L), +1);
 }
 
 BOOST_AUTO_TEST_CASE(Llsign)
 {
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::llsign(-2LL), -1);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::llsign( 0LL),  0);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::llsign(0LL), 0);
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::llsign(+2LL), +1);
 }
 
 BOOST_AUTO_TEST_CASE(Imaxsign)
 {
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::imaxsign(-2), -1);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::imaxsign( 0),  0);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::imaxsign(0), 0);
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::imaxsign(+2), +1);
 }
 
 // http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf
 
+// clang-format off
 auto const input = std::array<std::pair<int, int>, 8>
 {{
         {+8, +3}, {+8, -3}, {-8, +3}, {-8, -3},
         {+1, +2}, {+1, -2}, {-1, +2}, {-1, -2}
 }};
+// clang-format on
 
 BOOST_AUTO_TEST_CASE(StdDiv)
 {
+        // clang-format off
         auto const std_div = std::vector<xstd::div_t>
         {
                 {+2, +2}, {-2, +2}, {-2, -2}, {+2, -2},
                 { 0, +1}, { 0, +1}, { 0, -1}, { 0, -1}
         };
+        // clang-format on
 
         std::vector<xstd::div_t> std_res;
-        std::transform(input.begin(), input.end(), std::back_inserter(std_res), [](auto const& p)
-                -> xstd::div_t {
+        std::transform(input.begin(), input.end(), std::back_inserter(std_res), [](auto const& p) -> xstd::div_t {
                 auto const d = std::div(p.first, p.second);
-                return { d.quot, d.rem };
+                return {d.quot, d.rem};
         });
 
         BOOST_CHECK_EQUAL_COLLECTIONS(
                 std_res.begin(), std_res.end(),
-                std_div.begin(), std_div.end()
-        );
+                std_div.begin(), std_div.end());
 }
 
 BOOST_AUTO_TEST_CASE(TruncatedDiv)
@@ -132,10 +134,10 @@ BOOST_AUTO_TEST_CASE(TruncatedDiv)
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::div(+8, -3), (xstd::div_t{-2, +2}));
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::div(-8, +3), (xstd::div_t{-2, -2}));
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::div(-8, -3), (xstd::div_t{+2, -2}));
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::div(+1, +2), (xstd::div_t{ 0, +1}));
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::div(+1, -2), (xstd::div_t{ 0, +1}));
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::div(-1, +2), (xstd::div_t{ 0, -1}));
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::div(-1, -2), (xstd::div_t{ 0, -1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::div(+1, +2), (xstd::div_t{0, +1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::div(+1, -2), (xstd::div_t{0, +1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::div(-1, +2), (xstd::div_t{0, -1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::div(-1, -2), (xstd::div_t{0, -1}));
 }
 
 BOOST_AUTO_TEST_CASE(EuclideanDiv)
@@ -144,8 +146,8 @@ BOOST_AUTO_TEST_CASE(EuclideanDiv)
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::euclidean_div(+8, -3), (xstd::div_t{-2, +2}));
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::euclidean_div(-8, +3), (xstd::div_t{-3, +1}));
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::euclidean_div(-8, -3), (xstd::div_t{+3, +1}));
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::euclidean_div(+1, +2), (xstd::div_t{ 0, +1}));
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::euclidean_div(+1, -2), (xstd::div_t{ 0, +1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::euclidean_div(+1, +2), (xstd::div_t{0, +1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::euclidean_div(+1, -2), (xstd::div_t{0, +1}));
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::euclidean_div(-1, +2), (xstd::div_t{-1, +1}));
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::euclidean_div(-1, -2), (xstd::div_t{+1, +1}));
 }
@@ -215,10 +217,10 @@ BOOST_AUTO_TEST_CASE(FlooredDiv)
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(+8, -3), (xstd::div_t{-3, -1}));
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(-8, +3), (xstd::div_t{-3, +1}));
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(-8, -3), (xstd::div_t{+2, -2}));
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(+1, +2), (xstd::div_t{ 0, +1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(+1, +2), (xstd::div_t{0, +1}));
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(+1, -2), (xstd::div_t{-1, -1}));
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(-1, +2), (xstd::div_t{-1, +1}));
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(-1, -2), (xstd::div_t{ 0, -1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(-1, -2), (xstd::div_t{0, -1}));
 }
 
 // ldiv/lldiv/imaxdiv (and their euclidean_/floored_ counterparts) run the
@@ -284,28 +286,28 @@ BOOST_AUTO_TEST_CASE(Imaxdiv)
 
 BOOST_AUTO_TEST_CASE(Formatter)
 {
-        BOOST_CHECK_EQUAL(std::format("{}", xstd::div_t{ 1, -2 }), "(1, -2)");
-        BOOST_CHECK_EQUAL(std::format("{}", xstd::ldiv_t{ 1L, -2L }), "(1, -2)");
-        BOOST_CHECK_EQUAL(std::format("{}", xstd::lldiv_t{ 1LL, -2LL }), "(1, -2)");
-        BOOST_CHECK_EQUAL(std::format("{}", xstd::imaxdiv_t{ 1, -2 }), "(1, -2)");
+        BOOST_CHECK_EQUAL(std::format("{}", xstd::div_t{1, -2}), "(1, -2)");
+        BOOST_CHECK_EQUAL(std::format("{}", xstd::ldiv_t{1L, -2L}), "(1, -2)");
+        BOOST_CHECK_EQUAL(std::format("{}", xstd::lldiv_t{1LL, -2LL}), "(1, -2)");
+        BOOST_CHECK_EQUAL(std::format("{}", xstd::imaxdiv_t{1, -2}), "(1, -2)");
 }
 
 BOOST_AUTO_TEST_CASE(StreamInsertion)
 {
         std::ostringstream oss;
-        oss << xstd::div_t{ 1, -2 };
+        oss << xstd::div_t{1, -2};
         BOOST_CHECK_EQUAL(oss.str(), "(1, -2)");
 
         std::ostringstream loss;
-        loss << xstd::ldiv_t{ 1L, -2L };
+        loss << xstd::ldiv_t{1L, -2L};
         BOOST_CHECK_EQUAL(loss.str(), "(1, -2)");
 
         std::ostringstream lloss;
-        lloss << xstd::lldiv_t{ 1LL, -2LL };
+        lloss << xstd::lldiv_t{1LL, -2LL};
         BOOST_CHECK_EQUAL(lloss.str(), "(1, -2)");
 
         std::ostringstream imaxoss;
-        imaxoss << xstd::imaxdiv_t{ 1, -2 };
+        imaxoss << xstd::imaxdiv_t{1, -2};
         BOOST_CHECK_EQUAL(imaxoss.str(), "(1, -2)");
 }
 

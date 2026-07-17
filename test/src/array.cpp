@@ -3,20 +3,21 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/array.hpp>               // array_from_types
-#include <xstd/test/constexpr.hpp>      // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
-#include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
-#include <array>                        // array
-#include <cstddef>                      // size_t
-#include <tuple>                        // tuple
-#include <type_traits>                  // is_invocable_v, is_same_v, type_identity
+#include <xstd/array.hpp>           // array_from_types
+#include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
+#include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
+#include <array>                    // array
+#include <cstddef>                  // size_t
+#include <tuple>                    // tuple
+#include <type_traits>              // is_invocable_v, is_same_v, type_identity
 
 using namespace xstd;
 
 BOOST_AUTO_TEST_SUITE(Array)
 
 template<class... T>
-struct type_list {};
+struct type_list
+{};
 
 BOOST_AUTO_TEST_CASE(ArrayFromTypes)
 {
