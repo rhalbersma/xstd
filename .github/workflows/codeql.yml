@@ -14,9 +14,9 @@ concurrency:
 
 on:
   push:
-    branches: [ master ]
+    branches: [ main ]
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
   schedule:
     - cron: '17 3 * * 1'
   workflow_dispatch:
