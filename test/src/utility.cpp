@@ -4,7 +4,8 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/utility.hpp>             // to_underlying
-#include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_CHECK_EQUAL
+#include <xstd/test/constexpr_check.hpp> // XSTD_CONSTEXPR_CHECK_EQUAL
+#include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <type_traits>                  // integral_constant
 #include <utility>                      // to_underlying
 
@@ -26,18 +27,18 @@ template<e5 N> using e5_ = std::integral_constant<e5, N>;
 
 BOOST_AUTO_TEST_CASE(ToUnderlyingType)
 {
-        BOOST_CHECK_EQUAL(std::to_underlying(e1()), 0);
-        BOOST_CHECK_EQUAL(std::to_underlying(e2()), false);
-        BOOST_CHECK_EQUAL(std::to_underlying(e3()), static_cast<char>(0));
-        BOOST_CHECK_EQUAL(std::to_underlying(e4()), static_cast<unsigned char>(0));
-        BOOST_CHECK_EQUAL(std::to_underlying(e5()), static_cast<unsigned>(0));
+        XSTD_CONSTEXPR_CHECK_EQUAL(std::to_underlying(e1()), 0);
+        XSTD_CONSTEXPR_CHECK_EQUAL(std::to_underlying(e2()), false);
+        XSTD_CONSTEXPR_CHECK_EQUAL(std::to_underlying(e3()), static_cast<char>(0));
+        XSTD_CONSTEXPR_CHECK_EQUAL(std::to_underlying(e4()), static_cast<unsigned char>(0));
+        XSTD_CONSTEXPR_CHECK_EQUAL(std::to_underlying(e5()), static_cast<unsigned>(0));
 
         // use {} instead of () inside <> to avoid vexing parse
-        BOOST_CHECK_EQUAL(to_underlying(e1_<e1{}>()), 0);
-        BOOST_CHECK_EQUAL(to_underlying(e2_<e2{}>()), false);
-        BOOST_CHECK_EQUAL(to_underlying(e3_<e3{}>()), static_cast<char>(0));
-        BOOST_CHECK_EQUAL(to_underlying(e4_<e4{}>()), static_cast<unsigned char>(0));
-        BOOST_CHECK_EQUAL(to_underlying(e5_<e5{}>()), static_cast<unsigned>(0));
+        XSTD_CONSTEXPR_CHECK_EQUAL(to_underlying(e1_<e1{}>()), 0);
+        XSTD_CONSTEXPR_CHECK_EQUAL(to_underlying(e2_<e2{}>()), false);
+        XSTD_CONSTEXPR_CHECK_EQUAL(to_underlying(e3_<e3{}>()), static_cast<char>(0));
+        XSTD_CONSTEXPR_CHECK_EQUAL(to_underlying(e4_<e4{}>()), static_cast<unsigned char>(0));
+        XSTD_CONSTEXPR_CHECK_EQUAL(to_underlying(e5_<e5{}>()), static_cast<unsigned>(0));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
