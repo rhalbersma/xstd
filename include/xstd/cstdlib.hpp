@@ -10,33 +10,31 @@
 #include <limits>       // numeric_limits
 #include <ostream>      // ostream
 #include <tuple>        // tie, tuple
-#include <type_traits>  // is_arithmetic_v, is_same_v
 
 namespace xstd {
 
-// constexpr versions of <cstdlib>'s abs/labs/llabs (P0533). Non-template and
-// signed-only, mirroring <cstdlib>'s own overload set exactly.
-[[nodiscard]] constexpr auto abs(int x) noexcept -> int
+// constexpr versions of <cstdlib>'s abs/labs/llabs (P0533), with the same
+// non-template, signed-only signatures as <cstdlib> itself.
+[[nodiscard]] constexpr int abs(int x) noexcept
 {
         assert(x != std::numeric_limits<int>::min());     // -x would overflow
         return x < 0 ? -x : x;
 }
 
-[[nodiscard]] constexpr auto labs(long x) noexcept -> long
+[[nodiscard]] constexpr long labs(long x) noexcept
 {
         assert(x != std::numeric_limits<long>::min());     // -x would overflow
         return x < 0 ? -x : x;
 }
 
-[[nodiscard]] constexpr auto llabs(long long x) noexcept -> long long
+[[nodiscard]] constexpr long long llabs(long long x) noexcept
 {
         assert(x != std::numeric_limits<long long>::min());     // -x would overflow
         return x < 0 ? -x : x;
 }
 
-template<class T>
-[[nodiscard]] constexpr auto sign(T const& x) noexcept
-        requires (std::is_arithmetic_v<T> && !std::is_same_v<T, bool>)
+// not part of <cstdlib>, but kept to the same style: plain int, no template.
+[[nodiscard]] constexpr int sign(int x) noexcept
 {
         return static_cast<int>(0 < x) - static_cast<int>(x < 0);
 }
@@ -66,8 +64,7 @@ namespace detail {
 // rem: Ada, Clojure, Erlang, Haskell, Julia, Lisp, Prolog
 // remainder: Ruby, Scheme
 // mod: Fortran, OCaml
-[[nodiscard]] constexpr auto div(int numer, int denom) noexcept
-        -> div_t
+[[nodiscard]] constexpr div_t div(int numer, int denom) noexcept
 {
         assert(denom != 0);
         assert(!(numer == std::numeric_limits<int>::min() && denom == -1));
@@ -82,8 +79,7 @@ namespace detail {
 // https://en.wikipedia.org/wiki/Euclidean_division
 // mod: Maple, Pascal
 // modulo: Scheme
-[[nodiscard]] constexpr auto euclidean_div(int numer, int denom) noexcept
-        -> div_t
+[[nodiscard]] constexpr div_t euclidean_div(int numer, int denom) noexcept
 {
         assert(denom != 0);
         auto const divT = div(numer, denom);
@@ -100,8 +96,7 @@ namespace detail {
 // %%: R
 // mod: Ada, Clojure, Haskell, Julia, Lisp, ML, Prolog
 // modulo: Fortran, Ruby
-[[nodiscard]] constexpr auto floored_div(int numer, int denom) noexcept
-        -> div_t
+[[nodiscard]] constexpr div_t floored_div(int numer, int denom) noexcept
 {
         assert(denom != 0);
         auto const divT = div(numer, denom);

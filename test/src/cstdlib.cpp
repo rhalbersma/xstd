@@ -27,21 +27,9 @@ static_assert(xstd::floored_div(-8, +3) == xstd::div_t{-3, +1});
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
-template<class T>
-concept has_sign = requires(T x) { xstd::sign(x); };
-
-// sign accepts arithmetic types except bool, and rejects anything else
-static_assert( has_sign<int>);
-static_assert( has_sign<char>);
-static_assert( has_sign<double>);
-static_assert( has_sign<unsigned>);
-static_assert(!has_sign<bool>);
-static_assert(!has_sign<void*>);
-
-// abs/labs/llabs are plain <cstdlib>-style overloads (no templates, no
+// abs/labs/llabs/sign are plain <cstdlib>-style overloads (no templates, no
 // unsigned support): a short argument is promoted to int like any other
 // call, which keeps abs well-defined for its lowest value.
-static_assert(std::is_same_v<decltype(xstd::abs(short())), int>);
 static_assert(xstd::abs(std::numeric_limits<short>::min()) == -(std::numeric_limits<short>::min() + 1) + 1);
 
 BOOST_AUTO_TEST_CASE(Abs)
@@ -84,11 +72,6 @@ BOOST_AUTO_TEST_CASE(Sign)
         BOOST_CHECK_EQUAL(xstd::sign( 0),  0);
         BOOST_CHECK_EQUAL(xstd::sign(+1), +1);
         BOOST_CHECK_EQUAL(xstd::sign(+2), +1);
-
-        BOOST_CHECK_EQUAL(xstd::sign(-2.5), -1);
-        BOOST_CHECK_EQUAL(xstd::sign(+0.0),  0);
-        BOOST_CHECK_EQUAL(xstd::sign(-0.0),  0);
-        BOOST_CHECK_EQUAL(xstd::sign(3u),   +1);
 }
 
 // http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf
