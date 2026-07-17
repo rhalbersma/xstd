@@ -24,7 +24,7 @@ BOOST_AUTO_TEST_CASE(ArrayFromTypes)
                 return sizeof(T);
         });
 
-        static_assert(std::is_same_v<decltype(sizes), std::array<std::size_t, 3> const>);
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<decltype(sizes), std::array<std::size_t, 3> const>));
 
         XSTD_CONSTEXPR_CHECK_EQUAL(sizes[0], sizeof(int));
         XSTD_CONSTEXPR_CHECK_EQUAL(sizes[1], sizeof(double));
@@ -52,8 +52,7 @@ BOOST_AUTO_TEST_CASE(WorksWithNonDefaultConstructibleTypes)
         constexpr auto sizes = array_from_types<type_list<non_default_constructible>>()([]<class T>(std::type_identity<T>) {
                 return sizeof(T);
         });
-        static_assert(sizes == std::array{sizeof(non_default_constructible)});
-        XSTD_CONSTEXPR_CHECK_EQUAL(sizes[0], sizeof(non_default_constructible));
+        XSTD_CONSTEXPR_CHECK(sizes == std::array{sizeof(non_default_constructible)});
 }
 
 BOOST_AUTO_TEST_CASE(RequiresNonEmptyTypeList)
@@ -61,7 +60,7 @@ BOOST_AUTO_TEST_CASE(RequiresNonEmptyTypeList)
         // an empty type list leaves no type for std::array's CTAD to deduce,
         // so the call operator's constraint rejects it up front
         auto const fun = [](auto) { return 1; };
-        static_assert(std::is_invocable_v<array_from_types<type_list<int>>, decltype(fun)>);
+        XSTD_CONSTEXPR_CHECK((std::is_invocable_v<array_from_types<type_list<int>>, decltype(fun)>));
         XSTD_CONSTEXPR_CHECK((!std::is_invocable_v<array_from_types<type_list<>>, decltype(fun)>));
 }
 
