@@ -1,9 +1,10 @@
-#pragma once
-
 //          Copyright Rein Halbersma 2014-2026.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
+
+#ifndef XSTD_CSTDLIB_HPP
+#define XSTD_CSTDLIB_HPP
 
 #include <cassert>      // assert
 #include <cstdint>      // intmax_t, uintmax_t
@@ -353,3 +354,5 @@ inline auto& operator<<(std::ostream& ostr, imaxdiv_t const& d)
 }
 
 }       // namespace xstd
+
+#endif  // XSTD_CSTDLIB_HPP

@@ -1,9 +1,10 @@
-#pragma once
-
 //          Copyright Rein Halbersma 2014-2026.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
+
+#ifndef XSTD_ARRAY_HPP
+#define XSTD_ARRAY_HPP
 
 #include <array>        // array
 #include <type_traits>  // type_identity
@@ -26,3 +27,5 @@ struct array_from_types<L<T...>>
 };
 
 }       // namespace xstd
+
+#endif  // XSTD_ARRAY_HPP

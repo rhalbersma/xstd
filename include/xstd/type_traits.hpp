@@ -1,9 +1,10 @@
-#pragma once
-
 //          Copyright Rein Halbersma 2014-2026.
 // Distributed under the Boost Software License, Version 1.0.
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
+
+#ifndef XSTD_TYPE_TRAITS_HPP
+#define XSTD_TYPE_TRAITS_HPP
 
 #include <compare>      // strong_ordering (tagged_empty's defaulted <=>)
 #include <type_traits>  // bool_constant, conditional_t, integral_constant, is_same_v, remove_cvref_t
@@ -46,3 +47,5 @@ template<bool Condition, class Base>
 using optional_type = std::conditional_t<Condition, Base, tagged_empty<Base>>;
 
 }       // namespace xstd
+
+#endif  // XSTD_TYPE_TRAITS_HPP
