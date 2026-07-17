@@ -122,7 +122,8 @@ namespace xstd {
 
 inline auto& operator<<(std::ostream& ostr, div_t const& d)
 {
-        return ostr << std::format("{}", d);
+        ostr << std::format("{}", d);
+        return ostr;
 }
 
 }       // namespace xstd
