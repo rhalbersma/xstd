@@ -80,6 +80,21 @@ jobs:
         if: matrix.stdlib == 'libc++'
         run: sudo apt-get install -y libc++-${{ matrix.version }}-dev libc++abi-${{ matrix.version }}-dev
 
+      # Ubuntu 22.04's default libstdc++ (GCC 11) predates the <format>
+      # header entirely (added in libstdc++ 13), which xstd/cstdlib.hpp
+      # needs for div_t's std::formatter. Clang doesn't bundle its own
+      # standard library for -stdlib=libstdc++; it auto-selects the newest
+      # GCC installation's headers/runtime it can find, so installing a
+      # fresh g++ here (unused as a compiler, only for its libstdc++) is
+      # enough - no --gcc-toolchain flag needed. Matches gcc.yml's own
+      # fix for the same underlying problem.
+      - name: Install a <format>-capable libstdc++
+        if: matrix.stdlib == 'libstdc++'
+        run: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get update
+          sudo apt-get install -y g++-15
+
       # Export the two env vars vcpkg's "x-gha" binary source needs to talk
       # to the GitHub Actions cache service, so built packages are reused
       # across runs instead of recompiled from scratch every time.
