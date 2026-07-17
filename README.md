@@ -22,21 +22,7 @@ xstd is a header-only C++23 library for small standard-library extensions that c
 
 ## Using xstd
 
-Link the header-only CMake target from your own target. When consuming an installed package:
-
-```cmake
-find_package(xstd 0.1 CONFIG REQUIRED)
-target_link_libraries(my_target PRIVATE xstd::xstd)
-```
-
-When vendoring the repository as a subdirectory (xstd's own tests and their Boost.Test dependency are only built when xstd is the top-level project, so nothing needs to be disabled):
-
-```cmake
-add_subdirectory(external/xstd)
-target_link_libraries(my_target PRIVATE xstd::xstd)
-```
-
-When using `FetchContent`:
+xstd isn't published to a package registry, so the default way to add it is `FetchContent`, which needs no separate install step:
 
 ```cmake
 include(FetchContent)
@@ -46,6 +32,20 @@ FetchContent_Declare(
     GIT_TAG master # or a release tag
 )
 FetchContent_MakeAvailable(xstd)
+target_link_libraries(my_target PRIVATE xstd::xstd)
+```
+
+If you've already installed xstd yourself (e.g. `cmake --install`, or your own package manager integration), use `find_package` instead:
+
+```cmake
+find_package(xstd 0.1 CONFIG REQUIRED)
+target_link_libraries(my_target PRIVATE xstd::xstd)
+```
+
+If you vendor the source directly (e.g. a git submodule), use `add_subdirectory` (xstd's own tests and their Boost.Test dependency are only built when xstd is the top-level project, so nothing needs to be disabled):
+
+```cmake
+add_subdirectory(external/xstd)
 target_link_libraries(my_target PRIVATE xstd::xstd)
 ```
 
