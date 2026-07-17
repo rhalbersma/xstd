@@ -40,6 +40,7 @@ set(cxx_compile_options_warnings
         -Wno-global-constructors            # triggered by Boost.Test
         -Wno-used-but-marked-unused         # triggered by Boost.Test
         -Wno-c2y-extensions                 # triggered by Boost.Test's use of __COUNTER__
+        -Wno-lifetime-safety-lifetimebound-violation  # can't verify chained operator<< returns ostr
     >
     $<$<CXX_COMPILER_ID:GNU>:
         -Wall

@@ -66,25 +66,25 @@ namespace xstd {
 struct div_t
 {
         int quot, rem;
-        bool operator==(div_t const&) const = default;
+        friend bool operator==(div_t const&, div_t const&) = default;
 };
 
 struct ldiv_t
 {
         long quot, rem;
-        bool operator==(ldiv_t const&) const = default;
+        friend bool operator==(ldiv_t const&, ldiv_t const&) = default;
 };
 
 struct lldiv_t
 {
         long long quot, rem;
-        bool operator==(lldiv_t const&) const = default;
+        friend bool operator==(lldiv_t const&, lldiv_t const&) = default;
 };
 
 struct imaxdiv_t
 {
         std::intmax_t quot, rem;
-        bool operator==(imaxdiv_t const&) const = default;
+        friend bool operator==(imaxdiv_t const&, imaxdiv_t const&) = default;
 };
 
 namespace detail {
@@ -329,26 +329,22 @@ namespace xstd {
 
 inline auto& operator<<(std::ostream& ostr, div_t const& d)
 {
-        ostr << std::format("{}", d);
-        return ostr;
+        return ostr << std::format("{}", d);
 }
 
 inline auto& operator<<(std::ostream& ostr, ldiv_t const& d)
 {
-        ostr << std::format("{}", d);
-        return ostr;
+        return ostr << std::format("{}", d);
 }
 
 inline auto& operator<<(std::ostream& ostr, lldiv_t const& d)
 {
-        ostr << std::format("{}", d);
-        return ostr;
+        return ostr << std::format("{}", d);
 }
 
 inline auto& operator<<(std::ostream& ostr, imaxdiv_t const& d)
 {
-        ostr << std::format("{}", d);
-        return ostr;
+        return ostr << std::format("{}", d);
 }
 
 }       // namespace xstd

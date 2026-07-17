@@ -254,6 +254,13 @@ BOOST_AUTO_TEST_CASE(Ldiv)
         BOOST_CHECK_EQUAL(xstd::euclidean_ldiv(-8L, +3L), (xstd::ldiv_t{-3L, +1L}));
         BOOST_CHECK_EQUAL(xstd::floored_ldiv(-8L, +3L), (xstd::ldiv_t{-3L, +1L}));
 
+        // Negative denom alongside a negative remainder: the only input
+        // shape not already hit above, needed to cover euclidean_ldiv's
+        // (denom > 0 ? ... : ...) branch.
+        BOOST_CHECK_EQUAL(xstd::ldiv(-8L, -3L), (xstd::ldiv_t{2L, -2L}));
+        BOOST_CHECK_EQUAL(xstd::euclidean_ldiv(-8L, -3L), (xstd::ldiv_t{3L, 1L}));
+        BOOST_CHECK_EQUAL(xstd::floored_ldiv(-8L, -3L), (xstd::ldiv_t{2L, -2L}));
+
         using limits = std::numeric_limits<long>;
         BOOST_CHECK_EQUAL(xstd::ldiv(limits::min(), +1L), (xstd::ldiv_t{limits::min(), 0L}));
         BOOST_CHECK_EQUAL(xstd::euclidean_ldiv(limits::min(), +1L), (xstd::ldiv_t{limits::min(), 0L}));
@@ -266,6 +273,13 @@ BOOST_AUTO_TEST_CASE(Lldiv)
         BOOST_CHECK_EQUAL(xstd::euclidean_lldiv(-8LL, +3LL), (xstd::lldiv_t{-3LL, +1LL}));
         BOOST_CHECK_EQUAL(xstd::floored_lldiv(-8LL, +3LL), (xstd::lldiv_t{-3LL, +1LL}));
 
+        // Negative denom alongside a negative remainder: the only input
+        // shape not already hit above, needed to cover euclidean_lldiv's
+        // (denom > 0 ? ... : ...) branch.
+        BOOST_CHECK_EQUAL(xstd::lldiv(-8LL, -3LL), (xstd::lldiv_t{2LL, -2LL}));
+        BOOST_CHECK_EQUAL(xstd::euclidean_lldiv(-8LL, -3LL), (xstd::lldiv_t{3LL, 1LL}));
+        BOOST_CHECK_EQUAL(xstd::floored_lldiv(-8LL, -3LL), (xstd::lldiv_t{2LL, -2LL}));
+
         using limits = std::numeric_limits<long long>;
         BOOST_CHECK_EQUAL(xstd::lldiv(limits::min(), +1LL), (xstd::lldiv_t{limits::min(), 0LL}));
         BOOST_CHECK_EQUAL(xstd::euclidean_lldiv(limits::min(), +1LL), (xstd::lldiv_t{limits::min(), 0LL}));
@@ -277,6 +291,13 @@ BOOST_AUTO_TEST_CASE(Imaxdiv)
         BOOST_CHECK_EQUAL(xstd::imaxdiv(-8, +3), (xstd::imaxdiv_t{-2, -2}));
         BOOST_CHECK_EQUAL(xstd::euclidean_imaxdiv(-8, +3), (xstd::imaxdiv_t{-3, +1}));
         BOOST_CHECK_EQUAL(xstd::floored_imaxdiv(-8, +3), (xstd::imaxdiv_t{-3, +1}));
+
+        // Negative denom alongside a negative remainder: the only input
+        // shape not already hit above, needed to cover euclidean_imaxdiv's
+        // (denom > 0 ? ... : ...) branch.
+        BOOST_CHECK_EQUAL(xstd::imaxdiv(-8, -3), (xstd::imaxdiv_t{2, -2}));
+        BOOST_CHECK_EQUAL(xstd::euclidean_imaxdiv(-8, -3), (xstd::imaxdiv_t{3, 1}));
+        BOOST_CHECK_EQUAL(xstd::floored_imaxdiv(-8, -3), (xstd::imaxdiv_t{2, -2}));
 
         using limits = std::numeric_limits<std::intmax_t>;
         BOOST_CHECK_EQUAL(xstd::imaxdiv(limits::min(), 1), (xstd::imaxdiv_t{limits::min(), 0}));
