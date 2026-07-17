@@ -4,7 +4,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/type_traits.hpp>         // is_specialization_of, is_integral_constant, tagged_empty, optional_type
-#include <xstd/test/constexpr_check.hpp> // XSTD_CONSTEXPR_CHECK
+#include <xstd/test/constexpr.hpp>      // XSTD_CONSTEXPR_CHECK
 #include <boost/test/unit_test.hpp>     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <complex>                      // complex
 #include <type_traits>                  // integral_constant, is_constructible_v, is_convertible_v, is_empty_v, is_same_v, is_trivially_constructible_v, is_trivially_copyable_v
@@ -46,19 +46,19 @@ BOOST_AUTO_TEST_CASE(TaggedEmpty)
         using empty1 = tagged_empty<tag1>;
         using empty2 = tagged_empty<tag2>;
 
-        static_assert( std::is_empty_v<empty1>);
-        static_assert(!std::is_same_v<empty1, empty2>);
+        XSTD_CONSTEXPR_CHECK(( std::is_empty_v<empty1>));
+        XSTD_CONSTEXPR_CHECK((!std::is_same_v<empty1, empty2>));
 
         // constructible from anything, but only explicitly
-        static_assert( std::is_constructible_v<empty1, int, double>);
-        static_assert(!std::is_convertible_v<int, empty1>);
+        XSTD_CONSTEXPR_CHECK(( std::is_constructible_v<empty1, int, double>));
+        XSTD_CONSTEXPR_CHECK((!std::is_convertible_v<int, empty1>));
 
         // the catch-all constructor never hijacks copy/move construction,
         // not even from a non-const lvalue
-        static_assert(std::is_trivially_copyable_v<empty1>);
-        static_assert(std::is_trivially_constructible_v<empty1, empty1&>);
-        static_assert(std::is_trivially_constructible_v<empty1, empty1 const&>);
-        static_assert(std::is_trivially_constructible_v<empty1, empty1&&>);
+        XSTD_CONSTEXPR_CHECK(std::is_trivially_copyable_v<empty1>);
+        XSTD_CONSTEXPR_CHECK((std::is_trivially_constructible_v<empty1, empty1&>));
+        XSTD_CONSTEXPR_CHECK((std::is_trivially_constructible_v<empty1, empty1 const&>));
+        XSTD_CONSTEXPR_CHECK((std::is_trivially_constructible_v<empty1, empty1&&>));
 
         // stateless: all instances compare equal, regardless of construction
         XSTD_CONSTEXPR_CHECK(empty1(1, 2.0) == empty1());
@@ -68,8 +68,8 @@ BOOST_AUTO_TEST_CASE(TaggedEmpty)
 BOOST_AUTO_TEST_CASE(OptionalType)
 {
         XSTD_CONSTEXPR_CHECK((std::is_same_v<optional_type<true,  tag1>, tag1>));
-        static_assert(std::is_same_v<optional_type<false, tag1>, tagged_empty<tag1>>);
-        static_assert(std::is_empty_v<optional_type<false, tag1>>);
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<optional_type<false, tag1>, tagged_empty<tag1>>));
+        XSTD_CONSTEXPR_CHECK((std::is_empty_v<optional_type<false, tag1>>));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
