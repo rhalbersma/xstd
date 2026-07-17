@@ -38,6 +38,16 @@ jobs:
           languages: c-cpp
           queries: security-extended
 
+      # xstd/cstdlib.hpp's div_t formatter needs libstdc++'s <format> (and,
+      # more specifically, its std::formatter<tuple> support), which the
+      # runner image's default GCC 13 doesn't fully provide. Matches
+      # gcc.yml/sanitizers.yml's own fix for the same underlying problem.
+      - name: Install a <format>-capable GCC
+        run: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get update
+          sudo apt-get install -y g++-15
+
       # Export the two env vars vcpkg's "x-gha" binary source needs to talk
       # to the GitHub Actions cache service, so built packages are reused
       # across runs instead of recompiled from scratch every time.
@@ -56,6 +66,8 @@ jobs:
       - name: Configure
         run: >
           cmake -S . -B build
+          -DCMAKE_C_COMPILER=gcc-15
+          -DCMAKE_CXX_COMPILER=g++-15
           -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
 
       - name: Build
