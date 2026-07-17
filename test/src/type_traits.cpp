@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(OptionalType)
 {
         XSTD_CONSTEXPR_CHECK((std::is_same_v<optional_type<true,  tag1>, tag1>));
         XSTD_CONSTEXPR_CHECK((std::is_same_v<optional_type<false, tag1>, tagged_empty<tag1>>));
-        XSTD_CONSTEXPR_CHECK(std::is_empty_v<optional_type<false, tag1>>);
+        XSTD_CONSTEXPR_CHECK((std::is_empty_v<optional_type<false, tag1>>));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
