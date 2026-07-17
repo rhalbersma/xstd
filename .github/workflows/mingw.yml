@@ -34,7 +34,7 @@ jobs:
           - label: "16"
             tag_prefix: "16."
             snapshot: false
-          - label: snapshot
+          - label: 17-SVN
             tag_prefix: ""
             snapshot: true
 

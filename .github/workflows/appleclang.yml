@@ -21,42 +21,25 @@ on:
 
 jobs:
   build:
+    # There's no open-source trunk/nightly AppleClang the way GCC/Clang
+    # have (Apple doesn't publish dev snapshots the way LLVM does), and the
+    # newest-available-Xcode leg this used to have wasn't a distinct
+    # compiler often enough to be worth a separate row - same reasoning as
+    # why the Clang-CL workflow only has one leg per Visual Studio version.
+    # Just the two stable Xcode generations, one per macOS runner image.
     name: AppleClang ${{ matrix.label }}
     runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.dev }}
     strategy:
       fail-fast: false
       matrix:
         include:
           - label: older stable
             os: macos-15
-            select_newest: false
-            dev: false
           - label: latest stable
             os: macos-26
-            select_newest: false
-            dev: false
-          # GitHub's macOS runner images preinstall the current beta Xcode
-          # alongside the default one once it becomes available; there's no
-          # open-source trunk/nightly AppleClang the way GCC/Clang have, so
-          # "dev" here means whatever the newest Xcode.app on the runner
-          # happens to be (often, but not always, a beta of the next Xcode
-          # major). Best-effort since that isn't guaranteed to be a fully
-          # working C++23 toolchain.
-          - label: dev (newest available)
-            os: macos-26
-            select_newest: true
-            dev: true
 
     steps:
       - uses: actions/checkout@v7
-
-      - name: Select newest available Xcode
-        if: matrix.select_newest
-        run: |
-          newest=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
-          echo "Selecting $newest"
-          sudo xcode-select -s "$newest/Contents/Developer"
 
       - name: Report toolchain version
         run: |
@@ -74,9 +57,8 @@ jobs:
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
 
       # GitHub-hosted macOS runners are arm64 since macos-14; vcpkg's
-      # arm64-osx triplet builds Boost.Test with whichever Xcode was
-      # selected above, so its libc++ ABI always matches the compiler under
-      # test.
+      # arm64-osx triplet builds Boost.Test with the runner's default
+      # Xcode, so its libc++ ABI always matches the compiler under test.
       - name: Install Boost.Test
         env:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
