@@ -6,8 +6,8 @@
 #ifndef XSTD_ARRAY_HPP
 #define XSTD_ARRAY_HPP
 
-#include <array>        // array
-#include <type_traits>  // type_identity
+#include <array>       // array
+#include <type_traits> // type_identity
 
 namespace xstd {
 
@@ -26,6 +26,6 @@ struct array_from_types<L<T...>>
         }
 };
 
-}       // namespace xstd
+} // namespace xstd
 
-#endif  // XSTD_ARRAY_HPP
+#endif // XSTD_ARRAY_HPP

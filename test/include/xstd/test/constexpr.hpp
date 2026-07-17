@@ -6,7 +6,7 @@
 #ifndef XSTD_TEST_CONSTEXPR_HPP
 #define XSTD_TEST_CONSTEXPR_HPP
 
-#include <boost/test/unit_test.hpp>     // BOOST_CHECK, BOOST_CHECK_EQUAL
+#include <boost/test/unit_test.hpp> // BOOST_CHECK, BOOST_CHECK_EQUAL
 
 // Boost.Test has no STATIC_REQUIRE-style construct, so a check that a
 // constexpr function is actually usable in a constant expression is easy to
@@ -23,4 +23,4 @@
         static_assert((a) == (b)); \
         BOOST_CHECK_EQUAL((a), (b))
 
-#endif  // XSTD_TEST_CONSTEXPR_HPP
+#endif // XSTD_TEST_CONSTEXPR_HPP

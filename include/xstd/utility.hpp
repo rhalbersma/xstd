@@ -6,8 +6,8 @@
 #ifndef XSTD_UTILITY_HPP
 #define XSTD_UTILITY_HPP
 
-#include <type_traits>  // integral_constant, is_enum_v, underlying_type_t
-#include <utility>      // to_underlying
+#include <type_traits> // integral_constant, is_enum_v, underlying_type_t
+#include <utility>     // to_underlying
 
 namespace xstd {
 
@@ -20,6 +20,6 @@ template<class Enum, Enum N>
         return std::integral_constant<std::underlying_type_t<Enum>, std::to_underlying(N)>();
 }
 
-}       // namespace xstd
+} // namespace xstd
 
-#endif  // XSTD_UTILITY_HPP
+#endif // XSTD_UTILITY_HPP
