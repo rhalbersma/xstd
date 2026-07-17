@@ -162,10 +162,21 @@ jobs:
         if: steps.winlibs.outputs.found == 'true'
         run: choco install ninja -y
 
+      # CMAKE_BUILD_TYPE must be set explicitly: Ninja is a single-config
+      # generator, and vcpkg's toolchain file defaults an unset build type
+      # to Debug. That silently linked the debug Boost.Test import library,
+      # whose DLL lives under vcpkg_installed/.../debug/bin - but the
+      # vcpkg-generated "z-applocal" post-build step that copies runtime
+      # DLLs next to each test executable always points at the release
+      # bin/ dir, never debug/bin/, so the DLL never got deployed and every
+      # Boost-linked executable failed at startup with 0xc0000135
+      # (STATUS_DLL_NOT_FOUND) - even though the header-only executables,
+      # which don't need Boost, ran fine.
       - name: Configure
         if: steps.winlibs.outputs.found == 'true'
         run: >
           cmake -S . -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
           -DCMAKE_C_COMPILER=gcc
           -DCMAKE_CXX_COMPILER=g++
           "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
