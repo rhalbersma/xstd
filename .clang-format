@@ -31,9 +31,10 @@ BraceWrapping:
   SplitEmptyRecord: false
   SplitEmptyNamespace: false
 
-Cpp11BracedListStyle: false
+Cpp11BracedListStyle: true
 AlignEscapedNewlines: DontAlign
 
+AlwaysBreakTemplateDeclarations: No
 SpaceAfterTemplateKeyword: false
 SpaceBeforeParens: Custom
 SpaceBeforeParensOptions:
