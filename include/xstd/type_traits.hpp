@@ -36,10 +36,11 @@ struct tagged_empty
 
         // constrained so that this catch-all never hijacks copy or move
         // construction from the (trivial) special member functions
+        // clang-format off
         template<class... Args>
                 requires (!(std::is_same_v<std::remove_cvref_t<Args>, tagged_empty> || ...))
-        constexpr explicit tagged_empty(Args&&...) noexcept
-        {}
+        constexpr explicit tagged_empty(Args&&...) noexcept {}
+        // clang-format on
 
         auto operator<=>(tagged_empty const&) const = default;
 };
