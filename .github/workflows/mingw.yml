@@ -134,7 +134,7 @@ jobs:
       # across runs instead of recompiled from scratch every time.
       - name: Export GitHub Actions cache environment variables
         if: steps.winlibs.outputs.found == 'true'
-        uses: actions/github-script@373c709c69115d41ff229c7e5df9f8788daa9553 # v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
