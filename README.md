@@ -9,7 +9,7 @@
 [![AppleClang](https://github.com/rhalbersma/xstd/actions/workflows/appleclang.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/appleclang.yml)
 [![Clang-CL](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml)
 [![MSVC](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml)
-[![Coverage](https://codecov.io/gh/rhalbersma/xstd/branch/master/graph/badge.svg)](https://codecov.io/gh/rhalbersma/xstd)
+[![Coverage](https://codecov.io/gh/rhalbersma/xstd/branch/main/graph/badge.svg)](https://codecov.io/gh/rhalbersma/xstd)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/rhalbersma/xstd/badge)](https://securityscorecards.dev/viewer/?uri=github.com/rhalbersma/xstd)
 
 xstd is a header-only C++23 library for small standard-library extensions that can be implemented portably with stable compiler technology. It aims to prototype future-stdlib-style facilities without requiring experimental language features. See [doc/design.md](doc/design.md) for the design philosophy tying the headers together.
@@ -30,7 +30,7 @@ include(FetchContent)
 FetchContent_Declare(
     xstd
     GIT_REPOSITORY https://github.com/rhalbersma/xstd.git
-    GIT_TAG master # or a release tag
+    GIT_TAG main # or a release tag
 )
 FetchContent_MakeAvailable(xstd)
 target_link_libraries(my_target PRIVATE xstd::xstd)
