@@ -43,12 +43,14 @@ BOOST_AUTO_TEST_CASE(ToUnderlyingType)
 
 BOOST_AUTO_TEST_CASE(AlignedSize)
 {
-        XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size(0, 8), 0);
-        XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size(1, 8), 8);
-        XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size(8, 8), 8);
-        XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size(9, 8), 16);
+        // clang-format off
+        XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size( 0, 8),  0);
+        XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size( 1, 8),  8);
+        XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size( 8, 8),  8);
+        XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size( 9, 8), 16);
         XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size(64, 8), 64);
         XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size(65, 8), 72);
+        // clang-format on
 }
 
 BOOST_AUTO_TEST_SUITE_END()
