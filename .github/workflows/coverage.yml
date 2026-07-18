@@ -40,7 +40,7 @@ jobs:
       # to the GitHub Actions cache service, so built packages are reused
       # across runs instead of recompiled from scratch every time.
       - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@373c709c69115d41ff229c7e5df9f8788daa9553 # v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
             core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
@@ -130,7 +130,7 @@ jobs:
       # percentage below the gcovr-computed one.
       - name: Upload to Codecov
         if: always()
-        uses: codecov/codecov-action@a99c28d3f0da835de33ff2feb2e15691c7b9641f # v7
+        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7
         with:
           files: coverage.xml
           plugins: noop
