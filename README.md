@@ -19,7 +19,7 @@ xstd is a header-only C++23 library for small standard-library extensions that c
 | `<xstd/array.hpp>`       | `array_from_types` | Create an `array` from a type list | none |
 | `<xstd/cstdlib.hpp>`     | `sign`/`lsign`/`llsign`/`imaxsign` <br> `abs`/`labs`/`llabs`/`imaxabs` <br> `div`/`ldiv`/`lldiv`/`imaxdiv` <br> `div_t`/`ldiv_t`/`lldiv_t`/`imaxdiv_t` <br> `euclidean_div` and siblings <br> `floored_div` and siblings | `constexpr` support <br> `constexpr` support <br> `constexpr` support <br> `std::format` support, defaulted equality comparison <br> Euclidean division, at all 4 widths <br> Floored division, at all 4 widths | [Boost.Math](https://www.boost.org/doc/libs/1_80_0/libs/math/doc/html/math_toolkit/sign_functions.html) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [p2286r8](https://wg21.link/p2286r8) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) |
 | `<xstd/type_traits.hpp>` | `is_specialization_of` <br> `is_integral_constant` <br> `tagged_empty` <br> `optional_type` | Is a type a class template specialization? <br> Is a type an `integral_constant`? <br> A tagged empty type <br> An optional type | [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> none <br> none <br> none |
-| `<xstd/utility.hpp>`     | `to_underlying`    | `std::integral_constant` overload | none |
+| `<xstd/utility.hpp>`     | `to_underlying` <br> `aligned_size` | `std::integral_constant` overload <br> Round a size up to a multiple of an alignment | none <br> none |
 
 ## Using xstd
 
@@ -69,6 +69,16 @@ using value = decltype(xstd::to_underlying(red{}));
 
 static_assert(value::value == 1);
 static_assert(std::is_same_v<value, std::integral_constant<unsigned, 1>>);
+```
+
+### Rounding a size up to an alignment
+
+`xstd::aligned_size` rounds a requested size up to the next multiple of an alignment, e.g. to turn a bit count into a whole number of storage blocks:
+
+```cpp
+#include <xstd/utility.hpp>
+
+static_assert(xstd::aligned_size(100, 64) == 128);
 ```
 
 ### Division helpers
