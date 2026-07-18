@@ -29,7 +29,7 @@ include(FetchContent)
 FetchContent_Declare(
     xstd
     GIT_REPOSITORY https://github.com/rhalbersma/xstd.git
-    GIT_TAG master # or a release tag
+    GIT_TAG main # or a release tag
 )
 FetchContent_MakeAvailable(xstd)
 target_link_libraries(my_target PRIVATE xstd::xstd)
