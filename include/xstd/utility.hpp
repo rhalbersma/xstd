@@ -6,6 +6,7 @@
 #ifndef XSTD_UTILITY_HPP
 #define XSTD_UTILITY_HPP
 
+#include <cstddef>     // size_t
 #include <type_traits> // integral_constant, is_enum_v, underlying_type_t
 #include <utility>     // to_underlying
 
@@ -18,6 +19,14 @@ template<class Enum, Enum N>
         requires std::is_enum_v<Enum>
 {
         return std::integral_constant<std::underlying_type_t<Enum>, std::to_underlying(N)>();
+}
+
+// Rounds size up to the next multiple of alignment, e.g. so a requested
+// number of bits can be rounded up to a whole number of storage blocks.
+[[nodiscard]] constexpr auto aligned_size(std::size_t size, std::size_t alignment) noexcept
+        -> std::size_t
+{
+        return ((size - 1 + alignment) / alignment) * alignment;
 }
 
 } // namespace xstd
