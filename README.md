@@ -74,7 +74,7 @@ static_assert(std::is_same_v<value, std::integral_constant<unsigned, 1>>);
 
 ### Rounding a size up to an alignment
 
-`xstd::aligned_size` rounds a requested size up to the next multiple of an alignment, e.g. to turn a bit count into a whole number of storage blocks:
+`xstd::aligned_size` rounds a requested size up to the next multiple of an alignment, e.g. to turn a bit count into a whole number of storage blocks. Its alignment must be nonzero and the rounded result must fit in `std::size_t`; violations are guarded by `assert`:
 
 ```cpp
 #include <xstd/utility.hpp>

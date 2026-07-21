@@ -3,9 +3,6 @@
 #    (See accompanying file LICENSE_1_0.txt or copy at
 #          http://www.boost.org/LICENSE_1_0.txt)
 
-# strict -std=c++23 rather than the default gnu++23 dialect
-set(CMAKE_CXX_EXTENSIONS OFF)
-
 add_library(xstd_test_options INTERFACE)
 option(XSTD_WARNINGS_AS_ERRORS "Treat warnings as errors in xstd tests" ${PROJECT_IS_TOP_LEVEL})
 

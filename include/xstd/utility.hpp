@@ -6,7 +6,9 @@
 #ifndef XSTD_UTILITY_HPP
 #define XSTD_UTILITY_HPP
 
+#include <cassert>     // assert
 #include <cstddef>     // size_t
+#include <limits>      // numeric_limits
 #include <type_traits> // integral_constant, is_enum_v, underlying_type_t
 #include <utility>     // to_underlying
 
@@ -26,7 +28,15 @@ template<class Enum, Enum N>
 [[nodiscard]] constexpr auto aligned_size(std::size_t size, std::size_t alignment) noexcept
         -> std::size_t
 {
-        return ((size - 1 + alignment) / alignment) * alignment;
+        assert(alignment != 0);
+        auto const remainder = size % alignment;
+        if (remainder == 0) {
+                return size;
+        }
+
+        auto const padding = alignment - remainder;
+        assert(size <= std::numeric_limits<std::size_t>::max() - padding);
+        return size + padding;
 }
 
 } // namespace xstd
