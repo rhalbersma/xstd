@@ -33,6 +33,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y g++-15
 
+      - name: Report toolchain versions
+        run: |
+          gcc-15 --version
+          g++-15 --version
+          cmake --version
+
       # xstd's own build+test on GCC 15 is already covered by gcc.yml's
       # "15" leg; this workflow only exists to verify the three consumption
       # models documented in the README (find_package, add_subdirectory,

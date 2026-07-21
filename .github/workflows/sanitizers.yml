@@ -43,6 +43,12 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y g++-15
 
+      - name: Report toolchain versions
+        run: |
+          gcc-15 --version
+          g++-15 --version
+          cmake --version
+
       # Export the two env vars vcpkg's "x-gha" binary source needs to talk
       # to the GitHub Actions cache service, so built packages are reused
       # across runs instead of recompiled from scratch every time.
