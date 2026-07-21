@@ -157,7 +157,7 @@ appropriate standard flag for each supported compiler.
 
 All three mainstream standard libraries are exercised: libstdc++ (GCC,
 Clang, and MinGW legs), the MSVC STL (MSVC and Clang-CL legs), and libc++
-(the `libc++` leg of the Clang workflow, which rebuilds Boost.Test against
+(the Clang-libc++ workflow, which rebuilds Boost.Test against
 libc++ through the vcpkg overlay triplet in `.github/vcpkg`, plus the
 AppleClang legs, which use macOS's libc++ by default). The library is
 expected to work with any toolchain that implements the C++23 features it

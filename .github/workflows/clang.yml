@@ -31,35 +31,23 @@ jobs:
             version: 21
             cc: clang-21
             cxx: clang++-21
-            stdlib: libstdc++
-            triplet: x64-linux
+            gcc_version: 15
+            gcc_trunk: false
             cxxflags: ""
           - label: "22"
             version: 22
             cc: clang-22
             cxx: clang++-22
-            stdlib: libstdc++
-            triplet: x64-linux
+            gcc_version: 16
+            gcc_trunk: false
             cxxflags: ""
-          # The MSVC STL and libstdc++ are covered by the other workflows;
-          # this leg adds the third mainstream standard library. Boost.Test
-          # is rebuilt against libc++ through the overlay triplet in
-          # .github/vcpkg (a libstdc++ Boost would not link). Required like
-          # every other leg.
-          - label: 22 libc++
-            version: 22
-            cc: clang-22
-            cxx: clang++-22
-            stdlib: libc++
-            triplet: x64-linux-libcxx
-            cxxflags: "-stdlib=libc++"
           - label: 23-SVN
             version: 23
             cc: clang-23
             cxx: clang++-23
-            stdlib: libstdc++
-            triplet: x64-linux
-            cxxflags: ""
+            gcc_version: 17
+            gcc_trunk: true
+            cxxflags: "--gcc-toolchain=/opt/gcc-latest"
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
@@ -70,24 +58,26 @@ jobs:
           chmod +x llvm.sh
           sudo ./llvm.sh ${{ matrix.version }}
 
-      - name: Install libc++ ${{ matrix.version }}
-        if: matrix.stdlib == 'libc++'
-        run: sudo apt-get install -y libc++-${{ matrix.version }}-dev libc++abi-${{ matrix.version }}-dev
-
       # xstd/cstdlib.hpp's div_t formatter needs libstdc++'s <format> (and,
-      # more specifically, its std::formatter<tuple> support), so this
-      # installs a known-good g++ purely for its libstdc++, regardless of
-      # what the runner image's default GCC ships. Clang doesn't bundle its
-      # own standard library for -stdlib=libstdc++; it auto-selects the
-      # newest GCC installation's headers/runtime it can find, so this is
-      # enough - no --gcc-toolchain flag needed. Matches gcc.yml's own fix
-      # for the same underlying problem.
-      - name: Install a <format>-capable libstdc++
-        if: matrix.stdlib == 'libstdc++'
+      # more specifically, its std::formatter<tuple> support), so each
+      # Clang version is paired with the matching libstdc++ release.
+      - name: Install libstdc++ ${{ matrix.gcc_version }}
+        if: "!matrix.gcc_trunk"
         run: |
           sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
           sudo apt-get update
-          sudo apt-get install -y g++-15
+          sudo apt-get install -y g++-${{ matrix.gcc_version }}
+
+      - name: Install libstdc++ trunk snapshot
+        if: matrix.gcc_trunk
+        run: |
+          wget -q https://kayari.org/gcc-latest/gcc-latest.deb -O gcc-latest.deb
+          sudo dpkg -i gcc-latest.deb || sudo apt-get install -f -y
+          printf '%s\n' \
+            '# Multiarch support' \
+            /opt/gcc-latest/lib \
+            /opt/gcc-latest/lib64 | sudo tee /etc/ld.so.conf.d/gcc-latest.conf > /dev/null
+          sudo ldconfig
 
       # Export the two env vars vcpkg's "x-gha" binary source needs to talk
       # to the GitHub Actions cache service, so built packages are reused
@@ -101,19 +91,15 @@ jobs:
 
       # vcpkg is used instead of the distro's boost package so xstd tracks
       # recent Boost releases regardless of what the OS bundles.
-      # apt.llvm.org's Clang packages
-      # (including the dev/SVN build) link against the system libstdc++ like
-      # every other apt-installed compiler on the runner - no separate
-      # bundled runtime, so no ABI mismatch with vcpkg's Boost.Test either.
-      # The libc++ leg instead selects the overlay triplet, which rebuilds
-      # Boost.Test with Clang against libc++.
       - name: Install Boost.Test
         env:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+          CXXFLAGS: ${{ matrix.cxxflags }}
         run: >
           vcpkg install
-          --triplet ${{ matrix.triplet }}
-          --overlay-triplets "$GITHUB_WORKSPACE/.github/vcpkg/triplets"
+          --triplet x64-linux
 
       - name: Configure
         run: >
@@ -122,8 +108,6 @@ jobs:
           -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
           "-DCMAKE_CXX_FLAGS=${{ matrix.cxxflags }}"
           -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
-          -DVCPKG_TARGET_TRIPLET=${{ matrix.triplet }}
-          -DVCPKG_OVERLAY_TRIPLETS=$GITHUB_WORKSPACE/.github/vcpkg/triplets
 
       - name: Build
         run: cmake --build build -v
