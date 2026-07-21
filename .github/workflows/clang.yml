@@ -92,6 +92,7 @@ jobs:
       # vcpkg is used instead of the distro's boost package so xstd tracks
       # recent Boost releases regardless of what the OS bundles.
       - name: Install Boost.Test
+        if: "!matrix.gcc_trunk"
         env:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
           CC: ${{ matrix.cc }}
@@ -101,13 +102,46 @@ jobs:
           vcpkg install
           --triplet x64-linux
 
-      - name: Configure
+      # The GCC trunk snapshot ships a newer libstdc++ than the runner.
+      # Rebuild Boost.Test with the same Clang/libstdc++ pair; a cached
+      # system-libstdc++ Boost fails at runtime due to the ABI mismatch.
+      - name: Resolve latest Boost version
+        if: matrix.gcc_trunk
+        id: boost-version
+        run: |
+          boost_tag=$(curl -fsSL -H "Authorization: Bearer ${{ github.token }}" "https://api.github.com/repos/boostorg/boost/releases?per_page=20" | grep '"tag_name"' | cut -d'"' -f4 | grep -E -m1 '^boost-[0-9]+\.[0-9]+\.[0-9]+$')
+          echo "tag=$boost_tag" >> "$GITHUB_OUTPUT"
+
+      - name: Install Boost.Test from source
+        if: matrix.gcc_trunk
+        run: |
+          boost_tag=${{ steps.boost-version.outputs.tag }}
+          boost_ver=${boost_tag#boost-}
+          wget -q "https://github.com/boostorg/boost/releases/download/${boost_tag}/boost-${boost_ver}-b2-nodocs.tar.gz" -O boost.tar.gz
+          tar xzf boost.tar.gz
+          cd "boost-${boost_ver}"
+          echo "using clang : trunk : ${{ matrix.cxx }} : <cxxflags>${{ matrix.cxxflags }} <linkflags>${{ matrix.cxxflags }} ;" > user-config.jam
+          ./bootstrap.sh --prefix=/opt/boost-latest --with-libraries=test
+          ./b2 install -j"$(nproc)" --prefix=/opt/boost-latest --user-config=user-config.jam toolset=clang-trunk variant=release link=static threading=multi
+
+      - name: Configure (stable)
+        if: "!matrix.gcc_trunk"
         run: >
           cmake -S . -B build
           -DCMAKE_C_COMPILER=${{ matrix.cc }}
           -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
           "-DCMAKE_CXX_FLAGS=${{ matrix.cxxflags }}"
           -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
+
+      - name: Configure (trunk)
+        if: matrix.gcc_trunk
+        run: >
+          cmake -S . -B build
+          -DCMAKE_C_COMPILER=${{ matrix.cc }}
+          -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
+          "-DCMAKE_CXX_FLAGS=${{ matrix.cxxflags }}"
+          -DCMAKE_PREFIX_PATH=/opt/boost-latest
+          -DBoost_NO_SYSTEM_PATHS=ON
 
       - name: Build
         run: cmake --build build -v
