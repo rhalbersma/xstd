@@ -102,17 +102,19 @@ every trunk/preview leg, is required: a break on trunk fails the workflow
 (and its badge in the README) the same as a break on a stable release
 does. xstd tracks trunk deliberately rather than treating it as advisory -
 the intent is to evolve alongside new compilers rather than discover
-breakage only once a compiler goes stable.
+breakage only once a compiler goes stable. A weekly toolchain canary invokes
+the complete compiler matrix, so changing trunk/preview toolchains and
+runner images are also checked when no pull request is active.
 
 ### Why some platforms have no trunk/preview leg
 
-Neither `AppleClang` nor `Clang-CL` has a trunk/preview row. Apple doesn't
-publish AppleClang dev snapshots the way LLVM does (the newest Xcode.app
-preinstalled on a runner image isn't reliably a distinct compiler from the
-previous one). "Clang tools for Windows" is a single Visual Studio
-component shared by the stable and preview MSVC toolsets alike, so a
-"preview" row would just run the exact same `clang-cl.exe` as the stable
-row - testing it twice would add no coverage.
+`Apple Clang` has no trunk/preview row because Apple doesn't publish
+Apple Clang dev snapshots the way LLVM does. The workflow tests the latest
+stable Xcode release from each of the two supported series: Apple Clang 17.0.0
+from Xcode 16.4 and Apple Clang 21.0.0 from Xcode 26.6. The `Clang-CL`
+preview row uses the same `clang-cl.exe` as VS 2026 Stable, but pairs it
+with the preview MSVC STL. That makes it a meaningful standard-library test
+even though it does not exercise a newer Clang driver.
 
 ### MinGW trunk resolution
 
@@ -159,6 +161,6 @@ All three mainstream standard libraries are exercised: libstdc++ (GCC,
 Clang, and MinGW legs), the MSVC STL (MSVC and Clang-CL legs), and libc++
 (the Clang-libc++ workflow, which rebuilds Boost.Test against
 libc++ through the vcpkg overlay triplet in `.github/vcpkg`, plus the
-AppleClang legs, which use macOS's libc++ by default). The library is
+Apple Clang legs, which use macOS's libc++ by default). The library is
 expected to work with any toolchain that implements the C++23 features it
 uses, including `std::format` for tuple-like types.

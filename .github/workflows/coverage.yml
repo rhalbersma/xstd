@@ -36,6 +36,14 @@ jobs:
           python3 -m pip install --user gcovr
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
+      - name: Report toolchain versions
+        run: |
+          gcc-15 --version
+          g++-15 --version
+          gcov-15 --version
+          gcovr --version
+          cmake --version
+
       # Export the two env vars vcpkg's "x-gha" binary source needs to talk
       # to the GitHub Actions cache service, so built packages are reused
       # across runs instead of recompiled from scratch every time.

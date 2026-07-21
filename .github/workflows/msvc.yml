@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow_ref }}-${{ github.ref }}
   cancel-in-progress: true
 
 on:
@@ -18,6 +18,7 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+  workflow_call:
 
 jobs:
   build:
@@ -135,6 +136,26 @@ jobs:
             Select-Object -First 1 -ExpandProperty Name
           Write-Host "Default toolset: $default; newest (preview) toolset: $newest"
           echo "VC_PREVIEW_TOOLSET=$newest" >> $env:GITHUB_ENV
+
+      - name: Report toolchain versions
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $instance = & $vswhere -products * -format json | ConvertFrom-Json | Select-Object -First 1
+          if (-not $instance) {
+            Write-Host "No Visual Studio instance found by vswhere"
+            exit 1
+          }
+          $installPath = $instance.installationPath
+          Write-Host "Visual Studio: $($instance.displayName) $($instance.installationVersion)"
+          $toolset = if ($env:VC_PREVIEW_TOOLSET) {
+            $env:VC_PREVIEW_TOOLSET
+          } else {
+            (Get-Content "$installPath\VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt").Trim()
+          }
+          Write-Host "MSVC toolset: $toolset"
+          & "$installPath\VC\Tools\MSVC\$toolset\bin\Hostx64\x64\cl.exe" /Bv
+          cmake --version
 
       # Export the two env vars vcpkg's "x-gha" binary source needs to talk
       # to the GitHub Actions cache service, so built packages are reused
