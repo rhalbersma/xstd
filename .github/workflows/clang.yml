@@ -70,6 +70,7 @@ jobs:
 
       - name: Install libstdc++ trunk snapshot
         if: matrix.gcc_trunk
+        id: gcc-trunk
         run: |
           wget -q https://kayari.org/gcc-latest/gcc-latest.deb -O gcc-latest.deb
           sudo dpkg -i gcc-latest.deb || sudo apt-get install -f -y
@@ -78,6 +79,7 @@ jobs:
             /opt/gcc-latest/lib \
             /opt/gcc-latest/lib64 | sudo tee /etc/ld.so.conf.d/gcc-latest.conf > /dev/null
           sudo ldconfig
+          echo "version=$(/opt/gcc-latest/bin/g++ --version | head -1)" >> "$GITHUB_OUTPUT"
 
       # Export the two env vars vcpkg's "x-gha" binary source needs to talk
       # to the GitHub Actions cache service, so built packages are reused
@@ -112,8 +114,16 @@ jobs:
           boost_tag=$(curl -fsSL -H "Authorization: Bearer ${{ github.token }}" "https://api.github.com/repos/boostorg/boost/releases?per_page=20" | grep '"tag_name"' | cut -d'"' -f4 | grep -E -m1 '^boost-[0-9]+\.[0-9]+\.[0-9]+$')
           echo "tag=$boost_tag" >> "$GITHUB_OUTPUT"
 
-      - name: Install Boost.Test from source
+      - name: Cache Boost (trunk)
         if: matrix.gcc_trunk
+        id: cache-boost-trunk
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: /opt/boost-latest
+          key: boost-clang-trunk-${{ runner.os }}-${{ matrix.version }}-${{ steps.gcc-trunk.outputs.version }}-${{ steps.boost-version.outputs.tag }}
+
+      - name: Install Boost.Test from source
+        if: matrix.gcc_trunk && steps.cache-boost-trunk.outputs.cache-hit != 'true'
         run: |
           boost_tag=${{ steps.boost-version.outputs.tag }}
           boost_ver=${boost_tag#boost-}
