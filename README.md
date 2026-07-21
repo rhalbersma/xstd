@@ -6,6 +6,7 @@
 [![GCC](https://github.com/rhalbersma/xstd/actions/workflows/gcc.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/gcc.yml)
 [![MinGW](https://github.com/rhalbersma/xstd/actions/workflows/mingw.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/mingw.yml)
 [![Clang](https://github.com/rhalbersma/xstd/actions/workflows/clang.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang.yml)
+[![Clang-libc++](https://github.com/rhalbersma/xstd/actions/workflows/clang-libc%2B%2B.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang-libc%2B%2B.yml)
 [![AppleClang](https://github.com/rhalbersma/xstd/actions/workflows/appleclang.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/appleclang.yml)
 [![Clang-CL](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml)
 [![MSVC](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml)
@@ -164,14 +165,15 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow and what a p
 
 These header-only libraries are continuously being tested with the following conforming [C++23](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4950.pdf) compilers, against all three mainstream standard libraries (libstdc++, the MSVC STL, and libc++). Following the model of [apt.llvm.org](https://apt.llvm.org/), we support the latest two stable releases of each compiler, plus its current development branch. Every leg in the table below is required, including every `Trunk / Preview` entry: a break on trunk fails CI the same as a break on a stable release does.
 
-| Platform | Compiler | Older stable | Latest stable | Trunk / Preview | Build |
-| :------- | :------- | :------------ | :------------- | :---------------- | :---- |
-| Linux    | GCC      | 15             | 16              | 17-SVN             | [![GCC](https://github.com/rhalbersma/xstd/actions/workflows/gcc.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/gcc.yml) |
-| Linux    | Clang    | 21             | 22              | 23-SVN             | [![Clang](https://github.com/rhalbersma/xstd/actions/workflows/clang.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang.yml) |
-| macOS    | AppleClang | 17.0.0 (Xcode 16.4) | 21.0.0 (Xcode 26.5) | —          | [![AppleClang](https://github.com/rhalbersma/xstd/actions/workflows/appleclang.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/appleclang.yml) |
-| Windows  | MinGW    | 15             | 16              | 17-SVN             | [![MinGW](https://github.com/rhalbersma/xstd/actions/workflows/mingw.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/mingw.yml) |
-| Windows  | Clang-CL | 19.1.5 (VS 2022) | 20.1.8 (VS 2026) | —               | [![Clang-CL](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml) |
-| Windows  | MSVC     | 2022 (17.11+)  | 2026            | 2026-Preview       | [![MSVC](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml) |
+| Platform | Compiler   | Standard Library | Older stable              | Latest stable             | Trunk / Preview                | Build |
+| :------- | :--------- | :--------------- | :------------------------ | :------------------------ | :----------------------------- | :---- |
+| Linux    | GCC        | libstdc++        | 15                        | 16                        | 17-SVN                         | [![GCC](https://github.com/rhalbersma/xstd/actions/workflows/gcc.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/gcc.yml) |
+| Windows  | MinGW      | libstdc++        | 15                        | 16                        | 17-SVN                         | [![MinGW](https://github.com/rhalbersma/xstd/actions/workflows/mingw.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/mingw.yml) |
+| Linux    | Clang      | libstdc++        | 21 (libstdc++ 15)         | 22 (libstdc++ 16)         | 23-SVN (libstdc++ 17-SVN)      | [![Clang](https://github.com/rhalbersma/xstd/actions/workflows/clang.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang.yml) |
+| Linux    | Clang      | libc++           | 21                        | 22                        | 23-SVN                         | [![Clang-libc++](https://github.com/rhalbersma/xstd/actions/workflows/clang-libc%2B%2B.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang-libc%2B%2B.yml) |
+| macOS    | AppleClang | libc++           | 17.0.0 (Xcode 16.4)       | 21.0.0 (Xcode 26.5)       | —                              | [![AppleClang](https://github.com/rhalbersma/xstd/actions/workflows/appleclang.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/appleclang.yml) |
+| Windows  | Clang-CL   | MSVC             | 19.1.5 (VS 2022)          | 20.1.8 (VS 2026)          | —                              | [![Clang-CL](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml) |
+| Windows  | MSVC       | MSVC             | 2022 (17.11+)             | 2026                      | 2026-Preview                   | [![MSVC](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml) |
 
 The library is expected to work with any toolchain that implements the C++23 features it uses, including `std::format` for tuple-like types. See [doc/design.md](doc/design.md) for why some platforms have no `Trunk / Preview` row, how each workflow provisions its trunk/preview toolchain, and the MSVC version that first shipped tuple `std::formatter` support.
 
