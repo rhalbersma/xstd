@@ -157,10 +157,6 @@ Alternatively, install Boost.Test with your system package manager and point CMa
 - `test/src/` contains Boost.Test unit tests, with one executable generated per `.cpp` file.
 - `doc/` contains historical proposal documents and [design.md](doc/design.md), which explains the rationale behind API and CI/toolchain choices; none of it is the current public API.
 
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the development workflow and what a pull request must satisfy (full CI matrix, 100% line coverage, clean `clang-tidy`) before it can merge.
-
 ## Requirements
 
 These header-only libraries are continuously being tested with the following conforming [C++23](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4950.pdf) compilers, against all three mainstream standard libraries (libstdc++, the MSVC STL, and libc++). Following the model of [apt.llvm.org](https://apt.llvm.org/), we support the latest two stable releases of each compiler, plus its current development branch. Every leg in the table below is required, including every `Trunk / Preview` entry: a break on trunk fails CI the same as a break on a stable release does.
