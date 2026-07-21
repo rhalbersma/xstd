@@ -19,6 +19,9 @@ This repository enforces its quality bar through CI rather than through review d
 - **No new sanitizer failures.** The [sanitizers workflow](.github/workflows/sanitizers.yml) must stay green.
 - **The public headers stay self-sufficient.** Each header is compiled as its own translation unit (see `test/CMakeLists.txt`); don't rely on include order from another header.
 - **`clang-format` is clean.** The [Clang-Format workflow](.github/workflows/clang-format.yml) runs `clang-format --dry-run --Werror` over every header and test source against [`.clang-format`](.clang-format), so any diff fails the job. Run `clang-format -i` on changed files before pushing. A few spots that clang-format can't express (hand-laid-out test-data tables, one constrained-template constructor) are wrapped in `// clang-format off` / `// clang-format on`; don't add new guards without a comparable reason.
+- **Workflow files pass `actionlint`.** The [Actionlint workflow](.github/workflows/actionlint.yml) validates GitHub Actions syntax and expressions.
+- **The documented consumption methods work.** The [Consumption workflow](.github/workflows/consumption.yml) builds a consumer using `find_package`, `add_subdirectory`, and `FetchContent`.
+- **CodeQL analysis is clean.** The [CodeQL workflow](.github/workflows/codeql.yml) runs the C/C++ `security-extended` query suite.
 
 Match the surrounding code's style by eye where `.clang-format` doesn't have an opinion, including the Boost Software License header comment at the top of every source and workflow file.
 
@@ -48,6 +51,8 @@ ctest --test-dir build --output-on-failure
 gcovr --root . --exclude 'test/.*' --exclude 'build/.*' \
   --exclude-lines-by-pattern '^\s*assert\(' \
   --exclude-lines-by-pattern '=\s*default;' \
+  --exclude-branches-by-pattern '^\s*assert\(' \
+  --exclude-branches-by-pattern '^\s*.*=\s*default;' \
   --exclude-throw-branches --exclude-unreachable-branches \
   --print-summary --fail-under-line 100 --fail-under-branch 100
 ```
