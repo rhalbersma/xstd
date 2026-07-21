@@ -64,6 +64,10 @@ jobs:
           --overlay-triplets "$GITHUB_WORKSPACE/.github/vcpkg/triplets"
 
       - name: Configure
+        env:
+          # The overlay triplet is evaluated again by the vcpkg CMake
+          # integration, so retain the compiler selection after install.
+          VCPKG_CLANG_VERSION: ${{ matrix.version }}
         run: >
           cmake -S . -B build
           -DCMAKE_C_COMPILER=clang-${{ matrix.version }}
