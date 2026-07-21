@@ -6,6 +6,7 @@
 #include <xstd/utility.hpp>         // to_underlying
 #include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK_EQUAL
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
+#include <limits>                   // numeric_limits
 #include <type_traits>              // integral_constant
 #include <utility>                  // to_underlying
 
@@ -50,6 +51,8 @@ BOOST_AUTO_TEST_CASE(AlignedSize)
         XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size( 9, 8), 16);
         XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size(64, 8), 64);
         XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size(65, 8), 72);
+        XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size(std::numeric_limits<std::size_t>::max() - 7, 8), std::numeric_limits<std::size_t>::max() - 7);
+        XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size(std::numeric_limits<std::size_t>::max() - 8, 8), std::numeric_limits<std::size_t>::max() - 7);
         // clang-format on
 }
 

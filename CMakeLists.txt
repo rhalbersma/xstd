@@ -14,6 +14,11 @@ project(
 
 include(GNUInstallDirs)
 
+# Keep every target created by this project in the strictly conforming C++
+# dialect. This is set before any targets are created so it also covers future
+# non-test targets; consumers retain control over their own targets.
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 add_library(
     ${PROJECT_NAME} INTERFACE
 )
