@@ -67,25 +67,25 @@ namespace xstd {
 struct div_t
 {
         int quot, rem;
-        friend bool operator==(div_t const&, div_t const&) = default;
+        [[nodiscard]] friend constexpr bool operator==(div_t const&, div_t const&) noexcept = default;
 };
 
 struct ldiv_t
 {
         long quot, rem;
-        friend bool operator==(ldiv_t const&, ldiv_t const&) = default;
+        [[nodiscard]] friend constexpr bool operator==(ldiv_t const&, ldiv_t const&) noexcept = default;
 };
 
 struct lldiv_t
 {
         long long quot, rem;
-        friend bool operator==(lldiv_t const&, lldiv_t const&) = default;
+        [[nodiscard]] friend constexpr bool operator==(lldiv_t const&, lldiv_t const&) noexcept = default;
 };
 
 struct imaxdiv_t
 {
         std::intmax_t quot, rem;
-        friend bool operator==(imaxdiv_t const&, imaxdiv_t const&) = default;
+        [[nodiscard]] friend constexpr bool operator==(imaxdiv_t const&, imaxdiv_t const&) noexcept = default;
 };
 
 namespace detail {
