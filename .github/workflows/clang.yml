@@ -42,10 +42,10 @@ jobs:
             gcc_version: 16
             gcc_trunk: false
             cxxflags: ""
-          - label: 23-SVN
-            version: 23
-            cc: clang-23
-            cxx: clang++-23
+          - label: 24-SVN
+            version: 24
+            cc: clang-24
+            cxx: clang++-24
             gcc_version: 17
             gcc_trunk: true
             cxxflags: "--gcc-toolchain=/opt/gcc-latest"

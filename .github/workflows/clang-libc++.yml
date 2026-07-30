@@ -32,8 +32,8 @@ jobs:
             version: 21
           - label: "22"
             version: 22
-          - label: 23-SVN
-            version: 23
+          - label: 24-SVN
+            version: 24
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
