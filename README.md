@@ -143,7 +143,7 @@ Running xstd's own test suite does have dependencies, which consumers never buil
 
 These header-only libraries are continuously being tested with the following conforming C++23 compilers, against all three mainstream standard libraries (libstdc++, the MSVC STL, and libc++). Following the model of [apt.llvm.org](https://apt.llvm.org/), which publishes its packages for a stable, a qualification and a development branch, we track the same three channels for every compiler: the established release, the newest release still being qualified, and the current development branch. Every leg in the table below is required, including every `Development` entry: a break on trunk fails CI the same as a break on a stable release does.
 
-| Platform | Compiler   | Standard Library | Stable                    | Qualification             | Development                    | Build |
+| Platform | Compiler   | Standard Library | Stable                    | Qualification             | Development                    | CI    |
 | :------- | :--------- | :--------------- | :------------------------ | :------------------------ | :----------------------------- | :---- |
 | Linux    | GCC        | libstdc++        | 15                        | 16                        | 17-SVN                         | [![GCC](https://github.com/rhalbersma/xstd/actions/workflows/gcc.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/gcc.yml) |
 | Windows  | MinGW      | libstdc++        | 15                        | 16                        | 17-SVN                         | [![MinGW](https://github.com/rhalbersma/xstd/actions/workflows/mingw.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/mingw.yml) |
