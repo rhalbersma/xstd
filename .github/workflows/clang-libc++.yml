@@ -30,20 +30,43 @@ jobs:
         include:
           - label: "21"
             version: 21
+            llvm_trunk: false
           - label: "22"
             version: 22
+            llvm_trunk: false
           - label: 24-SVN
             version: 24
+            llvm_trunk: true
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
 
       - name: Install Clang and libc++ ${{ matrix.version }}
+        if: "!matrix.llvm_trunk"
         run: |
           wget https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           sudo ./llvm.sh ${{ matrix.version }}
           sudo apt-get install -y libc++-${{ matrix.version }}-dev libc++abi-${{ matrix.version }}-dev
+
+      # See the matching step in clang.yml: llvm.sh can't reach tip of trunk
+      # during LLVM's annual rollover, so add the unversioned snapshot suite
+      # directly and install the versioned packages from it.
+      - name: Install Clang and libc++ trunk snapshot ${{ matrix.version }}
+        if: matrix.llvm_trunk
+        run: |
+          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key \
+            | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc > /dev/null
+          codename=$(lsb_release -cs)
+          sudo add-apt-repository -y "deb https://apt.llvm.org/${codename}/ llvm-toolchain-${codename} main"
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang-${{ matrix.version }} \
+            lldb-${{ matrix.version }} \
+            lld-${{ matrix.version }} \
+            clangd-${{ matrix.version }} \
+            libc++-${{ matrix.version }}-dev \
+            libc++abi-${{ matrix.version }}-dev
 
       - name: Report toolchain versions
         run: |
