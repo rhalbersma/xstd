@@ -64,6 +64,32 @@ the `imax`-prefixed names sidestep that regardless of platform, matching
 how the public family already uses distinct names (`abs`/`labs`/`llabs`/
 `imaxabs`) rather than an overload set.
 
+### `xstd::uabs`/`xstd::ulabs`/`xstd::ullabs`/`xstd::uimaxabs`
+
+`abs` cannot be total: `|x|` for the most negative value of a signed type is
+one past that type's maximum, so there is no signed result to return. The
+standard's answer is undefined behavior; xstd's is a precondition. Either
+way, callers who need `|x|` for *every* input are left without one.
+
+These four return the corresponding unsigned type instead, which can
+represent that value, so they have no precondition at all. They exist mainly
+because the division families' postconditions need them: `div` accepts
+`denom == INT_MIN`, so a check of the form `|rem| < |denom|` written with
+`abs` would trip its own precondition on a call that is perfectly in
+contract. A contract check must not have a narrower domain than the
+operation it verifies.
+
+The negation is done by unsigned wraparound rather than by widening to a
+bigger signed type. Wraparound is well-defined where `-x` on a signed
+minimum is not, and it works uniformly at all four widths - `intmax_t` has
+nothing wider to widen to.
+
+The name keeps the relationship to `abs` visible at the call site, which
+`magnitude` (what these were called while they were an implementation
+detail) did not. Rust names the same operation
+[`unsigned_abs`](https://doc.rust-lang.org/std/primitive.i32.html#method.unsigned_abs)
+for the same reason; C++ has no equivalent, standard or in Boost.Math.
+
 ### `xstd::div_t`/`xstd::ldiv_t`/`xstd::lldiv_t`/`xstd::imaxdiv_t` formatting
 
 Each type's `std::formatter` specialization delegates to
