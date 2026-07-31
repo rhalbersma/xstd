@@ -95,20 +95,30 @@ one.
 
 ### Compiler support policy
 
-Following the model of [apt.llvm.org](https://apt.llvm.org/), xstd
-supports the latest two stable releases of each compiler, plus its current
-development branch (trunk/preview). Every leg in the CI matrix, including
-every trunk/preview leg, is required: a break on trunk fails the workflow
+Following the model of [apt.llvm.org](https://apt.llvm.org/), which
+publishes its packages for a stable, a qualification and a development
+branch, xstd tracks the same three channels for every compiler: the
+established release, the newest release still being qualified, and the
+current development branch. Every leg in the CI matrix, including every
+development leg, is required: a break on trunk fails the workflow
 (and its badge in the README) the same as a break on a stable release
 does. xstd tracks trunk deliberately rather than treating it as advisory -
 the intent is to evolve alongside new compilers rather than discover
 breakage only once a compiler goes stable. A weekly toolchain canary invokes
-the complete compiler matrix, so changing trunk/preview toolchains and
+the complete compiler matrix, so changing development toolchains and
 runner images are also checked when no pull request is active.
 
-### Why some platforms have no trunk/preview leg
+The Clang workflows name their apt.llvm.org suite directly - a versioned
+`llvm-toolchain-<codename>-<version>` for stable and qualification, the
+unversioned `llvm-toolchain-<codename>` for development - rather than
+letting `llvm.sh` derive it. That script resolves a version through a
+hardcoded table which lags LLVM's annual rollover, so in the weeks around
+a release it can neither be asked for the new development version nor find
+the previous one in the unversioned suite it resolves to.
 
-`Apple Clang` has no trunk/preview row because Apple doesn't publish
+### Why some platforms have no development leg
+
+`Apple Clang` has no development row because Apple doesn't publish
 Apple Clang dev snapshots the way LLVM does. The workflow tests the latest
 stable Xcode release from each of the two supported series: Apple Clang 17.0.0
 from Xcode 16.4 and Apple Clang 21.0.0 from Xcode 26.6. The `Clang-CL`
