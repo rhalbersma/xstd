@@ -25,6 +25,19 @@ This repository enforces its quality bar through CI rather than through review d
 
 Match the surrounding code's style by eye where `.clang-format` doesn't have an opinion, including the Boost Software License header comment at the top of every source and workflow file.
 
+## Test suite requirements
+
+The library itself has no dependencies - see [README.md](README.md). Its test suite does, and none of them are needed to *use* xstd:
+
+| Tool | Needed for | Notes |
+| :--- | :--------- | :---- |
+| A conforming C++23 compiler | everything | Same requirement as the library; see the table in [README.md](README.md) for the versions under CI |
+| [CMake](https://cmake.org/) 3.28+ | configuring and building | `cmake_minimum_required` in [`CMakeLists.txt`](CMakeLists.txt); CTest ships with it |
+| [Boost.Test](https://www.boost.org/doc/libs/release/libs/test/) | the unit tests under `test/src/` | Declared in the checked-in [`vcpkg.json`](vcpkg.json) manifest; the `*-vcpkg` presets pick it up from a `VCPKG_ROOT`-configured vcpkg, or install it with your system package manager |
+| [gcovr](https://gcovr.com/) | reproducing the coverage gate | Only for the workflow below; `pip install gcovr` |
+| `clang-tidy` and `run-clang-tidy` | reproducing the clang-tidy gate | Only for the workflow below |
+| `clang-format` | the formatting gate | Run `clang-format -i` on changed files before pushing |
+
 ## Building and testing locally
 
 ```sh
@@ -41,15 +54,13 @@ cmake --build --preset dev
 ctest --preset dev
 ```
 
-Tests require Boost.Test. The checked-in vcpkg manifest declares that dependency for vcpkg-based builds, and the `*-vcpkg` presets pick up the toolchain from the `VCPKG_ROOT` environment variable:
+The `*-vcpkg` presets additionally resolve Boost.Test through vcpkg, using the toolchain at `VCPKG_ROOT`:
 
 ```sh
 cmake --preset dev-vcpkg
 cmake --build --preset dev-vcpkg
 ctest --preset dev-vcpkg
 ```
-
-Alternatively, install Boost.Test with your system package manager and point CMake at the package if it is not found automatically.
 
 ### Reproducing the coverage gate
 
