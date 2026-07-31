@@ -28,57 +28,53 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - label: "21"
-            version: 21
-            cc: clang-21
-            cxx: clang++-21
-            gcc_version: 15
-            gcc_trunk: false
-            llvm_trunk: false
-            cxxflags: ""
+          # llvm_suffix selects the apt.llvm.org branch: a versioned suite
+          # for stable and qualification, the unversioned one for development.
           - label: "22"
             version: 22
             cc: clang-22
             cxx: clang++-22
+            llvm_suffix: "-22"
+            gcc_version: 15
+            gcc_trunk: false
+            cxxflags: ""
+          - label: "23"
+            version: 23
+            cc: clang-23
+            cxx: clang++-23
+            llvm_suffix: "-23"
             gcc_version: 16
             gcc_trunk: false
-            llvm_trunk: false
             cxxflags: ""
           - label: 24-SVN
             version: 24
             cc: clang-24
             cxx: clang++-24
+            llvm_suffix: ""
             gcc_version: 17
             gcc_trunk: true
-            llvm_trunk: true
             cxxflags: "--gcc-toolchain=/opt/gcc-latest"
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
 
+      # Select the apt.llvm.org suite directly rather than going through
+      # llvm.sh. That script maps a version to a suite from a hardcoded
+      # table which lags LLVM's annual rollover, so during the switchover it
+      # can neither be asked for the new development version nor find the
+      # previous one in the unversioned suite it resolves to. Naming the
+      # suite ourselves sidesteps the table entirely, and it mirrors how
+      # apt.llvm.org is actually laid out: a versioned suite per release,
+      # and an unversioned one that always means tip of trunk.
+      # Install versioned packages rather than the unversioned
+      # metapackages, which lag the rename the same way and would drag in a
+      # clang-N the development suite no longer carries.
       - name: Install Clang ${{ matrix.version }}
-        if: "!matrix.llvm_trunk"
-        run: |
-          wget https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh ${{ matrix.version }}
-
-      # llvm.sh can't reach tip of trunk during LLVM's annual rollover. It
-      # tops out at the version it believes is trunk and maps that to the
-      # unversioned snapshot suite, so once the snapshot is renamed - 23 to
-      # 24 here, ahead of the 23 release - it neither accepts the new number
-      # nor installs the old one from that suite. Add the snapshot suite
-      # directly instead: unversioned always means tip of trunk, whatever
-      # trunk is currently called. Install the versioned packages rather
-      # than the unversioned metapackages, which lag the rename and would
-      # pull in a clang-23 the suite no longer carries.
-      - name: Install Clang trunk snapshot ${{ matrix.version }}
-        if: matrix.llvm_trunk
         run: |
           wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key \
             | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc > /dev/null
           codename=$(lsb_release -cs)
-          sudo add-apt-repository -y "deb https://apt.llvm.org/${codename}/ llvm-toolchain-${codename} main"
+          sudo add-apt-repository -y "deb https://apt.llvm.org/${codename}/ llvm-toolchain-${codename}${{ matrix.llvm_suffix }} main"
           sudo apt-get update
           sudo apt-get install -y \
             clang-${{ matrix.version }} \
