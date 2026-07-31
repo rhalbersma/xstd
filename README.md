@@ -141,7 +141,7 @@ Running xstd's own test suite does have dependencies, which consumers never buil
 
 ### Continuously tested toolchains
 
-These header-only libraries are continuously being tested with the following conforming C++23 compilers, against all three mainstream standard libraries (libstdc++, the MSVC STL, and libc++). Following the model of [apt.llvm.org](https://apt.llvm.org/), which publishes its packages for a stable, a qualification and a development branch, we track the same three channels for every compiler: the established release, the newest release still being qualified, and the current development branch. Every leg in the table below is required, including every `Development` entry: a break on trunk fails CI the same as a break on a stable release does.
+These header-only libraries are continuously being tested with the following conforming C++23 compilers, against all three mainstream standard libraries (libstdc++, the MSVC STL, and libc++). Following the model of [apt.llvm.org](https://apt.llvm.org/), which publishes its packages for a stable, a qualification and a development branch, we track the same three channels for every compiler: the established release, the newest release still being qualified, and the current development branch. Every leg in the table below is required, including every `Development` entry: a break there fails CI the same as a break on a stable release does.
 
 | Platform | Compiler   | Standard Library | Stable                    | Qualification             | Development                    | CI    |
 | :------- | :--------- | :--------------- | :------------------------ | :------------------------ | :----------------------------- | :---- |
@@ -153,7 +153,7 @@ These header-only libraries are continuously being tested with the following con
 | Windows  | Clang-CL   | MSVC             | 19.1.5 (VS 2022)          | 20.1.8 (VS 2026)          | 20.1.8 (VS 2026-Preview)       | [![Clang-CL](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml) |
 | Windows  | MSVC       | MSVC             | 2022 (17.11+)             | 2026                      | 2026-Preview                   | [![MSVC](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml) |
 
-See [doc/design.md](doc/design.md) for why some platforms have no `Development` entry, how each workflow provisions its trunk/preview toolchain, and the MSVC version that first shipped tuple `std::formatter` support.
+See [doc/design.md](doc/design.md) for why some platforms have no `Development` entry, how each workflow provisions its development toolchain, and the MSVC version that first shipped tuple `std::formatter` support.
 
 ## License
 
