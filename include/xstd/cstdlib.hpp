@@ -42,6 +42,36 @@ namespace xstd {
         return x < 0 ? -x : x;
 }
 
+// The total counterpart of the abs family above: same |x|, but returning the
+// unsigned type, so the one input abs has to exclude - the most negative
+// value, whose magnitude is one past the signed maximum - is in contract
+// here. Negation is done by unsigned wraparound, which is well-defined,
+// rather than by -x on a signed MIN, which is not, or by widening to a
+// bigger signed type, which has none to widen to at the intmax_t end.
+// Same four widths and the same non-template style as abs, and likewise
+// distinct names rather than an overload set: long and intmax_t are the same
+// type on some platforms (e.g. 64-bit Linux) and distinct on others, so
+// overloads could collide there.
+[[nodiscard]] constexpr unsigned uabs(int x) noexcept
+{
+        return x < 0 ? unsigned{} - static_cast<unsigned>(x) : static_cast<unsigned>(x);
+}
+
+[[nodiscard]] constexpr unsigned long ulabs(long x) noexcept
+{
+        return x < 0 ? static_cast<unsigned long>(0) - static_cast<unsigned long>(x) : static_cast<unsigned long>(x);
+}
+
+[[nodiscard]] constexpr unsigned long long ullabs(long long x) noexcept
+{
+        return x < 0 ? static_cast<unsigned long long>(0) - static_cast<unsigned long long>(x) : static_cast<unsigned long long>(x);
+}
+
+[[nodiscard]] constexpr std::uintmax_t uimaxabs(std::intmax_t x) noexcept
+{
+        return x < 0 ? static_cast<std::uintmax_t>(0) - static_cast<std::uintmax_t>(x) : static_cast<std::uintmax_t>(x);
+}
+
 // not part of <cstdlib>, but kept to the same style and the same four
 // widths as the abs family above: plain integral types, no templates.
 [[nodiscard]] constexpr int sign(int x) noexcept
@@ -88,37 +118,6 @@ struct imaxdiv_t
         [[nodiscard]] friend constexpr bool operator==(imaxdiv_t const&, imaxdiv_t const&) noexcept = default;
 };
 
-namespace detail {
-
-// |x| computed via unsigned wraparound (well-defined, unlike -x on a signed
-// MIN) rather than by widening to a bigger signed type: long and intmax_t
-// are the same type on some platforms (e.g. 64-bit Linux), so a same-named
-// overload set for these helpers could collide there; distinct names avoid
-// that regardless of platform, matching how the public family above already
-// uses distinct names (abs/labs/llabs/imaxabs) rather than overloads.
-
-[[nodiscard]] constexpr unsigned magnitude(int x) noexcept
-{
-        return x < 0 ? unsigned{} - static_cast<unsigned>(x) : static_cast<unsigned>(x);
-}
-
-[[nodiscard]] constexpr unsigned long lmagnitude(long x) noexcept
-{
-        return x < 0 ? static_cast<unsigned long>(0) - static_cast<unsigned long>(x) : static_cast<unsigned long>(x);
-}
-
-[[nodiscard]] constexpr unsigned long long llmagnitude(long long x) noexcept
-{
-        return x < 0 ? static_cast<unsigned long long>(0) - static_cast<unsigned long long>(x) : static_cast<unsigned long long>(x);
-}
-
-[[nodiscard]] constexpr std::uintmax_t imaxmagnitude(std::intmax_t x) noexcept
-{
-        return x < 0 ? static_cast<std::uintmax_t>(0) - static_cast<std::uintmax_t>(x) : static_cast<std::uintmax_t>(x);
-}
-
-} // namespace detail
-
 // C++ Standard [expr.mul]/4
 // https://en.wikipedia.org/wiki/Modulo_operation
 // http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf
@@ -129,7 +128,7 @@ namespace detail {
 // overflow) is only possible for div: long long is guaranteed wide enough
 // to hold the product of two ints, but there is no portable type wider than
 // long long/intmax_t to give the same guarantee for the other three, so
-// those rely solely on the sign/magnitude assertions below.
+// those rely solely on the sign and magnitude assertions below.
 // %: C99, C++11, C#, D, F#, Go, Java, Javascript, PHP, Rust, Scala, Swift
 // rem: Ada, Clojure, Erlang, Haskell, Julia, Lisp, Prolog
 // remainder: Ruby, Scheme
@@ -141,7 +140,7 @@ namespace detail {
         auto const qT = numer / denom;
         auto const rT = numer % denom;
         assert(static_cast<long long>(numer) == (static_cast<long long>(denom) * qT) + rT);
-        assert(detail::magnitude(rT) < detail::magnitude(denom));
+        assert(uabs(rT) < uabs(denom));
         assert(sign(rT) == sign(numer) || rT == 0);
         return {.quot = qT, .rem = rT};
 }
@@ -152,7 +151,7 @@ namespace detail {
         assert(!(numer == std::numeric_limits<long>::min() && denom == -1));
         auto const qT = numer / denom;
         auto const rT = numer % denom;
-        assert(detail::lmagnitude(rT) < detail::lmagnitude(denom));
+        assert(ulabs(rT) < ulabs(denom));
         assert(lsign(rT) == lsign(numer) || rT == 0);
         return {.quot = qT, .rem = rT};
 }
@@ -163,7 +162,7 @@ namespace detail {
         assert(!(numer == std::numeric_limits<long long>::min() && denom == -1));
         auto const qT = numer / denom;
         auto const rT = numer % denom;
-        assert(detail::llmagnitude(rT) < detail::llmagnitude(denom));
+        assert(ullabs(rT) < ullabs(denom));
         assert(llsign(rT) == llsign(numer) || rT == 0);
         return {.quot = qT, .rem = rT};
 }
@@ -174,7 +173,7 @@ namespace detail {
         assert(!(numer == std::numeric_limits<std::intmax_t>::min() && denom == -1));
         auto const qT = numer / denom;
         auto const rT = numer % denom;
-        assert(detail::imaxmagnitude(rT) < detail::imaxmagnitude(denom));
+        assert(uimaxabs(rT) < uimaxabs(denom));
         assert(imaxsign(rT) == imaxsign(numer) || rT == 0);
         return {.quot = qT, .rem = rT};
 }
@@ -190,7 +189,7 @@ namespace detail {
         auto const qE = divT.quot - I;
         auto const rE = divT.rem + (I * denom);
         assert(static_cast<long long>(numer) == (static_cast<long long>(denom) * qE) + rE);
-        assert(detail::magnitude(rE) < detail::magnitude(denom));
+        assert(uabs(rE) < uabs(denom));
         assert(sign(rE) >= 0);
         return {.quot = qE, .rem = rE};
 }
@@ -202,7 +201,7 @@ namespace detail {
         auto const I = divT.rem >= 0 ? 0L : (denom > 0 ? 1L : -1L);
         auto const qE = divT.quot - I;
         auto const rE = divT.rem + (I * denom);
-        assert(detail::lmagnitude(rE) < detail::lmagnitude(denom));
+        assert(ulabs(rE) < ulabs(denom));
         assert(lsign(rE) >= 0);
         return {.quot = qE, .rem = rE};
 }
@@ -214,7 +213,7 @@ namespace detail {
         auto const I = divT.rem >= 0 ? 0LL : (denom > 0 ? 1LL : -1LL);
         auto const qE = divT.quot - I;
         auto const rE = divT.rem + (I * denom);
-        assert(detail::llmagnitude(rE) < detail::llmagnitude(denom));
+        assert(ullabs(rE) < ullabs(denom));
         assert(llsign(rE) >= 0);
         return {.quot = qE, .rem = rE};
 }
@@ -226,7 +225,7 @@ namespace detail {
         auto const I = divT.rem >= 0 ? std::intmax_t{0} : (denom > 0 ? std::intmax_t{1} : std::intmax_t{-1});
         auto const qE = divT.quot - I;
         auto const rE = divT.rem + (I * denom);
-        assert(detail::imaxmagnitude(rE) < detail::imaxmagnitude(denom));
+        assert(uimaxabs(rE) < uimaxabs(denom));
         assert(imaxsign(rE) >= 0);
         return {.quot = qE, .rem = rE};
 }
@@ -243,7 +242,7 @@ namespace detail {
         auto const qF = divT.quot - I;
         auto const rF = divT.rem + (I * denom);
         assert(static_cast<long long>(numer) == (static_cast<long long>(denom) * qF) + rF);
-        assert(detail::magnitude(rF) < detail::magnitude(denom));
+        assert(uabs(rF) < uabs(denom));
         assert(rF == 0 || sign(rF) == sign(denom));
         return {.quot = qF, .rem = rF};
 }
@@ -255,7 +254,7 @@ namespace detail {
         auto const I = lsign(divT.rem) == -lsign(denom) ? 1L : 0L;
         auto const qF = divT.quot - I;
         auto const rF = divT.rem + (I * denom);
-        assert(detail::lmagnitude(rF) < detail::lmagnitude(denom));
+        assert(ulabs(rF) < ulabs(denom));
         assert(rF == 0 || lsign(rF) == lsign(denom));
         return {.quot = qF, .rem = rF};
 }
@@ -267,7 +266,7 @@ namespace detail {
         auto const I = llsign(divT.rem) == -llsign(denom) ? 1LL : 0LL;
         auto const qF = divT.quot - I;
         auto const rF = divT.rem + (I * denom);
-        assert(detail::llmagnitude(rF) < detail::llmagnitude(denom));
+        assert(ullabs(rF) < ullabs(denom));
         assert(rF == 0 || llsign(rF) == llsign(denom));
         return {.quot = qF, .rem = rF};
 }
@@ -279,7 +278,7 @@ namespace detail {
         auto const I = imaxsign(divT.rem) == -imaxsign(denom) ? std::intmax_t{1} : std::intmax_t{0};
         auto const qF = divT.quot - I;
         auto const rF = divT.rem + (I * denom);
-        assert(detail::imaxmagnitude(rF) < detail::imaxmagnitude(denom));
+        assert(uimaxabs(rF) < uimaxabs(denom));
         assert(rF == 0 || imaxsign(rF) == imaxsign(denom));
         return {.quot = qF, .rem = rF};
 }

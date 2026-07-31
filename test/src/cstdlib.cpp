@@ -3,7 +3,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/cstdlib.hpp>         // /(l{0,2}|imax)(abs|sign|div_t?|magnitude)/, /(euclidean|floored)_(l{0,2}|imax)div/
+#include <xstd/cstdlib.hpp>         // /u?(l{0,2}|imax)(abs|sign|div_t?)/, /(euclidean|floored)_(l{0,2}|imax)div/
 #include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK_EQUAL
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_CHECK_EQUAL, BOOST_CHECK_EQUAL_COLLECTIONS
 #include <algorithm>                // transform
@@ -171,27 +171,27 @@ BOOST_AUTO_TEST_CASE(ExactDivisions)
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(-6, -3), (xstd::div_t{+2, 0}));
 }
 
-// detail::magnitude/lmagnitude/llmagnitude/imaxmagnitude are only exercised
-// transitively above, through the div families' assert() guards; check
-// their own MIN-boundary wraparound directly and at compile time, since
-// that's the one case a widening-based |x| could not have handled.
-BOOST_AUTO_TEST_CASE(Magnitude)
+// The div families exercise uabs/ulabs/ullabs/uimaxabs transitively through
+// their assert() guards; check the MIN-boundary wraparound directly and at
+// compile time, since that is both what distinguishes these from abs and the
+// one case a widening-based |x| could not have handled.
+BOOST_AUTO_TEST_CASE(UnsignedAbs)
 {
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::detail::magnitude(-2), 2u);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::detail::magnitude(+2), 2u);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::detail::magnitude(0), 0u);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::uabs(-2), 2u);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::uabs(+2), 2u);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::uabs(0), 0u);
 
         using limits = std::numeric_limits<int>;
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::detail::magnitude(limits::min()), static_cast<unsigned>(limits::max()) + 1u);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::uabs(limits::min()), static_cast<unsigned>(limits::max()) + 1u);
 
         using llimits = std::numeric_limits<long>;
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::detail::lmagnitude(llimits::min()), static_cast<unsigned long>(llimits::max()) + 1ul);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::ulabs(llimits::min()), static_cast<unsigned long>(llimits::max()) + 1ul);
 
         using lllimits = std::numeric_limits<long long>;
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::detail::llmagnitude(lllimits::min()), static_cast<unsigned long long>(lllimits::max()) + 1ull);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::ullabs(lllimits::min()), static_cast<unsigned long long>(lllimits::max()) + 1ull);
 
         using imaxlimits = std::numeric_limits<std::intmax_t>;
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::detail::imaxmagnitude(imaxlimits::min()), static_cast<std::uintmax_t>(imaxlimits::max()) + std::uintmax_t{1});
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::uimaxabs(imaxlimits::min()), static_cast<std::uintmax_t>(imaxlimits::max()) + std::uintmax_t{1});
 }
 
 BOOST_AUTO_TEST_CASE(BoundaryDivisions)
