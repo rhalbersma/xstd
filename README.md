@@ -24,6 +24,8 @@ xstd is a header-only C++23 library for small standard-library extensions that c
 
 ## Using xstd
 
+xstd is consumed through [CMake](https://cmake.org/), which is the build system it supports: it exports an `xstd::xstd` interface target, ships a package config for `find_package`, and needs CMake 3.28 or later. All three integration paths below hand you that same target.
+
 xstd isn't published to a package registry, so the default way to add it is `FetchContent`, which needs no separate install step:
 
 ```cmake
@@ -133,7 +135,7 @@ static_assert(!xstd::is_specialization_of_v<int, std::complex>);
 
 ## Requirements
 
-Using xstd requires nothing but a conforming [C++23](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4950.pdf) compiler. The library is header-only, depends on no third-party code, and links against nothing, so adding it to a project adds no transitive requirements of its own. It is expected to work with any toolchain that implements the C++23 features it uses, including `std::format` for tuple-like types.
+Using xstd requires a conforming [C++23](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4950.pdf) compiler and CMake 3.28 or later. Beyond those, nothing: the library is header-only, depends on no third-party code, and links against nothing, so adding it to a project adds no transitive requirements of its own. It is expected to work with any compiler that implements the C++23 features it uses, including `std::format` for tuple-like types.
 
 Running xstd's own test suite does have dependencies, which consumers never build. They are listed in [CONTRIBUTING.md](CONTRIBUTING.md).
 
