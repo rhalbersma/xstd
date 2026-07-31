@@ -81,32 +81,29 @@ Application code should prefer `std::format`/`std::print` directly.
 
 ### `xstd::is_specialization_of`
 
-Its `Primary` parameter is constrained to `template<class...> class`, so it
-only accepts class templates whose parameters are all types. A template
-with a non-type parameter, like `std::array` (`template<class, size_t>`),
-doesn't evaluate to `false` - passing it as the second argument is a hard
-compile error, since its template template parameter kind doesn't match
-`template<class...> class`. A fully general version - one that also
-handles non-type template parameters - isn't expressible with today's
-template template parameter matching rules; C++26 reflection may enable
-one.
+[README.md](../README.md) describes the `template<class...> class`
+constraint on `Primary` and the hard error a template with a non-type
+parameter produces. The reason it is constrained rather than general: a
+fully general version - one that also handles non-type template parameters
+- isn't expressible with today's template template parameter matching
+rules. C++26 reflection may enable one.
 
 ## CI and toolchain support
 
 ### Compiler support policy
 
-Following the model of [apt.llvm.org](https://apt.llvm.org/), which
-publishes its packages for a stable, a qualification and a development
-branch, xstd tracks the same three channels for every compiler: the
-established release, the newest release still being qualified, and the
-current development branch. Every leg in the CI matrix, including every
-development leg, is required: a break on trunk fails the workflow
-(and its badge in the README) the same as a break on a stable release
-does. xstd tracks trunk deliberately rather than treating it as advisory -
-the intent is to evolve alongside new compilers rather than discover
-breakage only once a compiler goes stable. A weekly toolchain canary invokes
-the complete compiler matrix, so changing development toolchains and
-runner images are also checked when no pull request is active.
+[README.md](../README.md) states the policy and lists the versions each
+channel currently holds; this section is about why it is shaped that way.
+
+The development channel - upstream's trunk, whatever each project calls it -
+is required rather than advisory because the intent is to evolve alongside
+new compilers rather than discover breakage only once one reaches a stable
+release. The qualification channel exists between the two for the same
+reason: a release still under qualification is where a portability problem
+is cheapest to report upstream and still get fixed before it ships. A weekly
+toolchain canary invokes the complete compiler matrix, so moving development
+toolchains and mutable runner images are checked even when no pull request
+is active.
 
 The Clang workflows name their apt.llvm.org suite directly - a versioned
 `llvm-toolchain-<codename>-<version>` for stable and qualification, the
@@ -122,38 +119,37 @@ the previous one in the unversioned suite it resolves to.
 Apple Clang dev snapshots the way LLVM does. The workflow tests the latest
 stable Xcode release from each of the two supported series: Apple Clang 17.0.0
 from Xcode 16.4 and Apple Clang 21.0.0 from Xcode 26.6. The `Clang-CL`
-preview row uses the same `clang-cl.exe` as VS 2026 Stable, but pairs it
+development entry uses the same `clang-cl.exe` as VS 2026 Stable, but pairs it
 with the preview MSVC STL. That makes it a meaningful standard-library test
 even though it does not exercise a newer Clang driver.
 
-### MinGW trunk resolution
+### MinGW development-leg resolution
 
 The `MinGW` workflow pins GCC versions through [WinLibs](https://winlibs.com)
 standalone builds rather than a rolling package feed, resolving the
 matching release from the GitHub API at run time rather than hardcoding a
-release tag that goes stale the moment a new respin ships. Its trunk leg
-tracks whatever snapshot build WinLibs currently publishes between stable
-branches; when no snapshot currently exists, the leg no-ops rather than
+release tag that goes stale the moment a new respin ships. Its development
+leg tracks whatever snapshot build WinLibs currently publishes between
+stable branches; when no snapshot currently exists, the leg no-ops rather than
 failing (WinLibs only publishes one between stable release branches, so
 this is expected some of the time), but a snapshot that exists and fails
 to build is a required failure like any other.
 
-### GCC/Clang trunk provisioning
+### GCC/Clang development-leg provisioning
 
-GCC's trunk leg installs Jonathan Wakely's binary snapshot
-(https://jwakely.github.io/pkg-gcc-latest/) rather than building GCC from
-source. Because that snapshot ships its own, newer libstdc++ (unlike
+GCC's development leg installs Jonathan Wakely's binary snapshot of GCC
+trunk (https://jwakely.github.io/pkg-gcc-latest/) rather than building GCC
+from source. Because that snapshot ships its own, newer libstdc++ (unlike
 apt-installed compilers, which all share the system one), linking it
-against vcpkg's prebuilt Boost.Test - built by an
-ABI-stable, older GCC - breaks Boost.Test's runtime parameter
-registration. Building Boost.Test from source with the same trunk compiler
-avoids the mismatch; the resulting build is cached, keyed on the exact
-trunk snapshot and Boost version, since a from-source rebuild otherwise
-costs several minutes on every run. Clang's trunk leg doesn't need this:
-apt.llvm.org's Clang packages, including the dev/SVN build, link against
-the system libstdc++ like every other apt-installed compiler on the
-runner, so there's no separate bundled runtime and no ABI mismatch with
-vcpkg's Boost.Test.
+against vcpkg's prebuilt Boost.Test - built by an ABI-stable, older GCC -
+breaks Boost.Test's runtime parameter registration. Building Boost.Test
+from source with that same compiler avoids the mismatch; the resulting
+build is cached, keyed on the exact snapshot and Boost version, since a
+from-source rebuild otherwise costs several minutes on every run. Clang's
+development leg doesn't need this: apt.llvm.org's Clang packages, including
+the development build, link against the system libstdc++ like every other
+apt-installed compiler on the runner, so there's no separate bundled
+runtime and no ABI mismatch with vcpkg's Boost.Test.
 
 ### MSVC minimum toolset
 
@@ -171,6 +167,4 @@ All three mainstream standard libraries are exercised: libstdc++ (GCC,
 Clang, and MinGW legs), the MSVC STL (MSVC and Clang-CL legs), and libc++
 (the Clang-libc++ workflow, which rebuilds Boost.Test against
 libc++ through the vcpkg overlay triplet in `.github/vcpkg`, plus the
-Apple Clang legs, which use macOS's libc++ by default). The library is
-expected to work with any toolchain that implements the C++23 features it
-uses, including `std::format` for tuple-like types.
+Apple Clang legs, which use macOS's libc++ by default).

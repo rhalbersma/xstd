@@ -13,7 +13,7 @@ When adding or changing a public utility:
 
 This repository enforces its quality bar through CI rather than through review discretion. A PR is mergeable once every required check below is green; none of these are aspirational:
 
-- **Every compiler/platform leg passes.** See the table in [README.md](README.md) for the current matrix (GCC, Clang, Clang-CL, MSVC, MinGW, Apple Clang). Every leg is required, including every `Development` leg (`17-SVN`, `24-SVN`, `2026-Preview`) and the `libc++` leg: xstd tracks trunk deliberately and none of these are advisory.
+- **Every compiler/platform leg passes.** See the table in [README.md](README.md) for the current matrix (GCC, Clang, Clang-CL, MSVC, MinGW, Apple Clang). Every leg is required, including every `Development` leg (`17-SVN`, `24-SVN`, `2026-Preview`) and the `libc++` leg: xstd tracks the development channel deliberately and none of these are advisory.
 - **`clang-tidy` is clean.** The [Clang-Tidy workflow](.github/workflows/clang-tidy.yml) runs the checks in [`.clang-tidy`](.clang-tidy) with `WarningsAsErrors: '*'` over the public headers, so any finding fails the job outright - there is no "advisory, fix later" mode.
 - **Line and branch coverage stay at 100%, project-wide and for the PR's own diff.** [`codecov.yml`](.github/codecov.yml) sets both the `project` and `patch` Codecov status checks to a 100% target with zero tolerance, backed by the [Coverage workflow](.github/workflows/coverage.yml)'s own `gcovr --fail-under-line 100 --fail-under-branch 100` gate. New code needs a test that exercises every line and branch it adds; existing coverage may not regress. Excluded from this bar: `assert(...)` contract checks (their failure path is undefined behavior by design, not something a correct test can hit), compiler-synthesized `= default;` special members (gcov cannot attribute a hit counter to them regardless of how often they run), and the exception-unwinding branch gcc/gcov attaches to any call that could throw (`--exclude-throw-branches`/`--exclude-unreachable-branches`) - not a code path a test can meaningfully hit either.
 - **No new sanitizer failures.** The [sanitizers workflow](.github/workflows/sanitizers.yml) must stay green.
@@ -25,6 +25,19 @@ This repository enforces its quality bar through CI rather than through review d
 
 Match the surrounding code's style by eye where `.clang-format` doesn't have an opinion, including the Boost Software License header comment at the top of every source and workflow file.
 
+## Test suite requirements
+
+The library itself has no dependencies - see [README.md](README.md). Its test suite does, and none of them are needed to *use* xstd:
+
+| Tool | Needed for | Notes |
+| :--- | :--------- | :---- |
+| A conforming C++23 compiler | everything | Same requirement as the library; see the table in [README.md](README.md) for the versions under CI |
+| [CMake](https://cmake.org/) 3.28+ | configuring and building | `cmake_minimum_required` in [`CMakeLists.txt`](CMakeLists.txt); CTest ships with it |
+| [Boost.Test](https://www.boost.org/doc/libs/release/libs/test/) | the unit tests under `test/src/` | Declared in the checked-in [`vcpkg.json`](vcpkg.json) manifest; the `*-vcpkg` presets pick it up from a `VCPKG_ROOT`-configured vcpkg, or install it with your system package manager |
+| [gcovr](https://gcovr.com/) | reproducing the coverage gate | Only for the workflow below; `pip install gcovr` |
+| `clang-tidy` and `run-clang-tidy` | reproducing the clang-tidy gate | Only for the workflow below |
+| `clang-format` | the formatting gate | Run `clang-format -i` on changed files before pushing |
+
 ## Building and testing locally
 
 ```sh
@@ -33,7 +46,15 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-Or with the checked-in CMake presets, which pick up Boost.Test from a `VCPKG_ROOT`-configured vcpkg toolchain:
+The repository also provides CMake presets for common local configurations:
+
+```sh
+cmake --preset dev
+cmake --build --preset dev
+ctest --preset dev
+```
+
+The `*-vcpkg` presets additionally resolve Boost.Test through vcpkg, using the toolchain at `VCPKG_ROOT`:
 
 ```sh
 cmake --preset dev-vcpkg
