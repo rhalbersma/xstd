@@ -18,7 +18,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Run the complete compiler workflows weekly so dynamic trunk/preview
+  # Run the complete compiler workflows weekly so dynamic development
   # toolchains and mutable runner images are checked even without a push.
   gcc:
     uses: ./.github/workflows/gcc.yml
