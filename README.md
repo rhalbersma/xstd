@@ -53,6 +53,8 @@ target_link_libraries(my_target PRIVATE xstd::xstd)
 
 The target publishes the public headers and requires C++23. You can also include individual headers directly, such as `<xstd/cstdlib.hpp>` or `<xstd/type_traits.hpp>`.
 
+None of this needs xstd's own test suite, which only matters when working on the library itself; see [CONTRIBUTING.md](CONTRIBUTING.md) for how to build and run it.
+
 ## Examples
 
 ### Compile-time enum conversion
@@ -122,34 +124,6 @@ static_assert(!xstd::is_specialization_of_v<int, std::complex>);
 ```
 
 `xstd::is_specialization_of` isn't fully general: its `Primary` parameter is constrained to `template<class...> class`, so it only accepts class templates whose parameters are all types. A template with a non-type parameter, like `std::array` (`template<class, size_t>`), doesn't just evaluate to `false` here - passing it as the second argument is a hard compile error, since its template template parameter kind doesn't match `template<class...> class`. See [doc/design.md](doc/design.md) for why.
-
-## Building and testing
-
-Configure, build, and run the test suite with CMake and CTest:
-
-```sh
-cmake -S . -B build
-cmake --build build
-ctest --test-dir build --output-on-failure
-```
-
-The repository also provides CMake presets for common local configurations:
-
-```sh
-cmake --preset dev
-cmake --build --preset dev
-ctest --preset dev
-```
-
-Tests require Boost.Test. The checked-in vcpkg manifest declares that dependency for vcpkg-based builds, and the `*-vcpkg` presets pick up the toolchain from the `VCPKG_ROOT` environment variable:
-
-```sh
-cmake --preset dev-vcpkg
-cmake --build --preset dev-vcpkg
-ctest --preset dev-vcpkg
-```
-
-Alternatively, install Boost.Test with your system package manager and point CMake at the package if it is not found automatically.
 
 ## Project layout
 

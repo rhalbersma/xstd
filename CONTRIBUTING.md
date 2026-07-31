@@ -33,13 +33,23 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
-Or with the checked-in CMake presets, which pick up Boost.Test from a `VCPKG_ROOT`-configured vcpkg toolchain:
+The repository also provides CMake presets for common local configurations:
+
+```sh
+cmake --preset dev
+cmake --build --preset dev
+ctest --preset dev
+```
+
+Tests require Boost.Test. The checked-in vcpkg manifest declares that dependency for vcpkg-based builds, and the `*-vcpkg` presets pick up the toolchain from the `VCPKG_ROOT` environment variable:
 
 ```sh
 cmake --preset dev-vcpkg
 cmake --build --preset dev-vcpkg
 ctest --preset dev-vcpkg
 ```
+
+Alternatively, install Boost.Test with your system package manager and point CMake at the package if it is not found automatically.
 
 ### Reproducing the coverage gate
 
