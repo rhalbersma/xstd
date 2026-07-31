@@ -69,9 +69,17 @@ jobs:
       # Install versioned packages rather than the unversioned
       # metapackages, which lag the rename the same way and would drag in a
       # clang-N the development suite no longer carries.
+      # The runner image writes APT::Acquire::Retries, but apt reads this
+      # setting from the Acquire group, so the image's value never takes
+      # effect. Set the key apt actually consults: without it a transient
+      # 5xx from a mirror or PPA fails the install on the first attempt,
+      # which is how one Launchpad brownout reddened three required legs.
+      - name: Make apt retry transient download failures
+        run: echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/99-retries > /dev/null
+
       - name: Install Clang ${{ matrix.version }}
         run: |
-          wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key \
+          wget -qO- --tries=3 --waitretry=5 --retry-on-http-error=429,500,502,503,504 https://apt.llvm.org/llvm-snapshot.gpg.key \
             | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc > /dev/null
           codename=$(lsb_release -cs)
           sudo add-apt-repository -y "deb https://apt.llvm.org/${codename}/ llvm-toolchain-${codename}${{ matrix.llvm_suffix }} main"
@@ -96,7 +104,7 @@ jobs:
         if: matrix.gcc_trunk
         id: gcc-trunk
         run: |
-          wget -q https://kayari.org/gcc-latest/gcc-latest.deb -O gcc-latest.deb
+          wget -q --tries=3 --waitretry=5 --retry-on-http-error=429,500,502,503,504 https://kayari.org/gcc-latest/gcc-latest.deb -O gcc-latest.deb
           sudo dpkg -i gcc-latest.deb || sudo apt-get install -f -y
           printf '%s\n' \
             '# Multiarch support' \
@@ -146,7 +154,7 @@ jobs:
         if: matrix.gcc_trunk
         id: boost-version
         run: |
-          boost_tag=$(curl -fsSL -H "Authorization: Bearer ${{ github.token }}" "https://api.github.com/repos/boostorg/boost/releases?per_page=20" | grep '"tag_name"' | cut -d'"' -f4 | grep -E -m1 '^boost-[0-9]+\.[0-9]+\.[0-9]+$')
+          boost_tag=$(curl -fsSL --retry 3 --retry-delay 2 -H "Authorization: Bearer ${{ github.token }}" "https://api.github.com/repos/boostorg/boost/releases?per_page=20" | grep '"tag_name"' | cut -d'"' -f4 | grep -E -m1 '^boost-[0-9]+\.[0-9]+\.[0-9]+$')
           echo "tag=$boost_tag" >> "$GITHUB_OUTPUT"
 
       - name: Cache Boost (trunk)
@@ -162,7 +170,7 @@ jobs:
         run: |
           boost_tag=${{ steps.boost-version.outputs.tag }}
           boost_ver=${boost_tag#boost-}
-          wget -q "https://github.com/boostorg/boost/releases/download/${boost_tag}/boost-${boost_ver}-b2-nodocs.tar.gz" -O boost.tar.gz
+          wget -q --tries=3 --waitretry=5 --retry-on-http-error=429,500,502,503,504 "https://github.com/boostorg/boost/releases/download/${boost_tag}/boost-${boost_ver}-b2-nodocs.tar.gz" -O boost.tar.gz
           tar xzf boost.tar.gz
           cd "boost-${boost_ver}"
           echo "using clang : trunk : ${{ matrix.cxx }} : <cxxflags>${{ matrix.cxxflags }} <linkflags>${{ matrix.cxxflags }} ;" > user-config.jam
