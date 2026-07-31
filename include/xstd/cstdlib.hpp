@@ -54,7 +54,7 @@ namespace xstd {
 // overloads could collide there.
 [[nodiscard]] constexpr unsigned uabs(int x) noexcept
 {
-        return x < 0 ? unsigned{} - static_cast<unsigned>(x) : static_cast<unsigned>(x);
+        return x < 0 ? static_cast<unsigned>(0) - static_cast<unsigned>(x) : static_cast<unsigned>(x);
 }
 
 [[nodiscard]] constexpr unsigned long ulabs(long x) noexcept
