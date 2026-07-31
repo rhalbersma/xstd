@@ -53,6 +53,12 @@ BOOST_AUTO_TEST_CASE(AlignedSize)
         XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size(65, 8), 72);
         XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size(std::numeric_limits<std::size_t>::max() - 7, 8), std::numeric_limits<std::size_t>::max() - 7);
         XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size(std::numeric_limits<std::size_t>::max() - 8, 8), std::numeric_limits<std::size_t>::max() - 7);
+        // SIZE_MAX is divisible by 3, so this is the already-aligned case at
+        // the very top of the range, with a non-power-of-two alignment. It
+        // pins the contract as "the rounded result must fit", which is wider
+        // than the (size + alignment - 1) rounding idiom can honour: that
+        // form wraps to 0 here.
+        XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size(std::numeric_limits<std::size_t>::max(), 3), std::numeric_limits<std::size_t>::max());
         // clang-format on
 }
 
