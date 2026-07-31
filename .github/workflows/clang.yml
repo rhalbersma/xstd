@@ -96,7 +96,13 @@ jobs:
       - name: Install libstdc++ ${{ matrix.gcc_version }}
         if: "!matrix.gcc_trunk"
         run: |
-          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          # Retried for the reason given in gcc.yml: the ppa: shorthand goes
+          # through Launchpad's web API, which Acquire::Retries does not cover.
+          for i in 1 2 3; do
+            if sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; then break; fi
+            if [ "$i" -eq 3 ]; then exit 1; fi
+            sleep $((i * 5))
+          done
           sudo apt-get update
           sudo apt-get install -y g++-${{ matrix.gcc_version }}
 
