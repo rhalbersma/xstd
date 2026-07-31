@@ -27,9 +27,17 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
 
+      # The runner image writes APT::Acquire::Retries, but apt reads this
+      # setting from the Acquire group, so the image's value never takes
+      # effect. Set the key apt actually consults: without it a transient
+      # 5xx from a mirror or PPA fails the install on the first attempt,
+      # which is how one Launchpad brownout reddened three required legs.
+      - name: Make apt retry transient download failures
+        run: echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/99-retries > /dev/null
+
       - name: Install Clang-Format 22
         run: |
-          wget https://apt.llvm.org/llvm.sh
+          wget --tries=3 --waitretry=5 --retry-on-http-error=429,500,502,503,504 https://apt.llvm.org/llvm.sh
           chmod +x llvm.sh
           sudo ./llvm.sh 22
           sudo apt-get install -y clang-format-22

@@ -47,6 +47,14 @@ jobs:
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
 
+      # The runner image writes APT::Acquire::Retries, but apt reads this
+      # setting from the Acquire group, so the image's value never takes
+      # effect. Set the key apt actually consults: without it a transient
+      # 5xx from a mirror or PPA fails the install on the first attempt,
+      # which is how one Launchpad brownout reddened three required legs.
+      - name: Make apt retry transient download failures
+        run: echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/99-retries > /dev/null
+
       - name: Install GCC ${{ matrix.version }} (stable)
         if: "!matrix.trunk"
         run: |
@@ -65,7 +73,7 @@ jobs:
         if: matrix.trunk
         id: gcc-trunk
         run: |
-          wget -q https://kayari.org/gcc-latest/gcc-latest.deb -O gcc-latest.deb
+          wget -q --tries=3 --waitretry=5 --retry-on-http-error=429,500,502,503,504 https://kayari.org/gcc-latest/gcc-latest.deb -O gcc-latest.deb
           sudo dpkg -i gcc-latest.deb || sudo apt-get install -f -y
           sudo ln -sf /opt/gcc-latest/bin/gcc        /usr/bin/${{ matrix.cc }}
           sudo ln -sf /opt/gcc-latest/bin/g++        /usr/bin/${{ matrix.cxx }}
@@ -127,7 +135,7 @@ jobs:
         run: |
           # /releases/latest can return a beta (boostorg doesn't always flag
           # them as prerelease), so list releases and keep strict boost-X.Y.Z
-          boost_tag=$(curl -fsSL -H "Authorization: Bearer ${{ github.token }}" "https://api.github.com/repos/boostorg/boost/releases?per_page=20" | grep '"tag_name"' | cut -d'"' -f4 | grep -E -m1 '^boost-[0-9]+\.[0-9]+\.[0-9]+$')
+          boost_tag=$(curl -fsSL --retry 3 --retry-delay 2 -H "Authorization: Bearer ${{ github.token }}" "https://api.github.com/repos/boostorg/boost/releases?per_page=20" | grep '"tag_name"' | cut -d'"' -f4 | grep -E -m1 '^boost-[0-9]+\.[0-9]+\.[0-9]+$')
           echo "tag=$boost_tag" >> "$GITHUB_OUTPUT"
 
       - name: Cache Boost (trunk)
@@ -143,7 +151,7 @@ jobs:
         run: |
           boost_tag=${{ steps.boost-version.outputs.tag }}
           boost_ver=${boost_tag#boost-}
-          wget -q "https://github.com/boostorg/boost/releases/download/${boost_tag}/boost-${boost_ver}-b2-nodocs.tar.gz" -O boost.tar.gz
+          wget -q --tries=3 --waitretry=5 --retry-on-http-error=429,500,502,503,504 "https://github.com/boostorg/boost/releases/download/${boost_tag}/boost-${boost_ver}-b2-nodocs.tar.gz" -O boost.tar.gz
           tar xzf boost.tar.gz
           cd "boost-${boost_ver}"
           echo "using gcc : trunk : ${{ matrix.cxx }} ;" > user-config.jam

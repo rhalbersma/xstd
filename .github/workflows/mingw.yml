@@ -53,7 +53,7 @@ jobs:
         id: winlibs
         shell: bash
         run: |
-          releases=$(curl -fsSL -H "Authorization: Bearer ${{ github.token }}" \
+          releases=$(curl -fsSL --retry 3 --retry-delay 2 -H "Authorization: Bearer ${{ github.token }}" \
             "https://api.github.com/repos/brechtsanders/winlibs_mingw/releases?per_page=100")
 
           if [ "${{ matrix.snapshot }}" = "true" ]; then
@@ -111,7 +111,7 @@ jobs:
         if: steps.winlibs.outputs.found == 'true' && steps.cache-winlibs.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          curl -fsSL "${{ steps.winlibs.outputs.url }}" -o winlibs.7z
+          curl -fsSL --retry 3 --retry-delay 2 "${{ steps.winlibs.outputs.url }}" -o winlibs.7z
           7z x winlibs.7z -oC:/winlibs_extract
           mv C:/winlibs_extract/mingw64 C:/winlibs
           rm -rf C:/winlibs_extract
