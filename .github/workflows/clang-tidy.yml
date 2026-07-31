@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # The runner image writes APT::Acquire::Retries, but apt reads this
       # setting from the Acquire group, so the image's value never takes
@@ -72,9 +72,18 @@ jobs:
           VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
         run: vcpkg install --triplet x64-linux
 
+      # Debug rather than an unset build type: leaving it unset already
+      # leaves NDEBUG undefined, which is what matters here, but it does so
+      # by accident and is one preset change away from silently becoming
+      # Release. CMake's Release adds -DNDEBUG, which rewrites every
+      # assert(...) to ((void)0) before it reaches the AST - 49 of them
+      # across cstdlib.hpp and utility.hpp - which would disable
+      # bugprone-assert-side-effect outright and strip the assertions
+      # clang-analyzer-* uses to prune infeasible paths. Matches codeql.yml.
       - name: Configure
         run: >
           cmake -S . -B build
+          -DCMAKE_BUILD_TYPE=Debug
           -DCMAKE_C_COMPILER=clang-22
           -DCMAKE_CXX_COMPILER=clang++-22
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
@@ -86,6 +95,24 @@ jobs:
       # check selection and per-check suppressions live in .clang-tidy;
       # WarningsAsErrors there makes any finding fail this job.
       - name: Run clang-tidy over the public headers
-        run: >
-          run-clang-tidy-22 -quiet -p build
-          "$GITHUB_WORKSPACE/build/test/header_self_sufficiency/.*"
+        run: |
+          run-clang-tidy-22 -quiet -p build \
+            "$GITHUB_WORKSPACE/build/test/header_self_sufficiency/.*" \
+            2>&1 | tee clang-tidy-report.txt
+
+      - name: Publish clang-tidy summary
+        if: always()
+        run: |
+          {
+            echo '### clang-tidy findings'
+            echo '```'
+            grep -E ': (error|warning):' clang-tidy-report.txt || echo 'No findings.'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload clang-tidy report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: clang-tidy-report
+          path: clang-tidy-report.txt

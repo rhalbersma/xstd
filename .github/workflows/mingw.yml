@@ -39,7 +39,7 @@ jobs:
             snapshot: true
 
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # WinLibs (https://winlibs.com) publishes standalone, versioned
       # GCC + MinGW-w64 + UCRT builds as dated GitHub releases rather than a
@@ -126,7 +126,7 @@ jobs:
         if: steps.winlibs.outputs.found == 'true'
         run: echo "C:\winlibs\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8NoBOM -Append
 
-      - name: Report toolchain version
+      - name: Report toolchain versions
         if: steps.winlibs.outputs.found == 'true'
         run: |
           gcc --version
