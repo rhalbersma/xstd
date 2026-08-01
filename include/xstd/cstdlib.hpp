@@ -143,7 +143,7 @@ template<std::signed_integral T>
         -> div_t<T>
 {
         assert(denom != 0);
-        auto const divT = div(numer, denom);
+        auto const [qT, rT] = div(numer, denom);
         // A negative truncated remainder is moved up by one |denom|, with the
         // quotient compensated in the matching direction. Both lines select a
         // whole expression rather than adding a delta, because the delta here
@@ -152,9 +152,9 @@ template<std::signed_integral T>
         // it as an add or a subtract of denom chosen by denom's sign keeps
         // every intermediate in range. (floored_div below adjusts by denom
         // itself, which is always representable, so it can add a delta.)
-        auto const adjust = divT.rem < 0;
-        auto const qE = static_cast<T>(adjust ? (denom > 0 ? divT.quot - 1 : divT.quot + 1) : divT.quot);
-        auto const rE = static_cast<T>(adjust ? (denom > 0 ? divT.rem + denom : divT.rem - denom) : divT.rem);
+        auto const adjust = rT < 0;
+        auto const qE = static_cast<T>(adjust ? (denom > 0 ? qT - 1 : qT + 1) : qT);
+        auto const rE = static_cast<T>(adjust ? (denom > 0 ? rT + denom : rT - denom) : rT);
         assert(uabs(rE) < uabs(denom));
         assert(sign(rE) >= 0);
         return {.quot = qE, .rem = rE};
@@ -169,16 +169,16 @@ template<std::signed_integral T>
         -> div_t<T>
 {
         assert(denom != 0);
-        auto const divT = div(numer, denom);
+        auto const [qT, rT] = div(numer, denom);
         // The same adjustment as euclidean_div above, but two-valued rather
         // than three: a remainder whose sign differs from denom's is moved one
         // denom in denom's direction, and the quotient compensated. The delta
         // is denom itself rather than |denom|, and denom is by definition
         // representable, so both lines can add a conditional delta instead of
         // selecting a whole expression. Neither zero needs a type of its own.
-        auto const adjust = sign(divT.rem) == -sign(denom);
-        auto const qF = static_cast<T>(divT.quot - (adjust ? 1 : 0));
-        auto const rF = static_cast<T>(divT.rem + (adjust ? denom : 0));
+        auto const adjust = sign(rT) == -sign(denom);
+        auto const qF = static_cast<T>(qT - (adjust ? 1 : 0));
+        auto const rF = static_cast<T>(rT + (adjust ? denom : 0));
         assert(uabs(rF) < uabs(denom));
         assert(rF == 0 || sign(rF) == sign(denom));
         return {.quot = qF, .rem = rF};
