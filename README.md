@@ -18,6 +18,7 @@ xstd is a header-only C++23 library for small standard-library extensions that c
 | Header                   | Additions          | Description | Reference |
 | :-----                   | :--------          | :---------- | :-------- |
 | `<xstd/array.hpp>`       | `array_from_types` | Create an `array` from a type list | none |
+| `<xstd/concepts.hpp>`    | `enumeration` <br> `specialization_of` | Is a type an enumeration type? <br> Constraint form of `is_specialization_of` | none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) |
 | `<xstd/cstdlib.hpp>`     | `sign` <br> `abs` <br> `uabs` <br> `div_t` <br> `div` <br> `euclidean_div` <br> `floored_div` | `constexpr`, any signed integral type <br> `constexpr`, any signed integral type <br> Total `\|x\|`, returning the unsigned type <br> `std::format` support, defaulted equality comparison <br> `constexpr`, any signed integral type <br> Euclidean division <br> Floored division | [Boost.Math](https://www.boost.org/doc/libs/1_80_0/libs/math/doc/html/math_toolkit/sign_functions.html) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Rust `unsigned_abs`](https://doc.rust-lang.org/std/primitive.i32.html#method.unsigned_abs) (no C++ equivalent) <br> [p2286r8](https://wg21.link/p2286r8) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) |
 | `<xstd/type_traits.hpp>` | `is_specialization_of` <br> `is_integral_constant` <br> `tagged_empty` <br> `optional_type` | Is a type a class template specialization? <br> Is a type an `integral_constant`? <br> A tagged empty type <br> An optional type | [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> none <br> none <br> none |
 | `<xstd/utility.hpp>`     | `to_underlying` <br> `aligned_size` | `std::integral_constant` overload <br> Round a size up to a multiple of an alignment | none <br> none |
@@ -154,6 +155,35 @@ static_assert(!xstd::is_specialization_of_v<int, std::complex>);
 ```
 
 `xstd::is_specialization_of` isn't fully general: its `Primary` parameter is constrained to `template<class...> class`, so it only accepts class templates whose parameters are all types. A template with a non-type parameter, like `std::array` (`template<class, size_t>`), doesn't just evaluate to `false` here - passing it as the second argument is a hard compile error, since its template template parameter kind doesn't match `template<class...> class`. See [doc/design.md](doc/design.md) for why.
+
+### Concepts
+
+`<concepts>` has `std::integral`, `std::signed_integral` and `std::floating_point`, but nothing for enums. `xstd::enumeration` fills that gap, so a template that wants an enum can say so in its template head instead of trailing a `requires std::is_enum_v<T>`:
+
+```cpp
+#include <xstd/concepts.hpp>
+
+enum class color : unsigned { red = 1 };
+
+template<xstd::enumeration Enum>
+constexpr auto is_red(Enum e) -> bool { return e == Enum::red; }
+
+static_assert(is_red(color::red));
+```
+
+`xstd::specialization_of` is the constraint spelling of `xstd::is_specialization_of`. It takes the type under test first, so partially applying it to a primary template gives a type-constraint:
+
+```cpp
+#include <complex>
+#include <xstd/concepts.hpp>
+
+template<xstd::specialization_of<std::complex> T>
+constexpr auto real_part(T z) { return z.real(); }
+
+static_assert(real_part(std::complex<double>(1.0, 2.0)) == 1.0);
+```
+
+It inherits the trait's `template<class...> class` restriction on `Primary`, including the hard error for a template with a non-type parameter.
 
 ## Project layout
 

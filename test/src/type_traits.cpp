@@ -28,6 +28,11 @@ BOOST_AUTO_TEST_CASE(IsSpecializationOf)
 template<int N>
 using int_ = std::integral_constant<int, N>;
 
+enum class color : unsigned { red = 1 };
+
+template<color N>
+using color_ = std::integral_constant<color, N>;
+
 BOOST_AUTO_TEST_CASE(IsIntegralConstant)
 {
         XSTD_CONSTEXPR_CHECK((is_integral_constant_v<std::true_type, bool>));
@@ -36,6 +41,19 @@ BOOST_AUTO_TEST_CASE(IsIntegralConstant)
 
         XSTD_CONSTEXPR_CHECK((is_integral_constant_v<int_<0>, int>));
         XSTD_CONSTEXPR_CHECK((!is_integral_constant_v<int, int>));
+
+        // std::integral_constant's first parameter is any type usable as a
+        // non-type template parameter, not just an integral one, and the
+        // enum case is what xstd::to_underlying is built on. Pinned here
+        // because narrowing this trait to std::integral would silently
+        // break that without failing any of the checks above.
+        XSTD_CONSTEXPR_CHECK((is_integral_constant_v<color_<color::red>, color>));
+        XSTD_CONSTEXPR_CHECK((!is_integral_constant_v<color, color>));
+
+        // the wrapped type has to match: an integral_constant over one type
+        // is not one over another
+        XSTD_CONSTEXPR_CHECK((!is_integral_constant_v<int_<0>, unsigned>));
+        XSTD_CONSTEXPR_CHECK((!is_integral_constant_v<color_<color::red>, unsigned>));
 }
 
 struct tag1;

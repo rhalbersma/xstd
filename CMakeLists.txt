@@ -38,6 +38,7 @@ target_sources(
     BASE_DIRS include
     FILES
         include/xstd/array.hpp
+        include/xstd/concepts.hpp
         include/xstd/cstdlib.hpp
         include/xstd/type_traits.hpp
         include/xstd/utility.hpp

@@ -266,6 +266,63 @@ fully general version - one that also handles non-type template parameters
 - isn't expressible with today's template template parameter matching
 rules. C++26 reflection may enable one.
 
+### `<xstd/concepts.hpp>`, and when a trait also gets a concept spelling
+
+`<concepts>` names the built-in numeric categories - `integral`,
+`signed_integral`, `unsigned_integral`, `floating_point` - but stops there,
+so a template wanting an enum has no type-constraint to reach for and has to
+fall back on a requires-clause over `std::is_enum_v`. `xstd::enumeration` is
+that missing name, and it is what lets `xstd::to_underlying` put its
+constraint where it belongs:
+
+    template<enumeration Enum, Enum N>
+    constexpr auto to_underlying(std::integral_constant<Enum, N>) noexcept;
+
+This is deliberately *not* a second way to spell the same check. A
+type-constraint and a requires-clause in the template head are both
+associated constraints, checked at the same point, so swapping one for the
+other leaves the CWG2369 ordering discussed above untouched - the return type
+stays deduced for its own separate reason. What changes is only that the
+restriction reads next to the parameter it restricts.
+
+`xstd::specialization_of` is a different case: it is the constraint form of a
+trait that already exists, and it earns its place because the trait cannot
+serve that role. A concept can be partially applied in a type-constraint,
+
+    template<specialization_of<std::complex> T> void f(T);
+
+which is the form callers actually want, and which
+`is_specialization_of_v<T, std::complex>` has no way to produce. The rule
+this sets for the library: a trait gets a concept spelling when the concept
+enables a *use* the trait cannot, not merely so that both exist.
+
+Both are named as the noun the type satisfies rather than as `is_enum` /
+`is_specialization_of`, following how every concept in `<concepts>` reads.
+Beyond consistency, a concept sharing an unqualified name with the trait it
+wraps is ambiguous for anyone with using-directives for both namespaces,
+which for `enumeration` would have meant colliding with `std::is_enum`.
+
+### Why `is_integral_constant` does not constrain the wrapped type
+
+`std::integral_constant<T, v>` puts no constraint on `T`: anything usable as
+a non-type template parameter works, enums and pointers included. The
+obvious-looking tightening -
+
+    template<std::integral U, U N>
+    inline constexpr auto is_integral_constant_v<std::integral_constant<U, N>, U> = true;
+
+- would therefore be a narrowing rather than a clarification, and it would
+narrow away precisely the case the header is built around: `xstd::to_underlying`
+exists to accept `std::integral_constant<Enum, N>`, and the trait exists so
+generic code can detect that wrapping at all. Constraining `U` to
+`std::integral` would leave the trait blind to it.
+
+Without the constraint the trait is already exact - the primary template is
+`false`, and only `std::integral_constant<U, N>` matches the specialization -
+so there is nothing over-broad to tighten. The enum case is pinned by a test
+rather than left implicit, because every other check in that test uses `bool`
+or `int` and so would keep passing if someone made this change anyway.
+
 ## CI and toolchain support
 
 ### Compiler support policy
