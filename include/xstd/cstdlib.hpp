@@ -93,15 +93,24 @@ div_t(T, T) -> div_t<T>;
 
 namespace detail {
 
-// The division contracts' strongest self-check is the back-multiplication
-// numer == denom * q + r, which is only meaningful when evaluated in a type
-// wide enough that the multiplication itself cannot overflow. |denom * q| is
-// at most |numer| < 2^(N-1) for an N-bit T, so any signed type wider than T
-// suffices, and intmax_t is the widest one portably available. For a T that
-// is already intmax_t-wide there is nothing to widen to, and the sign and
-// magnitude assertions below have to carry the contract on their own - the
-// same tradeoff the non-template ldiv/lldiv/imaxdiv made, now stated once
-// and applied at whichever widths actually need it.
+// Whether the back-multiplication self-check numer == denom * q + r can be
+// evaluated without the product overflowing depends on which q it is.
+//
+// For truncated division it always can, in T itself: denom * qT is exactly
+// numer - rT, and rT carries numer's sign, so the product lies between 0 and
+// numer inclusive and is representable wherever numer is. No widening, at
+// any width.
+//
+// The adjusted quotients are the ones that need room. euclidean_div and
+// floored_div move the remainder across zero, so denom * q = numer - r can
+// land one unit of |denom| outside T - int32_t's numer == INT32_MIN with
+// denom == 3 gives denom * qE == INT32_MIN - 1. The excess is bounded by
+// |numer| + |denom| < 2^N for an N-bit T, so one extra bit is enough and any
+// wider signed type will do; intmax_t is the widest portably available. For a
+// T that is already intmax_t-wide there is nothing to widen to, and the sign
+// and magnitude assertions have to carry the contract on their own - the same
+// tradeoff the non-template ldiv/lldiv/imaxdiv made, now stated once and
+// applied only where it actually bites.
 template<std::signed_integral T>
 inline constexpr auto has_wider_type = sizeof(T) < sizeof(std::intmax_t);
 
@@ -123,9 +132,7 @@ template<std::signed_integral T>
         assert(!(numer == std::numeric_limits<T>::min() && denom == -1));
         auto const qT = static_cast<T>(numer / denom);
         auto const rT = static_cast<T>(numer % denom);
-        if constexpr (detail::has_wider_type<T>) {
-                assert(static_cast<std::intmax_t>(numer) == (static_cast<std::intmax_t>(denom) * qT) + rT);
-        }
+        assert(numer == (denom * qT) + rT); // see detail::has_wider_type: safe in T at every width
         assert(uabs(rT) < uabs(denom));
         assert(sign(rT) == sign(numer) || rT == 0);
         return {.quot = qT, .rem = rT};

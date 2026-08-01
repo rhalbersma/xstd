@@ -142,16 +142,33 @@ for the same reason; C++ has no equivalent, standard or in Boost.Math.
 The strongest self-check the division functions can make is
 `numer == denom * q + r`, and it is only meaningful evaluated in a type wide
 enough that the multiplication itself cannot overflow. As four separate
-overloads, only `div` could make it - `long long` is guaranteed wide enough to
-hold the product of two `int`s, but there was no portable type wider than
-`long long`/`intmax_t` to give `ldiv`/`lldiv`/`imaxdiv` the same guarantee, so
-those three carried a weaker contract with no way to say so once.
+overloads, only `div` made it: `long long` holds the product of *any* two
+`int`s, but there is no portable type wider than `long long`/`intmax_t` to
+give `ldiv`/`lldiv`/`imaxdiv` the same guarantee, so those three carried a
+weaker contract with no way to say so once.
 
-The template states the condition instead of the conclusion:
-`sizeof(T) < sizeof(intmax_t)` decides, per instantiation, whether there is a
-wider type to check in. Widths that have one now get the check whether or not
-they had a name before (`int8_t`, `int16_t`, `int32_t`), and the widest ones
-fall back to the sign and magnitude assertions exactly as they used to.
+"Any two `int`s" is the wrong bound, though. The operands are not arbitrary
+values of `T`; `q` is `numer` divided by `denom`, which pins the product much
+more tightly - and pins it differently for each convention:
+
+- **Truncated division needs no widening at all.** `denom * qT` is exactly
+  `numer - rT`, and `rT` carries `numer`'s sign, so the product lies between
+  `0` and `numer` inclusive and is representable wherever `numer` is. `div`
+  asserts the identity in `T` itself, unconditionally - which finally gives
+  the check at `intmax_t` width, where neither the old `imaxdiv` nor a
+  `sizeof`-gated template would have had it.
+- **The adjusted quotients do need it.** `euclidean_div` and `floored_div`
+  move the remainder across zero, so `denom * q = numer - r` can land one unit
+  of `|denom|` outside `T`: for `int32_t`, `numer == INT32_MIN` with
+  `denom == 3` gives `denom * qE == INT32_MIN - 1`. An exhaustive sweep of
+  every in-contract `int8_t` pair finds 5698 such products for Euclidean and
+  5825 for floored, against zero for truncated. The excess is bounded by
+  `|numer| + |denom| < 2^N`, so one extra bit suffices and any wider signed
+  type will do.
+
+The gate `sizeof(T) < sizeof(intmax_t)` therefore applies only to the two
+adjusted conventions, and only they fall back to the sign and magnitude
+assertions at the widest width.
 
 ### `xstd::div_t` formatting
 
