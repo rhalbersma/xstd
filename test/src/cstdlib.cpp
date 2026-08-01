@@ -76,6 +76,19 @@ BOOST_AUTO_TEST_CASE(NonSignedIntegralArgumentsAreRejected)
         static_assert(!has_abs<double>);
         static_assert(!has_sign<char*>);
 
+        // uabs is the only one of the three whose return type is computed by a
+        // trait, so it is the only one where rejecting a non-integral argument
+        // depends on the trait never being instantiated. Clang before 21 does
+        // not implement CWG2369 and substitutes the return type before checking
+        // the constraint, so spelling std::make_unsigned_t<T> in the signature
+        // makes the double and char* cases a hard error rather than a
+        // substitution failure - these two stop compiling instead of being
+        // false. The deduced return type in the header is what keeps them
+        // compiling; see doc/design.md.
+        static_assert(!has_uabs<bool>);
+        static_assert(!has_uabs<double>);
+        static_assert(!has_uabs<char*>);
+
         // Both parameters deduce the same T, so a mixed-width call is a
         // deduction failure rather than a silent conversion of one operand.
         static_assert(!has_div<std::int32_t, std::int64_t>);
