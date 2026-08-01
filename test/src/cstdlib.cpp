@@ -8,7 +8,7 @@
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_CHECK_EQUAL, BOOST_CHECK_EQUAL_COLLECTIONS
 #include <algorithm>                // transform
 #include <array>                    // array
-#include <concepts>                 // same_as
+#include <concepts>                 // same_as, signed_integral
 #include <cstdint>                  // int8_t, int16_t, int32_t, int64_t, intmax_t
 #include <cstdlib>                  // div
 #include <format>                   // format
@@ -261,7 +261,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(StreamInsertion, T, exact_width_types)
 // instantiates them for anything it might have to report - but never
 // executed, since they only run when an assertion fails.
 template<std::signed_integral T>
-void check_built_in_width()
+auto check_built_in_width()
+        -> void
 {
         using U = std::make_unsigned_t<T>;
         using limits = std::numeric_limits<T>;

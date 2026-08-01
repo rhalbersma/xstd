@@ -33,7 +33,8 @@ BOOST_AUTO_TEST_CASE(Enumeration)
 
 // the partial application a type-constraint needs: the primary template alone
 template<specialization_of<std::complex> T>
-constexpr auto as_complex(T z) noexcept -> T
+[[nodiscard]] constexpr auto as_complex(T z) noexcept
+        -> T
 {
         return z;
 }
@@ -52,11 +53,11 @@ template<class T>
 struct box
 {
         T value;
-        auto operator==(box const&) const -> bool = default;
+        [[nodiscard]] constexpr auto operator==(box const&) const noexcept -> bool = default;
 };
 
 template<specialization_of<box> T>
-constexpr auto unwrap(T b) noexcept
+[[nodiscard]] constexpr auto unwrap(T b) noexcept
 {
         return b.value;
 }
