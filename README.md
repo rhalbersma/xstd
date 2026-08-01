@@ -19,7 +19,7 @@ xstd is a header-only C++23 library for small standard-library extensions that c
 | :-----                   | :--------          | :---------- | :-------- |
 | `<xstd/concepts.hpp>`    | `enumeration` <br> `specialization_of` | Is a type an enumeration type? <br> Constraint form of `is_specialization_of` | none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) |
 | `<xstd/cstdlib.hpp>`     | `sign` <br> `abs` <br> `uabs` <br> `div_t` <br> `div` <br> `euclidean_div` <br> `floored_div` | `constexpr`, any signed integral type <br> `constexpr`, any signed integral type <br> Total `\|x\|`, returning the unsigned type <br> `std::format` support, defaulted equality comparison <br> `constexpr`, any signed integral type <br> Euclidean division <br> Floored division | [Boost.Math](https://www.boost.org/doc/libs/1_80_0/libs/math/doc/html/math_toolkit/sign_functions.html) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Rust `unsigned_abs`](https://doc.rust-lang.org/std/primitive.i32.html#method.unsigned_abs) (no C++ equivalent) <br> [p2286r8](https://wg21.link/p2286r8) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) |
-| `<xstd/type_traits.hpp>` | `is_specialization_of` <br> `is_integral_constant` <br> `tagged_empty` <br> `optional_type` | Is a type a class template specialization? <br> Is a type an `integral_constant`? <br> A tagged empty type <br> An optional type | [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> none <br> none <br> none |
+| `<xstd/type_traits.hpp>` | `is_specialization_of` <br> `is_integral_constant` <br> `empty_type` <br> `conditional_data_member_t` | Is a type a class template specialization? <br> Is a type an `integral_constant`? <br> A tagged empty type <br> A conditionally present member | [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> none <br> none <br> none |
 | `<xstd/utility.hpp>`     | `to_underlying` <br> `aligned_size` | `std::integral_constant` overload <br> Round a size up to a multiple of an alignment | none <br> none |
 
 ## Using xstd
@@ -154,6 +154,27 @@ static_assert(!xstd::is_specialization_of_v<int, std::complex>);
 ```
 
 `xstd::is_specialization_of` isn't fully general: its `Primary` parameter is constrained to `template<class...> class`, so it only accepts class templates whose parameters are all types. A template with a non-type parameter, like `std::array` (`template<class, size_t>`), doesn't just evaluate to `false` here - passing it as the second argument is a hard compile error, since its template template parameter kind doesn't match `template<class...> class`. See [doc/design.md](doc/design.md) for why.
+
+`xstd::conditional_data_member_t` carries a data member only when a compile-time condition holds. C++ has no way to leave a member out, so the member always exists and its *type* is conditional: `Type` when the condition holds, `xstd::empty_type<Tag>` when it doesn't. Paired with `[[no_unique_address]]`, the absent case costs no storage:
+
+```cpp
+#include <xstd/type_traits.hpp>
+
+template<bool HasBounds>
+struct sprite
+{
+        [[no_unique_address]] xstd::conditional_data_member_t<HasBounds, unsigned, struct width_tag>  width;
+        [[no_unique_address]] xstd::conditional_data_member_t<HasBounds, unsigned, struct height_tag> height;
+        char frame;
+};
+
+static_assert(sizeof(sprite<false>) == sizeof(char));
+static_assert(sizeof(sprite<true>) > sizeof(sprite<false>));
+```
+
+`Tag` names the member, not `Type`, and is required rather than deduced from it. Two `[[no_unique_address]]` subobjects of the same type must have distinct addresses, so absent members sharing one empty type stop overlapping: `sprite<false>` would be 2 bytes instead of 1. An elaborated-type-specifier declares each tag in place, so no separate declarations are needed.
+
+`[[no_unique_address]]` is a no-op on MSVC's ABI, which spells it `[[msvc::no_unique_address]]`. The type-level behavior is the same everywhere; the layout saving is not.
 
 ### Concepts
 

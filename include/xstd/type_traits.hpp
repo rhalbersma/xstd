@@ -6,7 +6,7 @@
 #ifndef XSTD_TYPE_TRAITS_HPP
 #define XSTD_TYPE_TRAITS_HPP
 
-#include <compare>     // strong_ordering (tagged_empty's defaulted <=>)
+#include <compare>     // strong_ordering (empty_type's defaulted <=>)
 #include <type_traits> // bool_constant, conditional_t, integral_constant, is_same_v, remove_cvref_t
 
 namespace xstd {
@@ -30,23 +30,37 @@ template<class T, template<class...> class Primary>
 using is_specialization_of = std::bool_constant<is_specialization_of_v<T, Primary>>;
 
 template<class Tag>
-struct tagged_empty
+struct empty_type
 {
-        tagged_empty() = default;
+        [[nodiscard]] constexpr empty_type() noexcept = default;
 
         // constrained so that this catch-all never hijacks copy or move
         // construction from the (trivial) special member functions
         // clang-format off
         template<class... Args>
-                requires (!(std::is_same_v<std::remove_cvref_t<Args>, tagged_empty> || ...))
-        constexpr explicit tagged_empty(Args&&...) noexcept {}
+                requires (!(std::is_same_v<std::remove_cvref_t<Args>, empty_type> || ...))
+        [[nodiscard]] constexpr explicit empty_type(Args&&...) noexcept {}
         // clang-format on
 
-        auto operator<=>(tagged_empty const&) const = default;
+        // a hidden friend, so it is found by argument-dependent lookup only;
+        // still implicitly declares the defaulted operator== that lets an
+        // enclosing class default its own comparisons over this member
+        [[nodiscard]] friend constexpr auto operator<=>(empty_type const&, empty_type const&) noexcept
+                -> std::strong_ordering = default;
 };
 
-template<bool Condition, class Base>
-using optional_type = std::conditional_t<Condition, Base, tagged_empty<Base>>;
+// Tag names the member, not the type it stands in for: two
+// [[no_unique_address]] subobjects of the same empty type must have
+// distinct addresses, so two absent members sharing a tag stop overlapping
+// and grow the class. Tagging by Type instead would make that collision a
+// silent function of the member types, so Tag is required rather than
+// defaulted. An elaborated-type-specifier declares one in place, without a
+// separate declaration per member:
+//
+//      conditional_data_member_t<Condition, set_type, struct piece_order_tag> m_piece_order [[no_unique_address]];
+//
+template<bool Condition, class Type, class Tag>
+using conditional_data_member_t = std::conditional_t<Condition, Type, empty_type<Tag>>;
 
 } // namespace xstd
 
