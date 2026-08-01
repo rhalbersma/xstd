@@ -127,17 +127,16 @@ template<std::signed_integral T>
 {
         assert(denom != 0);
         auto const divT = div(numer, denom);
-        if (divT.rem >= 0) {
-                return divT;
-        }
-        // A negative truncated remainder is moved up by one |denom|, and the
-        // quotient compensated in the matching direction. Spelled as an add or
-        // a subtract of denom rather than as rem + I * denom with I == -1:
-        // denom == MIN is in contract here and -MIN is not representable, so
-        // the multiplication would overflow. (floored_div below only ever
-        // scales denom by 0 or 1, so it has no such case.)
-        auto const qE = static_cast<T>(denom > 0 ? divT.quot - 1 : divT.quot + 1);
-        auto const rE = static_cast<T>(denom > 0 ? divT.rem + denom : divT.rem - denom);
+        // A negative truncated remainder is moved up by one |denom|, with the
+        // quotient compensated in the matching direction. The remainder's
+        // adjustment is spelled as an add or a subtract of denom rather than
+        // as rem + I * denom: denom == MIN is in contract here and -MIN is not
+        // representable, so forming I * denom with I == -1 would overflow.
+        // (floored_div below only ever scales denom by 0 or 1, so it has no
+        // such case.)
+        auto const I = divT.rem >= 0 ? T{0} : (denom > 0 ? T{1} : T{-1});
+        auto const qE = static_cast<T>(divT.quot - I);
+        auto const rE = static_cast<T>(I == 0 ? divT.rem : (denom > 0 ? divT.rem + denom : divT.rem - denom));
         assert(uabs(rE) < uabs(denom));
         assert(sign(rE) >= 0);
         return {.quot = qE, .rem = rE};
@@ -152,9 +151,14 @@ template<std::signed_integral T>
 {
         assert(denom != 0);
         auto const divT = div(numer, denom);
-        auto const I = sign(divT.rem) == -sign(denom) ? T{1} : T{0};
-        auto const qF = static_cast<T>(divT.quot - I);
-        auto const rF = static_cast<T>(divT.rem + (I * denom));
+        // The same adjustment as euclidean_div above, but two-valued rather
+        // than three: a remainder whose sign differs from denom's is moved one
+        // denom in denom's direction, and the quotient compensated. So no I to
+        // scale denom by - that factor could only ever be 0 or 1, which makes
+        // the multiplication a select written the long way round.
+        auto const adjust = sign(divT.rem) == -sign(denom);
+        auto const qF = static_cast<T>(adjust ? divT.quot - 1 : divT.quot);
+        auto const rF = static_cast<T>(adjust ? divT.rem + denom : divT.rem);
         assert(uabs(rF) < uabs(denom));
         assert(rF == 0 || sign(rF) == sign(denom));
         return {.quot = qF, .rem = rF};
