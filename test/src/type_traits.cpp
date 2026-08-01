@@ -3,7 +3,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/type_traits.hpp>     // is_specialization_of, is_integral_constant, tagged_empty, optional_type
+#include <xstd/type_traits.hpp>     // is_specialization_of, is_integral_constant, empty_type, conditional_data_member_t
 #include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <complex>                  // complex
@@ -59,10 +59,10 @@ BOOST_AUTO_TEST_CASE(IsIntegralConstant)
 struct tag1;
 struct tag2;
 
-BOOST_AUTO_TEST_CASE(TaggedEmpty)
+BOOST_AUTO_TEST_CASE(EmptyType)
 {
-        using empty1 = tagged_empty<tag1>;
-        using empty2 = tagged_empty<tag2>;
+        using empty1 = empty_type<tag1>;
+        using empty2 = empty_type<tag2>;
 
         XSTD_CONSTEXPR_CHECK((std::is_empty_v<empty1>));
         XSTD_CONSTEXPR_CHECK((!std::is_same_v<empty1, empty2>));
@@ -83,11 +83,34 @@ BOOST_AUTO_TEST_CASE(TaggedEmpty)
         XSTD_CONSTEXPR_CHECK(empty1() == empty1(42));
 }
 
-BOOST_AUTO_TEST_CASE(OptionalType)
+// the tag can be declared in place, in the template argument list itself,
+// which is how a class with conditional members names each of them without
+// a separate declaration per tag. Both stand in for the same Type here:
+// that is exactly the case an unwritable tag would let collide.
+using member1 = conditional_data_member_t<false, tag1, struct member1_tag>;
+using member2 = conditional_data_member_t<false, tag1, struct member2_tag>;
+
+BOOST_AUTO_TEST_CASE(ConditionalDataMember)
 {
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<optional_type<true, tag1>, tag1>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<optional_type<false, tag1>, tagged_empty<tag1>>));
-        XSTD_CONSTEXPR_CHECK((std::is_empty_v<optional_type<false, tag1>>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<conditional_data_member_t<true, tag1, tag2>, tag1>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<conditional_data_member_t<false, tag1, tag2>, empty_type<tag2>>));
+        XSTD_CONSTEXPR_CHECK((std::is_empty_v<conditional_data_member_t<false, tag1, tag2>>));
+
+        // the tag names the member, not the type it stands in for, so two
+        // absent members over the same Type still get distinct empty types
+        // and can go on overlapping in the layout
+        XSTD_CONSTEXPR_CHECK((std::is_empty_v<member1>));
+        XSTD_CONSTEXPR_CHECK((std::is_empty_v<member2>));
+        XSTD_CONSTEXPR_CHECK((!std::is_same_v<member1, member2>));
+
+        // the tag is inert when the member is present: same Type, same tags
+        // as above, and the two agree once the condition holds
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<
+                              conditional_data_member_t<true, tag1, struct member1_tag>,
+                              conditional_data_member_t<true, tag1, struct member2_tag>>));
+
+        // an absent member never needs its tag defined
+        XSTD_CONSTEXPR_CHECK((std::is_empty_v<conditional_data_member_t<false, tag1, struct undefined_tag>>));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
