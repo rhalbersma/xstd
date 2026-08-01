@@ -96,6 +96,24 @@ struct div_t
 {
         T quot, rem;
         [[nodiscard]] friend constexpr auto operator==(div_t const&, div_t const&) noexcept -> bool = default;
+
+        // narrow std::ostream only, not the full basic_ostream<charT, traits>
+        // generality (no wide-character support): this exists solely so
+        // Boost.Test can print div_t values in test diagnostics. Application
+        // code should format these types via std::format/std::print directly
+        // rather than through operator<<.
+        //
+        // A hidden friend, matching operator== above: reachable by
+        // argument-dependent lookup on div_t and nothing else, so it never
+        // joins the candidate set of an unrelated operator<<. Deliberately
+        // not [[nodiscard]] - discarding the returned stream is what an
+        // ordinary "ostr << d;" statement does. The body names the formatter
+        // specialization declared below this class, which is fine: a friend
+        // definition is only instantiated at its point of use.
+        friend auto operator<<(std::ostream& ostr, div_t const& d) -> std::ostream&
+        {
+                return ostr << std::format("{}", d);
+        }
 };
 
 // Aggregate class template argument deduction would already deduce this, but
@@ -200,26 +218,15 @@ template<std::signed_integral T>
 template<class T>
 struct std::formatter<xstd::div_t<T>> : std::formatter<std::tuple<T const&, T const&>>
 {
-        auto format(xstd::div_t<T> const& d, auto& ctx) const
+        // not constexpr: no specialization could ever be constant-evaluated,
+        // since the tuple formatter this delegates to is not itself constexpr.
+        // That would be ill-formed no diagnostic required, so both compilers
+        // accept it in silence rather than rejecting it.
+        [[nodiscard]] auto format(xstd::div_t<T> const& d, auto& ctx) const
+                -> decltype(ctx.out())
         {
                 return std::formatter<std::tuple<T const&, T const&>>::format(std::tie(d.quot, d.rem), ctx);
         }
 };
-
-namespace xstd {
-
-// narrow std::ostream only, not the full basic_ostream<charT, traits>
-// generality (no wide-character support): this exists solely so Boost.Test
-// can print div_t values in test diagnostics. Application code should format
-// these types via std::format/std::print directly rather than through
-// operator<<.
-template<std::signed_integral T>
-auto operator<<(std::ostream& ostr, div_t<T> const& d)
-        -> std::ostream&
-{
-        return ostr << std::format("{}", d);
-}
-
-} // namespace xstd
 
 #endif // XSTD_CSTDLIB_HPP
