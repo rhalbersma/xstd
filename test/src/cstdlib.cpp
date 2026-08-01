@@ -62,19 +62,19 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Constraints, T, exact_width_types)
 
         // Unsigned arguments are outside the constraint, at every width.
         using U = std::make_unsigned_t<T>;
-        static_assert(!has_abs<U>);
-        static_assert(!has_uabs<U>);
-        static_assert(!has_sign<U>);
-        static_assert(!has_div<U, U>);
+        static_assert(not has_abs<U>);
+        static_assert(not has_uabs<U>);
+        static_assert(not has_sign<U>);
+        static_assert(not has_div<U, U>);
 
         BOOST_CHECK(true); // silence Boost.Test's "test case did not check any assertions"
 }
 
 BOOST_AUTO_TEST_CASE(NonSignedIntegralArgumentsAreRejected)
 {
-        static_assert(!has_abs<bool>);
-        static_assert(!has_abs<double>);
-        static_assert(!has_sign<char*>);
+        static_assert(not has_abs<bool>);
+        static_assert(not has_abs<double>);
+        static_assert(not has_sign<char*>);
 
         // uabs is the only one of the three whose return type is computed by a
         // trait, so it is the only one where rejecting a non-integral argument
@@ -85,13 +85,13 @@ BOOST_AUTO_TEST_CASE(NonSignedIntegralArgumentsAreRejected)
         // substitution failure - these two stop compiling instead of being
         // false. The deduced return type in the header is what keeps them
         // compiling; see doc/design.md.
-        static_assert(!has_uabs<bool>);
-        static_assert(!has_uabs<double>);
-        static_assert(!has_uabs<char*>);
+        static_assert(not has_uabs<bool>);
+        static_assert(not has_uabs<double>);
+        static_assert(not has_uabs<char*>);
 
         // Both parameters deduce the same T, so a mixed-width call is a
         // deduction failure rather than a silent conversion of one operand.
-        static_assert(!has_div<std::int32_t, std::int64_t>);
+        static_assert(not has_div<std::int32_t, std::int64_t>);
         static_assert(std::same_as<decltype(xstd::div<std::int64_t>(8, 3)), xstd::div_t<std::int64_t>>);
 
         BOOST_CHECK(true);

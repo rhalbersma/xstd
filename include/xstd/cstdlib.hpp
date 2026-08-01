@@ -138,7 +138,7 @@ template<std::signed_integral T>
         -> div_t<T>
 {
         assert(denom != 0);
-        assert(!(numer == std::numeric_limits<T>::min() && denom == -1));
+        assert(not (numer == std::numeric_limits<T>::min() and denom == -1));
         auto const qT = static_cast<T>(numer / denom);
         auto const rT = static_cast<T>(numer % denom);
         // Safe in T at every width, with no widening: denom * qT is exactly
@@ -150,7 +150,7 @@ template<std::signed_integral T>
         // and rT, so it could only fail if this one had already failed.
         assert(numer == (denom * qT) + rT);
         assert(uabs(rT) < uabs(denom));
-        assert(sign(rT) == sign(numer) || rT == 0);
+        assert(sign(rT) == sign(numer) or rT == 0);
         return {.quot = qT, .rem = rT};
 }
 
@@ -199,7 +199,7 @@ template<std::signed_integral T>
         auto const qF = static_cast<T>(qT - (adjust ? 1 : 0));
         auto const rF = static_cast<T>(rT + (adjust ? denom : 0));
         assert(uabs(rF) < uabs(denom));
-        assert(rF == 0 || sign(rF) == sign(denom));
+        assert(rF == 0 or sign(rF) == sign(denom));
         return {.quot = qF, .rem = rF};
 }
 

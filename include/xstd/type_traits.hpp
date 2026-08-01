@@ -38,7 +38,7 @@ struct empty_type
         // construction from the (trivial) special member functions
         // clang-format off
         template<class... Args>
-                requires (!(std::is_same_v<std::remove_cvref_t<Args>, empty_type> || ...))
+                requires (not (std::is_same_v<std::remove_cvref_t<Args>, empty_type> or ...))
         [[nodiscard]] constexpr explicit empty_type(Args&&...) noexcept {}
         // clang-format on
 

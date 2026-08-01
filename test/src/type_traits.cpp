@@ -23,7 +23,7 @@ inline constexpr auto is_complex_v = is_complex<T>::value;
 BOOST_AUTO_TEST_CASE(IsSpecializationOf)
 {
         XSTD_CONSTEXPR_CHECK((is_complex_v<std::complex<int>>));
-        XSTD_CONSTEXPR_CHECK((!is_complex_v<int>));
+        XSTD_CONSTEXPR_CHECK((not is_complex_v<int>));
 }
 
 template<int N>
@@ -38,10 +38,10 @@ BOOST_AUTO_TEST_CASE(IsIntegralConstant)
 {
         XSTD_CONSTEXPR_CHECK((is_integral_constant_v<std::true_type, bool>));
         XSTD_CONSTEXPR_CHECK((is_integral_constant_v<std::false_type, bool>));
-        XSTD_CONSTEXPR_CHECK((!is_integral_constant_v<bool, bool>));
+        XSTD_CONSTEXPR_CHECK((not is_integral_constant_v<bool, bool>));
 
         XSTD_CONSTEXPR_CHECK((is_integral_constant_v<int_<0>, int>));
-        XSTD_CONSTEXPR_CHECK((!is_integral_constant_v<int, int>));
+        XSTD_CONSTEXPR_CHECK((not is_integral_constant_v<int, int>));
 
         // std::integral_constant's first parameter is any type usable as a
         // non-type template parameter, not just an integral one, and the
@@ -49,12 +49,12 @@ BOOST_AUTO_TEST_CASE(IsIntegralConstant)
         // because narrowing this trait to std::integral would silently
         // break that without failing any of the checks above.
         XSTD_CONSTEXPR_CHECK((is_integral_constant_v<color_<color::red>, color>));
-        XSTD_CONSTEXPR_CHECK((!is_integral_constant_v<color, color>));
+        XSTD_CONSTEXPR_CHECK((not is_integral_constant_v<color, color>));
 
         // the wrapped type has to match: an integral_constant over one type
         // is not one over another
-        XSTD_CONSTEXPR_CHECK((!is_integral_constant_v<int_<0>, unsigned>));
-        XSTD_CONSTEXPR_CHECK((!is_integral_constant_v<color_<color::red>, unsigned>));
+        XSTD_CONSTEXPR_CHECK((not is_integral_constant_v<int_<0>, unsigned>));
+        XSTD_CONSTEXPR_CHECK((not is_integral_constant_v<color_<color::red>, unsigned>));
 }
 
 struct tag1;
@@ -66,11 +66,11 @@ BOOST_AUTO_TEST_CASE(EmptyType)
         using empty2 = empty_type<tag2>;
 
         XSTD_CONSTEXPR_CHECK((std::is_empty_v<empty1>));
-        XSTD_CONSTEXPR_CHECK((!std::is_same_v<empty1, empty2>));
+        XSTD_CONSTEXPR_CHECK((not std::is_same_v<empty1, empty2>));
 
         // constructible from anything, but only explicitly
         XSTD_CONSTEXPR_CHECK((std::is_constructible_v<empty1, int, double>));
-        XSTD_CONSTEXPR_CHECK((!std::is_convertible_v<int, empty1>));
+        XSTD_CONSTEXPR_CHECK((not std::is_convertible_v<int, empty1>));
 
         // the catch-all constructor never hijacks copy/move construction,
         // not even from a non-const lvalue
@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(ConditionalDataMember)
         // and can go on overlapping in the layout
         XSTD_CONSTEXPR_CHECK((std::is_empty_v<member1>));
         XSTD_CONSTEXPR_CHECK((std::is_empty_v<member2>));
-        XSTD_CONSTEXPR_CHECK((!std::is_same_v<member1, member2>));
+        XSTD_CONSTEXPR_CHECK((not std::is_same_v<member1, member2>));
 
         // the tag is inert when the member is present: same Type, same tags
         // as above, and the two agree once the condition holds

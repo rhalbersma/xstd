@@ -156,7 +156,7 @@ arguments the constraint would have rejected:
     template<std::signed_integral T>
     constexpr auto uabs(T x) noexcept -> std::make_unsigned_t<T>;
 
-    static_assert(!has_uabs<double>);   // hard error on Clang < 21
+    static_assert(not has_uabs<double>);   // hard error on Clang < 21
 
 `std::make_unsigned_t<double>` is ill-formed, not a substitution failure, so
 `uabs(1.0)` inside a requires-expression stops the compile instead of

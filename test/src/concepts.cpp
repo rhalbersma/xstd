@@ -24,12 +24,12 @@ BOOST_AUTO_TEST_CASE(Enumeration)
         XSTD_CONSTEXPR_CHECK(enumeration<unscoped>);
         XSTD_CONSTEXPR_CHECK(enumeration<scoped>);
 
-        XSTD_CONSTEXPR_CHECK(!enumeration<int>);
-        XSTD_CONSTEXPR_CHECK(!enumeration<bool>);
-        XSTD_CONSTEXPR_CHECK(!enumeration<not_an_enum>);
-        XSTD_CONSTEXPR_CHECK(!enumeration<scoped&>);
-        XSTD_CONSTEXPR_CHECK(!enumeration<scoped*>);
-        XSTD_CONSTEXPR_CHECK(!enumeration<void>);
+        XSTD_CONSTEXPR_CHECK(not enumeration<int>);
+        XSTD_CONSTEXPR_CHECK(not enumeration<bool>);
+        XSTD_CONSTEXPR_CHECK(not enumeration<not_an_enum>);
+        XSTD_CONSTEXPR_CHECK(not enumeration<scoped&>);
+        XSTD_CONSTEXPR_CHECK(not enumeration<scoped*>);
+        XSTD_CONSTEXPR_CHECK(not enumeration<void>);
 }
 
 // the partial application a type-constraint needs: the primary template alone
@@ -49,15 +49,15 @@ BOOST_AUTO_TEST_CASE(SpecializationOf)
         XSTD_CONSTEXPR_CHECK((specialization_of<std::tuple<int, char>, std::tuple>));
         XSTD_CONSTEXPR_CHECK((specialization_of<std::tuple<>, std::tuple>));
 
-        XSTD_CONSTEXPR_CHECK((!specialization_of<int, std::complex>));
-        XSTD_CONSTEXPR_CHECK((!specialization_of<std::tuple<int>, std::complex>));
-        XSTD_CONSTEXPR_CHECK((!specialization_of<std::complex<int>&, std::complex>));
+        XSTD_CONSTEXPR_CHECK((not specialization_of<int, std::complex>));
+        XSTD_CONSTEXPR_CHECK((not specialization_of<std::tuple<int>, std::complex>));
+        XSTD_CONSTEXPR_CHECK((not specialization_of<std::complex<int>&, std::complex>));
 
         // nothing in the concept is specific to the standard library. The
         // library's own class template is a program-defined primary like any
         // other, with its tag declared in place
         XSTD_CONSTEXPR_CHECK((specialization_of<empty_type<struct user_tag>, empty_type>));
-        XSTD_CONSTEXPR_CHECK((!specialization_of<int, empty_type>));
+        XSTD_CONSTEXPR_CHECK((not specialization_of<int, empty_type>));
 
         // the concept agrees with the trait it is spelled over
         XSTD_CONSTEXPR_CHECK((specialization_of<std::complex<int>, std::complex> == is_specialization_of_v<std::complex<int>, std::complex>));
@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE(SpecializationOf)
 
         // used as a type-constraint, it constrains rather than hard-errors
         XSTD_CONSTEXPR_CHECK(has_as_complex<std::complex<double>>);
-        XSTD_CONSTEXPR_CHECK(!has_as_complex<int>);
+        XSTD_CONSTEXPR_CHECK(not has_as_complex<int>);
 
         // and the constrained template actually runs for a matching argument,
         // which the two checks above cannot show: a requires-expression's
