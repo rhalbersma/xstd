@@ -11,7 +11,7 @@ it does.
 Three themes run across the otherwise unrelated headers:
 
 - **`constexpr` all the things.** Every function xstd adds - the division
-  family, `abs`/`sign` and siblings, `array_from_types`, `to_underlying` -
+  family, `abs`/`uabs`/`sign`, `array_from_types`, `to_underlying` -
   is `constexpr`, including the ones that don't strictly need to be for
   their primary use case. A library whose whole point is "make small,
   general-purpose facilities available early" is of limited use if it
@@ -37,73 +37,173 @@ Three themes run across the otherwise unrelated headers:
   remainder, floored division's divisor-signed remainder), and picking
   the wrong one silently for negative operands is a classic source of
   off-by-one bugs. `xstd::div`/`xstd::euclidean_div`/`xstd::floored_div`
-  give each convention its own named function, at all 4 integer widths,
-  so the choice is visible at the call site instead of being buried in
-  which arithmetic operator happened to be used.
+  give each convention its own named function, at every signed integral
+  width, so the choice is visible at the call site instead of being buried
+  in which arithmetic operator happened to be used.
 
 ## API design
 
-### `xstd::abs`/`xstd::labs`/`xstd::llabs`/`xstd::imaxabs`, `xstd::sign`/`xstd::lsign`/`xstd::llsign`/`xstd::imaxsign`
+### One `std::signed_integral` template per operation, not four overloads
 
-Both families are plain, non-template overloads at 4 fixed widths (`int`,
-`long`, `long long`, `intmax_t`), mirroring how `<cstdlib>` itself declares
-`abs`/`labs`/`llabs` and `<cinttypes>` declares `imaxabs`: signed integral
-arguments only, no unsigned support, no generic template. `xstd::sign` and
-friends aren't part of `<cstdlib>`, but were deliberately given the same
-narrow, non-template style rather than being written as a single function
-template over any type - the way `boost::math::sign` is. A single template
-would accept more inputs, but `<cstdlib>`-style non-template overloads keep
-overload resolution and error messages simple, and make it obvious this is
-a small, closed set of widths rather than an extensible facility.
+`abs`, `uabs`, `sign`, `div`, `euclidean_div`, `floored_div` and `div_t` are
+each a single entity constrained to `std::signed_integral`. They started out
+as four fixed-width non-template overloads apiece (`abs`/`labs`/`llabs`/
+`imaxabs` and so on), mirroring how `<cstdlib>` itself declares `abs`/`labs`/
+`llabs` and `<cinttypes>` declares `imaxabs`. That mirroring bought
+`<cstdlib>` familiarity at a price that grew with every operation added:
+twenty-odd near-identical functions, each a copy of the same three lines, and
+a naming scheme with no name at all for the two narrowest signed widths.
 
-`intmax_t` and `long` are the same type on some platforms (e.g. 64-bit
-Linux) and distinct types on others (e.g. Windows). Naming the `intmax_t`
-overloads as unqualified `long`/`intmax_t` overloads of a single function
-name would risk a platform-dependent redeclaration/overload collision;
-the `imax`-prefixed names sidestep that regardless of platform, matching
-how the public family already uses distinct names (`abs`/`labs`/`llabs`/
-`imaxabs`) rather than an overload set.
+The templates cost none of that and cover more. The exact-width types come
+for free - `int8_t`/`int16_t`/`int32_t`/`int64_t` are aliases of `signed
+char`/`short`/`int`/`long`/`long long`, so a template over
+`std::signed_integral` instantiates for each of them, whichever built-in type
+each one happens to name on a given platform. Three follow-on effects were
+weighed and accepted:
 
-### `xstd::uabs`/`xstd::ulabs`/`xstd::ullabs`/`xstd::uimaxabs`
+- **The result type is now the argument type, not the promoted type.** A call
+  to the old non-template `abs(int)` with an `int16_t` argument promoted to
+  `int`, so it returned `int` and, incidentally, was in contract even for
+  `INT16_MIN`. The template returns `int16_t` and takes `int16_t`'s
+  precondition. That is the more defensible contract - the promoting one was
+  an artifact of there being no narrow overload to call - and `abs(+x)`
+  recovers the old behavior explicitly.
+- **Mixed-width calls no longer compile.** `div(T, T)` deduces one `T` from
+  both arguments, so `div(8, 3L)` is a deduction failure where the old
+  `ldiv(long, long)` would have silently converted. An explicit `div<long>`
+  says which width the division happens at, which is the thing that was
+  ambiguous.
+- **The `imax`-prefixed names are no longer needed.** They existed because
+  `intmax_t` and `long` are the same type on some platforms (e.g. 64-bit
+  Linux) and distinct on others (e.g. Windows), so a single overload set
+  spanning both risked a platform-dependent redeclaration collision. One
+  template has no overload set to collide with.
+
+`xstd::sign` isn't part of `<cstdlib>` at all, and is now shaped like
+`boost::math::sign`: one template over the argument type, returning a plain
+`int` at every width, because a sign is a three-valued quantity rather than a
+number in the argument's range.
+
+### Why 128-bit integers are not covered
+
+`__int128` is the obvious next width, and the one the template design would
+otherwise extend to for free. It is excluded for reasons that are all
+external to xstd:
+
+- `std::integral<__int128>` is `false` on libstdc++ outside GNU dialect mode,
+  and the project compiles in the strictly conforming dialect
+  (`CMAKE_CXX_EXTENSIONS OFF`) on purpose. libc++ answers differently, so
+  even the concept check isn't portable.
+- `std::make_unsigned_t<__int128>` is a hard error rather than a substitution
+  failure on libstdc++ in that same mode, so `uabs`'s return type couldn't be
+  spelled with it.
+- GCC's `-pedantic-errors`, which the test targets enable, rejects naming
+  `__int128` at all.
+- MSVC has no 128-bit integer type to cover in the first place.
+
+Supporting it would mean an xstd-local `signed_integral` concept, an
+xstd-local `make_unsigned`, and a test translation unit exempted from the
+project's own conformance flags - three carve-outs from the strict-conformance
+policy in exchange for one width. Should any of those constraints lift, the
+change is a one-line swap of the constraint, which is exactly the property
+the four-overload design did not have: there it would have been a fifth copy
+of every function.
+
+### `xstd::uabs`
 
 `abs` cannot be total: `|x|` for the most negative value of a signed type is
 one past that type's maximum, so there is no signed result to return. The
 standard's answer is undefined behavior; xstd's is a precondition. Either
 way, callers who need `|x|` for *every* input are left without one.
 
-These four return the corresponding unsigned type instead, which can
-represent that value, so they have no precondition at all. They exist mainly
-because the division families' postconditions need them: `div` accepts
-`denom == INT_MIN`, so a check of the form `|rem| < |denom|` written with
-`abs` would trip its own precondition on a call that is perfectly in
-contract. A contract check must not have a narrower domain than the
-operation it verifies.
+`uabs` returns the corresponding unsigned type instead, which can represent
+that value, so it has no precondition at all. It exists mainly because the
+division family's postconditions need it: `div` accepts `denom == MIN`, so a
+check of the form `|rem| < |denom|` written with `abs` would trip its own
+precondition on a call that is perfectly in contract. A contract check must
+not have a narrower domain than the operation it verifies.
 
 The negation is done by unsigned wraparound rather than by widening to a
 bigger signed type. Wraparound is well-defined where `-x` on a signed
-minimum is not, and it works uniformly at all four widths - `intmax_t` has
-nothing wider to widen to.
+minimum is not, and it works uniformly at every width - the widest signed
+type has nothing to widen to. For types narrower than `int` the subtraction
+is evaluated in `int` after promotion and is negative; converting that back
+to the unsigned result type reduces it mod 2^N, which is the same value the
+wider types get directly.
 
 The name keeps the relationship to `abs` visible at the call site, which
-`magnitude` (what these were called while they were an implementation
-detail) did not. Rust names the same operation
+`magnitude` (what this was called while it was an implementation detail) did
+not. Rust names the same operation
 [`unsigned_abs`](https://doc.rust-lang.org/std/primitive.i32.html#method.unsigned_abs)
 for the same reason; C++ has no equivalent, standard or in Boost.Math.
 
-### `xstd::div_t`/`xstd::ldiv_t`/`xstd::lldiv_t`/`xstd::imaxdiv_t` formatting
+### The division contracts' back-multiplication check
 
-Each type's `std::formatter` specialization delegates to
+`numer == denom * q + r` is the strongest self-check a division function can
+make, but it is only worth making once. For truncated division it is a real
+check: it holds the built-in `/` and `%` against each other, and it needs no
+widening to evaluate, because `denom * qT` is exactly `numer - rT` and `rT`
+carries `numer`'s sign, so the product lies between `0` and `numer` inclusive
+and is representable wherever `numer` is.
+
+For the two adjusted conventions it is a tautology. Both compute
+`q' = qT - I` and `r' = rT + I * denom`, so
+
+    denom * q' + r' = denom * (qT - I) + rT + I * denom = denom * qT + rT
+
+which is `numer` by the check `div` has already made. Asserting it again in
+`euclidean_div` and `floored_div` could only fire where `div`'s own assertion
+had already fired - and, because the adjusted product *can* exceed `T`, doing
+so would have required carrying an `intmax_t` widening and a `sizeof`-based
+gate purely to restate something already known. Those two assertions, and the
+machinery they needed, are gone. What remains for each convention is what
+actually constrains it: the magnitude bound `|r| < |denom|` and its own sign
+rule.
+
+### Why `euclidean_div` adds or subtracts `denom` instead of scaling it
+
+Dropping the identity assertion removes the only thing that would have
+tripped over `I * denom`, which is worth spelling out because that expression
+was unsound on its own terms. `euclidean_div` selects `I == -1` when the
+truncated remainder is negative and `denom` is negative, and `denom == MIN` is
+in contract - so `I * denom` forms `-MIN`, which is not representable. That is
+undefined behavior for `int` and wider; below `int`, integer promotion happens
+to evaluate it in `int` and hide it.
+
+The adjustment is therefore spelled as an addition or a subtraction of `denom`
+chosen by its sign, which never forms `-denom`:
+
+    qE = denom > 0 ? qT - 1 : qT + 1
+    rE = denom > 0 ? rT + denom : rT - denom
+
+`floored_div` needs no such care: it only ever scales `denom` by `0` or `1`.
+
+### `xstd::div_t` formatting
+
+`div_t`'s `std::formatter` specialization delegates to
 `std::formatter<std::tuple<T const&, T const&>>` through `std::tie`, rather
 than formatting `quot`/`rem` by hand, so it automatically inherits
 whatever formatting C++23 standard libraries give tuple-like values
 (delimiters, nesting, etc.) instead of hardcoding a "(quot, rem)" layout
 that could drift from what the standard library does elsewhere.
 
-Each type also has a narrow `std::ostream& operator<<` overload (no
+Being a partial specialization over `div_t`'s element type rather than four
+explicit specializations has a side benefit: the body is instantiated at the
+point of use, so merely including `<xstd/cstdlib.hpp>` no longer requires a
+standard library that implements tuple formatting. Only actually formatting
+an `xstd::div_t` does.
+
+`div_t` also has a narrow `std::ostream& operator<<` overload (no
 wide-character support) that just forwards to `std::format`. This exists
-solely so Boost.Test can print these types in test diagnostics on
-assertion failure - it is not a general-purpose printing facility.
-Application code should prefer `std::format`/`std::print` directly.
+solely so Boost.Test can print the type in test diagnostics on assertion
+failure - it is not a general-purpose printing facility. Application code
+should prefer `std::format`/`std::print` directly.
+
+An explicit deduction guide is declared even though aggregate class template
+argument deduction would already deduce `div_t{q, r}` without one. It makes
+the support intentional rather than incidental, and keeps Clang's
+`-Wctad-maybe-unsupported` (part of the `-Weverything` the tests build with)
+quiet.
 
 ### `xstd::is_specialization_of`
 

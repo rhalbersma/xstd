@@ -6,227 +6,139 @@
 #ifndef XSTD_CSTDLIB_HPP
 #define XSTD_CSTDLIB_HPP
 
-#include <cassert> // assert
-#include <cstdint> // intmax_t, uintmax_t
-#include <format>  // format, formatter
-#include <limits>  // numeric_limits
-#include <ostream> // ostream
-#include <tuple>   // tie, tuple
+#include <cassert>     // assert
+#include <concepts>    // signed_integral
+#include <format>      // format, formatter
+#include <limits>      // numeric_limits
+#include <ostream>     // ostream
+#include <tuple>       // tie, tuple
+#include <type_traits> // make_unsigned_t
 
 namespace xstd {
 
-// constexpr versions of <cstdlib>'s abs/labs/llabs and <cinttypes>'s imaxabs
-// (P0533), with the same non-template, signed-only signatures as those
-// headers themselves.
-[[nodiscard]] constexpr int abs(int x) noexcept
+// Each facility below is a single function template constrained to
+// std::signed_integral, rather than the <cstdlib>-style family of four
+// fixed-width overloads (abs/labs/llabs/imaxabs and friends) these grew out
+// of. Consequences worth knowing at the call site:
+//
+// - The exact-width types are covered for free. int8_t/int16_t/int32_t/
+//   int64_t are aliases of signed char/short/int/long/long long, so a
+//   template over std::signed_integral instantiates for each of them,
+//   including the two narrow widths the <cstdlib> naming has no name for.
+// - The result type is the argument type, not the promoted type. Passing an
+//   int16_t no longer silently widens to int the way a call to a non-template
+//   abs(int) did; abs(x) of an int16_t is an int16_t, and its precondition is
+//   int16_t's, not int's. Callers who want the old promoting behavior can
+//   write abs(+x) or abs<int>(x).
+// - The two-argument templates deduce a single T from both arguments, so a
+//   mixed-width call like div(8, 3L) is a deduction failure rather than a
+//   silent conversion. Spell the intent as div<long>(8, 3L) or cast.
+// - 128-bit integers are deliberately not covered: neither __int128 nor
+//   unsigned __int128 satisfies std::integral in the strictly conforming
+//   dialect this library targets, and libstdc++'s std::make_unsigned is a
+//   hard error rather than a substitution failure for them. Widening the
+//   constraint is a one-line change if that ever becomes portable; see
+//   doc/design.md.
+
+// constexpr version of <cstdlib>'s abs/labs/llabs and <cinttypes>'s imaxabs
+// (P0533), generalized to one signed-only template.
+template<std::signed_integral T>
+[[nodiscard]] constexpr T abs(T x) noexcept
 {
-        assert(x != std::numeric_limits<int>::min()); // -x would overflow
-        return x < 0 ? -x : x;
+        assert(x != std::numeric_limits<T>::min()); // -x would overflow
+        return x < 0 ? static_cast<T>(-x) : x;
 }
 
-[[nodiscard]] constexpr long labs(long x) noexcept
+// The total counterpart of abs: same |x|, but returning the unsigned type, so
+// the one input abs has to exclude - the most negative value, whose magnitude
+// is one past the signed maximum - is in contract here. Negation is done by
+// unsigned wraparound, which is well-defined, rather than by -x on a signed
+// MIN, which is not, or by widening to a bigger signed type, which has none
+// to widen to at the widest end.
+template<std::signed_integral T>
+[[nodiscard]] constexpr std::make_unsigned_t<T> uabs(T x) noexcept
 {
-        assert(x != std::numeric_limits<long>::min()); // -x would overflow
-        return x < 0 ? -x : x;
+        using U = std::make_unsigned_t<T>;
+        auto const u = static_cast<U>(x);
+        // The cast back to U is what makes this wraparound rather than
+        // promotion: for types narrower than int, U{0} - u is evaluated in
+        // int and is negative, and converting that back to U reduces it mod
+        // 2^N - exactly the value the wider unsigned types get directly.
+        return x < 0 ? static_cast<U>(U{0} - u) : u;
 }
 
-[[nodiscard]] constexpr long long llabs(long long x) noexcept
-{
-        assert(x != std::numeric_limits<long long>::min()); // -x would overflow
-        return x < 0 ? -x : x;
-}
-
-[[nodiscard]] constexpr std::intmax_t imaxabs(std::intmax_t x) noexcept
-{
-        assert(x != std::numeric_limits<std::intmax_t>::min()); // -x would overflow
-        return x < 0 ? -x : x;
-}
-
-// The total counterpart of the abs family above: same |x|, but returning the
-// unsigned type, so the one input abs has to exclude - the most negative
-// value, whose magnitude is one past the signed maximum - is in contract
-// here. Negation is done by unsigned wraparound, which is well-defined,
-// rather than by -x on a signed MIN, which is not, or by widening to a
-// bigger signed type, which has none to widen to at the intmax_t end.
-// Same four widths and the same non-template style as abs, and likewise
-// distinct names rather than an overload set: long and intmax_t are the same
-// type on some platforms (e.g. 64-bit Linux) and distinct on others, so
-// overloads could collide there.
-[[nodiscard]] constexpr unsigned uabs(int x) noexcept
-{
-        return x < 0 ? static_cast<unsigned>(0) - static_cast<unsigned>(x) : static_cast<unsigned>(x);
-}
-
-[[nodiscard]] constexpr unsigned long ulabs(long x) noexcept
-{
-        return x < 0 ? static_cast<unsigned long>(0) - static_cast<unsigned long>(x) : static_cast<unsigned long>(x);
-}
-
-[[nodiscard]] constexpr unsigned long long ullabs(long long x) noexcept
-{
-        return x < 0 ? static_cast<unsigned long long>(0) - static_cast<unsigned long long>(x) : static_cast<unsigned long long>(x);
-}
-
-[[nodiscard]] constexpr std::uintmax_t uimaxabs(std::intmax_t x) noexcept
-{
-        return x < 0 ? static_cast<std::uintmax_t>(0) - static_cast<std::uintmax_t>(x) : static_cast<std::uintmax_t>(x);
-}
-
-// not part of <cstdlib>, but kept to the same style and the same four
-// widths as the abs family above: plain integral types, no templates.
-[[nodiscard]] constexpr int sign(int x) noexcept
+// not part of <cstdlib>, but kept to the same shape as abs/uabs above. The
+// result is a plain int at every width: a sign is a three-valued quantity,
+// not a number in T's range.
+template<std::signed_integral T>
+[[nodiscard]] constexpr int sign(T x) noexcept
 {
         return static_cast<int>(0 < x) - static_cast<int>(x < 0);
 }
 
-[[nodiscard]] constexpr int lsign(long x) noexcept
-{
-        return static_cast<int>(0 < x) - static_cast<int>(x < 0);
-}
-
-[[nodiscard]] constexpr int llsign(long long x) noexcept
-{
-        return static_cast<int>(0 < x) - static_cast<int>(x < 0);
-}
-
-[[nodiscard]] constexpr int imaxsign(std::intmax_t x) noexcept
-{
-        return static_cast<int>(0 < x) - static_cast<int>(x < 0);
-}
-
+template<std::signed_integral T>
 struct div_t
 {
-        int quot, rem;
+        T quot, rem;
         [[nodiscard]] friend constexpr bool operator==(div_t const&, div_t const&) noexcept = default;
 };
 
-struct ldiv_t
-{
-        long quot, rem;
-        [[nodiscard]] friend constexpr bool operator==(ldiv_t const&, ldiv_t const&) noexcept = default;
-};
-
-struct lldiv_t
-{
-        long long quot, rem;
-        [[nodiscard]] friend constexpr bool operator==(lldiv_t const&, lldiv_t const&) noexcept = default;
-};
-
-struct imaxdiv_t
-{
-        std::intmax_t quot, rem;
-        [[nodiscard]] friend constexpr bool operator==(imaxdiv_t const&, imaxdiv_t const&) noexcept = default;
-};
+// Aggregate class template argument deduction would already deduce this, but
+// spelling the guide out makes the support intentional rather than incidental
+// (and keeps -Wctad-maybe-unsupported quiet), so div_t{q, r} remains as
+// writable as the four separate div_t/ldiv_t/lldiv_t/imaxdiv_t names were.
+template<std::signed_integral T>
+div_t(T, T) -> div_t<T>;
 
 // C++ Standard [expr.mul]/4
 // https://en.wikipedia.org/wiki/Modulo_operation
 // http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf
 
-// constexpr versions of <cstdlib>'s div/ldiv/lldiv and <cinttypes>'s
-// imaxdiv. The back-multiplication self-check (numer == denom * q + r,
-// verified in a type wide enough that the multiplication itself can't
-// overflow) is only possible for div: long long is guaranteed wide enough
-// to hold the product of two ints, but there is no portable type wider than
-// long long/intmax_t to give the same guarantee for the other three, so
-// those rely solely on the sign and magnitude assertions below.
+// constexpr version of <cstdlib>'s div/ldiv/lldiv and <cinttypes>'s imaxdiv.
 // %: C99, C++11, C#, D, F#, Go, Java, Javascript, PHP, Rust, Scala, Swift
 // rem: Ada, Clojure, Erlang, Haskell, Julia, Lisp, Prolog
 // remainder: Ruby, Scheme
 // mod: Fortran, OCaml
-[[nodiscard]] constexpr div_t div(int numer, int denom) noexcept
+template<std::signed_integral T>
+[[nodiscard]] constexpr div_t<T> div(T numer, T denom) noexcept
 {
         assert(denom != 0);
-        assert(!(numer == std::numeric_limits<int>::min() && denom == -1));
-        auto const qT = numer / denom;
-        auto const rT = numer % denom;
-        assert(static_cast<long long>(numer) == (static_cast<long long>(denom) * qT) + rT);
+        assert(!(numer == std::numeric_limits<T>::min() && denom == -1));
+        auto const qT = static_cast<T>(numer / denom);
+        auto const rT = static_cast<T>(numer % denom);
+        // Safe in T at every width, with no widening: denom * qT is exactly
+        // numer - rT, and rT carries numer's sign, so the product lies between
+        // 0 and numer inclusive and is representable wherever numer is. This
+        // is the only one of the three conventions where the identity is worth
+        // asserting - it checks the built-in / and % against each other. For
+        // the two below it is an algebraic consequence of how they adjust qT
+        // and rT, so it could only fail if this one had already failed.
+        assert(numer == (denom * qT) + rT);
         assert(uabs(rT) < uabs(denom));
         assert(sign(rT) == sign(numer) || rT == 0);
-        return {.quot = qT, .rem = rT};
-}
-
-[[nodiscard]] constexpr ldiv_t ldiv(long numer, long denom) noexcept
-{
-        assert(denom != 0);
-        assert(!(numer == std::numeric_limits<long>::min() && denom == -1));
-        auto const qT = numer / denom;
-        auto const rT = numer % denom;
-        assert(ulabs(rT) < ulabs(denom));
-        assert(lsign(rT) == lsign(numer) || rT == 0);
-        return {.quot = qT, .rem = rT};
-}
-
-[[nodiscard]] constexpr lldiv_t lldiv(long long numer, long long denom) noexcept
-{
-        assert(denom != 0);
-        assert(!(numer == std::numeric_limits<long long>::min() && denom == -1));
-        auto const qT = numer / denom;
-        auto const rT = numer % denom;
-        assert(ullabs(rT) < ullabs(denom));
-        assert(llsign(rT) == llsign(numer) || rT == 0);
-        return {.quot = qT, .rem = rT};
-}
-
-[[nodiscard]] constexpr imaxdiv_t imaxdiv(std::intmax_t numer, std::intmax_t denom) noexcept
-{
-        assert(denom != 0);
-        assert(!(numer == std::numeric_limits<std::intmax_t>::min() && denom == -1));
-        auto const qT = numer / denom;
-        auto const rT = numer % denom;
-        assert(uimaxabs(rT) < uimaxabs(denom));
-        assert(imaxsign(rT) == imaxsign(numer) || rT == 0);
         return {.quot = qT, .rem = rT};
 }
 
 // https://en.wikipedia.org/wiki/Euclidean_division
 // mod: Maple, Pascal
 // modulo: Scheme
-[[nodiscard]] constexpr div_t euclidean_div(int numer, int denom) noexcept
+template<std::signed_integral T>
+[[nodiscard]] constexpr div_t<T> euclidean_div(T numer, T denom) noexcept
 {
         assert(denom != 0);
         auto const divT = div(numer, denom);
-        auto const I = divT.rem >= 0 ? 0 : (denom > 0 ? 1 : -1);
-        auto const qE = divT.quot - I;
-        auto const rE = divT.rem + (I * denom);
-        assert(static_cast<long long>(numer) == (static_cast<long long>(denom) * qE) + rE);
+        // A negative truncated remainder is moved up by one |denom|, with the
+        // quotient compensated in the matching direction. The remainder's
+        // adjustment is spelled as an add or a subtract of denom rather than
+        // as rem + I * denom: denom == MIN is in contract here and -MIN is not
+        // representable, so forming I * denom with I == -1 would overflow.
+        // (floored_div below only ever scales denom by 0 or 1, so it has no
+        // such case.)
+        auto const I = divT.rem >= 0 ? T{0} : (denom > 0 ? T{1} : T{-1});
+        auto const qE = static_cast<T>(divT.quot - I);
+        auto const rE = static_cast<T>(I == 0 ? divT.rem : (denom > 0 ? divT.rem + denom : divT.rem - denom));
         assert(uabs(rE) < uabs(denom));
         assert(sign(rE) >= 0);
-        return {.quot = qE, .rem = rE};
-}
-
-[[nodiscard]] constexpr ldiv_t euclidean_ldiv(long numer, long denom) noexcept
-{
-        assert(denom != 0);
-        auto const divT = ldiv(numer, denom);
-        auto const I = divT.rem >= 0 ? 0L : (denom > 0 ? 1L : -1L);
-        auto const qE = divT.quot - I;
-        auto const rE = divT.rem + (I * denom);
-        assert(ulabs(rE) < ulabs(denom));
-        assert(lsign(rE) >= 0);
-        return {.quot = qE, .rem = rE};
-}
-
-[[nodiscard]] constexpr lldiv_t euclidean_lldiv(long long numer, long long denom) noexcept
-{
-        assert(denom != 0);
-        auto const divT = lldiv(numer, denom);
-        auto const I = divT.rem >= 0 ? 0LL : (denom > 0 ? 1LL : -1LL);
-        auto const qE = divT.quot - I;
-        auto const rE = divT.rem + (I * denom);
-        assert(ullabs(rE) < ullabs(denom));
-        assert(llsign(rE) >= 0);
-        return {.quot = qE, .rem = rE};
-}
-
-[[nodiscard]] constexpr imaxdiv_t euclidean_imaxdiv(std::intmax_t numer, std::intmax_t denom) noexcept
-{
-        assert(denom != 0);
-        auto const divT = imaxdiv(numer, denom);
-        auto const I = divT.rem >= 0 ? std::intmax_t{0} : (denom > 0 ? std::intmax_t{1} : std::intmax_t{-1});
-        auto const qE = divT.quot - I;
-        auto const rE = divT.rem + (I * denom);
-        assert(uimaxabs(rE) < uimaxabs(denom));
-        assert(imaxsign(rE) >= 0);
         return {.quot = qE, .rem = rE};
 }
 
@@ -234,122 +146,55 @@ struct imaxdiv_t
 // %%: R
 // mod: Ada, Clojure, Haskell, Julia, Lisp, ML, Prolog
 // modulo: Fortran, Ruby
-[[nodiscard]] constexpr div_t floored_div(int numer, int denom) noexcept
+template<std::signed_integral T>
+[[nodiscard]] constexpr div_t<T> floored_div(T numer, T denom) noexcept
 {
         assert(denom != 0);
         auto const divT = div(numer, denom);
-        auto const I = sign(divT.rem) == -sign(denom) ? 1 : 0;
-        auto const qF = divT.quot - I;
-        auto const rF = divT.rem + (I * denom);
-        assert(static_cast<long long>(numer) == (static_cast<long long>(denom) * qF) + rF);
+        // The same adjustment as euclidean_div above, but two-valued rather
+        // than three: a remainder whose sign differs from denom's is moved one
+        // denom in denom's direction, and the quotient compensated. So no I to
+        // scale denom by - that factor could only ever be 0 or 1, which makes
+        // the multiplication a select written the long way round.
+        auto const adjust = sign(divT.rem) == -sign(denom);
+        auto const qF = static_cast<T>(adjust ? divT.quot - 1 : divT.quot);
+        auto const rF = static_cast<T>(adjust ? divT.rem + denom : divT.rem);
         assert(uabs(rF) < uabs(denom));
         assert(rF == 0 || sign(rF) == sign(denom));
         return {.quot = qF, .rem = rF};
 }
 
-[[nodiscard]] constexpr ldiv_t floored_ldiv(long numer, long denom) noexcept
-{
-        assert(denom != 0);
-        auto const divT = ldiv(numer, denom);
-        auto const I = lsign(divT.rem) == -lsign(denom) ? 1L : 0L;
-        auto const qF = divT.quot - I;
-        auto const rF = divT.rem + (I * denom);
-        assert(ulabs(rF) < ulabs(denom));
-        assert(rF == 0 || lsign(rF) == lsign(denom));
-        return {.quot = qF, .rem = rF};
-}
-
-[[nodiscard]] constexpr lldiv_t floored_lldiv(long long numer, long long denom) noexcept
-{
-        assert(denom != 0);
-        auto const divT = lldiv(numer, denom);
-        auto const I = llsign(divT.rem) == -llsign(denom) ? 1LL : 0LL;
-        auto const qF = divT.quot - I;
-        auto const rF = divT.rem + (I * denom);
-        assert(ullabs(rF) < ullabs(denom));
-        assert(rF == 0 || llsign(rF) == llsign(denom));
-        return {.quot = qF, .rem = rF};
-}
-
-[[nodiscard]] constexpr imaxdiv_t floored_imaxdiv(std::intmax_t numer, std::intmax_t denom) noexcept
-{
-        assert(denom != 0);
-        auto const divT = imaxdiv(numer, denom);
-        auto const I = imaxsign(divT.rem) == -imaxsign(denom) ? std::intmax_t{1} : std::intmax_t{0};
-        auto const qF = divT.quot - I;
-        auto const rF = divT.rem + (I * denom);
-        assert(uimaxabs(rF) < uimaxabs(denom));
-        assert(rF == 0 || imaxsign(rF) == imaxsign(denom));
-        return {.quot = qF, .rem = rF};
-}
-
 } // namespace xstd
 
-// Specialized via qualified-id (template<> struct std::formatter<...>)
+// Specialized via qualified-id (template<class T> struct std::formatter<...>)
 // rather than inside a reopened "namespace std { ... }" block: both forms
 // are equally legal here (the standard explicitly permits specializing
 // std::formatter for program-defined types), but the qualified form avoids
 // clang-tidy's bugprone-std-namespace-modification finding, which otherwise
 // flags any reopening of namespace std regardless of what's inside it.
-template<>
-struct std::formatter<xstd::div_t> : std::formatter<std::tuple<int const&, int const&>>
+//
+// A partial specialization over div_t's element type also defers the body's
+// instantiation to the point of use, so merely including this header no
+// longer requires a standard library that implements tuple formatting; only
+// actually formatting an xstd::div_t does.
+template<class T>
+struct std::formatter<xstd::div_t<T>> : std::formatter<std::tuple<T const&, T const&>>
 {
-        auto format(xstd::div_t const& d, auto& ctx) const
+        auto format(xstd::div_t<T> const& d, auto& ctx) const
         {
-                return std::formatter<std::tuple<int const&, int const&>>::format(std::tie(d.quot, d.rem), ctx);
-        }
-};
-
-template<>
-struct std::formatter<xstd::ldiv_t> : std::formatter<std::tuple<long const&, long const&>>
-{
-        auto format(xstd::ldiv_t const& d, auto& ctx) const
-        {
-                return std::formatter<std::tuple<long const&, long const&>>::format(std::tie(d.quot, d.rem), ctx);
-        }
-};
-
-template<>
-struct std::formatter<xstd::lldiv_t> : std::formatter<std::tuple<long long const&, long long const&>>
-{
-        auto format(xstd::lldiv_t const& d, auto& ctx) const
-        {
-                return std::formatter<std::tuple<long long const&, long long const&>>::format(std::tie(d.quot, d.rem), ctx);
-        }
-};
-
-template<>
-struct std::formatter<xstd::imaxdiv_t> : std::formatter<std::tuple<std::intmax_t const&, std::intmax_t const&>>
-{
-        auto format(xstd::imaxdiv_t const& d, auto& ctx) const
-        {
-                return std::formatter<std::tuple<std::intmax_t const&, std::intmax_t const&>>::format(std::tie(d.quot, d.rem), ctx);
+                return std::formatter<std::tuple<T const&, T const&>>::format(std::tie(d.quot, d.rem), ctx);
         }
 };
 
 namespace xstd {
 
 // narrow std::ostream only, not the full basic_ostream<charT, traits>
-// generality (no wide-character support): these exist solely so
-// Boost.Test can print div_t/ldiv_t/lldiv_t/imaxdiv_t values in test
-// diagnostics. Application code should format these types via
-// std::format/std::print directly rather than through operator<<.
-inline auto& operator<<(std::ostream& ostr, div_t const& d)
-{
-        return ostr << std::format("{}", d);
-}
-
-inline auto& operator<<(std::ostream& ostr, ldiv_t const& d)
-{
-        return ostr << std::format("{}", d);
-}
-
-inline auto& operator<<(std::ostream& ostr, lldiv_t const& d)
-{
-        return ostr << std::format("{}", d);
-}
-
-inline auto& operator<<(std::ostream& ostr, imaxdiv_t const& d)
+// generality (no wide-character support): this exists solely so Boost.Test
+// can print div_t values in test diagnostics. Application code should format
+// these types via std::format/std::print directly rather than through
+// operator<<.
+template<std::signed_integral T>
+auto& operator<<(std::ostream& ostr, div_t<T> const& d)
 {
         return ostr << std::format("{}", d);
 }

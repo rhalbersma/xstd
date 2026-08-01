@@ -81,7 +81,7 @@ jobs:
       # leaves NDEBUG undefined, which is what matters here, but it does so
       # by accident and is one preset change away from silently becoming
       # Release. CMake's Release adds -DNDEBUG, which rewrites every
-      # assert(...) to ((void)0) before it reaches the AST - 49 of them
+      # assert(...) to ((void)0) before it reaches the AST - 14 of them
       # across cstdlib.hpp and utility.hpp - and CodeQL's C/C++ extractor
       # runs alongside the compiler front-end, so it gains nothing from the
       # optimization level while losing all of that code. Matches
