@@ -137,6 +137,45 @@ not. Rust names the same operation
 [`unsigned_abs`](https://doc.rust-lang.org/std/primitive.i32.html#method.unsigned_abs)
 for the same reason; C++ has no equivalent, standard or in Boost.Math.
 
+### Why some return types are deduced and the rest are spelled out
+
+Every function in `<xstd/cstdlib.hpp>` with a return type worth naming spells
+it out as a trailing return type - except `uabs`, which deduces its own.
+`xstd::to_underlying` deduces for the same reason. This is not a style
+inconsistency; it is
+[CWG2369](https://cplusplus.github.io/CWG/issues/2369.html), "ordering between
+constraints and substitution".
+
+A constrained function template's associated constraints should be checked
+*before* the deduced arguments are substituted into the rest of the
+declaration. GCC does this. Clang did not until
+[Clang 21](https://github.com/llvm/llvm-project/pull/122423), which substitutes
+first, so a return type that instantiates a trait gets instantiated even for
+arguments the constraint would have rejected:
+
+    template<std::signed_integral T>
+    constexpr auto uabs(T x) noexcept -> std::make_unsigned_t<T>;
+
+    static_assert(!has_uabs<double>);   // hard error on Clang < 21
+
+`std::make_unsigned_t<double>` is ill-formed, not a substitution failure, so
+`uabs(1.0)` inside a requires-expression stops the compile instead of
+evaluating to `false`. `abs` and `sign` are immune because their return types
+(`T` and `int`) instantiate nothing; so are `div`, `euclidean_div` and
+`floored_div`, because forming `div_t<double>` fails the class template's own
+constraint in the immediate context, which *is* a substitution failure.
+
+Deducing `uabs`'s return type moves the trait from the signature into the body,
+where `std::signed_integral` has already rejected the argument. The rule for
+this library: spell the return type out unless it instantiates a trait over a
+template parameter, in which case deduce it.
+
+This is worth revisiting rather than keeping forever. The `Clang` and
+`Clang libc++` legs already run Clang 22 and newer, but `Clang-CL` uses
+whichever LLVM Visual Studio bundles - 19.1.5 for VS 2022 and 20.1.8 for
+VS 2026 - both of which predate the fix. When the oldest supported Clang is 21
+or later, both return types can be spelled out and this note deleted.
+
 ### The division contracts' back-multiplication check
 
 `numer == denom * q + r` is the strongest self-check a division function can
@@ -176,7 +215,20 @@ chosen by its sign, which never forms `-denom`:
     qE = denom > 0 ? qT - 1 : qT + 1
     rE = denom > 0 ? rT + denom : rT - denom
 
-`floored_div` needs no such care: it only ever scales `denom` by `0` or `1`.
+Both lines select a whole expression rather than adding a delta, because the
+delta they would have to add is `|denom|` - a value that does not exist in `T`
+when `denom == MIN`.
+
+`floored_div` needs no such care. Its delta is `denom` itself, which is
+representable by definition, so `I` is only ever `0` or `1` and both lines can
+add a conditional delta instead:
+
+    qF = qT - (adjust ? 1 : 0)
+    rF = rT + (adjust ? denom : 0)
+
+where `adjust` is `sign(rT) == -sign(denom)`. The two conventions therefore
+look deliberately different: each spells its adjustment in the form its own
+representability constraints allow.
 
 ### `xstd::div_t` formatting
 
