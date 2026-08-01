@@ -1,0 +1,31 @@
+#          Copyright Rein Halbersma 2014-2026.
+# Distributed under the Boost Software License, Version 1.0.
+#    (See accompanying file LICENSE_1_0.txt or copy at
+#          http://www.boost.org/LICENSE_1_0.txt)
+
+---
+# Static analysis for the Boost.Test sources. InheritParentConfig keeps the
+# root .clang-tidy's check selection, CheckOptions and WarningsAsErrors -
+# without it this file would replace that configuration rather than extend
+# it, and the tests would be analyzed by a different rulebook than the
+# headers they exercise.
+#
+# Note that this file does not reach the generated header self-sufficiency
+# translation units: those live under the build directory, so they resolve
+# to the root .clang-tidy and keep the stricter production rules.
+#
+# Only two checks are dropped, both aimed at production code and neither
+# saying anything true about a fixture:
+#
+# - performance-enum-size wants the smallest underlying type. The enums here
+#   exist to be handed to the enumeration concept and to xstd::to_underlying;
+#   the underlying type is the thing under test, not a size to minimize, and
+#   narrowing it to std::uint8_t would weaken what the checks pin.
+# - readability-magic-numbers wants every literal named. A table of inputs
+#   and expected results is nothing but literals, and naming them would move
+#   the test data away from the assertion that reads it - the value of a
+#   check like abs(T{-2}) == T{2} is that both numbers are visible at once.
+InheritParentConfig: true
+Checks: >
+  -performance-enum-size,
+  -readability-magic-numbers

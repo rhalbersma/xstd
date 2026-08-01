@@ -5,8 +5,10 @@
 
 ---
 # Static analysis for the public headers, run by the Clang-Tidy workflow
-# over the generated header self-sufficiency translation units (the
-# Boost.Test sources are excluded: test macros drown the signal in noise).
+# over the generated header self-sufficiency translation units. The
+# Boost.Test sources are analyzed by the same workflow under test/.clang-tidy,
+# which inherits everything here and drops the two checks that only misfire
+# on fixtures.
 Checks: >
   bugprone-*,
   clang-analyzer-*,
