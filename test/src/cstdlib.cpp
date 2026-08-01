@@ -226,32 +226,61 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(StreamInsertion, T, exact_width_types)
 // int8_t/../int64_t are aliases of the built-in types, but which alias maps
 // to which built-in one is platform-dependent: on LP64 int64_t is long and
 // long long is never instantiated above, on LLP64 it is the other way around.
-// One representative call per built-in width closes that gap without
-// registering a second test case for a type the list above already covers.
+// This battery closes that gap for whichever built-in width the exact-width
+// list happens to miss. A plain function template rather than a second
+// BOOST_AUTO_TEST_CASE_TEMPLATE, since the two lists overlap on every
+// platform and duplicate registration of a test case name is an error.
+//
+// It has to exercise both arms of every conditional rather than call each
+// function once. A single call per width leaves euclidean_div's and
+// floored_div's remainder adjustments half-covered, and leaves div_t's
+// formatter and operator<< instantiated - Boost.Test's printing machinery
+// instantiates them for anything it might have to report - but never
+// executed, since they only run when an assertion fails.
+template<std::signed_integral T>
+void check_built_in_width()
+{
+        using U = std::make_unsigned_t<T>;
+        using limits = std::numeric_limits<T>;
+
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(T{-2}), T{2});
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(T{+2}), T{2});
+
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::uabs(T{+2}), U{2});
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::uabs(limits::min()), static_cast<U>(static_cast<U>(limits::max()) + U{1}));
+
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(T{-2}), -1);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(T{0}), 0);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(T{+2}), +1);
+
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::div(T{+8}, T{+3}), (xstd::div_t<T>{+2, +2}));
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::div(T{-8}, T{+3}), (xstd::div_t<T>{-2, -2}));
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::div(T{-8}, T{-3}), (xstd::div_t<T>{+2, -2}));
+
+        // A nonnegative remainder, then a negative one against each sign of
+        // denom: all three arms of euclidean_div's adjustment, and both of
+        // floored_div's.
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::euclidean_div(T{+8}, T{+3}), (xstd::div_t<T>{+2, +2}));
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::euclidean_div(T{-8}, T{+3}), (xstd::div_t<T>{-3, +1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::euclidean_div(T{-8}, T{-3}), (xstd::div_t<T>{+3, +1}));
+
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(T{+8}, T{+3}), (xstd::div_t<T>{+2, +2}));
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(T{-8}, T{+3}), (xstd::div_t<T>{-3, +1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(T{-8}, T{-3}), (xstd::div_t<T>{+2, -2}));
+
+        BOOST_CHECK_EQUAL(std::format("{}", xstd::div_t<T>{1, -2}), "(1, -2)");
+
+        std::ostringstream oss;
+        oss << xstd::div_t<T>{1, -2};
+        BOOST_CHECK_EQUAL(oss.str(), "(1, -2)");
+}
+
 BOOST_AUTO_TEST_CASE(BuiltInWidths)
 {
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::div(-8, +3), (xstd::div_t{-2, -2}));
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::div(-8L, +3L), (xstd::div_t{-2L, -2L}));
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::div(-8LL, +3LL), (xstd::div_t{-2LL, -2LL}));
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::div(std::intmax_t{-8}, std::intmax_t{+3}), (xstd::div_t{std::intmax_t{-2}, std::intmax_t{-2}}));
-
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::euclidean_div(-8, +3), (xstd::div_t{-3, +1}));
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::euclidean_div(-8L, +3L), (xstd::div_t{-3L, +1L}));
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::euclidean_div(-8LL, +3LL), (xstd::div_t{-3LL, +1LL}));
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::euclidean_div(std::intmax_t{-8}, std::intmax_t{+3}), (xstd::div_t{std::intmax_t{-3}, std::intmax_t{+1}}));
-
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(-8, +3), (xstd::div_t{-3, +1}));
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(-8L, +3L), (xstd::div_t{-3L, +1L}));
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(-8LL, +3LL), (xstd::div_t{-3LL, +1LL}));
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(std::intmax_t{-8}, std::intmax_t{+3}), (xstd::div_t{std::intmax_t{-3}, std::intmax_t{+1}}));
-
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(-2), 2);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(-2L), 2L);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(-2LL), 2LL);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(std::intmax_t{-2}), std::intmax_t{2});
-
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::uabs(std::numeric_limits<long long>::min()), static_cast<unsigned long long>(std::numeric_limits<long long>::max()) + 1ULL);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(-2LL), -1);
+        check_built_in_width<int>();
+        check_built_in_width<long>();
+        check_built_in_width<long long>();
+        check_built_in_width<std::intmax_t>();
 }
 
 // Class template argument deduction: div_t{q, r} still spells the result of
