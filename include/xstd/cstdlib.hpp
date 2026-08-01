@@ -47,7 +47,7 @@ template<std::signed_integral T>
         -> T
 {
         assert(x != std::numeric_limits<T>::min()); // -x would overflow
-        return x < 0 ? static_cast<T>(-x) : x;
+        return static_cast<T>(x < 0 ? -x : x);
 }
 
 // The total counterpart of abs: same |x|, but returning the unsigned type, so
