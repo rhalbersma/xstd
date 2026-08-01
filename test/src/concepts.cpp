@@ -53,7 +53,7 @@ template<class T>
 struct box
 {
         T value;
-        [[nodiscard]] constexpr auto operator==(box const&) const noexcept -> bool = default;
+        [[nodiscard]] friend constexpr auto operator==(box const&, box const&) noexcept -> bool = default;
 };
 
 template<specialization_of<box> T>
