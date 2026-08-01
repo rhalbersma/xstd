@@ -4,6 +4,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/concepts.hpp>        // enumeration, specialization_of
+#include <xstd/type_traits.hpp>     // empty_type, is_specialization_of_v
 #include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <complex>                  // complex
@@ -51,6 +52,12 @@ BOOST_AUTO_TEST_CASE(SpecializationOf)
         XSTD_CONSTEXPR_CHECK((!specialization_of<int, std::complex>));
         XSTD_CONSTEXPR_CHECK((!specialization_of<std::tuple<int>, std::complex>));
         XSTD_CONSTEXPR_CHECK((!specialization_of<std::complex<int>&, std::complex>));
+
+        // nothing in the concept is specific to the standard library. The
+        // library's own class template is a program-defined primary like any
+        // other, with its tag declared in place
+        XSTD_CONSTEXPR_CHECK((specialization_of<empty_type<struct user_tag>, empty_type>));
+        XSTD_CONSTEXPR_CHECK((!specialization_of<int, empty_type>));
 
         // the concept agrees with the trait it is spelled over
         XSTD_CONSTEXPR_CHECK((specialization_of<std::complex<int>, std::complex> == is_specialization_of_v<std::complex<int>, std::complex>));
