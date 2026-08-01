@@ -45,7 +45,8 @@ struct empty_type
         // a hidden friend, so it is found by argument-dependent lookup only;
         // still implicitly declares the defaulted operator== that lets an
         // enclosing class default its own comparisons over this member
-        [[nodiscard]] friend constexpr auto operator<=>(empty_type const&, empty_type const&) noexcept = default;
+        [[nodiscard]] friend constexpr auto operator<=>(empty_type const&, empty_type const&) noexcept
+                -> std::strong_ordering = default;
 };
 
 // Tag names the member, not the type it stands in for: two
