@@ -15,7 +15,8 @@ BOOST_AUTO_TEST_SUITE(Concepts)
 
 enum unscoped { u0 };
 enum class scoped : unsigned { s0 };
-struct not_an_enum {};
+struct not_an_enum
+{};
 
 BOOST_AUTO_TEST_CASE(Enumeration)
 {
