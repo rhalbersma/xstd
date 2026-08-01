@@ -138,7 +138,7 @@ template<std::signed_integral T>
         -> div_t<T>
 {
         assert(denom != 0);
-        assert(not (numer == std::numeric_limits<T>::min() and denom == -1));
+        assert(numer != std::numeric_limits<T>::min() or denom != -1);
         auto const qT = static_cast<T>(numer / denom);
         auto const rT = static_cast<T>(numer % denom);
         // Safe in T at every width, with no widening: denom * qT is exactly
