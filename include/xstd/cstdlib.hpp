@@ -78,7 +78,7 @@ template<std::signed_integral T>
         // exactly the value the wider unsigned types get directly. The zero
         // needs no type of its own: the usual arithmetic conversions give the
         // subtraction the same type either way.
-        return x < 0 ? static_cast<U>(0 - u) : u;
+        return static_cast<U>(x < 0 ? 0 - u : u);
 }
 
 // not part of <cstdlib>, but kept to the same shape as abs/uabs above. The
