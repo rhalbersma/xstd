@@ -11,7 +11,7 @@ it does.
 Three themes run across the otherwise unrelated headers:
 
 - **`constexpr` all the things.** Every function xstd adds - the division
-  family, `abs`/`uabs`/`sign`, `array_from_types`, `to_underlying` -
+  family, `abs`/`uabs`/`sign`, `to_underlying`, `aligned_size` -
   is `constexpr`, including the ones that don't strictly need to be for
   their primary use case. A library whose whole point is "make small,
   general-purpose facilities available early" is of limited use if it
