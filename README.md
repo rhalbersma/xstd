@@ -18,7 +18,7 @@ xstd is a header-only C++23 library for small standard-library extensions that c
 | Header                   | Additions          | Description | Reference |
 | :-----                   | :--------          | :---------- | :-------- |
 | `<xstd/array.hpp>`       | `array_from_types` | Create an `array` from a type list | none |
-| `<xstd/cstdlib.hpp>`     | `sign`/`lsign`/`llsign`/`imaxsign` <br> `abs`/`labs`/`llabs`/`imaxabs` <br> `uabs`/`ulabs`/`ullabs`/`uimaxabs` <br> `div`/`ldiv`/`lldiv`/`imaxdiv` <br> `div_t`/`ldiv_t`/`lldiv_t`/`imaxdiv_t` <br> `euclidean_div` and siblings <br> `floored_div` and siblings | `constexpr` support <br> `constexpr` support <br> Total `\|x\|`, returning the unsigned type <br> `constexpr` support <br> `std::format` support, defaulted equality comparison <br> Euclidean division, at all 4 widths <br> Floored division, at all 4 widths | [Boost.Math](https://www.boost.org/doc/libs/1_80_0/libs/math/doc/html/math_toolkit/sign_functions.html) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Rust `unsigned_abs`](https://doc.rust-lang.org/std/primitive.i32.html#method.unsigned_abs) (no C++ equivalent) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [p2286r8](https://wg21.link/p2286r8) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) |
+| `<xstd/cstdlib.hpp>`     | `sign` <br> `abs` <br> `uabs` <br> `div` <br> `div_t` <br> `euclidean_div` <br> `floored_div` | `constexpr`, any signed integral type <br> `constexpr`, any signed integral type <br> Total `\|x\|`, returning the unsigned type <br> `constexpr`, any signed integral type <br> `std::format` support, defaulted equality comparison <br> Euclidean division <br> Floored division | [Boost.Math](https://www.boost.org/doc/libs/1_80_0/libs/math/doc/html/math_toolkit/sign_functions.html) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Rust `unsigned_abs`](https://doc.rust-lang.org/std/primitive.i32.html#method.unsigned_abs) (no C++ equivalent) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [p2286r8](https://wg21.link/p2286r8) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) |
 | `<xstd/type_traits.hpp>` | `is_specialization_of` <br> `is_integral_constant` <br> `tagged_empty` <br> `optional_type` | Is a type a class template specialization? <br> Is a type an `integral_constant`? <br> A tagged empty type <br> An optional type | [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> none <br> none <br> none |
 | `<xstd/utility.hpp>`     | `to_underlying` <br> `aligned_size` | `std::integral_constant` overload <br> Round a size up to a multiple of an alignment | none <br> none |
 
@@ -88,10 +88,11 @@ static_assert(xstd::aligned_size(100, 64) == 128);
 
 ### Absolute value without a precondition
 
-`xstd::abs` mirrors `<cstdlib>`: it returns the signed type, so the most negative value is outside its contract. `xstd::uabs` returns the unsigned type, which can represent that magnitude, and so has no precondition:
+`xstd::abs` returns the signed type, like `<cstdlib>`'s, so the most negative value is outside its contract. `xstd::uabs` returns the unsigned type, which can represent that magnitude, and so has no precondition:
 
 ```cpp
 #include <climits>
+#include <cstdint>
 #include <xstd/cstdlib.hpp>
 
 static_assert(xstd::abs(-2) == 2);
@@ -99,9 +100,11 @@ static_assert(xstd::uabs(-2) == 2u);
 
 // |INT_MIN| is one past INT_MAX, so only the unsigned form can return it
 static_assert(xstd::uabs(INT_MIN) == static_cast<unsigned>(INT_MAX) + 1u);
-```
 
-`ulabs`, `ullabs`, and `uimaxabs` cover `long`, `long long`, and `intmax_t`, following the same naming as `labs`/`llabs`/`imaxabs`.
+// one template per operation, so every signed integral width is covered,
+// including the two the labs/llabs/imaxabs naming has no name for
+static_assert(xstd::uabs(std::int8_t{-128}) == std::uint8_t{128});
+```
 
 ### Division helpers
 
@@ -122,13 +125,21 @@ static_assert(floored.rem == 1);
 auto const text = std::format("{}", floored); // "(-3, 1)"
 ```
 
-`xstd::div`, `xstd::euclidean_div`, and `xstd::floored_div` require a nonzero denominator. Like built-in signed integer division, `INT_MIN / -1` is outside their contract for `int` inputs. `xstd::div` follows C++'s truncated division semantics, `xstd::euclidean_div` always returns a nonnegative remainder, and `xstd::floored_div` returns a remainder with the divisor's sign unless the remainder is zero. Each has 3 wider siblings following `<cstdlib>`/`<cinttypes>`'s own naming: `ldiv`/`euclidean_ldiv`/`floored_ldiv` for `long`, `lldiv`/`euclidean_lldiv`/`floored_lldiv` for `long long`, and `imaxdiv`/`euclidean_imaxdiv`/`floored_imaxdiv` for `intmax_t`, returning `xstd::ldiv_t`, `xstd::lldiv_t`, and `xstd::imaxdiv_t` respectively.
+`xstd::div`, `xstd::euclidean_div`, and `xstd::floored_div` require a nonzero denominator. Like built-in signed integer division, `MIN / -1` is outside their contract. `xstd::div` follows C++'s truncated division semantics, `xstd::euclidean_div` always returns a nonnegative remainder, and `xstd::floored_div` returns a remainder with the divisor's sign unless the remainder is zero. Each returns `xstd::div_t<T>` for its argument type `T`; class template argument deduction means the result can still be written `xstd::div_t{quot, rem}`.
 
-Formatting any of these 4 `div_t`-like types requires C++23 standard-library support for formatting tuple-like values. This is covered by the continuously tested compiler and standard-library versions below. Prefer `std::format`/`std::print` over the types' `operator<<`, which exists only for test-framework diagnostics.
+Formatting `xstd::div_t` requires C++23 standard-library support for formatting tuple-like values. This is covered by the continuously tested compiler and standard-library versions below. Prefer `std::format`/`std::print` over its `operator<<`, which exists only for test-framework diagnostics.
 
-`xstd::abs`, `xstd::labs`, `xstd::llabs`, and `xstd::imaxabs` mirror `<cstdlib>`'s own `abs`/`labs`/`llabs` and `<cinttypes>`'s `imaxabs`: signed integral arguments only, no unsigned support. As with the built-in unary minus, the most negative value of each parameter type is outside its contract (guarded by an `assert`), just like `INT_MIN / -1` is for the division helpers. `xstd::sign`, `xstd::lsign`, `xstd::llsign`, and `xstd::imaxsign` aren't part of `<cstdlib>`, but follow the same 4-width naming, each always returning a plain `int`.
+### Width and constraints
 
-See [doc/design.md](doc/design.md) for the rationale behind these APIs' shapes (why non-template, why `imax`-prefixed names, etc.).
+Every function in `<xstd/cstdlib.hpp>` is a single function template constrained to `std::signed_integral`, rather than the four fixed-width overloads (`abs`/`labs`/`llabs`/`imaxabs` and friends) `<cstdlib>` and `<cinttypes>` declare. Three consequences at the call site:
+
+- **Every signed integral width is covered**, including `std::int8_t` and `std::int16_t`, which the `<cstdlib>` naming has no name for. 128-bit integers are the exception: `__int128` doesn't satisfy `std::integral` in the strictly conforming dialect this library targets, so it is not supported.
+- **The result type is the argument type, not the promoted type.** `xstd::abs` of an `std::int16_t` is an `std::int16_t`, and its precondition is `std::int16_t`'s — the most negative value of the *argument* type is outside its contract (guarded by an `assert`), just like `MIN / -1` is for the division helpers. Callers who want the old promoting behavior write `xstd::abs(+x)` or `xstd::abs<int>(x)`.
+- **Two-argument templates deduce one `T` from both arguments**, so a mixed-width call like `xstd::div(8, 3L)` is a deduction failure rather than a silent conversion. Spell the intent as `xstd::div<long>(8, 3L)`.
+
+`xstd::sign` isn't part of `<cstdlib>`, and always returns a plain `int` whatever its argument's width.
+
+See [doc/design.md](doc/design.md) for the rationale behind these APIs' shapes (why one template rather than four overloads, why 128-bit integers are out).
 
 ### Type traits
 
