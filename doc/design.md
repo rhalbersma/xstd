@@ -139,36 +139,44 @@ for the same reason; C++ has no equivalent, standard or in Boost.Math.
 
 ### The division contracts' back-multiplication check
 
-The strongest self-check the division functions can make is
-`numer == denom * q + r`, and it is only meaningful evaluated in a type wide
-enough that the multiplication itself cannot overflow. As four separate
-overloads, only `div` made it: `long long` holds the product of *any* two
-`int`s, but there is no portable type wider than `long long`/`intmax_t` to
-give `ldiv`/`lldiv`/`imaxdiv` the same guarantee, so those three carried a
-weaker contract with no way to say so once.
+`numer == denom * q + r` is the strongest self-check a division function can
+make, but it is only worth making once. For truncated division it is a real
+check: it holds the built-in `/` and `%` against each other, and it needs no
+widening to evaluate, because `denom * qT` is exactly `numer - rT` and `rT`
+carries `numer`'s sign, so the product lies between `0` and `numer` inclusive
+and is representable wherever `numer` is.
 
-"Any two `int`s" is the wrong bound, though. The operands are not arbitrary
-values of `T`; `q` is `numer` divided by `denom`, which pins the product much
-more tightly - and pins it differently for each convention:
+For the two adjusted conventions it is a tautology. Both compute
+`q' = qT - I` and `r' = rT + I * denom`, so
 
-- **Truncated division needs no widening at all.** `denom * qT` is exactly
-  `numer - rT`, and `rT` carries `numer`'s sign, so the product lies between
-  `0` and `numer` inclusive and is representable wherever `numer` is. `div`
-  asserts the identity in `T` itself, unconditionally - which finally gives
-  the check at `intmax_t` width, where neither the old `imaxdiv` nor a
-  `sizeof`-gated template would have had it.
-- **The adjusted quotients do need it.** `euclidean_div` and `floored_div`
-  move the remainder across zero, so `denom * q = numer - r` can land one unit
-  of `|denom|` outside `T`: for `int32_t`, `numer == INT32_MIN` with
-  `denom == 3` gives `denom * qE == INT32_MIN - 1`. An exhaustive sweep of
-  every in-contract `int8_t` pair finds 5698 such products for Euclidean and
-  5825 for floored, against zero for truncated. The excess is bounded by
-  `|numer| + |denom| < 2^N`, so one extra bit suffices and any wider signed
-  type will do.
+    denom * q' + r' = denom * (qT - I) + rT + I * denom = denom * qT + rT
 
-The gate `sizeof(T) < sizeof(intmax_t)` therefore applies only to the two
-adjusted conventions, and only they fall back to the sign and magnitude
-assertions at the widest width.
+which is `numer` by the check `div` has already made. Asserting it again in
+`euclidean_div` and `floored_div` could only fire where `div`'s own assertion
+had already fired - and, because the adjusted product *can* exceed `T`, doing
+so would have required carrying an `intmax_t` widening and a `sizeof`-based
+gate purely to restate something already known. Those two assertions, and the
+machinery they needed, are gone. What remains for each convention is what
+actually constrains it: the magnitude bound `|r| < |denom|` and its own sign
+rule.
+
+### Why `euclidean_div` adds or subtracts `denom` instead of scaling it
+
+Dropping the identity assertion removes the only thing that would have
+tripped over `I * denom`, which is worth spelling out because that expression
+was unsound on its own terms. `euclidean_div` selects `I == -1` when the
+truncated remainder is negative and `denom` is negative, and `denom == MIN` is
+in contract - so `I * denom` forms `-MIN`, which is not representable. That is
+undefined behavior for `int` and wider; below `int`, integer promotion happens
+to evaluate it in `int` and hide it.
+
+The adjustment is therefore spelled as an addition or a subtraction of `denom`
+chosen by its sign, which never forms `-denom`:
+
+    qE = denom > 0 ? qT - 1 : qT + 1
+    rE = denom > 0 ? rT + denom : rT - denom
+
+`floored_div` needs no such care: it only ever scales `denom` by `0` or `1`.
 
 ### `xstd::div_t` formatting
 

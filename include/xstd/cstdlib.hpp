@@ -8,7 +8,6 @@
 
 #include <cassert>     // assert
 #include <concepts>    // signed_integral
-#include <cstdint>     // intmax_t
 #include <format>      // format, formatter
 #include <limits>      // numeric_limits
 #include <ostream>     // ostream
@@ -91,31 +90,6 @@ struct div_t
 template<std::signed_integral T>
 div_t(T, T) -> div_t<T>;
 
-namespace detail {
-
-// Whether the back-multiplication self-check numer == denom * q + r can be
-// evaluated without the product overflowing depends on which q it is.
-//
-// For truncated division it always can, in T itself: denom * qT is exactly
-// numer - rT, and rT carries numer's sign, so the product lies between 0 and
-// numer inclusive and is representable wherever numer is. No widening, at
-// any width.
-//
-// The adjusted quotients are the ones that need room. euclidean_div and
-// floored_div move the remainder across zero, so denom * q = numer - r can
-// land one unit of |denom| outside T - int32_t's numer == INT32_MIN with
-// denom == 3 gives denom * qE == INT32_MIN - 1. The excess is bounded by
-// |numer| + |denom| < 2^N for an N-bit T, so one extra bit is enough and any
-// wider signed type will do; intmax_t is the widest portably available. For a
-// T that is already intmax_t-wide there is nothing to widen to, and the sign
-// and magnitude assertions have to carry the contract on their own - the same
-// tradeoff the non-template ldiv/lldiv/imaxdiv made, now stated once and
-// applied only where it actually bites.
-template<std::signed_integral T>
-inline constexpr auto has_wider_type = sizeof(T) < sizeof(std::intmax_t);
-
-} // namespace detail
-
 // C++ Standard [expr.mul]/4
 // https://en.wikipedia.org/wiki/Modulo_operation
 // http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf
@@ -132,7 +106,14 @@ template<std::signed_integral T>
         assert(!(numer == std::numeric_limits<T>::min() && denom == -1));
         auto const qT = static_cast<T>(numer / denom);
         auto const rT = static_cast<T>(numer % denom);
-        assert(numer == (denom * qT) + rT); // see detail::has_wider_type: safe in T at every width
+        // Safe in T at every width, with no widening: denom * qT is exactly
+        // numer - rT, and rT carries numer's sign, so the product lies between
+        // 0 and numer inclusive and is representable wherever numer is. This
+        // is the only one of the three conventions where the identity is worth
+        // asserting - it checks the built-in / and % against each other. For
+        // the two below it is an algebraic consequence of how they adjust qT
+        // and rT, so it could only fail if this one had already failed.
+        assert(numer == (denom * qT) + rT);
         assert(uabs(rT) < uabs(denom));
         assert(sign(rT) == sign(numer) || rT == 0);
         return {.quot = qT, .rem = rT};
@@ -146,12 +127,17 @@ template<std::signed_integral T>
 {
         assert(denom != 0);
         auto const divT = div(numer, denom);
-        auto const I = divT.rem >= 0 ? T{0} : (denom > 0 ? T{1} : T{-1});
-        auto const qE = static_cast<T>(divT.quot - I);
-        auto const rE = static_cast<T>(divT.rem + (I * denom));
-        if constexpr (detail::has_wider_type<T>) {
-                assert(static_cast<std::intmax_t>(numer) == (static_cast<std::intmax_t>(denom) * qE) + rE);
+        if (divT.rem >= 0) {
+                return divT;
         }
+        // A negative truncated remainder is moved up by one |denom|, and the
+        // quotient compensated in the matching direction. Spelled as an add or
+        // a subtract of denom rather than as rem + I * denom with I == -1:
+        // denom == MIN is in contract here and -MIN is not representable, so
+        // the multiplication would overflow. (floored_div below only ever
+        // scales denom by 0 or 1, so it has no such case.)
+        auto const qE = static_cast<T>(denom > 0 ? divT.quot - 1 : divT.quot + 1);
+        auto const rE = static_cast<T>(denom > 0 ? divT.rem + denom : divT.rem - denom);
         assert(uabs(rE) < uabs(denom));
         assert(sign(rE) >= 0);
         return {.quot = qE, .rem = rE};
@@ -169,9 +155,6 @@ template<std::signed_integral T>
         auto const I = sign(divT.rem) == -sign(denom) ? T{1} : T{0};
         auto const qF = static_cast<T>(divT.quot - I);
         auto const rF = static_cast<T>(divT.rem + (I * denom));
-        if constexpr (detail::has_wider_type<T>) {
-                assert(static_cast<std::intmax_t>(numer) == (static_cast<std::intmax_t>(denom) * qF) + rF);
-        }
         assert(uabs(rF) < uabs(denom));
         assert(rF == 0 || sign(rF) == sign(denom));
         return {.quot = qF, .rem = rF};

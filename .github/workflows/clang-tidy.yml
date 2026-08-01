@@ -82,7 +82,7 @@ jobs:
       # leaves NDEBUG undefined, which is what matters here, but it does so
       # by accident and is one preset change away from silently becoming
       # Release. CMake's Release adds -DNDEBUG, which rewrites every
-      # assert(...) to ((void)0) before it reaches the AST - 16 of them
+      # assert(...) to ((void)0) before it reaches the AST - 14 of them
       # across cstdlib.hpp and utility.hpp - which would disable
       # bugprone-assert-side-effect outright and strip the assertions
       # clang-analyzer-* uses to prune infeasible paths. Matches codeql.yml.

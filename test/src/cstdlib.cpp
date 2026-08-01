@@ -202,6 +202,16 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(BoundaryDivisions, T, exact_width_types)
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::euclidean_div(T{+1}, min), (xstd::div_t<T>{0, +1}));
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(T{+1}, min), (xstd::div_t<T>{-1, static_cast<T>(min + 1)}));
 
+        // denom == MIN again, but with a negative remainder, which is what
+        // selects euclidean_div's negative adjustment. Computing that one as
+        // rem + I * denom would form -MIN and overflow; being a constant
+        // expression, this check catches that at compile time as well as
+        // under a sanitizer. Promotion hides it below int, so the wider
+        // instantiations of this case are the ones that matter.
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::div(T{-1}, min), (xstd::div_t<T>{0, -1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::euclidean_div(T{-1}, min), (xstd::div_t<T>{+1, max}));
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(T{-1}, min), (xstd::div_t<T>{0, -1}));
+
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::div(max, T{-1}), (xstd::div_t<T>{static_cast<T>(-max), 0}));
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::euclidean_div(max, T{-1}), (xstd::div_t<T>{static_cast<T>(-max), 0}));
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(max, T{-1}), (xstd::div_t<T>{static_cast<T>(-max), 0}));
