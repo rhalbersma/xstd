@@ -84,9 +84,12 @@ foreach(h ${public_headers})
     string(REPLACE "/" "." header_test_id ${h})
     string(REGEX REPLACE "[.]hpp$" "" header_test_id ${header_test_id})
     set(header_test_source ${CMAKE_CURRENT_BINARY_DIR}/header_self_sufficiency/${header_test_id}.cpp)
+    # main is spelled with a trailing return type because these generated
+    # sources are also what clang-tidy runs over, and modernize-use-trailing-
+    # return-type (enabled, like the rest of modernize-*) flags "int main()".
     file(
         WRITE ${header_test_source}
-        "#include <${h}>\nint main() {}\n"
+        "#include <${h}>\nauto main() -> int {}\n"
     )
 
     add_executable(header.${header_test_id} ${header_test_source})
