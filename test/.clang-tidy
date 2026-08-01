@@ -14,9 +14,19 @@
 # translation units: those live under the build directory, so they resolve
 # to the root .clang-tidy and keep the stricter production rules.
 #
-# Only two checks are dropped, both aimed at production code and neither
-# saying anything true about a fixture:
+# Four checks are dropped, none of them saying anything true about a fixture:
 #
+# - misc-use-internal-linkage wants every non-exported entity given internal
+#   linkage. Most of what it flags here is not ours to move: BOOST_AUTO_TEST_CASE
+#   expands to a struct at namespace scope, so every test case in the suite
+#   draws a finding that could only be silenced one NOLINT at a time. This is
+#   the check the workflow's old "test macros drown the signal in noise"
+#   comment was describing - it is a real effect, just a one-check one.
+# - modernize-use-designated-initializers wants div_t{.quot = q, .rem = r}.
+#   The positional spelling is the thing under test in DeducedDivT, which
+#   pins that div_t{q, r} still deduces the way the four <cstdlib> names used
+#   to; and the expected-result tables are laid out four to a line so they
+#   can be read against the inputs above them, which designators would end.
 # - performance-enum-size wants the smallest underlying type. The enums here
 #   exist to be handed to the enumeration concept and to xstd::to_underlying;
 #   the underlying type is the thing under test, not a size to minimize, and
@@ -27,5 +37,7 @@
 #   check like abs(T{-2}) == T{2} is that both numbers are visible at once.
 InheritParentConfig: true
 Checks: >
+  -misc-use-internal-linkage,
+  -modernize-use-designated-initializers,
   -performance-enum-size,
   -readability-magic-numbers

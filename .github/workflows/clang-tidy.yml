@@ -112,10 +112,11 @@ jobs:
             "$GITHUB_WORKSPACE/build/test/header_self_sufficiency/.*" \
             2>&1 | tee clang-tidy-report.txt
 
-      # The Boost.Test sources, under test/.clang-tidy. Analyzed second
-      # rather than in the same pass, so that a finding names the tree whose
-      # rulebook it came from; a red headers step stops this one, which is
-      # the right order to fix them in anyway.
+      # The Boost.Test sources, under test/.clang-tidy, which inherits the
+      # root configuration and drops the three checks that only misfire on
+      # fixtures. Analyzed second rather than in the same pass, so that a
+      # finding names the tree whose rulebook it came from; a red headers
+      # step stops this one, which is the right order to fix them in anyway.
       - name: Run clang-tidy over the test sources
         shell: bash
         run: |

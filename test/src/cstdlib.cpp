@@ -6,7 +6,7 @@
 #include <xstd/cstdlib.hpp>         // abs, uabs, sign, div_t, div, euclidean_div, floored_div
 #include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK_EQUAL
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_CHECK_EQUAL, BOOST_CHECK_EQUAL_COLLECTIONS
-#include <algorithm>                // transform
+#include <algorithm>                // ranges::transform
 #include <array>                    // array
 #include <concepts>                 // same_as, signed_integral
 #include <cstdint>                  // int8_t, int16_t, int32_t, int64_t, intmax_t
@@ -338,7 +338,7 @@ BOOST_AUTO_TEST_CASE(StdDiv)
         // clang-format on
 
         std::vector<xstd::div_t<int>> std_res;
-        std::transform(input.begin(), input.end(), std::back_inserter(std_res), [](auto const& p) -> xstd::div_t<int> {
+        std::ranges::transform(input, std::back_inserter(std_res), [](auto const& p) -> xstd::div_t<int> {
                 auto const d = std::div(p.first, p.second);
                 return {d.quot, d.rem};
         });
