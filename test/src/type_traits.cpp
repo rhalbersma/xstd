@@ -8,7 +8,7 @@
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <compare>                  // strong_ordering
 #include <complex>                  // complex
-#include <type_traits>              // integral_constant, is_constructible_v, is_convertible_v, is_empty_v, is_nothrow_constructible_v, is_nothrow_default_constructible_v, is_same_v, is_trivially_constructible_v, is_trivially_copyable_v
+#include <type_traits>              // false_type, integral_constant, is_constructible_v, is_convertible_v, is_empty_v, is_nothrow_constructible_v, is_nothrow_default_constructible_v, is_same_v, is_trivially_constructible_v, is_trivially_copyable_v, true_type
 
 using namespace xstd;
 
