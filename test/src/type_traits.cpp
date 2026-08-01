@@ -6,8 +6,9 @@
 #include <xstd/type_traits.hpp>     // is_specialization_of, is_integral_constant, empty_type, conditional_data_member_t
 #include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
+#include <compare>                  // strong_ordering
 #include <complex>                  // complex
-#include <type_traits>              // integral_constant, is_constructible_v, is_convertible_v, is_empty_v, is_same_v, is_trivially_constructible_v, is_trivially_copyable_v
+#include <type_traits>              // integral_constant, is_constructible_v, is_convertible_v, is_empty_v, is_nothrow_constructible_v, is_nothrow_default_constructible_v, is_same_v, is_trivially_constructible_v, is_trivially_copyable_v
 
 using namespace xstd;
 
@@ -78,9 +79,18 @@ BOOST_AUTO_TEST_CASE(EmptyType)
         XSTD_CONSTEXPR_CHECK((std::is_trivially_constructible_v<empty1, empty1 const&>));
         XSTD_CONSTEXPR_CHECK((std::is_trivially_constructible_v<empty1, empty1&&>));
 
-        // stateless: all instances compare equal, regardless of construction
+        // neither constructor can throw
+        XSTD_CONSTEXPR_CHECK(std::is_nothrow_default_constructible_v<empty1>);
+        XSTD_CONSTEXPR_CHECK((std::is_nothrow_constructible_v<empty1, int, double>));
+
+        // stateless: all instances compare equal, regardless of construction.
+        // operator<=> is a hidden friend, so these also pin that ADL finds it
+        // and that it still implies a defaulted operator==
         XSTD_CONSTEXPR_CHECK(empty1(1, 2.0) == empty1());
         XSTD_CONSTEXPR_CHECK(empty1() == empty1(42));
+        XSTD_CONSTEXPR_CHECK((empty1() <=> empty1()) == std::strong_ordering::equal);
+        XSTD_CONSTEXPR_CHECK(noexcept(empty1() == empty1()));
+        XSTD_CONSTEXPR_CHECK(noexcept(empty1() <=> empty1()));
 }
 
 // the tag can be declared in place, in the template argument list itself,
