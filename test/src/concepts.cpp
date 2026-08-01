@@ -42,29 +42,6 @@ template<specialization_of<std::complex> T>
 template<class T>
 concept has_as_complex = requires (T t) { as_complex(t); };
 
-// A local class template stands in for std::complex wherever a value has to
-// be constructed. The MSVC STL deprecates std::complex's constructor for any
-// element type other than float, double or long double (STL4037), and these
-// tests build with warnings as errors; box keeps the round-trip check free of
-// that entanglement, and free of any element type's own semantics. Merely
-// naming std::complex<int> stays fine, which is all the trait-level checks
-// below do.
-template<class T>
-struct box
-{
-        T value;
-        [[nodiscard]] friend constexpr auto operator==(box const&, box const&) noexcept -> bool = default;
-};
-
-template<specialization_of<box> T>
-[[nodiscard]] constexpr auto unwrap(T b) noexcept
-{
-        return b.value;
-}
-
-template<class T>
-concept has_unwrap = requires (T t) { unwrap(t); };
-
 BOOST_AUTO_TEST_CASE(SpecializationOf)
 {
         XSTD_CONSTEXPR_CHECK((specialization_of<std::complex<int>, std::complex>));
@@ -83,11 +60,16 @@ BOOST_AUTO_TEST_CASE(SpecializationOf)
         XSTD_CONSTEXPR_CHECK(has_as_complex<std::complex<double>>);
         XSTD_CONSTEXPR_CHECK(!has_as_complex<int>);
 
-        // and the constrained template actually runs for a matching argument
-        XSTD_CONSTEXPR_CHECK((specialization_of<box<int>, box>));
-        XSTD_CONSTEXPR_CHECK(has_unwrap<box<int>>);
-        XSTD_CONSTEXPR_CHECK(!has_unwrap<int>);
-        XSTD_CONSTEXPR_CHECK_EQUAL(unwrap(box<int>{42}), 42);
+        // and the constrained template actually runs for a matching argument,
+        // which the two checks above cannot show: a requires-expression's
+        // operand is unevaluated, so a body that is ill-formed on
+        // instantiation would still leave has_as_complex true. double rather
+        // than int as the element type because the MSVC STL deprecates
+        // std::complex's constructor for anything but the floating-point ones
+        // (STL4037) and these tests build with warnings as errors; merely
+        // naming std::complex<int> stays fine, which is all the checks above
+        // do.
+        XSTD_CONSTEXPR_CHECK_EQUAL((as_complex(std::complex<double>{1.0, 2.0})), (std::complex<double>{1.0, 2.0}));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
