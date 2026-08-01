@@ -110,7 +110,8 @@ struct div_t
         // ordinary "ostr << d;" statement does. The body names the formatter
         // specialization declared below this class, which is fine: a friend
         // definition is only instantiated at its point of use.
-        friend auto operator<<(std::ostream& ostr, div_t const& d) -> std::ostream&
+        friend auto operator<<(std::ostream& ostr, div_t const& d)
+                -> std::ostream&
         {
                 return ostr << std::format("{}", d);
         }
