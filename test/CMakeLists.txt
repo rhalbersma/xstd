@@ -39,7 +39,7 @@ set(cxx_compile_options_warnings
         # defaulted comparisons quiet, which reach Clang as -Wpre-c++20-compat.
         # -Wc++20-compat is a separate group those two do not cover, and it
         # fires on exactly one construct here - the implicit typename in
-        # unsigned_counterpart_t, which is the spelling clang-tidy's
+        # make_unsigned_like_t, which is the spelling clang-tidy's
         # readability-redundant-typename requires. Without this the two tools
         # deadlock over a single token.
         -Wno-c++20-compat

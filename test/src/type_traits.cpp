@@ -3,7 +3,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/type_traits.hpp>        // is_specialization_of, is_integral_constant, empty_type, conditional_data_member_t, unsigned_counterpart_t
+#include <xstd/type_traits.hpp>        // is_specialization_of, is_integral_constant, empty_type, conditional_data_member_t, make_unsigned_like_t
 #include <xstd/test/constexpr.hpp>     // XSTD_CONSTEXPR_CHECK
 #include <xstd/test/integer_class.hpp> // signed_integer_class, unsigned_integer_class
 #include <boost/test/unit_test.hpp>    // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
@@ -127,38 +127,38 @@ BOOST_AUTO_TEST_CASE(ConditionalDataMember)
 // requires-expression whose operand is invalid *and* non-dependent is a hard
 // error on GCC, so the type has to stay a template parameter.
 template<class T>
-concept has_unsigned_counterpart = requires { typename xstd::unsigned_counterpart_t<T>; };
+concept has_make_unsigned_like = requires { typename xstd::make_unsigned_like_t<T>; };
 
-BOOST_AUTO_TEST_CASE(UnsignedCounterpart)
+BOOST_AUTO_TEST_CASE(MakeUnsignedLike)
 {
         // agrees with std::make_unsigned wherever std::make_unsigned answers
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::unsigned_counterpart_t<std::int8_t>, std::uint8_t>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::unsigned_counterpart_t<std::int16_t>, std::uint16_t>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::unsigned_counterpart_t<std::int32_t>, std::uint32_t>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::unsigned_counterpart_t<std::int64_t>, std::uint64_t>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::unsigned_counterpart_t<int>, std::make_unsigned_t<int>>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::unsigned_counterpart_t<unsigned>, unsigned>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<std::int8_t>, std::uint8_t>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<std::int16_t>, std::uint16_t>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<std::int32_t>, std::uint32_t>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<std::int64_t>, std::uint64_t>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<int>, std::make_unsigned_t<int>>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<unsigned>, unsigned>));
 
         // and answers "no" where std::make_unsigned is a hard error instead:
         // that is the whole point of an empty primary template. Each of these
         // would stop the compile rather than evaluate to false if the trait
         // inherited from std::make_unsigned unconditionally.
-        XSTD_CONSTEXPR_CHECK(not has_unsigned_counterpart<bool>);
-        XSTD_CONSTEXPR_CHECK(not has_unsigned_counterpart<double>);
-        XSTD_CONSTEXPR_CHECK(not has_unsigned_counterpart<int*>);
-        XSTD_CONSTEXPR_CHECK(not has_unsigned_counterpart<color>);
-        XSTD_CONSTEXPR_CHECK(not has_unsigned_counterpart<std::complex<double>>);
-        XSTD_CONSTEXPR_CHECK(not has_unsigned_counterpart<void>);
+        XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<bool>);
+        XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<double>);
+        XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<int*>);
+        XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<color>);
+        XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<std::complex<double>>);
+        XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<void>);
 
         // cv-qualified types are outside the trait's domain, unlike
         // std::make_unsigned's: they are not std::regular, so no cv-qualified
-        // type is xstd::integer_like and none would ever be asked
-        XSTD_CONSTEXPR_CHECK(not has_unsigned_counterpart<int const>);
+        // type is xstd::integral_like and none would ever be asked
+        XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<int const>);
 
         // a class type answers through a user-supplied specialization, which
         // is what the empty primary template leaves room for
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::unsigned_counterpart_t<xstd::test::signed_integer_class>, xstd::test::unsigned_integer_class>));
-        XSTD_CONSTEXPR_CHECK(not has_unsigned_counterpart<xstd::test::unsigned_integer_class>);
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<xstd::test::signed_integer_class>, xstd::test::unsigned_integer_class>));
+        XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<xstd::test::unsigned_integer_class>);
 
         // __int128 is the one built-in type whose std::is_integral answer
         // depends on the dialect, so xstd names its counterpart outright
@@ -168,7 +168,7 @@ BOOST_AUTO_TEST_CASE(UnsignedCounterpart)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 #endif
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::unsigned_counterpart_t<__int128>, unsigned __int128>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<__int128>, unsigned __int128>));
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif

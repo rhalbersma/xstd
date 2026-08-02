@@ -46,7 +46,7 @@ Three themes run across the otherwise unrelated headers:
 ### One constrained template per operation, not four overloads
 
 `abs`, `uabs`, `sign`, `div`, `euclidean_div`, `floored_div` and `div_t` are
-each a single entity constrained to `xstd::signed_integer_like`. They started
+each a single entity constrained to `xstd::signed_integral_like`. They started
 out as four fixed-width non-template overloads apiece (`abs`/`labs`/`llabs`/
 `imaxabs` and so on), mirroring how `<cstdlib>` itself declares `abs`/`labs`/
 `llabs` and `<cinttypes>` declares `imaxabs`. That mirroring bought
@@ -83,7 +83,7 @@ platform. Three follow-on effects were weighed and accepted:
 `int` at every width, because a sign is a three-valued quantity rather than a
 number in the argument's range.
 
-### Why the constraint is `integer_like` rather than `std::signed_integral`
+### Why the constraint is `integral_like` rather than `std::signed_integral`
 
 `std::signed_integral` is spelled over `std::is_integral`, which is not a
 property a type can have but a closed list the compiler owns. Two kinds of
@@ -117,7 +117,7 @@ The standard hit the same wall and answered it with *integer-class types*
 spelled with `same_as` against each implementation's own reserved names
 (libstdc++ does exactly this in `<bits/iterator_concepts.h>`), so it can be
 neither reused from outside nor joined by a user's type. xstd therefore needs
-its own, open version, which is what `xstd::integer_like` is: a structural
+its own, open version, which is what `xstd::integral_like` is: a structural
 concept that asks what a type *does* - `std::regular`, `std::totally_ordered`,
 a specialized `std::numeric_limits` saying `is_integer`, explicit
 construction from `int`, and the six arithmetic operators - rather than what
@@ -127,11 +127,11 @@ worked before still works, with the same result types and the same values.
 Two things this design has to get right, both of which took a false start:
 
 - **The unsigned pairing has to be an open trait too.** `uabs` needs the
-  unsigned counterpart of its argument type, and `signed_integer_like` needs
+  unsigned counterpart of its argument type, and `signed_integral_like` needs
   to *test* for one. `std::make_unsigned` can do neither: its domain is the
   same closed list, and outside it it is ill-formed rather than empty, so
   naming it in a concept turns the check that was supposed to answer "no"
-  into a stopped compile. Hence `xstd::unsigned_counterpart`, whose primary
+  into a stopped compile. Hence `xstd::make_unsigned_like`, whose primary
   template is deliberately empty. See below for why it is not called
   `xstd::make_unsigned`.
 - **Literals have to be spelled `static_cast<T>(0)`.** An integer-class type
@@ -139,13 +139,13 @@ Two things this design has to get right, both of which took a false start:
   ([iterator.concept.winc]), so `denom != 0` need not compile for one even
   though `denom != static_cast<T>(0)` does. Every constant in
   `<xstd/cstdlib.hpp>` is written that second way, which is why
-  `integer_like` requires `std::constructible_from<T, int>` rather than a
+  `integral_like` requires `std::constructible_from<T, int>` rather than a
   comparison against a literal. For the built-in widths the two spellings are
   the same expression after promotion.
 - **`std::regular` has to lead the conjunction.** `std::numeric_limits`'
   primary template declares a static member function returning `T`, which for
   an array type is ill-formed rather than merely unspecialized - so
-  `integer_like<int[3]>` would be a hard error if the `numeric_limits` terms
+  `integral_like<int[3]>` would be a hard error if the `numeric_limits` terms
   were checked first. Putting `std::regular` first rejects arrays,
   references, `void` and function types before `numeric_limits` is ever
   instantiated over them. Four checks in `test/src/concepts.cpp` pin that
@@ -162,8 +162,8 @@ do not survive contact:
   would have cost the strict-conformance policy for nothing.
 - **MSVC does have a 128-bit integer type.** `std::_Signed128` is not
   integral, has no `std::make_unsigned` and no `std::formatter` - but it is
-  precisely an integer-class type, so `signed_integer_like` reaches it with
-  one user-written `unsigned_counterpart` specialization.
+  precisely an integer-class type, so `signed_integral_like` reaches it with
+  one user-written `make_unsigned_like` specialization.
 - **The exemption would not have been needed.** Supporting these types costs
   no carve-out from the project's conformance flags: the headers compile
   clean under `-Weverything -pedantic-errors -Werror`, and the tests name
@@ -220,8 +220,8 @@ declaration. GCC does this. Clang did not until
 first, so a return type that instantiates a trait gets instantiated even for
 arguments the constraint would have rejected:
 
-    template<signed_integer_like T>
-    constexpr auto uabs(T x) noexcept -> unsigned_counterpart_t<T>;
+    template<signed_integral_like T>
+    constexpr auto uabs(T x) noexcept -> make_unsigned_like_t<T>;
 
     static_assert(not has_uabs<double>);   // wrong reason on Clang < 21
 
@@ -230,10 +230,10 @@ instantiate nothing; so are `div`, `euclidean_div` and `floored_div`, because
 forming `div_t<double>` fails the class template's own constraint in the
 immediate context, which *is* a substitution failure.
 
-The stakes here dropped when the constraint moved to `signed_integer_like`.
+The stakes here dropped when the constraint moved to `signed_integral_like`.
 `std::make_unsigned_t<double>` was ill-formed rather than a substitution
 failure, so the line above used to stop the compile instead of evaluating to
-`false`. `xstd::unsigned_counterpart` has an empty primary template - being
+`false`. `xstd::make_unsigned_like` has an empty primary template - being
 detectable rather than fatal is the whole reason it exists - so the same line
 now merely fails deduction. That is a diagnostic regression rather than a
 correctness one, and it is still worth avoiding: a failed constraint reports
@@ -242,7 +242,7 @@ in the return type reports that a call was not viable, which is true but
 tells the caller nothing about why.
 
 Deducing `uabs`'s return type moves the trait from the signature into the
-body, where `signed_integer_like` has already rejected the argument. The rule
+body, where `signed_integral_like` has already rejected the argument. The rule
 for this library: spell the return type out unless it instantiates a trait
 over a template parameter, in which case deduce it.
 
@@ -427,8 +427,8 @@ Beyond consistency, a concept sharing an unqualified name with the trait it
 wraps is ambiguous for anyone with using-directives for both namespaces,
 which for `enumeration` would have meant colliding with `std::is_enum`.
 
-That same rule is what keeps `integer_like` / `signed_integer_like` /
-`unsigned_integer_like` from being spelled `xstd::integral` /
+That same rule is what keeps `integral_like` / `signed_integral_like` /
+`unsigned_integral_like` from being spelled `xstd::integral` /
 `xstd::signed_integral` / `xstd::unsigned_integral`, which is what they are
 generalizations *of*. A concept is looked up like a class template, not like
 a function: two same-named ones visible through using-directives for both
@@ -445,26 +445,77 @@ diagnostic is issued anywhere. A reader who knows `<concepts>` then reads a
 familiar token that means something strictly broader than they think, and a
 template constrained with it accepts class types that `std::signed_integral`
 would have rejected. Nothing is miscompiled by lookup - lookup is never
-wrong here - but the reader is. `signed_integer_like` cannot be misread that
+wrong here - but the reader is. `signed_integral_like` cannot be misread that
 way, and the `_like` suffix additionally echoes the standard's own
 "integer-class type" vocabulary for the same category of type.
 
-`xstd::unsigned_counterpart` is named the same way, and for a sharper version
-of the same reason. It is a generalization of `std::make_unsigned`, so
-`xstd::make_unsigned` is the tempting name - but class templates have no
-overload resolution to disambiguate them the way `xstd::to_underlying` and
-`std::to_underlying` are disambiguated by their argument types. Two class
-templates of the same unqualified name from two namespaces in scope are
-simply ambiguous, with no way for the caller to mean one of them short of
-qualifying. "Counterpart" is also what the standard calls the relationship
-("corresponding unsigned type", [basic.fundamental]), so the name says what
-the trait computes rather than what it is derived from.
+That gives the library a general rule, which is worth more than any single
+name: **an xstd entity that widens a standard one keeps the standard one's
+name and appends `_like`.** So `std::integral` becomes `xstd::integral_like`,
+`std::is_integral_v` becomes `xstd::is_integral_like_v`, and
+`std::make_unsigned` becomes `xstd::make_unsigned_like`. A reader who knows
+the standard name can derive the xstd name without looking it up, and the
+suffix marks exactly what is different about it - the entity is open where
+the standard's is closed.
 
-`unsigned_counterpart` is deliberately narrower than `std::make_unsigned` in
+`make_unsigned_like` is where the rule reads least well, and it is worth
+saying so: the suffix attaches to the whole trait name rather than to a
+predicate, so it says "the `make_unsigned`-like trait" rather than describing
+its result, which is not "unsigned-like" but simply unsigned. A name like
+`unsigned_counterpart` describes the result better. The rule wins anyway, on
+the grounds that one predictable rule beats a set of individually nicer names:
+having to remember which extensions were renamed and which were suffixed is a
+worse tax than one slightly awkward reading.
+
+The rule also disposes of the collision on its own terms. `xstd::make_unsigned`
+would have been the tempting name, but class templates have no overload
+resolution to disambiguate them the way `xstd::to_underlying` and
+`std::to_underlying` are disambiguated by their argument types: two class
+templates of the same unqualified name from two namespaces in scope are simply
+ambiguous, with no way for the caller to mean one of them short of qualifying.
+
+### Why the concepts are the definitions and the traits read them
+
+Each of the three concepts has a matching `is_*_like_v` variable template and
+an `is_*_like` `bool_constant`, so generic code that wants a *value* -
+`std::conjunction`, tag dispatch, an `if constexpr` over a pack - has one. That
+completes the pairs the standard already has (`std::is_integral_v` beside
+`std::integral`), which is what earns them their place under this file's rule
+that a second spelling has to enable a use the first cannot.
+
+The direction is not a coin flip. The concept is the definition and the trait
+is a one-line reading of it, never the reverse, for two reasons that both bite
+in practice:
+
+- **Only a concept's conjunction short-circuits during satisfaction checking.**
+  In a variable template's initializer, `A and B` still requires every operand
+  to be a well-formed expression, so writing the requirements there directly
+  makes `is_integral_like_v<int[3]>` a hard error on
+  `std::numeric_limits<int[3]>` rather than the answer `false` - the exact case
+  `std::regular` is placed first to protect against. Reading a concept, which
+  has already short-circuited, keeps the trait total.
+- **A concept defined as an atomic constraint over a variable template
+  subsumes nothing.** `concept signed_integral_like = is_signed_integral_like_v<T>;`
+  is a single atomic constraint that has no relationship to `integral_like`'s,
+  so an overload set containing both becomes ambiguous instead of preferring
+  the more constrained one. Writing `integral_like<T> and ...` instead puts
+  `integral_like`'s normal form inside `signed_integral_like`'s, which is what
+  makes the partial ordering work - and is exactly how `std::signed_integral`
+  is spelled over `std::integral`. `test/src/concepts.cpp` pins this with an
+  overload pair that would go ambiguous if the definition were inverted.
+
+For the same reason the signedness test is `std::numeric_limits<T>::is_signed`
+rather than `std::is_signed_v<T>`. The latter is
+`is_arithmetic_v<T> && T(-1) < T(0)`, and `is_arithmetic_v` is false for every
+class type, so it would leave `signed_integral_like` rejecting precisely the
+integer-class types the concept exists to admit - while still looking correct
+at every built-in width.
+
+`make_unsigned_like` is deliberately narrower than `std::make_unsigned` in
 one respect: it says nothing about cv-qualified types, where
 `std::make_unsigned` carries the qualifiers through. Nothing is lost, because
 a cv-qualified type is not `std::regular` - it is not assignable - and so is
-never `integer_like` to begin with. What is gained is a domain that is the
+never `integral_like` to begin with. What is gained is a domain that is the
 same on every platform: the `__int128` specialization names one type, and a
 cv-carrying trait would answer for that type's qualified forms only on the
 standard libraries where the generic partial specialization happens to match

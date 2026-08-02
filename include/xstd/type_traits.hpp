@@ -39,14 +39,14 @@ using is_specialization_of = std::bool_constant<is_specialization_of_v<T, Primar
 // instead of a substitution failure, which is precisely what a concept cannot
 // survive: the check that was supposed to answer "no" stops the compile
 // instead. Hence the deliberately empty primary template here.
-// unsigned_counterpart_t<T> is then a substitution failure - detectable, not
+// make_unsigned_like_t<T> is then a substitution failure - detectable, not
 // fatal - for every type that has no unsigned counterpart, and a user can
-// give one to a type of their own by specializing it. xstd::signed_integer_like
+// give one to a type of their own by specializing it. xstd::signed_integral_like
 // is built on exactly that, and is the reason this trait exists.
 //
 // Unlike std::make_unsigned this says nothing about cv-qualified types. A
 // cv-qualified type is not std::regular (it is not assignable), so it is
-// never xstd::integer_like either, and there is no signed integer-like type
+// never xstd::integral_like either, and there is no signed integer-like type
 // whose counterpart a cv-qualified answer would name. Leaving them out is
 // also what keeps the trait's domain the same on every platform: the
 // __int128 specialization below names one type, and a cv-carrying trait
@@ -56,16 +56,16 @@ using is_specialization_of = std::bool_constant<is_specialization_of_v<T, Primar
 // std::is_integral_v is true for cv-qualified types as well, so the
 // remove_cv_t test is what does that restricting - it is not redundant.
 template<class T>
-struct unsigned_counterpart
+struct make_unsigned_like
 {};
 
 template<class T>
         requires std::is_same_v<T, std::remove_cv_t<T>> and std::is_integral_v<T> and (not std::is_same_v<T, bool>)
-struct unsigned_counterpart<T> : std::make_unsigned<T>
+struct make_unsigned_like<T> : std::make_unsigned<T>
 {};
 
 template<class T>
-using unsigned_counterpart_t = unsigned_counterpart<T>::type;
+using make_unsigned_like_t = make_unsigned_like<T>::type;
 
 // __int128 is where "integral" stops being a property of a type and becomes a
 // property of the dialect. GCC and Clang predefine __GLIBCXX_TYPE_INT_N_0
@@ -93,7 +93,7 @@ using unsigned_counterpart_t = unsigned_counterpart<T>::type;
 #pragma GCC diagnostic ignored "-Wpedantic"
 #endif
 template<>
-struct unsigned_counterpart<__int128>
+struct make_unsigned_like<__int128>
 {
         using type = unsigned __int128;
 };

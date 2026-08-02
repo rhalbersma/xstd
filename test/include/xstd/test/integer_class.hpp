@@ -6,13 +6,13 @@
 #ifndef XSTD_TEST_INTEGER_CLASS_HPP
 #define XSTD_TEST_INTEGER_CLASS_HPP
 
-#include <xstd/type_traits.hpp> // unsigned_counterpart
+#include <xstd/type_traits.hpp> // make_unsigned_like
 #include <compare>              // strong_ordering
 #include <cstdint>              // int32_t, uint32_t
 #include <limits>               // numeric_limits
 
 // A signed/unsigned pair of *class* types that behave like integers: the
-// shape xstd::signed_integer_like exists for and std::signed_integral can
+// shape xstd::signed_integral_like exists for and std::signed_integral can
 // never describe, since no class type satisfies std::is_integral on any
 // compiler or dialect. Real examples are libstdc++'s
 // std::ranges::__detail::__max_diff_type and the MSVC STL's std::_Signed128;
@@ -21,7 +21,7 @@
 //
 // The width is 32 bits rather than 128. What is under test is that a class
 // type works at all - the operators, std::numeric_limits and
-// xstd::unsigned_counterpart being found through user-supplied
+// xstd::make_unsigned_like being found through user-supplied
 // specializations instead of built into the language - and none of that
 // changes with the width, while a 32-bit representation keeps the expected
 // values readable and the arithmetic obviously correct.
@@ -111,7 +111,7 @@ class signed_integer_class
         }
 
         // the explicit conversion to its unsigned counterpart that
-        // xstd::signed_integer_like requires, and that xstd::uabs runs on
+        // xstd::signed_integral_like requires, and that xstd::uabs runs on
         [[nodiscard]] constexpr explicit operator unsigned_integer_class() const noexcept
         {
                 return unsigned_integer_class(bits());
@@ -155,13 +155,13 @@ class signed_integer_class
 
 } // namespace xstd::test
 
-// The user-supplied half of xstd::signed_integer_like: a class type has no
+// The user-supplied half of xstd::signed_integral_like: a class type has no
 // unsigned counterpart the compiler knows about, so it names one here. This
 // is the specialization every user of a non-built-in integer type writes, and
-// the reason xstd::unsigned_counterpart's primary template is empty rather
+// the reason xstd::make_unsigned_like's primary template is empty rather
 // than an alias for std::make_unsigned.
 template<>
-struct xstd::unsigned_counterpart<xstd::test::signed_integer_class>
+struct xstd::make_unsigned_like<xstd::test::signed_integer_class>
 {
         using type = xstd::test::unsigned_integer_class;
 };

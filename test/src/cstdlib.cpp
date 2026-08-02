@@ -4,8 +4,8 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/cstdlib.hpp>            // abs, uabs, sign, div_t, div, euclidean_div, floored_div
-#include <xstd/concepts.hpp>           // signed_integer_like
-#include <xstd/type_traits.hpp>        // unsigned_counterpart_t
+#include <xstd/concepts.hpp>           // signed_integral_like
+#include <xstd/type_traits.hpp>        // make_unsigned_like_t
 #include <xstd/test/constexpr.hpp>     // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
 #include <xstd/test/integer_class.hpp> // signed_integer_class, unsigned_integer_class
 #include <boost/test/unit_test.hpp>    // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_CHECK, BOOST_CHECK_EQUAL, BOOST_CHECK_EQUAL_COLLECTIONS
@@ -268,7 +268,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(StreamInsertion, T, exact_width_types)
 // would leave euclidean_div's and floored_div's remainder adjustments
 // half-covered.
 //
-// Constrained to xstd::signed_integer_like rather than std::signed_integral,
+// Constrained to xstd::signed_integral_like rather than std::signed_integral,
 // so the same battery runs unchanged on a type the latter can never accept -
 // which is the point of the widening, and a stronger check than a separate
 // hand-written battery would be, since every expected value here was written
@@ -279,11 +279,11 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(StreamInsertion, T, exact_width_types)
 // integer-class type is under no obligation to have. The exact-width test
 // cases above keep the value-printing form, so a regression at a built-in
 // width still reports both operands.
-template<xstd::signed_integer_like T>
-auto check_signed_integer_like()
+template<xstd::signed_integral_like T>
+auto check_signed_integral_like()
         -> void
 {
-        using U = xstd::unsigned_counterpart_t<T>;
+        using U = xstd::make_unsigned_like_t<T>;
         using limits = std::numeric_limits<T>;
 
         XSTD_CONSTEXPR_CHECK((xstd::abs(T{-2}) == T{2}));
@@ -339,7 +339,7 @@ template<std::signed_integral T>
 auto check_built_in_width()
         -> void
 {
-        check_signed_integer_like<T>();
+        check_signed_integral_like<T>();
 
         XSTD_CONSTEXPR_FORMAT_CHECK_EQUAL(std::format("{}", xstd::div_t<T>{1, -2}), "(1, -2)");
 
@@ -357,7 +357,7 @@ BOOST_AUTO_TEST_CASE(BuiltInWidths)
 }
 
 // The two shapes a 128-bit integer comes in, and the reason the constraint is
-// xstd::signed_integer_like rather than std::signed_integral.
+// xstd::signed_integral_like rather than std::signed_integral.
 //
 // __int128 is a built-in type whose std::is_integral answer is a property of
 // the dialect rather than of the type: libstdc++ withholds it outside GNU
@@ -376,8 +376,8 @@ BOOST_AUTO_TEST_CASE(BuiltInWidths)
 // whether the *standard library* describes it, and those come apart: clang-cl
 // has __int128 on x64, but the MSVC STL specializes neither std::is_integral
 // nor std::numeric_limits for it, so nothing there says it is an integer and
-// integer_like correctly declines. numeric_limits is the gate rather than a
-// standard-library predefine because it is the thing integer_like actually
+// integral_like correctly declines. numeric_limits is the gate rather than a
+// standard-library predefine because it is the thing integral_like actually
 // reads - if a library ever specializes it, this case starts testing on its
 // own, and if one specializes it while something else is missing, the
 // assertions below still fire rather than being skipped.
@@ -390,11 +390,11 @@ auto check_int128()
         -> void
 {
         if constexpr (std::numeric_limits<T>::is_specialized) {
-                static_assert(xstd::signed_integer_like<T>);
-                static_assert(std::same_as<decltype(xstd::uabs(T{})), xstd::unsigned_counterpart_t<T>>);
+                static_assert(xstd::signed_integral_like<T>);
+                static_assert(std::same_as<decltype(xstd::uabs(T{})), xstd::make_unsigned_like_t<T>>);
                 static_assert(std::same_as<decltype(xstd::div(T{1}, T{1})), xstd::div_t<T>>);
 
-                check_signed_integer_like<T>();
+                check_signed_integral_like<T>();
         }
 }
 
@@ -419,7 +419,7 @@ BOOST_AUTO_TEST_CASE(IntegerClassType)
         using T = xstd::test::signed_integer_class;
 
         static_assert(not std::integral<T>);
-        static_assert(xstd::signed_integer_like<T>);
+        static_assert(xstd::signed_integral_like<T>);
         static_assert(std::same_as<decltype(xstd::uabs(T{})), xstd::test::unsigned_integer_class>);
         static_assert(std::same_as<decltype(xstd::abs(T{})), T>);
         static_assert(std::same_as<decltype(xstd::sign(T{})), int>);
@@ -431,7 +431,7 @@ BOOST_AUTO_TEST_CASE(IntegerClassType)
         static_assert(not has_uabs<xstd::test::unsigned_integer_class>);
         static_assert(not has_div<xstd::test::unsigned_integer_class, xstd::test::unsigned_integer_class>);
 
-        check_signed_integer_like<T>();
+        check_signed_integral_like<T>();
 }
 
 // Class template argument deduction: div_t{q, r} still spells the result of

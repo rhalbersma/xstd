@@ -6,8 +6,8 @@
 #ifndef XSTD_CSTDLIB_HPP
 #define XSTD_CSTDLIB_HPP
 
-#include <xstd/concepts.hpp>    // signed_integer_like
-#include <xstd/type_traits.hpp> // unsigned_counterpart_t
+#include <xstd/concepts.hpp>    // signed_integral_like
+#include <xstd/type_traits.hpp> // make_unsigned_like_t
 #include <cassert>              // assert
 #include <format>               // format, formatter
 #include <limits>               // numeric_limits
@@ -17,7 +17,7 @@
 namespace xstd {
 
 // Each facility below is a single function template constrained to
-// xstd::signed_integer_like, rather than the <cstdlib>-style family of four
+// xstd::signed_integral_like, rather than the <cstdlib>-style family of four
 // fixed-width overloads (abs/labs/llabs/imaxabs and friends) these grew out
 // of. Consequences worth knowing at the call site:
 //
@@ -37,7 +37,7 @@ namespace xstd {
 //   built-in __int128, whose std::is_integral answer depends on the dialect,
 //   and the integer *class* types (libstdc++'s __max_diff_type, the MSVC
 //   STL's _Signed128) that no dialect could ever make integral. That is what
-//   xstd::signed_integer_like buys over std::signed_integral; see
+//   xstd::signed_integral_like buys over std::signed_integral; see
 //   <xstd/concepts.hpp> and doc/design.md.
 //
 // Every literal below is spelled static_cast<T>(...) rather than written
@@ -48,7 +48,7 @@ namespace xstd {
 
 // constexpr version of <cstdlib>'s abs/labs/llabs and <cinttypes>'s imaxabs
 // (P0533), generalized to one signed-only template.
-template<signed_integer_like T>
+template<signed_integral_like T>
 [[nodiscard]] constexpr auto abs(T x) noexcept
         -> T
 {
@@ -64,24 +64,24 @@ template<signed_integer_like T>
 // MIN, which is not, or by widening to a bigger signed type, which has none
 // to widen to at the widest end.
 //
-// The return type is deduced rather than spelled unsigned_counterpart_t<T>,
+// The return type is deduced rather than spelled make_unsigned_like_t<T>,
 // which is the one signature in this header where that choice is load-bearing
 // rather than cosmetic. Clang before 21 does not implement CWG2369: it
 // substitutes the deduced arguments into the function type before checking the
 // constraint, so a spelled-out return type instantiates the trait for
 // uabs(1.0) even though the constraint would have rejected the argument.
-// xstd::unsigned_counterpart is empty rather than ill-formed for a double, so
+// xstd::make_unsigned_like is empty rather than ill-formed for a double, so
 // this would now be a substitution failure rather than the hard error
 // std::make_unsigned_t<double> used to be - but a substitution failure in the
 // return type is still a worse diagnostic than a failed constraint, and one
 // that reports the wrong reason. Deducing keeps the trait out of the
-// signature, so signed_integer_like gets to reject the argument first. Every
+// signature, so signed_integral_like gets to reject the argument first. Every
 // other return type here (T, int, bool, div_t<T>) instantiates no trait and
 // is spelled out. See doc/design.md.
-template<signed_integer_like T>
+template<signed_integral_like T>
 [[nodiscard]] constexpr auto uabs(T x) noexcept
 {
-        using U = unsigned_counterpart_t<T>;
+        using U = make_unsigned_like_t<T>;
         auto const zero = static_cast<U>(0);
         auto const u = static_cast<U>(x);
         // The cast back to U is what makes this wraparound rather than
@@ -94,7 +94,7 @@ template<signed_integer_like T>
 // not part of <cstdlib>, but kept to the same shape as abs/uabs above. The
 // result is a plain int at every width: a sign is a three-valued quantity,
 // not a number in T's range.
-template<signed_integer_like T>
+template<signed_integral_like T>
 [[nodiscard]] constexpr auto sign(T x) noexcept
         -> int
 {
@@ -102,7 +102,7 @@ template<signed_integer_like T>
         return static_cast<int>(zero < x) - static_cast<int>(x < zero);
 }
 
-template<signed_integer_like T>
+template<signed_integral_like T>
 struct div_t
 {
         T quot, rem;
@@ -132,7 +132,7 @@ struct div_t
 // spelling the guide out makes the support intentional rather than incidental
 // (and keeps -Wctad-maybe-unsupported quiet), so div_t{q, r} remains as
 // writable as the four separate div_t/ldiv_t/lldiv_t/imaxdiv_t names were.
-template<signed_integer_like T>
+template<signed_integral_like T>
 div_t(T, T) -> div_t<T>;
 
 // C++ Standard [expr.mul]/4
@@ -144,7 +144,7 @@ div_t(T, T) -> div_t<T>;
 // rem: Ada, Clojure, Erlang, Haskell, Julia, Lisp, Prolog
 // remainder: Ruby, Scheme
 // mod: Fortran, OCaml
-template<signed_integer_like T>
+template<signed_integral_like T>
 [[nodiscard]] constexpr auto div(T numer, T denom) noexcept
         -> div_t<T>
 {
@@ -168,7 +168,7 @@ template<signed_integer_like T>
 // https://en.wikipedia.org/wiki/Euclidean_division
 // mod: Maple, Pascal
 // modulo: Scheme
-template<signed_integer_like T>
+template<signed_integral_like T>
 [[nodiscard]] constexpr auto euclidean_div(T numer, T denom) noexcept
         -> div_t<T>
 {
@@ -203,7 +203,7 @@ template<signed_integer_like T>
 // %%: R
 // mod: Ada, Clojure, Haskell, Julia, Lisp, ML, Prolog
 // modulo: Fortran, Ruby
-template<signed_integer_like T>
+template<signed_integral_like T>
 [[nodiscard]] constexpr auto floored_div(T numer, T denom) noexcept
         -> div_t<T>
 {
