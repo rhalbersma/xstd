@@ -39,6 +39,7 @@ target_sources(
     FILES
         include/xstd/concepts.hpp
         include/xstd/cstdlib.hpp
+        include/xstd/exposition_only.hpp
         include/xstd/type_traits.hpp
         include/xstd/utility.hpp
 )

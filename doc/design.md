@@ -117,12 +117,26 @@ The standard hit the same wall and answered it with *integer-class types*
 spelled with `same_as` against each implementation's own reserved names
 (libstdc++ does exactly this in `<bits/iterator_concepts.h>`), so it can be
 neither reused from outside nor joined by a user's type. xstd therefore needs
-its own, open version, which is what `xstd::integral_like` is: a structural
-concept that asks what a type *does* - `std::regular`, `std::totally_ordered`,
-a specialized `std::numeric_limits` saying `is_integer`, explicit
-construction from `int`, and the six arithmetic operators - rather than what
-it is called. It is a strict superset of `std::integral`, so every type that
-worked before still works, with the same result types and the same values.
+its own, open version, and builds it the way the standard builds its own
+answer - in two steps rather than one:
+
+- `xstd::exposition_only::integral_class_type` in
+  `<xstd/exposition_only.hpp>` is the standard's *integer-class type*
+  re-derived structurally: a concept that asks what a type *does* -
+  `std::regular`, `std::totally_ordered`, a specialized `std::numeric_limits`
+  saying `is_integer`, explicit construction from `int`, and the six
+  arithmetic operators - rather than what it is called.
+- `xstd::is_integral_like_v` in `<xstd/type_traits.hpp>` is then the
+  standard's *is-integer-like*: `std::integral`, or that. `xstd::integral_like`
+  in `<xstd/concepts.hpp>` is its constraint spelling, the same way
+  `std::integral` is `std::is_integral_v`'s.
+
+It is a strict superset of `std::integral` at every cv-unqualified type, so
+every type that worked before still works, with the same result types and the
+same values. The one narrowing is deliberate: `std::integral<int const>`
+holds and `xstd::integral_like<int const>` does not, because no cv-qualified
+type has a `make_unsigned_like` counterpart and no function in
+`<xstd/cstdlib.hpp>` can be instantiated at one.
 
 Two things this design has to get right, both of which took a false start:
 
@@ -139,17 +153,18 @@ Two things this design has to get right, both of which took a false start:
   ([iterator.concept.winc]), so `denom != 0` need not compile for one even
   though `denom != static_cast<T>(0)` does. Every constant in
   `<xstd/cstdlib.hpp>` is written that second way, which is why
-  `integral_like` requires `std::constructible_from<T, int>` rather than a
-  comparison against a literal. For the built-in widths the two spellings are
+  `integral_class_type` requires `std::constructible_from<I, int>` rather than
+  a comparison against a literal. For the built-in widths the two spellings are
   the same expression after promotion.
 - **`std::regular` has to lead the conjunction.** `std::numeric_limits`'
-  primary template declares a static member function returning `T`, which for
+  primary template declares a static member function returning `I`, which for
   an array type is ill-formed rather than merely unspecialized - so
-  `integral_like<int[3]>` would be a hard error if the `numeric_limits` terms
-  were checked first. Putting `std::regular` first rejects arrays,
+  `integral_class_type<int[3]>` would be a hard error if the `numeric_limits`
+  terms were checked first. Putting `std::regular` first rejects arrays,
   references, `void` and function types before `numeric_limits` is ever
-  instantiated over them. Four checks in `test/src/concepts.cpp` pin that
-  ordering; each becomes a compile error if it is disturbed.
+  instantiated over them. Four checks in `test/src/exposition_only.cpp` pin
+  that ordering, and four more in `test/src/concepts.cpp` pin that the public
+  concept inherits it; each becomes a compile error if it is disturbed.
 
 Three claims that were made for the old "128-bit integers are out" position
 do not survive contact:
@@ -610,35 +625,49 @@ where a concept's conjunction merely short-circuits:
 so both sit in its requires-clause and an arithmetic-like type without them
 falls to the primary's `false`.
 
-### Why the concepts are the definitions and the traits read them
+### Which spelling is the definition, and why the exposition-only header exists
 
-Each of the three concepts has a matching `is_*_like_v` variable template and
-an `is_*_like` `bool_constant`, so generic code that wants a *value* -
-`std::conjunction`, tag dispatch, an `if constexpr` over a pack - has one. That
-completes the pairs the standard already has (`std::is_integral_v` beside
-`std::integral`), which is what earns them their place under this file's rule
-that a second spelling has to enable a use the first cannot.
+Every trait in `<xstd/type_traits.hpp>` that has a concept spelling is the
+definition, and the concept in `<xstd/concepts.hpp>` is the one-line reading
+of it: `is_specialization_of_v` and `specialization_of`, `is_integral_like_v`
+and `integral_like`. That is the direction the standard uses - `std::integral`
+is spelled over `std::is_integral_v`, not the reverse - and it is what keeps
+the four opened traits together in one header, where a reader who found
+`is_arithmetic_like_v` finds the other three beside it. Generic code that wants
+a *value* - `std::conjunction`, tag dispatch, an `if constexpr` over a pack -
+then has one for each, which is what earns the second spelling its place under
+this file's rule that it has to enable a use the first cannot.
 
-The direction is not a coin flip. The concept is the definition and the trait
-is a one-line reading of it, never the reverse, for two reasons that both bite
-in practice:
+`is_integral_like_v` is the one that cannot be *written* that way, and that is
+what `<xstd/exposition_only.hpp>` is for. Three constraints pin the shape:
 
 - **Only a concept's conjunction short-circuits during satisfaction checking.**
   In a variable template's initializer, `A and B` still requires every operand
   to be a well-formed expression, so writing the requirements there directly
   makes `is_integral_like_v<int[3]>` a hard error on
   `std::numeric_limits<int[3]>` rather than the answer `false` - the exact case
-  `std::regular` is placed first to protect against. Reading a concept, which
-  has already short-circuited, keeps the trait total.
+  `std::regular` is placed first to protect against. The other three traits
+  reach the same safety with a constrained partial specialization, because
+  their requirements fit in a requires-clause; `is_integral_like_v`'s do not,
+  since they include a requires-expression. So the requirements live in a
+  concept one level down, and the trait is a one-line reading of *that*.
+- **The concept holding them is not part of the interface.** It answers no
+  question `is_integral_like_v` and `integral_like` do not already answer
+  publicly, and pinning its exact requirement list as a supported spelling
+  would freeze a set that is deliberately smaller than
+  `[iterator.concept.winc]`'s. Hence a namespace that says so - the standard's
+  own device for a name that exists to make a definition writable rather than
+  usable.
 - **A concept defined as an atomic constraint over a variable template
-  subsumes nothing.** `concept signed_integral_like = is_signed_integral_like_v<T>;`
-  is a single atomic constraint that has no relationship to `integral_like`'s,
-  so an overload set containing both becomes ambiguous instead of preferring
-  the more constrained one. Writing `integral_like<T> and ...` instead puts
-  `integral_like`'s normal form inside `signed_integral_like`'s, which is what
-  makes the partial ordering work - and is exactly how `std::signed_integral`
-  is spelled over `std::integral`. `test/src/concepts.cpp` pins this with an
-  overload pair that would go ambiguous if the definition were inverted.
+  subsumes nothing *on its own*.** `concept signed_integral_like =
+  is_signed_integral_like_v<T>;` would be a single atomic constraint with no
+  relationship to `integral_like`'s, so an overload set containing both would
+  go ambiguous instead of preferring the more constrained one. What makes the
+  partial ordering work is that the narrower two are spelled
+  `integral_like<T> and ...`, so they contain `integral_like`'s atomic
+  constraint verbatim - exactly how `std::signed_integral` is spelled over
+  `std::integral`. `test/src/concepts.cpp` pins this with an overload pair
+  that would go ambiguous if either were given a flat trait of its own.
 
 For the same reason the signedness test is `std::numeric_limits<T>::is_signed`
 rather than `std::is_signed_v<T>`. The latter is
@@ -650,12 +679,14 @@ at every built-in width.
 `make_unsigned_like` is deliberately narrower than `std::make_unsigned` in
 one respect: it says nothing about cv-qualified types, where
 `std::make_unsigned` carries the qualifiers through. Nothing is lost, because
-a cv-qualified type is not `std::regular` - it is not assignable - and so is
-never `integral_like` to begin with. What is gained is a domain that is the
-same on every platform: the `__int128` specialization names one type, and a
-cv-carrying trait would answer for that type's qualified forms only on the
-standard libraries where the generic partial specialization happens to match
-them too.
+`is_integral_like_v` is restricted by the same `remove_cv_t` test, so no
+cv-qualified type is `integral_like` to begin with. That restriction is
+written out rather than left to `std::regular`, which rejects `int const` -
+not assignable - but accepts `int volatile`, which is. What is gained is a
+domain that is the same on every platform: the `__int128` specialization
+names one type, and a cv-carrying trait would answer for that type's
+qualified forms only on the standard libraries where the generic partial
+specialization happens to match them too.
 
 ### Why `is_integral_constant` does not constrain the wrapped type
 

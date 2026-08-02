@@ -6,15 +6,16 @@
 #ifndef XSTD_TYPE_TRAITS_HPP
 #define XSTD_TYPE_TRAITS_HPP
 
-#include <compare>     // strong_ordering (empty_type's defaulted <=>)
-#include <concepts>    // constructible_from, totally_ordered
-#include <limits>      // numeric_limits
-#include <type_traits> // bool_constant, conditional_t, integral_constant, is_abstract_v, is_arithmetic_v, is_array_v, is_integral_v, is_object_v, is_same_v, make_unsigned, remove_cv_t, remove_cvref_t
+#include <xstd/exposition_only.hpp> // is_integral_like
+#include <compare>                  // strong_ordering (empty_type's defaulted <=>)
+#include <concepts>                 // constructible_from, totally_ordered
+#include <limits>                   // numeric_limits
+#include <type_traits>              // bool_constant, conditional_t, integral_constant, is_abstract_v, is_arithmetic_v, is_array_v, is_integral_v, is_object_v, is_same_v, make_unsigned, remove_cv_t, remove_cvref_t
 
 namespace xstd {
 
 // std::is_arithmetic, opened to class types - and the trait the other two
-// below, and xstd::integral_like, are built on.
+// below are built on.
 //
 // std::is_arithmetic_v is the root of the closed list: is_integral_v and
 // is_floating_point_v feed it, is_signed_v and is_unsigned_v are spelled over
@@ -99,6 +100,33 @@ inline constexpr auto is_unsigned_like_v = is_arithmetic_like_v<T> and not is_si
 template<class T>
 using is_unsigned_like = std::bool_constant<is_unsigned_like_v<T>>;
 
+// std::is_integral, opened - and the last of the four, in the sense that it is
+// the one the rest of the library is built on: <xstd/concepts.hpp> spells
+// xstd::integral_like over it, and <xstd/cstdlib.hpp> constrains every
+// function it declares on that.
+//
+// What it extends std::is_integral_v with is [iterator.concept.winc]'s other
+// half - an integer-class type - opened from the standard's closed list of
+// implementation-defined names to a structural concept, so that __int128 on a
+// dialect that withholds std::is_integral from it, an implementation's own
+// integer-class type, and a user's own extended-precision type all qualify by
+// behaving correctly rather than by being enumerated somewhere.
+//
+// Unlike the three above, this reads a concept rather than being spelled out
+// as an initializer with a constrained partial specialization to keep it
+// total - and that direction is not free to reverse. The requirements it
+// reaches include a requires-expression and several std::numeric_limits
+// members; written out here they would all have to be well-formed at once, so
+// is_integral_like_v<int[3]> would stop the compile instead of answering
+// false. A concept's conjunction short-circuits during satisfaction checking,
+// which is what keeps this total, and <xstd/exposition_only.hpp> is where the
+// requirements it short-circuits over are spelled out.
+template<class T>
+inline constexpr auto is_integral_like_v = exposition_only::is_integral_like<T>;
+
+template<class T>
+using is_integral_like = std::bool_constant<is_integral_like_v<T>>;
+
 template<class T, class U>
 inline constexpr auto is_integral_constant_v = false;
 
@@ -132,10 +160,11 @@ using is_specialization_of = std::bool_constant<is_specialization_of_v<T, Primar
 // give one to a type of their own by specializing it. xstd::signed_integral_like
 // is built on exactly that, and is the reason this trait exists.
 //
-// Unlike std::make_unsigned this says nothing about cv-qualified types. A
-// cv-qualified type is not std::regular (it is not assignable), so it is
-// never xstd::integral_like either, and there is no signed integer-like type
-// whose counterpart a cv-qualified answer would name. Leaving them out is
+// Unlike std::make_unsigned this says nothing about cv-qualified types. No
+// cv-qualified type is xstd::integral_like - xstd::is_integral_like_v is
+// guarded by the same remove_cv_t test the partial specialization below is,
+// for the same reason - so there is no signed integer-like type whose
+// counterpart a cv-qualified answer would name. Leaving them out is
 // also what keeps the trait's domain the same on every platform: the
 // __int128 specialization below names one type, and a cv-carrying trait
 // would answer for its qualified forms only where the partial specialization

@@ -3,7 +3,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/type_traits.hpp>        // is_specialization_of, is_integral_constant, empty_type, conditional_data_member_t, make_unsigned_like_t, is_arithmetic_like_v, is_signed_like_v, is_unsigned_like_v
+#include <xstd/type_traits.hpp>        // is_specialization_of, is_integral_constant, empty_type, conditional_data_member_t, make_unsigned_like_t, is_arithmetic_like_v, is_integral_like, is_integral_like_v, is_signed_like_v, is_unsigned_like_v
 #include <xstd/test/constexpr.hpp>     // XSTD_CONSTEXPR_CHECK
 #include <xstd/test/integer_class.hpp> // signed_integer_class, unsigned_integer_class
 #include <boost/test/unit_test.hpp>    // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
@@ -11,7 +11,7 @@
 #include <complex>                     // complex
 #include <cstdint>                     // int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t
 #include <limits>                      // numeric_limits
-#include <type_traits>                 // false_type, integral_constant, is_arithmetic_v, is_constructible_v, is_convertible_v, is_empty_v, is_nothrow_constructible_v, is_nothrow_default_constructible_v, is_same_v, is_signed_v, is_trivially_constructible_v, is_trivially_copyable_v, is_unsigned_v, make_unsigned_t, true_type
+#include <type_traits>                 // false_type, integral_constant, is_arithmetic_v, is_constructible_v, is_convertible_v, is_empty_v, is_integral_v, is_nothrow_constructible_v, is_nothrow_default_constructible_v, is_same_v, is_signed_v, is_trivially_constructible_v, is_trivially_copyable_v, is_unsigned_v, make_unsigned_t, true_type
 
 BOOST_AUTO_TEST_SUITE(TypeTraits)
 
@@ -124,12 +124,12 @@ BOOST_AUTO_TEST_CASE(ConditionalDataMember)
         XSTD_CONSTEXPR_CHECK((std::is_empty_v<xstd::conditional_data_member_t<false, tag1, struct undefined_tag>>));
 }
 
-// The three opened numeric traits. What makes them widenings rather than
+// The four opened numeric traits. What makes them widenings rather than
 // replacements is that they agree with the standard's on every type the
 // standard's can answer for, so these are checked against std::is_arithmetic_v
-// / std::is_signed_v / std::is_unsigned_v directly rather than against
-// hand-written expectations - a table of expected answers could drift, an
-// equality against the trait being widened cannot.
+// / std::is_signed_v / std::is_unsigned_v / std::is_integral_v directly rather
+// than against hand-written expectations - a table of expected answers could
+// drift, an equality against the trait being widened cannot.
 template<class T>
 auto check_agrees_with_std()
         -> void
@@ -137,6 +137,7 @@ auto check_agrees_with_std()
         XSTD_CONSTEXPR_CHECK(xstd::is_arithmetic_like_v<T> == std::is_arithmetic_v<T>);
         XSTD_CONSTEXPR_CHECK(xstd::is_signed_like_v<T> == std::is_signed_v<T>);
         XSTD_CONSTEXPR_CHECK(xstd::is_unsigned_like_v<T> == std::is_unsigned_v<T>);
+        XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<T> == std::is_integral_v<T>);
 }
 
 BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAgreeWithStd)
@@ -199,6 +200,52 @@ BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAdmitClassTypes)
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_arithmetic_like<S>, std::true_type>));
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_signed_like<U>, std::false_type>));
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_unsigned_like<U>, std::true_type>));
+}
+
+// The fourth opened trait, and the one the standard's own answer is a closed
+// list rather than a property: std::is_integral_v is extended with
+// [iterator.concept.winc]'s integer-class types, opened structurally in
+// <xstd/exposition_only.hpp> and pinned in src/exposition_only.cpp. What is
+// checked here is the trait spelling itself - that it agrees with
+// std::is_integral_v wherever std::is_integral_v can answer, that it says yes
+// where the standard's closed list cannot, and that it stays total on the
+// types whose requirements are ill-formed rather than merely unsatisfied.
+BOOST_AUTO_TEST_CASE(IsIntegralLike)
+{
+        XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<int> and std::is_integral_v<int>);
+        XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<bool> and std::is_integral_v<bool>);
+        XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<char32_t> and std::is_integral_v<char32_t>);
+
+        XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<double> and not std::is_integral_v<double>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<color>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<std::complex<double>>);
+
+        // the widening: a class type no dialect could ever make integral
+        XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<xstd::test::signed_integer_class>);
+        XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<xstd::test::unsigned_integer_class>);
+
+        // total where the requirements it reaches are ill-formed rather than
+        // unsatisfied: they sit inside a concept, whose conjunction
+        // short-circuits, so each of these is an answer and not a compile
+        // error
+        XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<void>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<int&>);
+        // NOLINTNEXTLINE(modernize-avoid-c-arrays): a built-in array is the type under test, not a container choice
+        XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<int[3]>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<int()>);
+
+        // and narrower than std::is_integral_v in exactly one place, for the
+        // same reason make_unsigned_like below says nothing about cv-qualified
+        // types
+        XSTD_CONSTEXPR_CHECK(std::is_integral_v<int const> and not xstd::is_integral_like_v<int const>);
+        XSTD_CONSTEXPR_CHECK(std::is_integral_v<int volatile> and not xstd::is_integral_like_v<int volatile>);
+
+        // the bool_constant form, which is what std::conjunction and tag
+        // dispatch want and a concept cannot be
+        XSTD_CONSTEXPR_CHECK(xstd::is_integral_like<int>::value);
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_integral_like<int>, std::true_type>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_integral_like<double>, std::false_type>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_integral_like<xstd::test::signed_integer_class>, std::true_type>));
 }
 
 // A named concept rather than a bare requires-expression in the test body: a
