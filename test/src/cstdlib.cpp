@@ -234,9 +234,22 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(BoundaryDivisions, T, exact_width_types)
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(min, max), (xstd::div_t<T>{-2, static_cast<T>(max - 1)}));
 }
 
+// The formatting counterpart of XSTD_CONSTEXPR_CHECK_EQUAL, which cannot be
+// used directly here: std::format is not a constant expression before P3391
+// (constexpr std::format, plenary-approved for C++29), so the static_assert
+// half only exists once a standard library announces the feature. Checking
+// the formatted value at compile time is what pins xstd::div_t's own
+// conditional constexpr in <xstd/cstdlib.hpp> to something observable -
+// without it, the macro there could quietly expand to nothing forever.
+#ifdef __cpp_lib_constexpr_format
+#define XSTD_CONSTEXPR_FORMAT_CHECK_EQUAL(a, b) XSTD_CONSTEXPR_CHECK_EQUAL((a), (b))
+#else
+#define XSTD_CONSTEXPR_FORMAT_CHECK_EQUAL(a, b) BOOST_CHECK_EQUAL((a), (b))
+#endif
+
 BOOST_AUTO_TEST_CASE_TEMPLATE(Formatter, T, exact_width_types)
 {
-        BOOST_CHECK_EQUAL(std::format("{}", xstd::div_t<T>{1, -2}), "(1, -2)");
+        XSTD_CONSTEXPR_FORMAT_CHECK_EQUAL(std::format("{}", xstd::div_t<T>{1, -2}), "(1, -2)");
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(StreamInsertion, T, exact_width_types)
@@ -292,7 +305,7 @@ auto check_built_in_width()
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(T{-8}, T{+3}), (xstd::div_t<T>{-3, +1}));
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(T{-8}, T{-3}), (xstd::div_t<T>{+2, -2}));
 
-        BOOST_CHECK_EQUAL(std::format("{}", xstd::div_t<T>{1, -2}), "(1, -2)");
+        XSTD_CONSTEXPR_FORMAT_CHECK_EQUAL(std::format("{}", xstd::div_t<T>{1, -2}), "(1, -2)");
 
         std::ostringstream oss;
         oss << xstd::div_t<T>{1, -2};

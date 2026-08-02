@@ -223,19 +223,51 @@ template<std::signed_integral T>
 // instantiation to the point of use, so merely including this header no
 // longer requires a standard library that implements tuple formatting; only
 // actually formatting an xstd::div_t does.
+//
+// Formatting is the one xstd operation that is not usable at compile time,
+// and not by its own choice: the tuple formatter it delegates to is not
+// constexpr in C++23. Marking format() constexpr anyway would be ill-formed,
+// no diagnostic required - no specialization of it could ever be evaluated
+// in a constant expression, and [dcl.constexpr]/6 says as much about a
+// templated function no specialization of which could be constexpr - so both
+// compilers would accept it in silence rather than reject it.
+//
+// P3391 (constexpr std::format), plenary-approved for C++29, makes the
+// standard library's own formatter specializations constexpr, the tuple one
+// included, and announces that with __cpp_lib_constexpr_format. Inheriting
+// from a constexpr-enabled base is not enough on its own: a format call is a
+// constant expression only if every formatter specialization it uses is
+// constexpr-enabled, and this one is a specialization of its own. The macro
+// below is that opt-in, spelled conditionally so the keyword appears exactly
+// where the delegate can honor it and nowhere else. It is #undef'd right
+// after its single use: it is a detail of this one member function rather
+// than part of xstd's interface, and macro replacement happens long before
+// the member is instantiated, so nothing downstream needs it to stay
+// defined. Floating-point, locale-aware and chrono formatting stay outside
+// P3391; none of the three is reachable from a div_t<T> of signed integers.
+#ifdef __cpp_lib_constexpr_format
+#define XSTD_CONSTEXPR_FORMAT constexpr
+#else
+#define XSTD_CONSTEXPR_FORMAT
+#endif
+
 template<class T>
 // NOLINTNEXTLINE(bugprone-std-namespace-modification): permitted by [namespace.std]/2, see above
 struct std::formatter<xstd::div_t<T>> : std::formatter<std::tuple<T const&, T const&>>
 {
-        // not constexpr: no specialization could ever be constant-evaluated,
-        // since the tuple formatter this delegates to is not itself constexpr.
-        // That would be ill-formed no diagnostic required, so both compilers
-        // accept it in silence rather than rejecting it.
-        [[nodiscard]] auto format(xstd::div_t<T> const& d, auto& ctx) const
+        // constexpr only where the inherited tuple formatter is; see the note
+        // above. parse() needs no such gate and is not overridden here: the
+        // standard formatters' parse has had to be usable in a constant
+        // expression since C++20 - that is what makes compile-time checking
+        // of the format string work - so the inherited one is constexpr
+        // already, P3391 or not.
+        [[nodiscard]] XSTD_CONSTEXPR_FORMAT auto format(xstd::div_t<T> const& d, auto& ctx) const
                 -> decltype(ctx.out())
         {
                 return std::formatter<std::tuple<T const&, T const&>>::format(std::tie(d.quot, d.rem), ctx);
         }
 };
+
+#undef XSTD_CONSTEXPR_FORMAT
 
 #endif // XSTD_CSTDLIB_HPP

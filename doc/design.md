@@ -245,6 +245,45 @@ point of use, so merely including `<xstd/cstdlib.hpp>` no longer requires a
 standard library that implements tuple formatting. Only actually formatting
 an `xstd::div_t` does.
 
+Formatting is the one xstd operation that isn't `constexpr`, against the
+"`constexpr` all the things" theme above, and the reason is entirely
+external: `std::formatter<std::tuple<...>>::format` is not `constexpr` in
+C++23, so neither can the specialization delegating to it be. Marking it
+`constexpr` regardless wouldn't be a harmless white lie - a templated
+function no specialization of which could be evaluated in a constant
+expression is ill-formed, no diagnostic required ([dcl.constexpr]/6), so
+compilers accept it in silence rather than reject it, which is the worst of
+both worlds.
+
+[P3391](https://wg21.link/p3391) (`constexpr std::format`) makes the standard
+library's own formatter specializations `constexpr`, tuples included, and
+announces it with `__cpp_lib_constexpr_format`. The current revision is
+[R2](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2025/p3391r2.html)
+(2025-11-07), plenary-approved with C++29 as its ship vehicle; standard
+libraries usually implement an approved paper well ahead of the standard it
+lands in, which is what this gate is waiting for. Inheriting from a `constexpr`-enabled
+base is not by itself enough: a format call is a constant expression only if
+*every* formatter specialization it uses is `constexpr`-enabled, and
+`std::formatter<xstd::div_t<T>>` is one of them. So the header opts in
+explicitly, through an `XSTD_CONSTEXPR_FORMAT` macro that expands to
+`constexpr` exactly when the feature-test macro is defined and to nothing
+otherwise, `#undef`'d immediately after its single use. `parse` needs no such
+gate and isn't overridden: the standard formatters' `parse` has had to be
+usable in a constant expression since C++20 - that is what compile-time
+format-string checking runs on - so the inherited one is already `constexpr`.
+None of P3391's exclusions (floating point, locale-aware
+formatting, chrono) is reachable from a `div_t` of signed integers.
+
+The tests carry the matching half: `XSTD_CONSTEXPR_FORMAT_CHECK_EQUAL` is
+`XSTD_CONSTEXPR_CHECK_EQUAL` where the feature-test macro is defined and a
+plain runtime `BOOST_CHECK_EQUAL` where it is not, so the first standard
+library to define it turns the formatting checks into `static_assert`s
+without any further edit. Without that, the header's macro could quietly
+expand to nothing forever and no test would notice. `operator<<` stays
+non-`constexpr` under any future standard: `std::ostream` is not a
+compile-time facility, and P3391 explicitly leaves the `basic_ostringstream`
+side alone.
+
 `div_t` also has a narrow `std::ostream& operator<<` overload (no
 wide-character support) that just forwards to `std::format`. This exists
 solely so Boost.Test can print the type in test diagnostics on assertion
