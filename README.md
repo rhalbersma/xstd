@@ -17,9 +17,9 @@ xstd is a header-only C++23 library for small standard-library extensions that c
 
 | Header                   | Additions          | Description | Reference |
 | :-----                   | :--------          | :---------- | :-------- |
-| `<xstd/concepts.hpp>`    | `enumeration` <br> `specialization_of` | Is a type an enumeration type? <br> Constraint form of `is_specialization_of` | none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) |
-| `<xstd/cstdlib.hpp>`     | `sign` <br> `abs` <br> `uabs` <br> `div_t` <br> `div` <br> `euclidean_div` <br> `floored_div` | `constexpr`, any signed integral type <br> `constexpr`, any signed integral type <br> Total `\|x\|`, returning the unsigned type <br> `std::format` support, defaulted equality comparison <br> `constexpr`, any signed integral type <br> Euclidean division <br> Floored division | [Boost.Math](https://www.boost.org/doc/libs/1_80_0/libs/math/doc/html/math_toolkit/sign_functions.html) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Rust `unsigned_abs`](https://doc.rust-lang.org/std/primitive.i32.html#method.unsigned_abs) (no C++ equivalent) <br> [p2286r8](https://wg21.link/p2286r8), [p3391](https://wg21.link/p3391) (C++29, not yet implemented) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) |
-| `<xstd/type_traits.hpp>` | `is_specialization_of` <br> `is_integral_constant` <br> `empty_type` <br> `conditional_data_member_t` | Is a type a class template specialization? <br> Is a type an `integral_constant`? <br> A tagged empty type <br> A conditionally present member | [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> none <br> none <br> none |
+| `<xstd/concepts.hpp>`    | `enumeration` <br> `specialization_of` <br> `integer_like` <br> `signed_integer_like` <br> `unsigned_integer_like` | Is a type an enumeration type? <br> Constraint form of `is_specialization_of` <br> Open form of `std::integral`, class types included <br> Open form of `std::signed_integral` <br> Open form of `std::unsigned_integral` | none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) |
+| `<xstd/cstdlib.hpp>`     | `sign` <br> `abs` <br> `uabs` <br> `div_t` <br> `div` <br> `euclidean_div` <br> `floored_div` | `constexpr`, any signed integer-like type <br> `constexpr`, any signed integer-like type <br> Total `\|x\|`, returning the unsigned counterpart <br> Defaulted equality comparison, `std::format` support where the element type has it <br> `constexpr`, any signed integer-like type <br> Euclidean division <br> Floored division | [Boost.Math](https://www.boost.org/doc/libs/1_80_0/libs/math/doc/html/math_toolkit/sign_functions.html) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Rust `unsigned_abs`](https://doc.rust-lang.org/std/primitive.i32.html#method.unsigned_abs) (no C++ equivalent) <br> [p2286r8](https://wg21.link/p2286r8), [p3391](https://wg21.link/p3391) (C++29, not yet implemented) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) |
+| `<xstd/type_traits.hpp>` | `is_specialization_of` <br> `is_integral_constant` <br> `unsigned_counterpart` <br> `empty_type` <br> `conditional_data_member_t` | Is a type a class template specialization? <br> Is a type an `integral_constant`? <br> Open, user-specializable `std::make_unsigned` <br> A tagged empty type <br> A conditionally present member | [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> none <br> none <br> none <br> none |
 | `<xstd/utility.hpp>`     | `to_underlying` <br> `aligned_size` | `std::integral_constant` overload <br> Round a size up to a multiple of an alignment | none <br> none |
 
 ## Using xstd
@@ -101,8 +101,8 @@ static_assert(xstd::uabs(-2) == 2u);
 // |INT_MIN| is one past INT_MAX, so only the unsigned form can return it
 static_assert(xstd::uabs(INT_MIN) == static_cast<unsigned>(INT_MAX) + 1u);
 
-// one template per operation, so every signed integral width is covered,
-// including the two the labs/llabs/imaxabs naming has no name for
+// one template per operation, so every signed integer-like type is covered,
+// including the two widths the labs/llabs/imaxabs naming has no name for
 static_assert(xstd::uabs(std::int8_t{-128}) == std::uint8_t{128});
 ```
 
@@ -133,15 +133,26 @@ Formatting is the one operation here that isn't `constexpr`: the tuple formatter
 
 ### Width and constraints
 
-Every function in `<xstd/cstdlib.hpp>` is a single function template constrained to `std::signed_integral`, rather than the four fixed-width overloads (`abs`/`labs`/`llabs`/`imaxabs` and friends) `<cstdlib>` and `<cinttypes>` declare. Three consequences at the call site:
+Every function in `<xstd/cstdlib.hpp>` is a single function template constrained to `xstd::signed_integer_like`, rather than the four fixed-width overloads (`abs`/`labs`/`llabs`/`imaxabs` and friends) `<cstdlib>` and `<cinttypes>` declare. Three consequences at the call site:
 
-- **Every signed integral width is covered**, including `std::int8_t` and `std::int16_t`, which the `<cstdlib>` naming has no name for. 128-bit integers are the exception: `__int128` doesn't satisfy `std::integral` in the strictly conforming dialect this library targets, so it is not supported.
+- **Every signed integer-like type is covered**, including `std::int8_t` and `std::int16_t`, which the `<cstdlib>` naming has no name for, and including the 128-bit types. `std::signed_integral` would not have reached those: it is spelled over `std::is_integral`, which excludes `__int128` on libstdc++ in the strictly conforming dialect this library targets, and excludes every *class* type unconditionally — which is what a 128-bit integer is where there is no built-in one (libstdc++'s `__max_diff_type`, the MSVC STL's `std::_Signed128`).
 - **The result type is the argument type, not the promoted type.** `xstd::abs` of an `std::int16_t` is an `std::int16_t`, and its precondition is `std::int16_t`'s — the most negative value of the *argument* type is outside its contract (guarded by an `assert`), just like `MIN / -1` is for the division helpers. Callers who want the old promoting behavior write `xstd::abs(+x)` or `xstd::abs<int>(x)`.
 - **Two-argument templates deduce one `T` from both arguments**, so a mixed-width call like `xstd::div(8, 3L)` is a deduction failure rather than a silent conversion. Spell the intent as `xstd::div<long>(8, 3L)`.
 
 `xstd::sign` isn't part of `<cstdlib>`, and always returns a plain `int` whatever its argument's width.
 
-See [doc/design.md](doc/design.md) for the rationale behind these APIs' shapes (why one template rather than four overloads, why 128-bit integers are out).
+A built-in signed type needs nothing from you. Your own integer type needs one specialization of `xstd::unsigned_counterpart` naming its unsigned partner, on top of the operators and the `std::numeric_limits` specialization it would have anyway:
+
+```cpp
+template<>
+struct xstd::unsigned_counterpart<my_int128> { using type = my_uint128; };
+
+static_assert(xstd::signed_integer_like<my_int128>);
+```
+
+Formatting is the one thing that does not follow: `std::formatter<xstd::div_t<T>>` delegates to the tuple formatter, so a `div_t` over a type without a `std::formatter` simply isn't formattable. The specialization's body is instantiated only where it is used, so this costs nothing until you try.
+
+See [doc/design.md](doc/design.md) for the rationale behind these APIs' shapes (why one template rather than four overloads, and why the constraint is `integer_like` rather than `std::signed_integral`).
 
 ### Type traits
 
@@ -207,6 +218,20 @@ static_assert(real_part(std::complex<double>(1.0, 2.0)) == 1.0);
 
 It inherits the trait's `template<class...> class` restriction on `Primary`, including the hard error for a template with a non-type parameter.
 
+`xstd::integer_like`, `xstd::signed_integer_like` and `xstd::unsigned_integer_like` are the open forms of `std::integral`, `std::signed_integral` and `std::unsigned_integral`. Those three are spelled over `std::is_integral`, which is a closed list the compiler owns; these ask what a type does — `std::regular`, `std::totally_ordered`, a `std::numeric_limits` specialization saying `is_integer`, explicit construction from `int`, and the six arithmetic operators — so a class type can satisfy them:
+
+```cpp
+#include <concepts>
+#include <xstd/concepts.hpp>
+
+static_assert(xstd::signed_integer_like<int>);              // a strict superset:
+static_assert(std::signed_integral<int>);                   // everything integral qualifies
+static_assert(xstd::unsigned_integer_like<unsigned>);
+static_assert(not xstd::signed_integer_like<double>);
+```
+
+Each is a strict superset of its `<concepts>` counterpart, with the same signedness answers — `bool` comes out `unsigned_integer_like`, exactly as `std::unsigned_integral<bool>` already holds. A signed type additionally needs an unsigned counterpart, which is what `xstd::unsigned_counterpart` names; for the built-in types it agrees with `std::make_unsigned`, and for anything else the user specializes it. Unlike `std::make_unsigned`, it is *empty* rather than ill-formed for a type that has no counterpart, which is what lets it be tested for inside a concept at all.
+
 ## Project layout
 
 - `include/xstd/` contains the public header-only library code.
@@ -215,7 +240,9 @@ It inherits the trait's `template<class...> class` restriction on `Primary`, inc
 
 ## Requirements
 
-Using xstd requires a conforming [C++23](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4950.pdf) compiler and CMake 3.28 or later. Beyond those, nothing: the library is header-only, depends on no third-party code, and links against nothing, so adding it to a project adds no transitive requirements of its own. It is expected to work with any compiler that implements the C++23 features it uses, including `std::format` for tuple-like types.
+Using xstd requires a conforming [C++23](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4950.pdf) compiler and CMake 3.28 or later. Beyond those, nothing: the library is header-only, depends on no third-party code, and links against nothing, so adding it to a project adds no transitive requirements of its own. It is expected to work with any compiler that implements the C++23 features it uses. No compiler extension is needed and none is enabled — the headers compile in the strictly conforming dialect, and reach `__int128` there without one.
+
+`std::format` for tuple-like types is the one library facility only *some* of xstd needs: it is required to format an `xstd::div_t`, and not to include the header or to use any other operation, since the `std::formatter` specialization's body is instantiated only where it is used.
 
 Running xstd's own test suite does have dependencies, which consumers never build. They are listed in [CONTRIBUTING.md](CONTRIBUTING.md).
 

@@ -6,25 +6,25 @@
 #ifndef XSTD_CSTDLIB_HPP
 #define XSTD_CSTDLIB_HPP
 
-#include <cassert>     // assert
-#include <concepts>    // signed_integral
-#include <format>      // format, formatter
-#include <limits>      // numeric_limits
-#include <ostream>     // ostream
-#include <tuple>       // tie, tuple
-#include <type_traits> // make_unsigned_t
+#include <xstd/concepts.hpp>    // signed_integer_like
+#include <xstd/type_traits.hpp> // unsigned_counterpart_t
+#include <cassert>              // assert
+#include <format>               // format, formatter
+#include <limits>               // numeric_limits
+#include <ostream>              // ostream
+#include <tuple>                // tie, tuple
 
 namespace xstd {
 
 // Each facility below is a single function template constrained to
-// std::signed_integral, rather than the <cstdlib>-style family of four
+// xstd::signed_integer_like, rather than the <cstdlib>-style family of four
 // fixed-width overloads (abs/labs/llabs/imaxabs and friends) these grew out
 // of. Consequences worth knowing at the call site:
 //
 // - The exact-width types are covered for free. int8_t/int16_t/int32_t/
-//   int64_t are aliases of signed char/short/int/long/long long, so a
-//   template over std::signed_integral instantiates for each of them,
-//   including the two narrow widths the <cstdlib> naming has no name for.
+//   int64_t are aliases of signed char/short/int/long/long long, so one
+//   template instantiates for each of them, including the two narrow widths
+//   the <cstdlib> naming has no name for.
 // - The result type is the argument type, not the promoted type. Passing an
 //   int16_t no longer silently widens to int the way a call to a non-template
 //   abs(int) did; abs(x) of an int16_t is an int16_t, and its precondition is
@@ -33,21 +33,28 @@ namespace xstd {
 // - The two-argument templates deduce a single T from both arguments, so a
 //   mixed-width call like div(8, 3L) is a deduction failure rather than a
 //   silent conversion. Spell the intent as div<long>(8, 3L) or cast.
-// - 128-bit integers are deliberately not covered: neither __int128 nor
-//   unsigned __int128 satisfies std::integral in the strictly conforming
-//   dialect this library targets, and libstdc++'s std::make_unsigned is a
-//   hard error rather than a substitution failure for them. Widening the
-//   constraint is a one-line change if that ever becomes portable; see
-//   doc/design.md.
+// - 128-bit integers are covered, on both of the shapes they come in: the
+//   built-in __int128, whose std::is_integral answer depends on the dialect,
+//   and the integer *class* types (libstdc++'s __max_diff_type, the MSVC
+//   STL's _Signed128) that no dialect could ever make integral. That is what
+//   xstd::signed_integer_like buys over std::signed_integral; see
+//   <xstd/concepts.hpp> and doc/design.md.
+//
+// Every literal below is spelled static_cast<T>(...) rather than written
+// bare. An integer-class type is only required to be explicitly convertible
+// from an integral type, so "denom != 0" need not compile for one while
+// "denom != static_cast<T>(0)" does. For the built-in widths the two are the
+// same expression after promotion.
 
 // constexpr version of <cstdlib>'s abs/labs/llabs and <cinttypes>'s imaxabs
 // (P0533), generalized to one signed-only template.
-template<std::signed_integral T>
+template<signed_integer_like T>
 [[nodiscard]] constexpr auto abs(T x) noexcept
         -> T
 {
+        auto const zero = static_cast<T>(0);
         assert(x != std::numeric_limits<T>::min()); // -x would overflow
-        return static_cast<T>(x < 0 ? -x : x);
+        return static_cast<T>(x < zero ? -x : x);
 }
 
 // The total counterpart of abs: same |x|, but returning the unsigned type, so
@@ -57,41 +64,45 @@ template<std::signed_integral T>
 // MIN, which is not, or by widening to a bigger signed type, which has none
 // to widen to at the widest end.
 //
-// The return type is deduced rather than spelled std::make_unsigned_t<T>,
+// The return type is deduced rather than spelled unsigned_counterpart_t<T>,
 // which is the one signature in this header where that choice is load-bearing
 // rather than cosmetic. Clang before 21 does not implement CWG2369: it
 // substitutes the deduced arguments into the function type before checking the
-// constraint, so a spelled-out return type instantiates make_unsigned_t<double>
-// for uabs(1.0) - a hard error rather than a substitution failure, which makes
-// the call ill-formed inside a requires-expression instead of merely false.
-// Deducing keeps the trait out of the signature, so std::signed_integral gets
-// to reject the argument first. Every other return type here (T, int, bool,
-// div_t<T>) instantiates no trait and is spelled out. See doc/design.md.
-template<std::signed_integral T>
+// constraint, so a spelled-out return type instantiates the trait for
+// uabs(1.0) even though the constraint would have rejected the argument.
+// xstd::unsigned_counterpart is empty rather than ill-formed for a double, so
+// this would now be a substitution failure rather than the hard error
+// std::make_unsigned_t<double> used to be - but a substitution failure in the
+// return type is still a worse diagnostic than a failed constraint, and one
+// that reports the wrong reason. Deducing keeps the trait out of the
+// signature, so signed_integer_like gets to reject the argument first. Every
+// other return type here (T, int, bool, div_t<T>) instantiates no trait and
+// is spelled out. See doc/design.md.
+template<signed_integer_like T>
 [[nodiscard]] constexpr auto uabs(T x) noexcept
 {
-        using U = std::make_unsigned_t<T>;
+        using U = unsigned_counterpart_t<T>;
+        auto const zero = static_cast<U>(0);
         auto const u = static_cast<U>(x);
         // The cast back to U is what makes this wraparound rather than
-        // promotion: for types narrower than int, 0 - u is evaluated in int
+        // promotion: for types narrower than int, zero - u is evaluated in int
         // and is negative, and converting that back to U reduces it mod 2^N -
-        // exactly the value the wider unsigned types get directly. The zero
-        // needs no type of its own: the usual arithmetic conversions give the
-        // subtraction the same type either way.
-        return static_cast<U>(x < 0 ? 0 - u : u);
+        // exactly the value the wider unsigned types get directly.
+        return static_cast<U>(x < static_cast<T>(0) ? zero - u : u);
 }
 
 // not part of <cstdlib>, but kept to the same shape as abs/uabs above. The
 // result is a plain int at every width: a sign is a three-valued quantity,
 // not a number in T's range.
-template<std::signed_integral T>
+template<signed_integer_like T>
 [[nodiscard]] constexpr auto sign(T x) noexcept
         -> int
 {
-        return static_cast<int>(0 < x) - static_cast<int>(x < 0);
+        auto const zero = static_cast<T>(0);
+        return static_cast<int>(zero < x) - static_cast<int>(x < zero);
 }
 
-template<std::signed_integral T>
+template<signed_integer_like T>
 struct div_t
 {
         T quot, rem;
@@ -121,7 +132,7 @@ struct div_t
 // spelling the guide out makes the support intentional rather than incidental
 // (and keeps -Wctad-maybe-unsupported quiet), so div_t{q, r} remains as
 // writable as the four separate div_t/ldiv_t/lldiv_t/imaxdiv_t names were.
-template<std::signed_integral T>
+template<signed_integer_like T>
 div_t(T, T) -> div_t<T>;
 
 // C++ Standard [expr.mul]/4
@@ -133,36 +144,38 @@ div_t(T, T) -> div_t<T>;
 // rem: Ada, Clojure, Erlang, Haskell, Julia, Lisp, Prolog
 // remainder: Ruby, Scheme
 // mod: Fortran, OCaml
-template<std::signed_integral T>
+template<signed_integer_like T>
 [[nodiscard]] constexpr auto div(T numer, T denom) noexcept
         -> div_t<T>
 {
-        assert(denom != 0);
-        assert(numer != std::numeric_limits<T>::min() or denom != -1);
+        assert(denom != static_cast<T>(0));
+        assert(numer != std::numeric_limits<T>::min() or denom != static_cast<T>(-1));
         auto const qT = static_cast<T>(numer / denom);
         auto const rT = static_cast<T>(numer % denom);
         // Safe in T at every width, with no widening: denom * qT is exactly
         // numer - rT, and rT carries numer's sign, so the product lies between
         // 0 and numer inclusive and is representable wherever numer is. This
         // is the only one of the three conventions where the identity is worth
-        // asserting - it checks the built-in / and % against each other. For
-        // the two below it is an algebraic consequence of how they adjust qT
-        // and rT, so it could only fail if this one had already failed.
-        assert(numer == (denom * qT) + rT);
+        // asserting - it checks / and % against each other. For the two below
+        // it is an algebraic consequence of how they adjust qT and rT, so it
+        // could only fail if this one had already failed.
+        assert(numer == static_cast<T>(static_cast<T>(denom * qT) + rT));
         assert(uabs(rT) < uabs(denom));
-        assert(sign(rT) == sign(numer) or rT == 0);
+        assert(sign(rT) == sign(numer) or rT == static_cast<T>(0));
         return {.quot = qT, .rem = rT};
 }
 
 // https://en.wikipedia.org/wiki/Euclidean_division
 // mod: Maple, Pascal
 // modulo: Scheme
-template<std::signed_integral T>
+template<signed_integer_like T>
 [[nodiscard]] constexpr auto euclidean_div(T numer, T denom) noexcept
         -> div_t<T>
 {
-        assert(denom != 0);
+        assert(denom != static_cast<T>(0));
         auto const [qT, rT] = div(numer, denom);
+        auto const zero = static_cast<T>(0);
+        auto const one = static_cast<T>(1);
         // A negative truncated remainder is moved up by one |denom|, with the
         // quotient compensated in the matching direction. Both lines select a
         // whole expression rather than adding a delta, because the delta here
@@ -171,9 +184,16 @@ template<std::signed_integral T>
         // it as an add or a subtract of denom chosen by denom's sign keeps
         // every intermediate in range. (floored_div below adjusts by denom
         // itself, which is always representable, so it can add a delta.)
-        auto const adjust = rT < 0;
-        auto const qE = static_cast<T>(adjust ? (denom > 0 ? qT - 1 : qT + 1) : qT);
-        auto const rE = static_cast<T>(adjust ? (denom > 0 ? rT + denom : rT - denom) : rT);
+        //
+        // Each arm carries its own static_cast<T> rather than one cast around
+        // the whole conditional. For the built-in widths that is the same
+        // narrowing in a different place, but the operands of a conditional
+        // have to agree on a type before it can be cast at all, and qT - one
+        // is a T only after the cast - a class type has no integer promotions
+        // to fall back on the way int8_t does.
+        auto const adjust = rT < zero;
+        auto const qE = adjust ? (denom > zero ? static_cast<T>(qT - one) : static_cast<T>(qT + one)) : qT;
+        auto const rE = adjust ? (denom > zero ? static_cast<T>(rT + denom) : static_cast<T>(rT - denom)) : rT;
         assert(uabs(rE) < uabs(denom));
         assert(sign(rE) >= 0);
         return {.quot = qE, .rem = rE};
@@ -183,23 +203,26 @@ template<std::signed_integral T>
 // %%: R
 // mod: Ada, Clojure, Haskell, Julia, Lisp, ML, Prolog
 // modulo: Fortran, Ruby
-template<std::signed_integral T>
+template<signed_integer_like T>
 [[nodiscard]] constexpr auto floored_div(T numer, T denom) noexcept
         -> div_t<T>
 {
-        assert(denom != 0);
+        assert(denom != static_cast<T>(0));
         auto const [qT, rT] = div(numer, denom);
+        auto const zero = static_cast<T>(0);
+        auto const one = static_cast<T>(1);
         // The same adjustment as euclidean_div above, but two-valued rather
         // than three: a remainder whose sign differs from denom's is moved one
         // denom in denom's direction, and the quotient compensated. The delta
         // is denom itself rather than |denom|, and denom is by definition
-        // representable, so both lines can add a conditional delta instead of
-        // selecting a whole expression. Neither zero needs a type of its own.
+        // representable, so both lines add a conditional delta instead of
+        // selecting a whole expression - the delta, not the result, is what
+        // the conditional picks.
         auto const adjust = sign(rT) == -sign(denom);
-        auto const qF = static_cast<T>(qT - (adjust ? 1 : 0));
-        auto const rF = static_cast<T>(rT + (adjust ? denom : 0));
+        auto const qF = static_cast<T>(qT - (adjust ? one : zero));
+        auto const rF = static_cast<T>(rT + (adjust ? denom : zero));
         assert(uabs(rF) < uabs(denom));
-        assert(rF == 0 or sign(rF) == sign(denom));
+        assert(rF == static_cast<T>(0) or sign(rF) == sign(denom));
         return {.quot = qF, .rem = rF};
 }
 

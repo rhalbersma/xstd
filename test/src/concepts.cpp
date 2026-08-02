@@ -3,12 +3,16 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/concepts.hpp>        // enumeration, specialization_of
-#include <xstd/type_traits.hpp>     // empty_type, is_specialization_of_v
-#include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
-#include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
-#include <complex>                  // complex
-#include <tuple>                    // tuple
+#include <xstd/concepts.hpp>           // enumeration, specialization_of, integer_like, signed_integer_like, unsigned_integer_like
+#include <xstd/type_traits.hpp>        // empty_type, is_specialization_of_v
+#include <xstd/test/constexpr.hpp>     // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
+#include <xstd/test/integer_class.hpp> // signed_integer_class, unsigned_integer_class
+#include <boost/test/unit_test.hpp>    // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_CHECK
+#include <complex>                     // complex
+#include <concepts>                    // integral, signed_integral, unsigned_integral
+#include <cstdint>                     // int8_t, int16_t, int32_t, int64_t
+#include <tuple>                       // tuple
+#include <type_traits>                 // make_unsigned_t
 
 using namespace xstd;
 
@@ -77,6 +81,81 @@ BOOST_AUTO_TEST_CASE(SpecializationOf)
         // naming std::complex<int> stays fine, which is all the checks above
         // do.
         XSTD_CONSTEXPR_CHECK_EQUAL((as_complex(std::complex<double>{1.0, 2.0})), (std::complex<double>{1.0, 2.0}));
+}
+
+using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t>;
+
+// The property that makes this a widening of <concepts> rather than a
+// replacement for it: whatever std::integral accepts, integer_like accepts,
+// and with the same signedness. Checked per width rather than once, since the
+// signed and unsigned answers have to line up at each.
+BOOST_AUTO_TEST_CASE_TEMPLATE(IntegerLikeIsASupersetOfIntegral, T, exact_width_types)
+{
+        using U = std::make_unsigned_t<T>;
+
+        static_assert(std::signed_integral<T> and signed_integer_like<T>);
+        static_assert(std::unsigned_integral<U> and unsigned_integer_like<U>);
+
+        static_assert(integer_like<T> and integer_like<U>);
+        static_assert(not unsigned_integer_like<T>);
+        static_assert(not signed_integer_like<U>);
+
+        BOOST_CHECK(true); // silence Boost.Test's "test case did not check any assertions"
+}
+
+BOOST_AUTO_TEST_CASE(IntegerLike)
+{
+        // the built-in character and boolean types, which std::integral also
+        // accepts. bool comes out unsigned, exactly as std::unsigned_integral
+        // <bool> already holds - these concepts widen the standard ones
+        // rather than tidy them up
+        XSTD_CONSTEXPR_CHECK(integer_like<bool> and unsigned_integer_like<bool>);
+        XSTD_CONSTEXPR_CHECK(not signed_integer_like<bool>);
+        XSTD_CONSTEXPR_CHECK(integer_like<char> and integer_like<char32_t>);
+
+        // nothing whose std::numeric_limits says it is not an integer
+        XSTD_CONSTEXPR_CHECK(not integer_like<double>);
+        XSTD_CONSTEXPR_CHECK(not integer_like<not_an_enum>);
+        XSTD_CONSTEXPR_CHECK(not integer_like<scoped>);
+        XSTD_CONSTEXPR_CHECK(not integer_like<int*>);
+
+        // std::regular leads the conjunction so that these are rejected
+        // before std::numeric_limits is instantiated over them: its primary
+        // template declares a static member function returning T, which for
+        // an array type is ill-formed rather than merely unspecialized. That
+        // ordering is what these four check - each one is a hard error if the
+        // conjunction is reordered.
+        XSTD_CONSTEXPR_CHECK(not integer_like<void>);
+        XSTD_CONSTEXPR_CHECK(not integer_like<int&>);
+        // NOLINTNEXTLINE(modernize-avoid-c-arrays): a built-in array is the type under test, not a container choice
+        XSTD_CONSTEXPR_CHECK(not integer_like<int[3]>);
+        XSTD_CONSTEXPR_CHECK(not integer_like<int()>);
+
+        // a cv-qualified type is not std::regular, so it is not integer_like
+        // either - which is why xstd::unsigned_counterpart has nothing to say
+        // about cv-qualified types
+        XSTD_CONSTEXPR_CHECK(not integer_like<int const>);
+}
+
+// The shape std::signed_integral can never describe, on any compiler or
+// dialect: a class type. It qualifies here by supplying the operators, the
+// std::numeric_limits specialization and the xstd::unsigned_counterpart
+// specialization - by behaving like an integer rather than by being on a
+// list.
+BOOST_AUTO_TEST_CASE(IntegerClassTypes)
+{
+        using S = test::signed_integer_class;
+        using U = test::unsigned_integer_class;
+
+        XSTD_CONSTEXPR_CHECK(not std::integral<S> and not std::integral<U>);
+
+        XSTD_CONSTEXPR_CHECK(integer_like<S> and signed_integer_like<S>);
+        XSTD_CONSTEXPR_CHECK(not unsigned_integer_like<S>);
+
+        XSTD_CONSTEXPR_CHECK(integer_like<U> and unsigned_integer_like<U>);
+        // U is a perfectly good unsigned integer-like type, but no type names
+        // it as *its* counterpart, and it has none of its own
+        XSTD_CONSTEXPR_CHECK(not signed_integer_like<U>);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
