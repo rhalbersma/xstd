@@ -76,6 +76,16 @@ concept integral_like = is_integral_like_v<T>;
 // <bool> already holds; these concepts widen the built-in ones rather than
 // tidy them up.
 //
+// The unsigned one is where the parallel with <concepts> deliberately stops.
+// std::unsigned_integral is integral<T> && !signed_integral<T>, and copying
+// that shape here would be wrong, because signed_integral_like asks for more
+// than a sign: a signed integer-class type whose author has not specialized
+// xstd::make_unsigned_like fails it, and "integral_like and not
+// signed_integral_like" would then report that type as *unsigned*. Asking
+// is_unsigned_like_v - the standard's own T(0) < T(-1), over the opened
+// arithmetic test - answers the question actually being asked, and leaves such
+// a type neither signed nor unsigned, which is what it is.
+//
 // Both are written as "integral_like<T> and ..." rather than as a flat list of
 // requirements, so that each one *subsumes* integral_like. That is what lets a
 // caller overload on integral_like and signed_integral_like and have the more
