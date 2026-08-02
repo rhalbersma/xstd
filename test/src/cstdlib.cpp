@@ -365,19 +365,44 @@ BOOST_AUTO_TEST_CASE(BuiltInWidths)
 // gives it in every mode. std::signed_integral therefore covers this type on
 // some standard libraries and not others, at no fault of the type's.
 // Naming it is what -Wpedantic is for, hence the same suppression the header
-// carries; the guard is a compiler predefine, so MSVC skips the whole case.
+// carries.
 #ifdef __SIZEOF_INT128__
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 #endif
+
+// __SIZEOF_INT128__ says the *compiler* has the type. It says nothing about
+// whether the *standard library* describes it, and those come apart: clang-cl
+// has __int128 on x64, but the MSVC STL specializes neither std::is_integral
+// nor std::numeric_limits for it, so nothing there says it is an integer and
+// integer_like correctly declines. numeric_limits is the gate rather than a
+// standard-library predefine because it is the thing integer_like actually
+// reads - if a library ever specializes it, this case starts testing on its
+// own, and if one specializes it while something else is missing, the
+// assertions below still fire rather than being skipped.
+//
+// A template so that the discarded branch is never instantiated: in a
+// non-templated context a discarded if-constexpr statement is still fully
+// checked, static_asserts included.
+template<class T>
+auto check_int128()
+        -> void
+{
+        if constexpr (std::numeric_limits<T>::is_specialized) {
+                static_assert(xstd::signed_integer_like<T>);
+                static_assert(std::same_as<decltype(xstd::uabs(T{})), xstd::unsigned_counterpart_t<T>>);
+                static_assert(std::same_as<decltype(xstd::div(T{1}, T{1})), xstd::div_t<T>>);
+
+                check_signed_integer_like<T>();
+        }
+}
+
 BOOST_AUTO_TEST_CASE(Int128)
 {
-        static_assert(xstd::signed_integer_like<__int128>);
-        static_assert(std::same_as<decltype(xstd::uabs(__int128{})), unsigned __int128>);
-        static_assert(std::same_as<decltype(xstd::div(__int128{1}, __int128{1})), xstd::div_t<__int128>>);
+        check_int128<__int128>();
 
-        check_signed_integer_like<__int128>();
+        BOOST_CHECK(true); // the MSVC STL leaves __int128 undescribed, see above
 }
 #ifdef __GNUC__
 #pragma GCC diagnostic pop

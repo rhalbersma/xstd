@@ -65,7 +65,7 @@ struct unsigned_counterpart<T> : std::make_unsigned<T>
 {};
 
 template<class T>
-using unsigned_counterpart_t = typename unsigned_counterpart<T>::type;
+using unsigned_counterpart_t = unsigned_counterpart<T>::type;
 
 // __int128 is where "integral" stops being a property of a type and becomes a
 // property of the dialect. GCC and Clang predefine __GLIBCXX_TYPE_INT_N_0

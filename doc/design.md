@@ -430,13 +430,24 @@ which for `enumeration` would have meant colliding with `std::is_enum`.
 That same rule is what keeps `integer_like` / `signed_integer_like` /
 `unsigned_integer_like` from being spelled `xstd::integral` /
 `xstd::signed_integral` / `xstd::unsigned_integral`, which is what they are
-generalizations *of*. Those names would collide with `<concepts>`' own under
-using-directives for both namespaces, and the collision would be worse than
-`is_enum`'s: the two spellings would mean genuinely different things - one a
-strict superset of the other - so code that resolved to the wrong one would
-compile and be subtly wrong rather than ambiguous. The `_like` suffix also
-echoes the standard's own "integer-class type" vocabulary for the same
-category of type.
+generalizations *of*. A concept is looked up like a class template, not like
+a function: two same-named ones visible through using-directives for both
+namespaces are an *ambiguity*, diagnosed at every unqualified use, with no
+overload resolution to pick between them. That is the same failure mode
+`xstd::is_enum` would have had, no better and no worse - it is a hard error,
+not a silently wrong resolution.
+
+The extra reason to avoid these particular names is not about ambiguity at
+all, because ambiguity needs *both* namespaces in scope. It is the
+single-directive case: with only `using namespace xstd;` in scope, an
+unqualified `signed_integral<T>` resolves quietly to xstd's, and no
+diagnostic is issued anywhere. A reader who knows `<concepts>` then reads a
+familiar token that means something strictly broader than they think, and a
+template constrained with it accepts class types that `std::signed_integral`
+would have rejected. Nothing is miscompiled by lookup - lookup is never
+wrong here - but the reader is. `signed_integer_like` cannot be misread that
+way, and the `_like` suffix additionally echoes the standard's own
+"integer-class type" vocabulary for the same category of type.
 
 `xstd::unsigned_counterpart` is named the same way, and for a sharper version
 of the same reason. It is a generalization of `std::make_unsigned`, so
