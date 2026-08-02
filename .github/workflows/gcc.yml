@@ -79,12 +79,8 @@ jobs:
       # https://jwakely.github.io/pkg-gcc-latest/). Not an official GCC
       # release, but this leg is required like any other: xstd tracks trunk
       # deliberately and expects to adapt to it rather than ignore it.
-      # The version banner includes the snapshot's build date, which we use
-      # below to key the Boost cache so it invalidates whenever the snapshot
-      # actually changes.
       - name: Install GCC trunk snapshot
         if: matrix.trunk
-        id: gcc-trunk
         run: |
           wget -q --tries=3 --waitretry=5 --retry-on-http-error=429,500,502,503,504 https://kayari.org/gcc-latest/gcc-latest.deb -O gcc-latest.deb
           sudo dpkg -i gcc-latest.deb || sudo apt-get install -f -y
@@ -103,7 +99,6 @@ jobs:
           sudo ldconfig
           ${{ matrix.cc }} --version
           ${{ matrix.cxx }} --version
-          echo "version=$(${{ matrix.cxx }} --version | head -1)" >> "$GITHUB_OUTPUT"
 
       - name: Report toolchain versions
         run: |
@@ -117,7 +112,6 @@ jobs:
       # vcpkg's ABI hash, so a stale entry is ignored rather than reused.
       - name: Restore vcpkg binary cache
         id: vcpkg-cache
-        if: "!matrix.trunk"
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
           path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
@@ -125,21 +119,27 @@ jobs:
           restore-keys: ${{ env.VCPKG_CACHE_KEY }}
 
       # vcpkg is used instead of the distro's boost package so xstd tracks
-      # recent Boost releases regardless of what the OS bundles. All
-      # apt-installed GCCs share the system libstdc++, so ABI is consistent
-      # regardless of which one built vcpkg's Boost.
-      - name: Install Boost.Test (stable)
-        if: "!matrix.trunk"
+      # recent Boost releases regardless of what the OS bundles. The overlay
+      # triplet builds Boost.Test with the GCC under test rather than with
+      # the runner image's default compiler: the trunk snapshot ships its
+      # own, newer libstdc++ (unlike apt-installed compilers, which all
+      # share the system one), and linking a Boost.Test built against the
+      # system libstdc++ breaks Boost.Test's runtime parameter registration
+      # ("Test setup error: Parameter catch_system_errors").
+      - name: Install Boost.Test
+        env:
+          VCPKG_GCC_VERSION: ${{ matrix.version }}
         run: |
           mkdir -p "$VCPKG_DEFAULT_BINARY_CACHE"
-          vcpkg install --triplet x64-linux
+          vcpkg install \
+            --triplet x64-linux-gcc \
+            --overlay-triplets "$GITHUB_WORKSPACE/.github/vcpkg/triplets"
 
       # Save only when the archives changed, keyed on their contents: an
       # unconditional save would add an entry per run, evicting this repo's
       # other caches, or warn about a duplicate key on every cache hit.
       - name: Save vcpkg binary cache
         if: >-
-          !matrix.trunk &&
           hashFiles('vcpkg-cache/**') != '' &&
           steps.vcpkg-cache.outputs.cache-matched-key !=
           format('{0}{1}', env.VCPKG_CACHE_KEY, hashFiles('vcpkg-cache/**'))
@@ -148,63 +148,19 @@ jobs:
           path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
           key: ${{ env.VCPKG_CACHE_KEY }}${{ hashFiles('vcpkg-cache/**') }}
 
-      # vcpkg's prebuilt Boost.Test is compiled by an older, ABI-stable GCC.
-      # Linking it against the trunk snapshot breaks
-      # Boost.Test's runtime parameter registration ("Test setup error:
-      # Parameter catch_system_errors"), because the snapshot ships its own,
-      # newer libstdc++ (unlike apt-installed compilers, which all share the
-      # system one). Building Boost.Test from source with the same trunk
-      # compiler avoids the mismatch. The Boost version is resolved via the
-      # GitHub API so this doesn't go stale; the resulting build is cached
-      # (keyed on the exact trunk snapshot + Boost version) since a rebuild
-      # otherwise costs several minutes on every run.
-      - name: Resolve latest Boost version
-        if: matrix.trunk
-        id: boost-version
-        run: |
-          # /releases/latest can return a beta (boostorg doesn't always flag
-          # them as prerelease), so list releases and keep strict boost-X.Y.Z
-          boost_tag=$(curl -fsSL --retry 3 --retry-delay 2 -H "Authorization: Bearer ${{ github.token }}" "https://api.github.com/repos/boostorg/boost/releases?per_page=20" | grep '"tag_name"' | cut -d'"' -f4 | grep -E -m1 '^boost-[0-9]+\.[0-9]+\.[0-9]+$')
-          echo "tag=$boost_tag" >> "$GITHUB_OUTPUT"
-
-      - name: Cache Boost (trunk)
-        if: matrix.trunk
-        id: cache-boost-trunk
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
-        with:
-          path: /opt/boost-latest
-          key: boost-trunk-${{ runner.os }}-${{ steps.gcc-trunk.outputs.version }}-${{ steps.boost-version.outputs.tag }}
-
-      - name: Install Boost.Test (from source, trunk)
-        if: matrix.trunk && steps.cache-boost-trunk.outputs.cache-hit != 'true'
-        run: |
-          boost_tag=${{ steps.boost-version.outputs.tag }}
-          boost_ver=${boost_tag#boost-}
-          wget -q --tries=3 --waitretry=5 --retry-on-http-error=429,500,502,503,504 "https://github.com/boostorg/boost/releases/download/${boost_tag}/boost-${boost_ver}-b2-nodocs.tar.gz" -O boost.tar.gz
-          tar xzf boost.tar.gz
-          cd "boost-${boost_ver}"
-          echo "using gcc : trunk : ${{ matrix.cxx }} ;" > user-config.jam
-          ./bootstrap.sh --prefix=/opt/boost-latest --with-libraries=test
-          ./b2 install -j"$(nproc)" --prefix=/opt/boost-latest --user-config=user-config.jam toolset=gcc-trunk variant=release link=static threading=multi
-
-      - name: Configure (stable)
-        if: "!matrix.trunk"
+      - name: Configure
+        env:
+          # The overlay triplet is evaluated again by the vcpkg CMake
+          # integration, so retain the compiler selection after install.
+          VCPKG_GCC_VERSION: ${{ matrix.version }}
         run: >
           cmake -S . -B build
           -DCMAKE_BUILD_TYPE=Release
           -DCMAKE_C_COMPILER=${{ matrix.cc }}
           -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
           -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
-
-      - name: Configure (trunk)
-        if: matrix.trunk
-        run: >
-          cmake -S . -B build
-          -DCMAKE_BUILD_TYPE=Release
-          -DCMAKE_C_COMPILER=${{ matrix.cc }}
-          -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
-          -DCMAKE_PREFIX_PATH=/opt/boost-latest
-          -DBoost_NO_SYSTEM_PATHS=ON
+          -DVCPKG_TARGET_TRIPLET=x64-linux-gcc
+          -DVCPKG_OVERLAY_TRIPLETS=$GITHUB_WORKSPACE/.github/vcpkg/triplets
 
       - name: Build
         run: cmake --build build -v

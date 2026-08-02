@@ -413,17 +413,25 @@ to build is a required failure like any other.
 
 GCC's development leg installs Jonathan Wakely's binary snapshot of GCC
 trunk (https://jwakely.github.io/pkg-gcc-latest/) rather than building GCC
-from source. Because that snapshot ships its own, newer libstdc++ (unlike
-apt-installed compilers, which all share the system one), linking it
-against vcpkg's prebuilt Boost.Test - built by an ABI-stable, older GCC -
-breaks Boost.Test's runtime parameter registration. Building Boost.Test
-from source with that same compiler avoids the mismatch; the resulting
-build is cached, keyed on the exact snapshot and Boost version, since a
-from-source rebuild otherwise costs several minutes on every run. Clang's
-development leg doesn't need this: apt.llvm.org's Clang packages, including
-the development build, link against the system libstdc++ like every other
-apt-installed compiler on the runner, so there's no separate bundled
-runtime and no ABI mismatch with vcpkg's Boost.Test.
+from source. That snapshot ships its own, newer libstdc++, unlike
+apt-installed compilers, which all share the system one. Linking it against
+a Boost.Test built by an ABI-stable, older GCC breaks Boost.Test's runtime
+parameter registration, so Boost.Test has to be compiled by the same
+toolchain that compiles the tests. Clang's development leg inherits the
+same problem from the other side: apt.llvm.org's Clang links against
+whichever libstdc++ it finds, and this leg deliberately points it at the
+GCC trunk snapshot (`--gcc-toolchain=/opt/gcc-latest`) so that a
+development Clang is tested against a development libstdc++.
+
+Both legs solve it the same way the Clang-libc++ workflow already did:
+through a vcpkg overlay triplet in `.github/vcpkg` that chainloads a
+toolchain file naming the compiler, so vcpkg builds the ports themselves
+with the toolchain under test rather than with whatever the runner image
+defaults to. The stable legs use the same triplet, so there is one
+provisioning mechanism per workflow rather than one per leg. vcpkg's ABI
+hash covers the compiler executable and the toolchain file's contents,
+which gives each toolchain its own universe of cached binaries for free -
+a development snapshot can never be served a stable leg's Boost.Test.
 
 ### MSVC minimum toolset
 
