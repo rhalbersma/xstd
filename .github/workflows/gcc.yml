@@ -43,6 +43,10 @@ jobs:
             cc: gcc-17
             cxx: g++-17
             trunk: true
+    env:
+      VCPKG_BINARY_SOURCES: "clear;default,readwrite"
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-cache
+      VCPKG_CACHE_KEY: vcpkg-gcc-${{ matrix.label }}-
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -107,16 +111,18 @@ jobs:
           ${{ matrix.cxx }} --version
           cmake --version
 
-      # Export the two env vars vcpkg's "x-gha" binary source needs to talk
-      # to the GitHub Actions cache service, so built packages are reused
-      # across runs instead of recompiled from scratch every time.
-      - name: Export GitHub Actions cache environment variables
+      # x-gha, vcpkg's built-in GitHub Actions cache backend, was removed
+      # from vcpkg; actions/cache still works, so cache the directory vcpkg
+      # writes its binary packages to. The archives in it are named by
+      # vcpkg's ABI hash, so a stale entry is ignored rather than reused.
+      - name: Restore vcpkg binary cache
+        id: vcpkg-cache
         if: "!matrix.trunk"
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          key: ${{ env.VCPKG_CACHE_KEY }}
+          restore-keys: ${{ env.VCPKG_CACHE_KEY }}
 
       # vcpkg is used instead of the distro's boost package so xstd tracks
       # recent Boost releases regardless of what the OS bundles. All
@@ -124,9 +130,23 @@ jobs:
       # regardless of which one built vcpkg's Boost.
       - name: Install Boost.Test (stable)
         if: "!matrix.trunk"
-        env:
-          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-        run: vcpkg install --triplet x64-linux
+        run: |
+          mkdir -p "$VCPKG_DEFAULT_BINARY_CACHE"
+          vcpkg install --triplet x64-linux
+
+      # Save only when the archives changed, keyed on their contents: an
+      # unconditional save would add an entry per run, evicting this repo's
+      # other caches, or warn about a duplicate key on every cache hit.
+      - name: Save vcpkg binary cache
+        if: >-
+          !matrix.trunk &&
+          hashFiles('vcpkg-cache/**') != '' &&
+          steps.vcpkg-cache.outputs.cache-matched-key !=
+          format('{0}{1}', env.VCPKG_CACHE_KEY, hashFiles('vcpkg-cache/**'))
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+        with:
+          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          key: ${{ env.VCPKG_CACHE_KEY }}${{ hashFiles('vcpkg-cache/**') }}
 
       # vcpkg's prebuilt Boost.Test is compiled by an older, ABI-stable GCC.
       # Linking it against the trunk snapshot breaks
