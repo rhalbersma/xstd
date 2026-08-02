@@ -46,6 +46,17 @@ namespace xstd {
 // "denom != static_cast<T>(0)" does. For the built-in widths the two are the
 // same expression after promotion.
 
+// not part of <cstdlib>, but kept to the same shape as everything below it.
+// The result is a plain int at every width: a sign is a three-valued quantity,
+// not a number in T's range.
+template<signed_integral_like T>
+[[nodiscard]] constexpr auto sign(T x) noexcept(is_nothrow_integral_like_v<T>)
+        -> int
+{
+        auto const zero = static_cast<T>(0);
+        return static_cast<int>(zero < x) - static_cast<int>(x < zero);
+}
+
 // constexpr version of <cstdlib>'s abs/labs/llabs and <cinttypes>'s imaxabs
 // (P0533), generalized to one signed-only template.
 template<signed_integral_like T>
@@ -89,17 +100,6 @@ template<signed_integral_like T>
         // and is negative, and converting that back to U reduces it mod 2^N -
         // exactly the value the wider unsigned types get directly.
         return static_cast<U>(x < static_cast<T>(0) ? zero - u : u);
-}
-
-// not part of <cstdlib>, but kept to the same shape as abs/uabs above. The
-// result is a plain int at every width: a sign is a three-valued quantity,
-// not a number in T's range.
-template<signed_integral_like T>
-[[nodiscard]] constexpr auto sign(T x) noexcept(is_nothrow_integral_like_v<T>)
-        -> int
-{
-        auto const zero = static_cast<T>(0);
-        return static_cast<int>(zero < x) - static_cast<int>(x < zero);
 }
 
 template<signed_integral_like T>
