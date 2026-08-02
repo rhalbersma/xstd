@@ -3,9 +3,10 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/utility.hpp>         // to_underlying
-#include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK_EQUAL
+#include <xstd/utility.hpp>         // to_underlying, aligned_size
+#include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
+#include <cstddef>                  // size_t
 #include <limits>                   // numeric_limits
 #include <type_traits>              // integral_constant
 #include <utility>                  // to_underlying
@@ -52,8 +53,8 @@ BOOST_AUTO_TEST_CASE(ToUnderlyingTypeIsConstrained)
         // the enumeration constraint is checked before the return type is
         // formed, so a non-enum argument is a substitution failure rather
         // than an ill-formed underlying_type_t (CWG2369, see design.md)
-        XSTD_CONSTEXPR_CHECK((!has_to_underlying<std::integral_constant<int, 0>>));
-        XSTD_CONSTEXPR_CHECK(!has_to_underlying<double>);
+        XSTD_CONSTEXPR_CHECK((not has_to_underlying<std::integral_constant<int, 0>>));
+        XSTD_CONSTEXPR_CHECK(not has_to_underlying<double>);
 }
 
 BOOST_AUTO_TEST_CASE(AlignedSize)

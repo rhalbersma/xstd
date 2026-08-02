@@ -5,8 +5,10 @@
 
 ---
 # Static analysis for the public headers, run by the Clang-Tidy workflow
-# over the generated header self-sufficiency translation units (the
-# Boost.Test sources are excluded: test macros drown the signal in noise).
+# over the generated header self-sufficiency translation units. The
+# Boost.Test sources are analyzed by the same workflow under test/.clang-tidy,
+# which inherits everything here and drops the two checks that only misfire
+# on fixtures.
 Checks: >
   bugprone-*,
   clang-analyzer-*,
@@ -24,3 +26,12 @@ Checks: >
 WarningsAsErrors: '*'
 HeaderFilterRegex: 'include/xstd/.*'
 FormatStyle: none
+CheckOptions:
+  # The logical operators are spelled as the alternative tokens throughout,
+  # which reads with the declarative style of the constraints and assertions
+  # they appear in - and a "not" cannot be skimmed past the way a lone "!"
+  # can. Only the three logical ones: "!=" stays "!=", since "not_eq" and the
+  # bitwise spellings (bitand, compl, ...) are harder to read than what they
+  # replace, not easier. The check is inert until its operator list is set,
+  # so naming them here is what turns it on.
+  readability-operators-representation.BinaryOperators: 'not;and;or'

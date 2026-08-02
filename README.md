@@ -150,7 +150,7 @@ See [doc/design.md](doc/design.md) for the rationale behind these APIs' shapes (
 #include <xstd/type_traits.hpp>
 
 static_assert(xstd::is_specialization_of_v<std::complex<double>, std::complex>);
-static_assert(!xstd::is_specialization_of_v<int, std::complex>);
+static_assert(not xstd::is_specialization_of_v<int, std::complex>);
 ```
 
 `xstd::is_specialization_of` isn't fully general: its `Primary` parameter is constrained to `template<class...> class`, so it only accepts class templates whose parameters are all types. A template with a non-type parameter, like `std::array` (`template<class, size_t>`), doesn't just evaluate to `false` here - passing it as the second argument is a hard compile error, since its template template parameter kind doesn't match `template<class...> class`. See [doc/design.md](doc/design.md) for why.

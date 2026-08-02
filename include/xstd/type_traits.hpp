@@ -38,7 +38,7 @@ struct empty_type
         // construction from the (trivial) special member functions
         // clang-format off
         template<class... Args>
-                requires (!(std::is_same_v<std::remove_cvref_t<Args>, empty_type> || ...))
+                requires ((not std::is_same_v<std::remove_cvref_t<Args>, empty_type>) and ...)
         [[nodiscard]] constexpr explicit empty_type(Args&&...) noexcept {}
         // clang-format on
 
@@ -57,7 +57,7 @@ struct empty_type
 // defaulted. An elaborated-type-specifier declares one in place, without a
 // separate declaration per member:
 //
-//      conditional_data_member_t<Condition, set_type, struct piece_order_tag> m_piece_order [[no_unique_address]];
+//      conditional_data_member_t<Condition, Type, struct variable_tag> m_variable [[no_unique_address]];
 //
 template<bool Condition, class Type, class Tag>
 using conditional_data_member_t = std::conditional_t<Condition, Type, empty_type<Tag>>;

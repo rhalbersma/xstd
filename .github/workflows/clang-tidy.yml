@@ -96,15 +96,33 @@ jobs:
           -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
 
       # Analyze the public headers through the generated header
-      # self-sufficiency translation units. The Boost.Test sources are left
-      # out on purpose: the test macros drown the signal in noise. The
-      # check selection and per-check suppressions live in .clang-tidy;
-      # WarningsAsErrors there makes any finding fail this job.
+      # self-sufficiency translation units. The check selection and
+      # per-check suppressions live in .clang-tidy; WarningsAsErrors there
+      # makes any finding fail this job.
+      #
+      # "shell: bash" rather than the default shell, in both this step and
+      # the next: the default is "bash -e {0}", with no -o pipefail, so the
+      # exit status of these pipelines would be tee's rather than
+      # clang-tidy's and no finding could ever redden the job. Naming the
+      # shell explicitly gets "bash --noprofile --norc -eo pipefail {0}".
       - name: Run clang-tidy over the public headers
+        shell: bash
         run: |
           run-clang-tidy-22 -quiet -p build \
             "$GITHUB_WORKSPACE/build/test/header_self_sufficiency/.*" \
             2>&1 | tee clang-tidy-report.txt
+
+      # The Boost.Test sources, under test/.clang-tidy, which inherits the
+      # root configuration and drops the three checks that only misfire on
+      # fixtures. Analyzed second rather than in the same pass, so that a
+      # finding names the tree whose rulebook it came from; a red headers
+      # step stops this one, which is the right order to fix them in anyway.
+      - name: Run clang-tidy over the test sources
+        shell: bash
+        run: |
+          run-clang-tidy-22 -quiet -p build \
+            "$GITHUB_WORKSPACE/test/src/.*" \
+            2>&1 | tee -a clang-tidy-report.txt
 
       - name: Publish clang-tidy summary
         if: always()

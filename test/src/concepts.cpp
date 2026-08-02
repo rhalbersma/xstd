@@ -4,6 +4,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/concepts.hpp>        // enumeration, specialization_of
+#include <xstd/type_traits.hpp>     // empty_type, is_specialization_of_v
 #include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <complex>                  // complex
@@ -23,17 +24,18 @@ BOOST_AUTO_TEST_CASE(Enumeration)
         XSTD_CONSTEXPR_CHECK(enumeration<unscoped>);
         XSTD_CONSTEXPR_CHECK(enumeration<scoped>);
 
-        XSTD_CONSTEXPR_CHECK(!enumeration<int>);
-        XSTD_CONSTEXPR_CHECK(!enumeration<bool>);
-        XSTD_CONSTEXPR_CHECK(!enumeration<not_an_enum>);
-        XSTD_CONSTEXPR_CHECK(!enumeration<scoped&>);
-        XSTD_CONSTEXPR_CHECK(!enumeration<scoped*>);
-        XSTD_CONSTEXPR_CHECK(!enumeration<void>);
+        XSTD_CONSTEXPR_CHECK(not enumeration<int>);
+        XSTD_CONSTEXPR_CHECK(not enumeration<bool>);
+        XSTD_CONSTEXPR_CHECK(not enumeration<not_an_enum>);
+        XSTD_CONSTEXPR_CHECK(not enumeration<scoped&>);
+        XSTD_CONSTEXPR_CHECK(not enumeration<scoped*>);
+        XSTD_CONSTEXPR_CHECK(not enumeration<void>);
 }
 
 // the partial application a type-constraint needs: the primary template alone
 template<specialization_of<std::complex> T>
-constexpr auto as_complex(T z) noexcept -> T
+[[nodiscard]] constexpr auto as_complex(T z) noexcept
+        -> T
 {
         return z;
 }
@@ -41,38 +43,21 @@ constexpr auto as_complex(T z) noexcept -> T
 template<class T>
 concept has_as_complex = requires (T t) { as_complex(t); };
 
-// A local class template stands in for std::complex wherever a value has to
-// be constructed. The MSVC STL deprecates std::complex's constructor for any
-// element type other than float, double or long double (STL4037), and these
-// tests build with warnings as errors; box keeps the round-trip check free of
-// that entanglement, and free of any element type's own semantics. Merely
-// naming std::complex<int> stays fine, which is all the trait-level checks
-// below do.
-template<class T>
-struct box
-{
-        T value;
-        auto operator==(box const&) const -> bool = default;
-};
-
-template<specialization_of<box> T>
-constexpr auto unwrap(T b) noexcept
-{
-        return b.value;
-}
-
-template<class T>
-concept has_unwrap = requires (T t) { unwrap(t); };
-
 BOOST_AUTO_TEST_CASE(SpecializationOf)
 {
         XSTD_CONSTEXPR_CHECK((specialization_of<std::complex<int>, std::complex>));
         XSTD_CONSTEXPR_CHECK((specialization_of<std::tuple<int, char>, std::tuple>));
         XSTD_CONSTEXPR_CHECK((specialization_of<std::tuple<>, std::tuple>));
 
-        XSTD_CONSTEXPR_CHECK((!specialization_of<int, std::complex>));
-        XSTD_CONSTEXPR_CHECK((!specialization_of<std::tuple<int>, std::complex>));
-        XSTD_CONSTEXPR_CHECK((!specialization_of<std::complex<int>&, std::complex>));
+        XSTD_CONSTEXPR_CHECK((not specialization_of<int, std::complex>));
+        XSTD_CONSTEXPR_CHECK((not specialization_of<std::tuple<int>, std::complex>));
+        XSTD_CONSTEXPR_CHECK((not specialization_of<std::complex<int>&, std::complex>));
+
+        // nothing in the concept is specific to the standard library. The
+        // library's own class template is a program-defined primary like any
+        // other, with its tag declared in place
+        XSTD_CONSTEXPR_CHECK((specialization_of<empty_type<struct user_tag>, empty_type>));
+        XSTD_CONSTEXPR_CHECK((not specialization_of<int, empty_type>));
 
         // the concept agrees with the trait it is spelled over
         XSTD_CONSTEXPR_CHECK((specialization_of<std::complex<int>, std::complex> == is_specialization_of_v<std::complex<int>, std::complex>));
@@ -80,13 +65,18 @@ BOOST_AUTO_TEST_CASE(SpecializationOf)
 
         // used as a type-constraint, it constrains rather than hard-errors
         XSTD_CONSTEXPR_CHECK(has_as_complex<std::complex<double>>);
-        XSTD_CONSTEXPR_CHECK(!has_as_complex<int>);
+        XSTD_CONSTEXPR_CHECK(not has_as_complex<int>);
 
-        // and the constrained template actually runs for a matching argument
-        XSTD_CONSTEXPR_CHECK((specialization_of<box<int>, box>));
-        XSTD_CONSTEXPR_CHECK(has_unwrap<box<int>>);
-        XSTD_CONSTEXPR_CHECK(!has_unwrap<int>);
-        XSTD_CONSTEXPR_CHECK_EQUAL(unwrap(box<int>{42}), 42);
+        // and the constrained template actually runs for a matching argument,
+        // which the two checks above cannot show: a requires-expression's
+        // operand is unevaluated, so a body that is ill-formed on
+        // instantiation would still leave has_as_complex true. double rather
+        // than int as the element type because the MSVC STL deprecates
+        // std::complex's constructor for anything but the floating-point ones
+        // (STL4037) and these tests build with warnings as errors; merely
+        // naming std::complex<int> stays fine, which is all the checks above
+        // do.
+        XSTD_CONSTEXPR_CHECK_EQUAL((as_complex(std::complex<double>{1.0, 2.0})), (std::complex<double>{1.0, 2.0}));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

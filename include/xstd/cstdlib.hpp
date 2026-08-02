@@ -110,7 +110,8 @@ struct div_t
         // ordinary "ostr << d;" statement does. The body names the formatter
         // specialization declared below this class, which is fine: a friend
         // definition is only instantiated at its point of use.
-        friend auto operator<<(std::ostream& ostr, div_t const& d) -> std::ostream&
+        friend auto operator<<(std::ostream& ostr, div_t const& d)
+                -> std::ostream&
         {
                 return ostr << std::format("{}", d);
         }
@@ -137,7 +138,7 @@ template<std::signed_integral T>
         -> div_t<T>
 {
         assert(denom != 0);
-        assert(!(numer == std::numeric_limits<T>::min() && denom == -1));
+        assert(numer != std::numeric_limits<T>::min() or denom != -1);
         auto const qT = static_cast<T>(numer / denom);
         auto const rT = static_cast<T>(numer % denom);
         // Safe in T at every width, with no widening: denom * qT is exactly
@@ -149,7 +150,7 @@ template<std::signed_integral T>
         // and rT, so it could only fail if this one had already failed.
         assert(numer == (denom * qT) + rT);
         assert(uabs(rT) < uabs(denom));
-        assert(sign(rT) == sign(numer) || rT == 0);
+        assert(sign(rT) == sign(numer) or rT == 0);
         return {.quot = qT, .rem = rT};
 }
 
@@ -198,24 +199,32 @@ template<std::signed_integral T>
         auto const qF = static_cast<T>(qT - (adjust ? 1 : 0));
         auto const rF = static_cast<T>(rT + (adjust ? denom : 0));
         assert(uabs(rF) < uabs(denom));
-        assert(rF == 0 || sign(rF) == sign(denom));
+        assert(rF == 0 or sign(rF) == sign(denom));
         return {.quot = qF, .rem = rF};
 }
 
 } // namespace xstd
 
 // Specialized via qualified-id (template<class T> struct std::formatter<...>)
-// rather than inside a reopened "namespace std { ... }" block: both forms
-// are equally legal here (the standard explicitly permits specializing
-// std::formatter for program-defined types), but the qualified form avoids
-// clang-tidy's bugprone-std-namespace-modification finding, which otherwise
-// flags any reopening of namespace std regardless of what's inside it.
+// rather than inside a reopened "namespace std { ... }" block. Both forms are
+// equally legal here - [namespace.std]/2 explicitly permits adding a template
+// specialization to namespace std when it depends on a program-defined type
+// and meets the original template's requirements - and the qualified form is
+// the narrower of the two, since it can only ever declare the one
+// specialization it names.
+//
+// clang-tidy's bugprone-std-namespace-modification used to flag only the
+// reopened form, which is what this spelling was chosen for; as of clang-tidy
+// 22 it flags both, without exempting the specializations the standard allows.
+// Silenced on the declaration rather than repo-wide: the check still has a
+// real job to do on any other addition to namespace std.
 //
 // A partial specialization over div_t's element type also defers the body's
 // instantiation to the point of use, so merely including this header no
 // longer requires a standard library that implements tuple formatting; only
 // actually formatting an xstd::div_t does.
 template<class T>
+// NOLINTNEXTLINE(bugprone-std-namespace-modification): permitted by [namespace.std]/2, see above
 struct std::formatter<xstd::div_t<T>> : std::formatter<std::tuple<T const&, T const&>>
 {
         // not constexpr: no specialization could ever be constant-evaluated,
