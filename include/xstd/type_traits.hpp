@@ -9,48 +9,65 @@
 #include <xstd/exposition_only.hpp> // is_integral_like
 #include <compare>                  // strong_ordering (empty_type's defaulted <=>)
 #include <concepts>                 // constructible_from, totally_ordered
-#include <limits>                   // numeric_limits
-#include <type_traits>              // bool_constant, conditional_t, integral_constant, is_abstract_v, is_arithmetic_v, is_array_v, is_integral_v, is_object_v, is_same_v, make_unsigned, remove_cv_t, remove_cvref_t
+#include <type_traits>              // bool_constant, conditional_t, integral_constant, is_floating_point_v, is_integral_v, is_same_v, make_unsigned, remove_cv_t, remove_cvref_t
 
 namespace xstd {
 
-// std::is_arithmetic, opened to class types - and the trait the other two
-// below are built on.
-//
-// std::is_arithmetic_v is the root of the closed list: is_integral_v and
+// std::is_integral, opened - and the root the other three are built on, in
+// place of the root the standard's own four have. std::is_arithmetic_v is
+// where the closed list starts for the standard (is_integral_v and
 // is_floating_point_v feed it, is_signed_v and is_unsigned_v are spelled over
-// it, and none of them can ever be true for a class type. Opening the root is
-// what lets the rest follow, rather than each one needing its own carve-out.
+// it), but it is not where it can be opened: what a type has to *do* to count
+// as an integer is answerable, while "arithmetic" on its own is not. So this
+// is the one new judgement, and the three below follow from it by copying the
+// standard's own definitions with the opened test substituted in.
 //
-// std::numeric_limits is the marker for "arithmetic" here, because it is the
-// one the standard already uses that way: it is specialized for exactly the
-// arithmetic types, and a class type that means to behave like a number
-// specializes it too - the standard's own integer-class types
-// ([iterator.concept.winc]) and every extended-precision library do.
+// What it extends std::is_integral_v with is [iterator.concept.winc]'s other
+// half - an integer-class type - opened from the standard's closed list of
+// implementation-defined names to a structural concept, so that __int128 on a
+// dialect that withholds std::is_integral from it, an implementation's own
+// integer-class type, and a user's own extended-precision type all qualify by
+// behaving correctly rather than by being enumerated somewhere.
 //
-// The requires-clause is not a filter on what counts as arithmetic; it is what
-// makes the question askable at all. std::numeric_limits' primary template
-// declares static member functions returning T, which is ill-formed rather
-// than merely unspecialized for an array type or an abstract class, so those
-// have to be answered by the unconstrained primary below - which reports
-// std::is_arithmetic_v's own answer, false - before numeric_limits is ever
-// named. A concept could lean on conjunction short-circuiting instead; a
-// variable template's initializer has to be well-formed in every operand, so
-// the guard moves into the constraint, where a requires-clause's conjunction
-// short-circuits in the same way.
-//
-// That short-circuiting is load-bearing in the middle of the clause too: the
-// sizeof test has to be passed before std::is_abstract_v is named, because
-// is_abstract_v requires a complete type while std::is_arithmetic_v answers
-// false for an incomplete one quite happily. Without it this trait would be a
-// hard error exactly where the trait it widens is merely false, which is not
-// a widening.
+// It reads a concept rather than being spelled out as an initializer, and that
+// direction is not free to reverse. The requirements it reaches include a
+// requires-expression and several std::numeric_limits members; written out
+// here they would all have to be well-formed at once, so
+// is_integral_like_v<int[3]> would stop the compile instead of answering
+// false. A concept's conjunction short-circuits during satisfaction checking,
+// which is what keeps this total, and <xstd/exposition_only.hpp> is where the
+// requirements it short-circuits over are spelled out.
 template<class T>
-inline constexpr auto is_arithmetic_like_v = std::is_arithmetic_v<T>;
+inline constexpr auto is_integral_like_v = exposition_only::is_integral_like<T>;
 
 template<class T>
-        requires (not std::is_arithmetic_v<T>) and std::is_object_v<T> and (not std::is_array_v<T>) and requires { sizeof(T); } and (not std::is_abstract_v<T>)
-inline constexpr auto is_arithmetic_like_v<T> = std::numeric_limits<T>::is_specialized;
+using is_integral_like = std::bool_constant<is_integral_like_v<T>>;
+
+// std::is_arithmetic, opened - and spelled the way the standard spells it,
+// as the disjunction of its two halves: an integral type, or a floating-point
+// one. Only the first half is open, which is the whole content of this trait:
+// xstd extends integers, so an integer-like type is arithmetic-like, and the
+// floating-point half is std::is_floating_point_v unchanged.
+//
+// The shape is what matters more than the current answer. A class type that
+// behaves like a *floating-point* number - an extended-precision binary float,
+// a decimal type - is as real a case as the integer-class types, and opening
+// it means a second exposition-only concept and a second disjunct here, with
+// nothing above or below this line needing to move. Until then, a class type
+// whose std::numeric_limits says it is not an integer is deliberately not
+// arithmetic-like: xstd has opened no notion under which it would be, and
+// answering yes would leave is_signed_like_v below reporting a sign for a type
+// no concept in this library accepts.
+//
+// The floating-point half carries the same restriction to cv-unqualified types
+// that is_integral_like_v does, so that both halves answer over one domain
+// rather than two. See <xstd/exposition_only.hpp> for why that domain is what
+// it is; std::is_floating_point_v itself is cv-transparent, as
+// std::is_integral_v is.
+template<class T>
+inline constexpr auto is_arithmetic_like_v =
+        is_integral_like_v<T> or
+        (std::is_floating_point_v<T> and std::is_same_v<T, std::remove_cv_t<T>>);
 
 template<class T>
 using is_arithmetic_like = std::bool_constant<is_arithmetic_like_v<T>>;
@@ -99,33 +116,6 @@ inline constexpr auto is_unsigned_like_v = is_arithmetic_like_v<T> and not is_si
 
 template<class T>
 using is_unsigned_like = std::bool_constant<is_unsigned_like_v<T>>;
-
-// std::is_integral, opened - and the last of the four, in the sense that it is
-// the one the rest of the library is built on: <xstd/concepts.hpp> spells
-// xstd::integral_like over it, and <xstd/cstdlib.hpp> constrains every
-// function it declares on that.
-//
-// What it extends std::is_integral_v with is [iterator.concept.winc]'s other
-// half - an integer-class type - opened from the standard's closed list of
-// implementation-defined names to a structural concept, so that __int128 on a
-// dialect that withholds std::is_integral from it, an implementation's own
-// integer-class type, and a user's own extended-precision type all qualify by
-// behaving correctly rather than by being enumerated somewhere.
-//
-// Unlike the three above, this reads a concept rather than being spelled out
-// as an initializer with a constrained partial specialization to keep it
-// total - and that direction is not free to reverse. The requirements it
-// reaches include a requires-expression and several std::numeric_limits
-// members; written out here they would all have to be well-formed at once, so
-// is_integral_like_v<int[3]> would stop the compile instead of answering
-// false. A concept's conjunction short-circuits during satisfaction checking,
-// which is what keeps this total, and <xstd/exposition_only.hpp> is where the
-// requirements it short-circuits over are spelled out.
-template<class T>
-inline constexpr auto is_integral_like_v = exposition_only::is_integral_like<T>;
-
-template<class T>
-using is_integral_like = std::bool_constant<is_integral_like_v<T>>;
 
 template<class T, class U>
 inline constexpr auto is_integral_constant_v = false;

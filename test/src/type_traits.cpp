@@ -13,6 +13,33 @@
 #include <limits>                      // numeric_limits
 #include <type_traits>                 // false_type, integral_constant, is_arithmetic_v, is_constructible_v, is_convertible_v, is_empty_v, is_integral_v, is_nothrow_constructible_v, is_nothrow_default_constructible_v, is_same_v, is_signed_v, is_trivially_constructible_v, is_trivially_copyable_v, is_unsigned_v, make_unsigned_t, true_type
 
+// An incomplete class type is answered, not hard-errored: the traits being
+// widened cope with one, so these have to as well. It is the sizeof term in
+// xstd::exposition_only::integral_class_type that keeps them total - every
+// question after it, std::regular's std::destructible first, needs a complete
+// type to be well-formed rather than merely false.
+BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAnswerForIncompleteTypes)
+{
+        XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<struct never_defined>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_arithmetic_like_v<struct never_defined>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_signed_like_v<struct never_defined>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_unsigned_like_v<struct never_defined>);
+}
+
+// A class type that says it is a number but not an integer - the shape a
+// future floating-point-class opening would cover. Only what its
+// std::numeric_limits reports matters, so it needs no members and no
+// operators: the specialization is the whole fixture. Both live out here
+// because an explicit specialization of a standard-library template has to be
+// at global scope, and BOOST_AUTO_TEST_SUITE opens a namespace.
+struct not_an_integer_class_type
+{};
+
+template<>
+// NOLINTNEXTLINE(bugprone-std-namespace-modification): permitted by [namespace.std]/2 for a program-defined type
+struct std::numeric_limits<not_an_integer_class_type> : std::numeric_limits<double>
+{};
+
 BOOST_AUTO_TEST_SUITE(TypeTraits)
 
 template<class T>
@@ -163,11 +190,11 @@ BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAgreeWithStd)
         check_agrees_with_std<int[3]>();
 }
 
-// Where they part company: a class type is arithmetic-like when it says so
-// through std::numeric_limits, which is the marker the standard itself uses
-// for exactly the arithmetic types. std::is_arithmetic_v can never say yes
-// here, and std::is_signed_v is spelled over it, so both of the standard's
-// answers are false for a type that plainly has a sign.
+// Where they part company: a class type is arithmetic-like when it is
+// integer-like, which the fixture pair is by behaving like integers.
+// std::is_arithmetic_v can never say yes here, and std::is_signed_v is spelled
+// over it, so both of the standard's answers are false for a type that plainly
+// has a sign.
 BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAdmitClassTypes)
 {
         using S = xstd::test::signed_integer_class;
@@ -191,10 +218,6 @@ BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAdmitClassTypes)
         XSTD_CONSTEXPR_CHECK(not xstd::is_arithmetic_like_v<std::complex<double>>);
         XSTD_CONSTEXPR_CHECK(not xstd::is_signed_like_v<std::complex<double>>);
         XSTD_CONSTEXPR_CHECK(not xstd::is_unsigned_like_v<std::complex<double>>);
-
-        // and an incomplete class type is answered, not hard-errored: the
-        // trait being widened copes with one, so this has to as well
-        XSTD_CONSTEXPR_CHECK(not xstd::is_arithmetic_like_v<struct never_defined>);
 
         // the bool_constant forms
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_arithmetic_like<S>, std::true_type>));
@@ -252,6 +275,30 @@ BOOST_AUTO_TEST_CASE(IsIntegralLikeBoolConstant)
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_integral_like<int>, std::true_type>));
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_integral_like<double>, std::false_type>));
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_integral_like<xstd::test::signed_integer_class>, std::true_type>));
+}
+
+// The half xstd has *not* opened. is_arithmetic_like_v is spelled the way the
+// standard spells is_arithmetic_v - an integral type, or a floating-point one
+// - with only the integral half replaced by an open one, so a class type that
+// behaves like a floating-point number is not arithmetic-like today. It is the
+// obvious next thing to open, and the shape of the trait is what leaves room
+// for it: a second exposition-only concept, a second disjunct, nothing else
+// moved.
+BOOST_AUTO_TEST_CASE(ArithmeticLikeOpensTheIntegralHalfOnly)
+{
+        XSTD_CONSTEXPR_CHECK(std::numeric_limits<not_an_integer_class_type>::is_specialized);
+        XSTD_CONSTEXPR_CHECK(not std::numeric_limits<not_an_integer_class_type>::is_integer);
+
+        XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<not_an_integer_class_type>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_arithmetic_like_v<not_an_integer_class_type>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_signed_like_v<not_an_integer_class_type>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_unsigned_like_v<not_an_integer_class_type>);
+
+        // the built-in floating-point types are the standard's half, reported
+        // exactly as the standard reports them
+        XSTD_CONSTEXPR_CHECK(xstd::is_arithmetic_like_v<double>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<double>);
+        XSTD_CONSTEXPR_CHECK(xstd::is_signed_like_v<double>);
 }
 
 // A named concept rather than a bare requires-expression in the test body: a

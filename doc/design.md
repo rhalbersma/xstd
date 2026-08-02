@@ -578,17 +578,35 @@ resolution to disambiguate them the way `xstd::to_underlying` and
 templates of the same unqualified name from two namespaces in scope are simply
 ambiguous, with no way for the caller to mean one of them short of qualifying.
 
-### Opening `is_arithmetic` is what opens the rest
+### Opening `is_integral` is what opens the rest
 
-`std::is_arithmetic_v` is the root of the closed list. `is_integral_v` and
+`std::is_arithmetic_v` is the root of the *closed* list. `is_integral_v` and
 `is_floating_point_v` feed it; `is_signed_v` and `is_unsigned_v` are spelled
 over it (`is_arithmetic_v<T> && T(-1) < T(0)`, and its negation); and none of
-them can be true for a class type. So the productive move is to open the root
-rather than to work around each leaf: `xstd::is_arithmetic_like_v` is the one
-new judgement, and `is_signed_like_v` and `is_unsigned_like_v` then follow by
-copying the standard's own definitions with the opened test substituted in.
+them can be true for a class type. It is not, however, the place the list can
+be *opened*, and an earlier revision of this branch tried: it made
+`is_arithmetic_like_v` the one new judgement, reading
+`std::numeric_limits<T>::is_specialized` for a class type, with
+`is_signed_like_v` and `is_unsigned_like_v` following from it.
 
-An earlier revision of this branch instead spelled the signedness check as
+That answered a question the library cannot back up. "Is this type a number"
+has no structural content on its own - the closest thing to it is "does it
+have a `numeric_limits` specialization", which is a marker, not a behavior -
+whereas "is this type an integer" does, and is exactly what
+`[iterator.concept.winc]` spells out. So the one new judgement is
+`is_integral_like_v`, and the other three are spelled over it:
+
+- `is_arithmetic_like_v` is the standard's own disjunction with the integral
+  half replaced - an integer-like type, or a floating-point type. Only the
+  integral half is open, because that is the only half xstd has a definition
+  for; a class type whose `numeric_limits` says it is *not* an integer is
+  therefore not arithmetic-like, where the earlier spelling called it one and
+  then had nothing to offer it. Opening the other half later is a second
+  exposition-only concept and a second disjunct, with nothing else moving.
+- `is_signed_like_v` and `is_unsigned_like_v` then follow by copying the
+  standard's own definitions with the opened arithmetic test substituted in.
+
+An earlier revision also spelled the signedness check as
 `std::numeric_limits<T>::is_signed` directly in the concept. That worked, but
 it answered a different question in the same place - and it left
 `xstd::is_signed_like_v` non-existent, so a caller who wanted the *value* had
@@ -597,33 +615,36 @@ nowhere to go. Reaching for `std::is_signed_v` was not an option either: being
 left `signed_integral_like` rejecting precisely the integer-class types the
 concept exists to admit, while still looking correct at every built-in width.
 
-`std::numeric_limits` is the marker `is_arithmetic_like_v` reads, because it is
-the one the standard already uses that way: it is specialized for exactly the
-arithmetic types, and a class type that means to behave like a number
-specializes it too.
+`std::numeric_limits` is still the marker for "this type is a number", read
+where it belongs - inside `integral_class_type`, alongside the operators that
+say what kind of number. It is the marker the standard already uses that way:
+it is specialized for exactly the arithmetic types, and a class type that means
+to behave like a number specializes it too.
 
-Two things the trait has to get right that a concept would have got for free,
-because a variable template's initializer must be well-formed in every operand
-where a concept's conjunction merely short-circuits:
+What the traits above it have to get right is that they must *answer* where the
+traits they widen answer, since a variable template's initializer must be
+well-formed in every operand where a concept's conjunction merely
+short-circuits:
 
 - **`std::numeric_limits<T>` cannot be named for every `T`.** Its primary
   template declares static member functions returning `T`, which is ill-formed
-  rather than merely unspecialized for an array type or an abstract class. So
-  the `numeric_limits` reading lives in a *constrained partial specialization*,
-  and everything it cannot answer for falls through to an unconstrained primary
-  that reports `std::is_arithmetic_v`'s own answer.
-- **The guard must not be narrower than the trait it widens.**
-  `std::is_abstract_v` requires a complete type, while `std::is_arithmetic_v`
-  answers `false` for an incomplete one quite happily. A `requires { sizeof(T); }`
-  term sits before it in the same requires-clause - whose conjunction
-  short-circuits - so an incomplete class type is answered rather than
-  hard-errored. A widening whose domain is smaller than the original's is not a
-  widening, and `test/src/type_traits.cpp` pins that case.
+  rather than merely unspecialized for an array type. Naming it inside a
+  concept, behind `std::regular`, is what keeps that from reaching the traits
+  that read it at all.
+- **The guard must not be narrower than the trait it widens.** A widening whose
+  domain is smaller than the original's is not a widening.
+  `std::is_integral_v` answers `false` for an incomplete type quite happily,
+  while `std::destructible` - the first thing `std::regular` asks - requires a
+  complete type, and the MSVC STL diagnoses one outright where libstdc++ and
+  libc++ happen to answer `false`. A `requires { sizeof(I); }` term therefore
+  sits ahead of `std::regular` in `integral_class_type`, and
+  `test/src/type_traits.cpp` pins the case for all four traits.
 
-`is_signed_like_v` carries the same shape for the same reason: forming
-`T(-1)` needs a `T` constructible from `int` and comparing needs an ordering,
-so both sit in its requires-clause and an arithmetic-like type without them
-falls to the primary's `false`.
+`is_signed_like_v` carries a constrained partial specialization for the same
+family of reasons: forming `T(-1)` needs a `T` constructible from `int` and
+comparing needs an ordering, so both sit in its requires-clause - after the
+`is_arithmetic_like_v` term that short-circuits ahead of them - and an
+arithmetic-like type without them falls to the primary's `false`.
 
 ### Which spelling is the definition, and why the exposition-only header exists
 

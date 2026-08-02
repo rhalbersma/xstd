@@ -68,6 +68,10 @@ BOOST_AUTO_TEST_CASE(IntegralClassTypeIsTotal)
         // NOLINTNEXTLINE(modernize-avoid-c-arrays): a built-in array is the type under test, not a container choice
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integral_class_type<int[3]>);
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integral_class_type<int()>);
+
+        // and an incomplete class type, which the sizeof term answers before
+        // std::regular is asked a question that needs a complete type
+        XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integral_class_type<struct never_defined>);
 }
 
 // [iterator.concept.winc]'s is-integer-like: integral, or an integer-class
@@ -91,6 +95,7 @@ BOOST_AUTO_TEST_CASE(IsIntegralLike)
 // requirements out as its own initializer.
 BOOST_AUTO_TEST_CASE(IsIntegralLikeIsTotal)
 {
+        XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::is_integral_like<struct also_never_defined>);
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::is_integral_like<void>);
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::is_integral_like<int&>);
         // NOLINTNEXTLINE(modernize-avoid-c-arrays): a built-in array is the type under test, not a container choice

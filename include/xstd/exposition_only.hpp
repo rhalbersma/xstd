@@ -63,6 +63,15 @@ namespace xstd::exposition_only {
 //   the two partition their domain rather than overlapping, and the built-in
 //   widths are answered by std::integral alone - exactly as the standard's
 //   own division of labour has it.
+// - a complete type. Nothing an incomplete type does is knowable, so the
+//   answer is no - but it has to be *answered*, and everything after this
+//   point would ask a question that requires a complete type to be well-formed
+//   rather than merely false. std::regular is the first of them:
+//   std::destructible is std::is_nothrow_destructible_v, which the standard
+//   requires a complete type for and which the MSVC STL diagnoses outright,
+//   where libstdc++ and libc++ happen to answer false. A trait that widens
+//   std::is_integral_v has to cope with an incomplete type at least as well as
+//   std::is_integral_v does, and it answers false for one quite happily.
 // - std::regular and std::totally_ordered. B(I), the hypothetical extended
 //   integer type an integer-class type behaves as, is copyable, default
 //   constructible, equality-comparable and ordered, so I is too. std::regular
@@ -104,6 +113,7 @@ namespace xstd::exposition_only {
 template<class I>
 concept integral_class_type =
         (not std::integral<I>) and
+        requires { sizeof(I); } and
         std::regular<I> and
         std::totally_ordered<I> and
         std::numeric_limits<I>::is_specialized and
