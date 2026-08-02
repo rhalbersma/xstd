@@ -218,6 +218,31 @@ than headers alone, on every vcpkg-using leg of a matrix whose development
 toolchains are all required, and being two's complement it covers nothing that
 `__int128` does not already cover.
 
+### `noexcept` is exact for the built-in widths and a promise for the rest
+
+`div`, `euclidean_div` and `floored_div` are `noexcept`. At every built-in
+width that is exact: division by zero is undefined behaviour, not an exception,
+so there is nothing to escape. For an integer-class type it is a promise the
+library cannot keep on the type's behalf - Boost.Multiprecision's `operator/`
+throws `std::overflow_error` on a zero divisor, and clang-tidy's
+`bugprone-exception-escape` says so as soon as `test/src/multiprecision.cpp`
+instantiates the family.
+
+The throw is unreachable in contract. All three functions assert `denom != 0`
+before dividing, so reaching it means violating a documented precondition - the
+same call that is undefined behaviour on an `int`. The library's position is
+that a precondition violation is the caller's, and that `std::terminate` is no
+worse an outcome there than UB is. On that basis the finding is suppressed for
+the test translation units, with the reasoning in `test/.clang-tidy`.
+
+The alternative is a conditional `noexcept` - `noexcept(noexcept(numer / denom)
+and ...)` on each of the six signatures - which would be exact for every type
+rather than for most. It is not obviously worth it: it makes the declarations
+substantially harder to read, it weakens nothing for the built-in widths (they
+stay `noexcept`), and it buys a guarantee that only differs on inputs the
+contract already excludes. Left as it stands, deliberately and with the
+tradeoff written down rather than discovered later.
+
 ### `xstd::uabs`
 
 `abs` cannot be total: `|x|` for the most negative value of a signed type is
