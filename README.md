@@ -265,9 +265,8 @@ Opening `is_integral` is what opens the rest. It is the only one of the four wit
 
 ```cpp
 is_arithmetic_like_v<T> == is_integral_like_v<T> or is_floating_point_v<T>   // the standard's own disjunction,
-                                                                            // with the integral half opened
-is_signed_like_v<T>     == is_arithmetic_like_v<T> and T(-1) < T(0)          // the standard's own definition,
-is_unsigned_like_v<T>   == is_arithmetic_like_v<T> and not is_signed_like_v<T>
+is_signed_like_v<T>     == is_arithmetic_like_v<T> and T(-1) < T(0)          // and its own two comparisons,
+is_unsigned_like_v<T>   == is_arithmetic_like_v<T> and T(0) < T(-1)          // with the integral half opened
 ```
 
 Only the integral half of `is_arithmetic_like_v` is open, because it is the only half xstd has a definition for: a class type whose `std::numeric_limits` says it is not an integer is deliberately *not* arithmetic-like today. Opening the floating-point half — for an extended-precision binary float, or a decimal type — is a second exposition-only concept and a second disjunct, with nothing else moving.

@@ -670,11 +670,25 @@ short-circuits:
   sits ahead of `std::regular` in `integral_class_type`, and
   `test/src/type_traits.cpp` pins the case for all four traits.
 
-`is_signed_like_v` carries a constrained partial specialization for the same
-family of reasons: forming `T(-1)` needs a `T` constructible from `int` and
-comparing needs an ordering, so both sit in its requires-clause - after the
-`is_arithmetic_like_v` term that short-circuits ahead of them - and an
-arithmetic-like type without them falls to the primary's `false`.
+`is_signed_like_v` and `is_unsigned_like_v` each carry a constrained partial
+specialization for the same reason, and their guard is now the standard's own
+and nothing more: `requires is_arithmetic_like_v<T>`, with everything else
+falling to the primary's `false`. An earlier revision needed two extra terms -
+`std::constructible_from<T, int>` and `std::totally_ordered<T>` - because
+`is_arithmetic_like_v` was then a `numeric_limits` reading, and a class type
+can specialize `numeric_limits` without being constructible from `int` or
+ordered, which would have made forming `T(-1)` a hard error rather than a
+`false`. Arithmetic-like now *means* integer-like or floating-point, and
+`integral_class_type` asks a class type for exactly those two, so the standard's
+guard carries them.
+
+Both are the standard's own comparisons, including the unsigned one:
+`T(0) < T(-1)`, not "arithmetic and not signed". libstdc++ implements
+`is_unsigned` the second way and the two agree wherever `T(-1)` and `T(0)`
+differ - which is every type either trait can be asked about - but they are
+different questions for a type where those compare equal, and the standard's
+spelling is the one that answers *neither signed nor unsigned* there instead
+of defaulting to unsigned.
 
 ### Which spelling is the definition, and why the exposition-only header exists
 
