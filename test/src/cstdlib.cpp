@@ -59,6 +59,17 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Constraints, T, exact_width_types)
         static_assert(std::same_as<decltype(xstd::euclidean_div(T{1}, T{1})), xstd::div_t<T>>);
         static_assert(std::same_as<decltype(xstd::floored_div(T{1}, T{1})), xstd::div_t<T>>);
 
+        // the noexcept specification is conditional, and the condition holds
+        // at every built-in width - it withdraws only for a type whose own
+        // arithmetic can throw, which no built-in one can
+        static_assert(xstd::is_nothrow_signed_integral_like_v<T>);
+        static_assert(noexcept(xstd::abs(T{})));
+        static_assert(noexcept(xstd::uabs(T{})));
+        static_assert(noexcept(xstd::sign(T{})));
+        static_assert(noexcept(xstd::div(T{1}, T{1})));
+        static_assert(noexcept(xstd::euclidean_div(T{1}, T{1})));
+        static_assert(noexcept(xstd::floored_div(T{1}, T{1})));
+
         static_assert(has_abs<T>);
         static_assert(has_uabs<T>);
         static_assert(has_sign<T>);

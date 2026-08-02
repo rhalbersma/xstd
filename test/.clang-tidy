@@ -53,28 +53,8 @@
 #   file, because clang-tidy takes its configuration from the translation unit
 #   being analysed rather than from the header a finding is reported in; the
 #   header self-sufficiency units instantiate nothing and so never raise it.
-#
-# A sixth is dropped, and unlike the others it is reporting something real.
-#
-# - bugprone-exception-escape observes that div/euclidean_div/floored_div are
-#   noexcept while Boost.Multiprecision's operator/ throws std::overflow_error
-#   on a zero divisor, so an exception could cross a noexcept boundary and
-#   terminate. That is true. It is also unreachable in contract: every one of
-#   those functions asserts denom != 0 before dividing, so the throw is only
-#   reachable by violating a documented precondition - the same call that is
-#   undefined behaviour at every built-in width. The library's position is that
-#   a precondition violation is the caller's, and that terminate is no worse an
-#   outcome there than UB.
-#
-#   What the check has really found is that noexcept is exact for the built-in
-#   widths and an over-promise for an integer-class type whose arithmetic can
-#   throw. Making it exact would mean a conditional noexcept on six signatures;
-#   that is a live design question recorded in doc/design.md, not something to
-#   decide by silencing or by leaving CI red. Suppressed here rather than in
-#   the root config, so the check keeps its job over the headers themselves.
 InheritParentConfig: true
 Checks: >
-  -bugprone-exception-escape,
   -misc-use-internal-linkage,
   -modernize-use-designated-initializers,
   -performance-enum-size,

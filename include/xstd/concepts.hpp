@@ -9,7 +9,7 @@
 #include <xstd/type_traits.hpp> // is_arithmetic_like_v, is_signed_like_v, is_specialization_of_v, is_unsigned_like_v, make_unsigned_like_t
 #include <concepts>             // constructible_from, regular, same_as, totally_ordered
 #include <limits>               // numeric_limits
-#include <type_traits>          // bool_constant, is_enum_v
+#include <type_traits>          // bool_constant, is_enum_v, is_nothrow_constructible_v
 
 namespace xstd {
 
@@ -156,6 +156,77 @@ inline constexpr auto is_integral_like_v = integral_like<T>;
 
 template<class T>
 using is_integral_like = std::bool_constant<is_integral_like_v<T>>;
+
+// The same question integral_like asks, asked again of every operation it
+// requires: can any of them throw?
+//
+// For a built-in type the answer is always yes-they-are-noexcept, and this
+// trait is a constant true. It exists for the other kind: an integer-class
+// type is under no obligation to be non-throwing, and
+// Boost.Multiprecision's operator/ really does throw std::overflow_error on a
+// zero divisor. <xstd/cstdlib.hpp> uses these two to say noexcept exactly
+// rather than approximately - unconditionally noexcept would be a promise the
+// library cannot keep on such a type's behalf, and dropping noexcept
+// altogether would give up a guarantee that is true at every built-in width.
+//
+// A note on the names, since this file argues elsewhere that _like belongs
+// only to entities widening a standard one, and that there is deliberately no
+// is_signed_integral_like_v. Neither of these is a widening: the standard has
+// no is_nothrow_integral to open. They are the nothrow *companions* of
+// is_integral_like and of signed_integral_like, in the sense that
+// std::is_nothrow_constructible is the companion of std::is_constructible -
+// the _like travels with the notion they are derived from. And the signed one
+// earns a name here where a plain is_signed_integral_like_v did not, because
+// it is not a second spelling of a concept that already exists: there is no
+// nothrow concept for it to duplicate.
+template<class T>
+inline constexpr auto is_nothrow_integral_like_v = false;
+
+// The static_casts match integral_like's requirement set operator for
+// operator, and are load-bearing for the same reason they are there: an
+// operator may return something that is not yet a T - a promoted int for the
+// narrow widths, an expression-template proxy for a type like
+// Boost.Multiprecision's - and materialising that is itself an operation that
+// can throw. clang-tidy sees only the instantiations where the operator
+// already returns T and calls the cast redundant; it is redundant for those
+// and necessary for the others, which is what a template is for. It does not
+// raise this against integral_like above, whose identical casts sit inside a
+// concept rather than a variable template.
+//
+// NOLINTBEGIN(readability-redundant-casting)
+template<integral_like T>
+inline constexpr auto is_nothrow_integral_like_v<T> = requires (T const a, T const b) {
+        { static_cast<T>(0) } noexcept;
+        { static_cast<T>(-a) } noexcept;
+        { static_cast<T>(a + b) } noexcept;
+        { static_cast<T>(a - b) } noexcept;
+        { static_cast<T>(a * b) } noexcept;
+        { static_cast<T>(a / b) } noexcept;
+        { static_cast<T>(a % b) } noexcept;
+        { a < b } noexcept;
+        { a == b } noexcept;
+};
+// NOLINTEND(readability-redundant-casting)
+
+template<class T>
+using is_nothrow_integral_like = std::bool_constant<is_nothrow_integral_like_v<T>>;
+
+// Everything above, for both halves of the signed/unsigned pair, plus the
+// conversion between them: exactly the set of operations <xstd/cstdlib.hpp>
+// performs. uabs converts T to its counterpart and does the arithmetic there,
+// and the division family's postconditions run through uabs, so no function in
+// that header touches one type without the other.
+template<class T>
+inline constexpr auto is_nothrow_signed_integral_like_v = false;
+
+template<signed_integral_like T>
+inline constexpr auto is_nothrow_signed_integral_like_v<T> =
+        is_nothrow_integral_like_v<T> and
+        is_nothrow_integral_like_v<make_unsigned_like_t<T>> and
+        std::is_nothrow_constructible_v<make_unsigned_like_t<T>, T>;
+
+template<class T>
+using is_nothrow_signed_integral_like = std::bool_constant<is_nothrow_signed_integral_like_v<T>>;
 
 } // namespace xstd
 

@@ -49,7 +49,7 @@ namespace xstd {
 // constexpr version of <cstdlib>'s abs/labs/llabs and <cinttypes>'s imaxabs
 // (P0533), generalized to one signed-only template.
 template<signed_integral_like T>
-[[nodiscard]] constexpr auto abs(T x) noexcept
+[[nodiscard]] constexpr auto abs(T x) noexcept(is_nothrow_integral_like_v<T>)
         -> T
 {
         auto const zero = static_cast<T>(0);
@@ -79,7 +79,7 @@ template<signed_integral_like T>
 // other return type here (T, int, bool, div_t<T>) instantiates no trait and
 // is spelled out. See doc/design.md.
 template<signed_integral_like T>
-[[nodiscard]] constexpr auto uabs(T x) noexcept
+[[nodiscard]] constexpr auto uabs(T x) noexcept(is_nothrow_signed_integral_like_v<T>)
 {
         using U = make_unsigned_like_t<T>;
         auto const zero = static_cast<U>(0);
@@ -95,7 +95,7 @@ template<signed_integral_like T>
 // result is a plain int at every width: a sign is a three-valued quantity,
 // not a number in T's range.
 template<signed_integral_like T>
-[[nodiscard]] constexpr auto sign(T x) noexcept
+[[nodiscard]] constexpr auto sign(T x) noexcept(is_nothrow_integral_like_v<T>)
         -> int
 {
         auto const zero = static_cast<T>(0);
@@ -145,7 +145,7 @@ div_t(T, T) -> div_t<T>;
 // remainder: Ruby, Scheme
 // mod: Fortran, OCaml
 template<signed_integral_like T>
-[[nodiscard]] constexpr auto div(T numer, T denom) noexcept
+[[nodiscard]] constexpr auto div(T numer, T denom) noexcept(is_nothrow_signed_integral_like_v<T>)
         -> div_t<T>
 {
         assert(denom != static_cast<T>(0));
@@ -169,7 +169,7 @@ template<signed_integral_like T>
 // mod: Maple, Pascal
 // modulo: Scheme
 template<signed_integral_like T>
-[[nodiscard]] constexpr auto euclidean_div(T numer, T denom) noexcept
+[[nodiscard]] constexpr auto euclidean_div(T numer, T denom) noexcept(is_nothrow_signed_integral_like_v<T>)
         -> div_t<T>
 {
         assert(denom != static_cast<T>(0));
@@ -204,7 +204,7 @@ template<signed_integral_like T>
 // mod: Ada, Clojure, Haskell, Julia, Lisp, ML, Prolog
 // modulo: Fortran, Ruby
 template<signed_integral_like T>
-[[nodiscard]] constexpr auto floored_div(T numer, T denom) noexcept
+[[nodiscard]] constexpr auto floored_div(T numer, T denom) noexcept(is_nothrow_signed_integral_like_v<T>)
         -> div_t<T>
 {
         assert(denom != static_cast<T>(0));

@@ -218,30 +218,43 @@ than headers alone, on every vcpkg-using leg of a matrix whose development
 toolchains are all required, and being two's complement it covers nothing that
 `__int128` does not already cover.
 
-### `noexcept` is exact for the built-in widths and a promise for the rest
+### `noexcept` is conditional, because an integer-class type may throw
 
-`div`, `euclidean_div` and `floored_div` are `noexcept`. At every built-in
-width that is exact: division by zero is undefined behaviour, not an exception,
-so there is nothing to escape. For an integer-class type it is a promise the
-library cannot keep on the type's behalf - Boost.Multiprecision's `operator/`
-throws `std::overflow_error` on a zero divisor, and clang-tidy's
-`bugprone-exception-escape` says so as soon as `test/src/multiprecision.cpp`
-instantiates the family.
+`abs`, `uabs`, `sign`, `div`, `euclidean_div` and `floored_div` are
+`noexcept(...)` rather than plain `noexcept`. At every built-in width the
+condition is `true` and nothing changes: division by zero is undefined
+behaviour there, not an exception, so there is nothing to escape. For an
+integer-class type it is a promise the library cannot make on the type's
+behalf - Boost.Multiprecision's `operator/` throws `std::overflow_error` on a
+zero divisor, and an unconditional `noexcept` would turn that into
+`std::terminate` at the boundary.
 
-The throw is unreachable in contract. All three functions assert `denom != 0`
-before dividing, so reaching it means violating a documented precondition - the
-same call that is undefined behaviour on an `int`. The library's position is
-that a precondition violation is the caller's, and that `std::terminate` is no
-worse an outcome there than UB is. On that basis the finding is suppressed for
-the test translation units, with the reasoning in `test/.clang-tidy`.
+The condition is spelled through two traits in `<xstd/concepts.hpp>` rather
+than as a `noexcept(noexcept(...))` chain per signature, which is what keeps
+the declarations readable:
 
-The alternative is a conditional `noexcept` - `noexcept(noexcept(numer / denom)
-and ...)` on each of the six signatures - which would be exact for every type
-rather than for most. It is not obviously worth it: it makes the declarations
-substantially harder to read, it weakens nothing for the built-in widths (they
-stay `noexcept`), and it buys a guarantee that only differs on inputs the
-contract already excludes. Left as it stands, deliberately and with the
-tradeoff written down rather than discovered later.
+- `is_nothrow_integral_like_v<T>` asks whether every operation `integral_like`
+  requires is `noexcept`. `abs` and `sign` use it, since they touch only `T`.
+- `is_nothrow_signed_integral_like_v<T>` asks the same of both halves of the
+  signed/unsigned pair, plus the conversion between them. `uabs` and the three
+  division functions use it, because `uabs` does its arithmetic in the
+  counterpart type and the division postconditions run through `uabs`.
+
+Neither is a widening of a standard trait - there is no `std::is_nothrow_integral`
+to open - so the `_like` in their names travels with the notion they are derived
+from, the way `std::is_nothrow_constructible` is the companion of
+`std::is_constructible` rather than a different question. The signed one earns a
+name where a plain `is_signed_integral_like_v` was rejected, because it is not a
+second spelling of an existing concept: there is no nothrow concept to duplicate.
+
+This was found by clang-tidy's `bugprone-exception-escape` as soon as
+`test/src/multiprecision.cpp` instantiated the family, and it was right to
+complain. The throw is only reachable out of contract - all three division
+functions assert `denom != 0` first - so an unconditional `noexcept` would not
+have been *wrong* so much as imprecise, and suppressing the check was the first
+response. Making the specification exact is better: the check stays enabled
+everywhere, the guarantee is still unconditional at every width the library is
+principally for, and a caller who wants to know can ask the trait directly.
 
 ### `xstd::uabs`
 

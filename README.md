@@ -141,6 +141,8 @@ Every function in `<xstd/cstdlib.hpp>` is a single function template constrained
 
 `xstd::sign` isn't part of `<cstdlib>`, and always returns a plain `int` whatever its argument's width.
 
+All six are `noexcept(…)` rather than plain `noexcept`. At every built-in width the condition holds and the guarantee is unconditional — division by zero is undefined behaviour there, not an exception. It withdraws only for a type whose own arithmetic can throw, which is a real case: `boost::multiprecision::int128_t`'s `operator/` throws `std::overflow_error` on a zero divisor. `xstd::is_nothrow_integral_like_v` and `xstd::is_nothrow_signed_integral_like_v` are the conditions, if you want to ask directly.
+
 A built-in signed type needs nothing from you. Your own integer type needs one specialization of `xstd::make_unsigned_like` naming its unsigned partner, on top of the operators and the `std::numeric_limits` specialization it would have anyway:
 
 ```cpp

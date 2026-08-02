@@ -80,6 +80,17 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(SignedIntegralLike, T, cpp_int_widths)
         static_assert(std::same_as<decltype(xstd::uabs(T{})), U>);
         static_assert(std::same_as<decltype(xstd::sign(T{})), int>);
 
+        // cpp_int's operator/ throws std::overflow_error on a zero divisor,
+        // so the division family withdraws its noexcept for exactly these
+        // types. That is the whole point of the specification being
+        // conditional rather than unconditional; see doc/design.md.
+        static_assert(not xstd::is_nothrow_integral_like_v<T>);
+        static_assert(not xstd::is_nothrow_signed_integral_like_v<T>);
+        static_assert(not noexcept(xstd::div(T{1}, T{1})));
+        static_assert(not noexcept(xstd::euclidean_div(T{1}, T{1})));
+        static_assert(not noexcept(xstd::floored_div(T{1}, T{1})));
+        static_assert(not noexcept(xstd::uabs(T{1})));
+
         BOOST_CHECK((xstd::abs(T{-2}) == T{2}));
         BOOST_CHECK((xstd::abs(T{+2}) == T{2}));
 
