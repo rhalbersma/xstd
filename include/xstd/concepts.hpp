@@ -6,9 +6,8 @@
 #ifndef XSTD_CONCEPTS_HPP
 #define XSTD_CONCEPTS_HPP
 
-#include <xstd/type_traits.hpp> // is_arithmetic_like_v, is_signed_like_v, is_specialization_of_v, is_unsigned_like_v, make_unsigned_like_t
-#include <concepts>             // constructible_from, regular, same_as, totally_ordered
-#include <limits>               // numeric_limits
+#include <xstd/type_traits.hpp> // is_integral_like_v, is_signed_like_v, is_specialization_of_v, is_unsigned_like_v, make_unsigned_like_t
+#include <concepts>             // constructible_from
 #include <type_traits>          // bool_constant, is_enum_v, is_nothrow_constructible_v
 
 namespace xstd {
@@ -35,10 +34,16 @@ template<class T, template<class...> class Primary>
 concept specialization_of = is_specialization_of_v<T, Primary>;
 
 // The open counterpart of <concepts>'s integral / signed_integral /
-// unsigned_integral. Those three are spelled over std::is_integral, which is
-// a closed list the compiler owns rather than a property a type can have, and
-// two kinds of type that behave like integers in every way a division or an
-// absolute value cares about are outside it:
+// unsigned_integral, and the constraint spelling of xstd::is_integral_like_v
+// - the same relation enumeration has to std::is_enum_v and specialization_of
+// has to xstd::is_specialization_of_v, and the one std::integral itself has
+// to std::is_integral_v.
+//
+// What the trait opens, and how, is <xstd/type_traits.hpp>'s business. The
+// short version: <concepts>'s three are spelled over std::is_integral, which
+// is a closed list the compiler owns rather than a property a type can have,
+// and two kinds of type that behave like integers in every way a division or
+// an absolute value cares about are outside it:
 //
 // - __int128, which libstdc++ withholds from std::is_integral in the strictly
 //   conforming dialect (see xstd::make_unsigned_like), so the same type is
@@ -48,46 +53,14 @@ concept specialization_of = is_specialization_of_v<T, Primary>;
 //   std::ranges::__detail::__max_diff_type or the MSVC STL's std::_Signed128.
 //   No class type can ever satisfy std::is_integral, on any dialect.
 //
-// The standard ran into the same wall and answered it with integer-class
-// types ([iterator.concept.winc]) - but that answer is another closed list,
-// spelled with same_as against each implementation's own reserved names, so
-// it can be neither reused nor joined from outside. This is the structural
-// version of the same question: it asks what a type does rather than what it
-// is called, so a user's own type qualifies by behaving correctly instead of
-// by being enumerated somewhere. It is a strict superset of std::integral.
-//
-// std::regular leads the conjunction so that arrays, references, void and
-// function types are rejected before std::numeric_limits is instantiated over
-// them: its primary template declares a static member function returning T,
-// which for an array type is ill-formed rather than merely unspecialized.
-//
-// Every arithmetic result is written through static_cast<T> because the
-// built-in types promote - int8_t + int8_t is an int - so requiring the
-// operators to return T directly would exclude precisely the widths the
-// library exists to cover. Requiring the cast to land on T rather than merely
-// something convertible is what keeps a partial imitation out.
+// The trait admits both, by asking what a type does rather than what it is
+// called, so a user's own type qualifies by behaving correctly instead of by
+// being enumerated somewhere. It is a strict superset of std::integral at
+// every cv-unqualified type; the cv-qualified spellings std::integral also
+// accepts are outside its domain, deliberately and for the reasons given
+// where it is defined.
 template<class T>
-concept integral_like =
-        std::regular<T> and
-        std::totally_ordered<T> and
-        is_arithmetic_like_v<T> and
-        std::numeric_limits<T>::is_integer and
-        std::constructible_from<T, int> and
-        requires (T const a, T const b) {
-                { static_cast<T>(-a) } -> std::same_as<T>;
-                { static_cast<T>(a + b) } -> std::same_as<T>;
-                { static_cast<T>(a - b) } -> std::same_as<T>;
-                { static_cast<T>(a * b) } -> std::same_as<T>;
-                { static_cast<T>(a / b) } -> std::same_as<T>;
-                { static_cast<T>(a % b) } -> std::same_as<T>;
-        };
-
-// std::constructible_from<T, int> above, rather than a comparison or an
-// arithmetic operator taking a literal, is deliberate: an integer-class type
-// is only required to be *explicitly* convertible from an integral type
-// ([iterator.concept.winc]), so "x < 0" need not compile for one even though
-// "x < static_cast<T>(0)" does. Everything in <xstd/cstdlib.hpp> spells its
-// constants that second way for that reason.
+concept integral_like = is_integral_like_v<T>;
 
 // The signedness split, spelled the way <concepts> spells its own:
 // std::signed_integral is integral<T> && is_signed_v<T>, and these are
@@ -103,12 +76,32 @@ concept integral_like =
 // <bool> already holds; these concepts widen the built-in ones rather than
 // tidy them up.
 //
+// The unsigned one is where the parallel with <concepts> deliberately stops.
+// std::unsigned_integral is integral<T> && !signed_integral<T>, and copying
+// that shape here would be wrong, because signed_integral_like asks for more
+// than a sign: a signed integer-class type whose author has not specialized
+// xstd::make_unsigned_like fails it, and "integral_like and not
+// signed_integral_like" would then report that type as *unsigned*. Asking
+// is_unsigned_like_v - the standard's own T(0) < T(-1), over the opened
+// arithmetic test - answers the question actually being asked, and leaves such
+// a type neither signed nor unsigned, which is what it is.
+//
 // Both are written as "integral_like<T> and ..." rather than as a flat list of
 // requirements, so that each one *subsumes* integral_like. That is what lets a
 // caller overload on integral_like and signed_integral_like and have the more
 // constrained one win, the same way std::integral and std::signed_integral
-// partial-order today; a formulation that repeated the requirements instead
-// would leave such a call ambiguous.
+// partial-order today; a formulation that spelled either of them over a single
+// trait of its own - is_signed_integral_like_v<T>, say - would share no atomic
+// constraint with integral_like and would leave such a call ambiguous instead.
+//
+// Which is the other reason there is deliberately no is_signed_integral_like_v
+// or is_unsigned_integral_like_v to go with these two. The first is that the
+// standard has no is_signed_integral_v or is_unsigned_integral_v either:
+// signed_integral and unsigned_integral exist only as concepts, spelled over
+// the is_signed_v / is_unsigned_v that xstd opens in <xstd/type_traits.hpp>,
+// and a type only earns a _like spelling when the standard entity it widens
+// exists to be widened. is_integral_like_v is a trait because std::is_integral
+// is one.
 template<class T>
 concept unsigned_integral_like =
         integral_like<T> and
@@ -127,35 +120,6 @@ concept signed_integral_like =
         requires { typename make_unsigned_like_t<T>; } and
         unsigned_integral_like<make_unsigned_like_t<T>> and
         std::constructible_from<make_unsigned_like_t<T>, T>;
-
-// std::is_integral, opened - the trait spelling of integral_like, for generic
-// code that wants a value rather than a constraint (std::conjunction, a
-// tag-dispatch bool_constant, an if constexpr over a pack).
-//
-// This is the last of the four. There is deliberately no
-// is_signed_integral_like_v or is_unsigned_integral_like_v to go with the two
-// concepts below it, because the standard has no is_signed_integral_v or
-// is_unsigned_integral_v either: signed_integral and unsigned_integral exist
-// only as concepts, spelled over the is_signed_v / is_unsigned_v that xstd
-// opens in <xstd/type_traits.hpp>. A type only earns a _like spelling here
-// when the standard entity it widens exists to be widened.
-//
-// Unlike the three in <xstd/type_traits.hpp>, this one reads its concept
-// rather than the other way round, and that direction is not free to reverse.
-// integral_like's requirements include a requires-expression and a
-// std::numeric_limits member; written out as a variable template's initializer
-// they would all have to be well-formed at once, so is_integral_like_v<int[3]>
-// would stop the compile instead of answering false. A concept's conjunction
-// short-circuits during satisfaction checking, so reading one keeps the trait
-// total. The three in <xstd/type_traits.hpp> reach the same safety through a
-// constrained partial specialization, which is what a variable template has
-// instead; integral_like is the one whose requirements do not fit in a
-// requires-clause.
-template<class T>
-inline constexpr auto is_integral_like_v = integral_like<T>;
-
-template<class T>
-using is_integral_like = std::bool_constant<is_integral_like_v<T>>;
 
 // The same question integral_like asks, asked again of every operation it
 // requires: can any of them throw?
@@ -182,15 +146,16 @@ using is_integral_like = std::bool_constant<is_integral_like_v<T>>;
 template<class T>
 inline constexpr auto is_nothrow_integral_like_v = false;
 
-// The static_casts match integral_like's requirement set operator for
-// operator, and are load-bearing for the same reason they are there: an
-// operator may return something that is not yet a T - a promoted int for the
-// narrow widths, an expression-template proxy for a type like
+// The static_casts match, operator for operator, the requirement set
+// integral_like reaches through its trait - xstd::exposition_only::
+// integral_class_type - and are load-bearing for the same reason they are
+// there: an operator may return something that is not yet a T - a promoted int
+// for the narrow widths, an expression-template proxy for a type like
 // Boost.Multiprecision's - and materialising that is itself an operation that
 // can throw. clang-tidy sees only the instantiations where the operator
 // already returns T and calls the cast redundant; it is redundant for those
 // and necessary for the others, which is what a template is for. It does not
-// raise this against integral_like above, whose identical casts sit inside a
+// raise this against the identical casts in that concept, which sit inside a
 // concept rather than a variable template.
 //
 // NOLINTBEGIN(readability-redundant-casting)

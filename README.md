@@ -15,12 +15,13 @@
 
 xstd is a header-only C++23 library for small standard-library extensions that can be implemented portably with stable compiler technology. It aims to prototype future-stdlib-style facilities without requiring experimental language features. See [doc/design.md](doc/design.md) for the design philosophy tying the headers together.
 
-| Header                   | Additions          | Description | Reference |
-| :-----                   | :--------          | :---------- | :-------- |
-| `<xstd/concepts.hpp>`    | `enumeration` <br> `specialization_of` <br> `integral_like` <br> `signed_integral_like` <br> `unsigned_integral_like` <br> `is_integral_like_v` | Is a type an enumeration type? <br> Constraint form of `is_specialization_of` <br> Open form of `std::integral`, class types included <br> Open form of `std::signed_integral` <br> Open form of `std::unsigned_integral` <br> `std::is_integral_v`, opened to class types | none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> none |
-| `<xstd/cstdlib.hpp>`     | `sign` <br> `abs` <br> `uabs` <br> `div_t` <br> `div` <br> `euclidean_div` <br> `floored_div` | `constexpr`, any signed integer-like type <br> `constexpr`, any signed integer-like type <br> Total `\|x\|`, returning the unsigned counterpart <br> Defaulted equality comparison, `std::format` support where the element type has it <br> `constexpr`, any signed integer-like type <br> Euclidean division <br> Floored division | [Boost.Math](https://www.boost.org/doc/libs/1_80_0/libs/math/doc/html/math_toolkit/sign_functions.html) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Rust `unsigned_abs`](https://doc.rust-lang.org/std/primitive.i32.html#method.unsigned_abs) (no C++ equivalent) <br> [p2286r8](https://wg21.link/p2286r8), [p3391](https://wg21.link/p3391) (C++29, not yet implemented) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) |
-| `<xstd/type_traits.hpp>` | `is_specialization_of` <br> `is_integral_constant` <br> `is_arithmetic_like_v` <br> `is_signed_like_v` <br> `is_unsigned_like_v` <br> `make_unsigned_like` <br> `empty_type` <br> `conditional_data_member_t` | Is a type a class template specialization? <br> Is a type an `integral_constant`? <br> `std::is_arithmetic_v`, opened to class types <br> `std::is_signed_v`, opened the same way <br> `std::is_unsigned_v`, opened the same way <br> Open, user-specializable `std::make_unsigned` <br> A tagged empty type <br> A conditionally present member | [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> none <br> none <br> none <br> none <br> none <br> none <br> none |
-| `<xstd/utility.hpp>`     | `to_underlying` <br> `aligned_size` | `std::integral_constant` overload <br> Round a size up to a multiple of an alignment | none <br> none |
+| Header | Additions, in order of definition | Description | Reference |
+| :----- | :-------------------------------- | :---------- | :-------- |
+| `<xstd/concepts.hpp>` | `enumeration` <br> `specialization_of` <br> `integral_like` <br> `unsigned_integral_like` <br> `signed_integral_like` <br> `is_nothrow_integral_like` <br> `is_nothrow_signed_integral_like` | Is a type an enumeration type? <br> Constraint form of `is_specialization_of` <br> Constraint form of `is_integral_like` <br> Open form of `std::unsigned_integral` <br> Open form of `std::signed_integral` <br> Is every operation `integral_like` requires `noexcept`? <br> The same, for both halves of the signed/unsigned pair | none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> none <br> none |
+| `<xstd/cstdlib.hpp>` | `sign` <br> `abs` <br> `uabs` <br> `div_t` <br> `div` <br> `euclidean_div` <br> `floored_div` | `constexpr`, any signed integer-like type <br> `constexpr`, any signed integer-like type <br> Total `\|x\|`, returning the unsigned counterpart <br> Defaulted equality comparison, `std::format` support where the element type has it <br> `constexpr`, any signed integer-like type <br> Euclidean division <br> Floored division | [Boost.Math](https://www.boost.org/doc/libs/1_80_0/libs/math/doc/html/math_toolkit/sign_functions.html) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Rust `unsigned_abs`](https://doc.rust-lang.org/std/primitive.i32.html#method.unsigned_abs) (no C++ equivalent) <br> [p2286r8](https://wg21.link/p2286r8), [p3391](https://wg21.link/p3391) (C++29, not yet implemented) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) |
+| `<xstd/exposition_only.hpp>` | `integral_class_type` <br> `is_integral_like` | Structural form of an integer-class type <br> Structural form of `is-integer-like`, over the above | [iterator.concept.winc] <br> [iterator.concept.winc] |
+| `<xstd/type_traits.hpp>` | `is_integral_like` <br> `is_arithmetic_like` <br> `is_signed_like` <br> `is_unsigned_like` <br> `is_integral_constant` <br> `is_specialization_of` <br> `make_unsigned_like` <br> `empty_type` <br> `conditional_data_member_t` | `std::is_integral`, opened to integer-class types <br> `std::is_arithmetic`, opened through the integral half <br> `std::is_signed`, opened the same way <br> `std::is_unsigned`, opened the same way <br> Is a type an `integral_constant`? <br> Is a type a class template specialization? <br> Open, user-specializable `std::make_unsigned` <br> A tagged empty type <br> A conditionally present member | [iterator.concept.winc] (`is-integer-like`) <br> none <br> none <br> none <br> none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> none <br> none <br> none |
+| `<xstd/utility.hpp>` | `to_underlying` <br> `aligned_size` | `std::integral_constant` overload <br> Round a size up to a multiple of an alignment | none <br> none |
 
 ## Using xstd
 
@@ -143,7 +144,7 @@ Every function in `<xstd/cstdlib.hpp>` is a single function template constrained
 
 All six are `noexcept(…)` rather than plain `noexcept`. At every built-in width the condition holds and the guarantee is unconditional — division by zero is undefined behaviour there, not an exception. It withdraws only for a type whose own arithmetic can throw, which is a real case: `boost::multiprecision::int128_t`'s `operator/` throws `std::overflow_error` on a zero divisor. `xstd::is_nothrow_integral_like_v` and `xstd::is_nothrow_signed_integral_like_v` are the conditions, if you want to ask directly.
 
-A built-in signed type needs nothing from you. Your own integer type needs one specialization of `xstd::make_unsigned_like` naming its unsigned partner, on top of the operators and the `std::numeric_limits` specialization it would have anyway:
+A built-in type needs nothing from you, and neither does your own *unsigned* one — like every unsigned type, it is its own counterpart, and `xstd::make_unsigned_like` says so without being told. Your own *signed* type needs one specialization naming its unsigned partner, on top of the operators and the `std::numeric_limits` specialization it would have anyway:
 
 ```cpp
 template<>
@@ -220,7 +221,7 @@ static_assert(real_part(std::complex<double>(1.0, 2.0)) == 1.0);
 
 It inherits the trait's `template<class...> class` restriction on `Primary`, including the hard error for a template with a non-type parameter.
 
-`xstd::integral_like`, `xstd::signed_integral_like` and `xstd::unsigned_integral_like` are the open forms of `std::integral`, `std::signed_integral` and `std::unsigned_integral`. Those three are spelled over `std::is_integral`, which is a closed list the compiler owns; these ask what a type does — `std::regular`, `std::totally_ordered`, a `std::numeric_limits` specialization saying `is_integer`, explicit construction from `int`, and the six arithmetic operators — so a class type can satisfy them:
+`xstd::integral_like`, `xstd::signed_integral_like` and `xstd::unsigned_integral_like` are the open forms of `std::integral`, `std::signed_integral` and `std::unsigned_integral`. Those three are spelled over `std::is_integral`, which is a closed list the compiler owns; these are spelled over `xstd::is_integral_like_v`, which extends that list with `[iterator.concept.winc]`'s integer-class types — asking what a type does (`std::regular`, `std::totally_ordered`, a `std::numeric_limits` specialization saying `is_integer`, explicit construction from `int`, and the six arithmetic operators) rather than what it is called, so a class type can satisfy them:
 
 ```cpp
 #include <concepts>
@@ -232,25 +233,45 @@ static_assert(xstd::unsigned_integral_like<unsigned>);
 static_assert(not xstd::signed_integral_like<double>);
 ```
 
-Each is a strict superset of its `<concepts>` counterpart, with the same signedness answers — `bool` comes out `unsigned_integral_like`, exactly as `std::unsigned_integral<bool>` already holds. A signed type additionally needs an unsigned counterpart, which is what `xstd::make_unsigned_like` names; for the built-in types it agrees with `std::make_unsigned`, and for anything else the user specializes it. Unlike `std::make_unsigned`, it is *empty* rather than ill-formed for a type that has no counterpart, which is what lets it be tested for inside a concept at all.
+Each is a strict superset of its `<concepts>` counterpart at every cv-unqualified type, with the same signedness answers — `bool` comes out `unsigned_integral_like`, exactly as `std::unsigned_integral<bool>` already holds. Cv-qualified types are the one narrowing: `std::integral<int const>` holds and `xstd::integral_like<int const>` does not, because no cv-qualified type has an `xstd::make_unsigned_like` counterpart and no function in `<xstd/cstdlib.hpp>` can be instantiated at one. A signed type additionally needs an unsigned counterpart, which is what `xstd::make_unsigned_like` names. Its domain is every integer-like type except `bool` — `std::make_unsigned`'s own domain, opened to the integer-class types: a built-in type answers what `std::make_unsigned` answers, signed or unsigned alike, and an unsigned class type is its own counterpart, so only a signed class type needs a specialization written for it. Unlike `std::make_unsigned`, it is *empty* rather than ill-formed outside that domain, which is what lets it be tested for inside a concept at all.
 
 The naming follows one rule throughout: **an xstd entity that widens a standard one to class types keeps the standard name and appends `_like`.** The rule cuts both ways — a `_like` name exists only where there is a standard entity to widen — so what xstd adds is exactly the four the standard has:
 
 | standard | xstd |
 | :------- | :--- |
-| `std::is_arithmetic_v` | `xstd::is_arithmetic_like_v` |
-| `std::is_signed_v` | `xstd::is_signed_like_v` |
-| `std::is_unsigned_v` | `xstd::is_unsigned_like_v` |
-| `std::is_integral_v` | `xstd::is_integral_like_v` |
+| `std::is_arithmetic` | `xstd::is_arithmetic_like` |
+| `std::is_signed` | `xstd::is_signed_like` |
+| `std::is_unsigned` | `xstd::is_unsigned_like` |
+| `std::is_integral` | `xstd::is_integral_like` |
 
-Each also has the `bool_constant` form without the `_v`. There is deliberately no `is_signed_integral_like_v`, because there is no `std::is_signed_integral_v` — `signed_integral` exists only as a concept, spelled over `is_signed_v`, and `xstd::signed_integral_like` is spelled over `xstd::is_signed_like_v` the same way.
+Each comes in both of the standard's spellings — the `bool_constant` named above, and the `_v` variable template that reads it — and each lives in `<xstd/type_traits.hpp>`. Which of them also gets a concept in `<xstd/concepts.hpp>` follows the same rule, applied to what `<concepts>` names rather than to what `<type_traits>` does:
+
+| standard | trait | concept | xstd |
+| :------- | :---- | :------ | :--- |
+| arithmetic | `std::is_arithmetic` | — | `is_arithmetic_like` only |
+| integral | `std::is_integral` | `std::integral` | both |
+| signed integral | — | `std::signed_integral` | `signed_integral_like` only |
+
+So there is deliberately no `is_signed_integral_like`, because `signed_integral` exists only as a concept — and no `arithmetic_like` concept, because `<concepts>` stops at `integral` / `signed_integral` / `unsigned_integral` / `floating_point` and never names `arithmetic`. A template that can do arithmetic on a type always knows which kind it needs; one that genuinely wants either writes `requires xstd::is_arithmetic_like_v<T>`, exactly as it would write `requires std::is_arithmetic_v<T>` today. See [doc/design.md](doc/design.md) for the second reason, which is about overload resolution rather than naming.
+
+`<xstd/exposition_only.hpp>` is where the second half of `xstd::is_integral_like_v` is written out: `xstd::exposition_only::integral_class_type` is `[iterator.concept.winc]`'s integer-class type re-derived as a structural concept, since the standard's own version is a closed set of implementation-defined names no user type can join. It is installed because `<xstd/type_traits.hpp>` includes it, but it is exposition only in the standard's sense — it carries no stability promise, and everything it can answer is reachable as `xstd::is_integral_like_v` or `xstd::integral_like`.
 
 ```cpp
 static_assert(xstd::is_signed_like_v<int> == std::is_signed_v<int>);   // agrees wherever std can answer
 static_assert(std::conjunction_v<xstd::is_integral_like<int>, xstd::is_integral_like<long>>);
 ```
 
-Opening `is_arithmetic` is what opens the rest: it is the root the standard's own `is_signed_v` and `is_unsigned_v` are spelled over (`is_arithmetic_v<T> && T(-1) < T(0)`), so xstd copies those definitions with the opened test substituted in rather than working around each leaf. Each opened trait agrees with the one it widens on every type that one can answer for — including answering rather than hard-erroring on arrays, `void` and incomplete types. See [doc/design.md](doc/design.md).
+Opening `is_integral` is what opens the rest. It is the only one of the four with structural content — `[iterator.concept.winc]` says what a type has to *do* to be an integer, where "is this a number" is a marker rather than a behavior — so it is the one new judgement, and the other three are spelled over it the way the standard spells them over `std::is_integral_v`:
+
+```cpp
+is_arithmetic_like_v<T> == is_integral_like_v<T> or is_floating_point_v<T>   // the standard's own disjunction,
+is_signed_like_v<T>     == is_arithmetic_like_v<T> and T(-1) < T(0)          // and its own two comparisons,
+is_unsigned_like_v<T>   == is_arithmetic_like_v<T> and T(0) < T(-1)          // with the integral half opened
+```
+
+Only the integral half of `is_arithmetic_like_v` is open, because it is the only half xstd has a definition for: a class type whose `std::numeric_limits` says it is not an integer is deliberately *not* arithmetic-like today. Opening the floating-point half — for an extended-precision binary float, or a decimal type — is a second exposition-only concept and a second disjunct, with nothing else moving.
+
+Each opened trait agrees with the one it widens on every cv-unqualified type that one can answer for — including answering rather than hard-erroring on arrays, `void` and incomplete types. See [doc/design.md](doc/design.md).
 
 ## Project layout
 
