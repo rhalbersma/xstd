@@ -54,6 +54,10 @@ jobs:
             gcc_version: 17
             gcc_trunk: true
             cxxflags: "--gcc-toolchain=/opt/gcc-latest"
+    env:
+      VCPKG_BINARY_SOURCES: "clear;default,readwrite"
+      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-cache
+      VCPKG_CACHE_KEY: vcpkg-clang-${{ matrix.label }}-
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -108,7 +112,6 @@ jobs:
 
       - name: Install libstdc++ trunk snapshot
         if: matrix.gcc_trunk
-        id: gcc-trunk
         run: |
           wget -q --tries=3 --waitretry=5 --retry-on-http-error=429,500,502,503,504 https://kayari.org/gcc-latest/gcc-latest.deb -O gcc-latest.deb
           sudo dpkg -i gcc-latest.deb || sudo apt-get install -f -y
@@ -117,7 +120,6 @@ jobs:
             /opt/gcc-latest/lib \
             /opt/gcc-latest/lib64 | sudo tee /etc/ld.so.conf.d/gcc-latest.conf > /dev/null
           sudo ldconfig
-          echo "version=$(/opt/gcc-latest/bin/g++ --version | head -1)" >> "$GITHUB_OUTPUT"
 
       - name: Report toolchain versions
         run: |
@@ -130,61 +132,55 @@ jobs:
           fi
           cmake --version
 
-      # Export the two env vars vcpkg's "x-gha" binary source needs to talk
-      # to the GitHub Actions cache service, so built packages are reused
-      # across runs instead of recompiled from scratch every time.
-      - name: Export GitHub Actions cache environment variables
-        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+      # x-gha, vcpkg's built-in GitHub Actions cache backend, was removed
+      # from vcpkg; actions/cache still works, so cache the directory vcpkg
+      # writes its binary packages to. The archives in it are named by
+      # vcpkg's ABI hash, so a stale entry is ignored rather than reused.
+      - name: Restore vcpkg binary cache
+        id: vcpkg-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
-          script: |
-            core.exportVariable('ACTIONS_CACHE_URL', process.env.ACTIONS_CACHE_URL || '');
-            core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN || '');
+          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          key: ${{ env.VCPKG_CACHE_KEY }}
+          restore-keys: ${{ env.VCPKG_CACHE_KEY }}
 
       # vcpkg is used instead of the distro's boost package so xstd tracks
-      # recent Boost releases regardless of what the OS bundles.
+      # recent Boost releases regardless of what the OS bundles. The overlay
+      # triplet builds Boost.Test with the same Clang and libstdc++ the
+      # tests use: the development leg pairs Clang with the GCC trunk
+      # snapshot, which ships its own, newer libstdc++, and linking a
+      # Boost.Test built against the system one breaks Boost.Test's runtime
+      # parameter registration ("Test setup error: Parameter
+      # catch_system_errors").
       - name: Install Boost.Test
-        if: "!matrix.gcc_trunk"
         env:
-          VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
-          CC: ${{ matrix.cc }}
-          CXX: ${{ matrix.cxx }}
-          CXXFLAGS: ${{ matrix.cxxflags }}
-        run: >
-          vcpkg install
-          --triplet x64-linux
-
-      # The GCC trunk snapshot ships a newer libstdc++ than the runner.
-      # Rebuild Boost.Test with the same Clang/libstdc++ pair; a cached
-      # system-libstdc++ Boost fails at runtime due to the ABI mismatch.
-      - name: Resolve latest Boost version
-        if: matrix.gcc_trunk
-        id: boost-version
+          VCPKG_CLANG_VERSION: ${{ matrix.version }}
+          VCPKG_CLANG_FLAGS: ${{ matrix.cxxflags }}
         run: |
-          boost_tag=$(curl -fsSL --retry 3 --retry-delay 2 -H "Authorization: Bearer ${{ github.token }}" "https://api.github.com/repos/boostorg/boost/releases?per_page=20" | grep '"tag_name"' | cut -d'"' -f4 | grep -E -m1 '^boost-[0-9]+\.[0-9]+\.[0-9]+$')
-          echo "tag=$boost_tag" >> "$GITHUB_OUTPUT"
+          mkdir -p "$VCPKG_DEFAULT_BINARY_CACHE"
+          vcpkg install \
+            --triplet x64-linux-clang \
+            --overlay-triplets "$GITHUB_WORKSPACE/.github/vcpkg/triplets"
 
-      - name: Cache Boost (trunk)
-        if: matrix.gcc_trunk
-        id: cache-boost-trunk
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
+      # Save only when the archives changed, keyed on their contents: an
+      # unconditional save would add an entry per run, evicting this repo's
+      # other caches, or warn about a duplicate key on every cache hit.
+      - name: Save vcpkg binary cache
+        if: >-
+          hashFiles('vcpkg-cache/**') != '' &&
+          steps.vcpkg-cache.outputs.cache-matched-key !=
+          format('{0}{1}', env.VCPKG_CACHE_KEY, hashFiles('vcpkg-cache/**'))
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
         with:
-          path: /opt/boost-latest
-          key: boost-clang-trunk-${{ runner.os }}-${{ matrix.version }}-${{ steps.gcc-trunk.outputs.version }}-${{ steps.boost-version.outputs.tag }}
+          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
+          key: ${{ env.VCPKG_CACHE_KEY }}${{ hashFiles('vcpkg-cache/**') }}
 
-      - name: Install Boost.Test from source
-        if: matrix.gcc_trunk && steps.cache-boost-trunk.outputs.cache-hit != 'true'
-        run: |
-          boost_tag=${{ steps.boost-version.outputs.tag }}
-          boost_ver=${boost_tag#boost-}
-          wget -q --tries=3 --waitretry=5 --retry-on-http-error=429,500,502,503,504 "https://github.com/boostorg/boost/releases/download/${boost_tag}/boost-${boost_ver}-b2-nodocs.tar.gz" -O boost.tar.gz
-          tar xzf boost.tar.gz
-          cd "boost-${boost_ver}"
-          echo "using clang : trunk : ${{ matrix.cxx }} : <cxxflags>${{ matrix.cxxflags }} <linkflags>${{ matrix.cxxflags }} ;" > user-config.jam
-          ./bootstrap.sh --prefix=/opt/boost-latest --with-libraries=test
-          ./b2 install -j"$(nproc)" --prefix=/opt/boost-latest --user-config=user-config.jam toolset=clang-trunk variant=release link=static threading=multi
-
-      - name: Configure (stable)
-        if: "!matrix.gcc_trunk"
+      - name: Configure
+        env:
+          # The overlay triplet is evaluated again by the vcpkg CMake
+          # integration, so retain the compiler selection after install.
+          VCPKG_CLANG_VERSION: ${{ matrix.version }}
+          VCPKG_CLANG_FLAGS: ${{ matrix.cxxflags }}
         run: >
           cmake -S . -B build
           -DCMAKE_BUILD_TYPE=Release
@@ -192,17 +188,8 @@ jobs:
           -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
           "-DCMAKE_CXX_FLAGS=${{ matrix.cxxflags }}"
           -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
-
-      - name: Configure (trunk)
-        if: matrix.gcc_trunk
-        run: >
-          cmake -S . -B build
-          -DCMAKE_BUILD_TYPE=Release
-          -DCMAKE_C_COMPILER=${{ matrix.cc }}
-          -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
-          "-DCMAKE_CXX_FLAGS=${{ matrix.cxxflags }}"
-          -DCMAKE_PREFIX_PATH=/opt/boost-latest
-          -DBoost_NO_SYSTEM_PATHS=ON
+          -DVCPKG_TARGET_TRIPLET=x64-linux-clang
+          -DVCPKG_OVERLAY_TRIPLETS=$GITHUB_WORKSPACE/.github/vcpkg/triplets
 
       - name: Build
         run: cmake --build build -v
