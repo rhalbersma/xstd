@@ -33,6 +33,16 @@ set(cxx_compile_options_warnings
         -Wno-unknown-warning-option         # forward compatibility for new Clang warnings
         -Wno-c++98-compat
         -Wno-c++98-compat-pedantic
+        # The same category, one standard on. "Would not have compiled before
+        # C++20" says nothing to a library that requires C++23, and the pair
+        # above has already made that judgement: it is what keeps <=> and
+        # defaulted comparisons quiet, which reach Clang as -Wpre-c++20-compat.
+        # -Wc++20-compat is a separate group those two do not cover, and it
+        # fires on exactly one construct here - the implicit typename in
+        # unsigned_counterpart_t, which is the spelling clang-tidy's
+        # readability-redundant-typename requires. Without this the two tools
+        # deadlock over a single token.
+        -Wno-c++20-compat
         -Wno-disabled-macro-expansion       # triggered by Boost.Test
         -Wno-global-constructors            # triggered by Boost.Test
         -Wno-used-but-marked-unused         # triggered by Boost.Test

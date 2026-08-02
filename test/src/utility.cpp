@@ -11,8 +11,6 @@
 #include <type_traits>              // integral_constant
 #include <utility>                  // to_underlying
 
-using namespace xstd;
-
 BOOST_AUTO_TEST_SUITE(Utility)
 
 enum class e1 {};
@@ -36,11 +34,11 @@ BOOST_AUTO_TEST_CASE(ToUnderlyingType)
         XSTD_CONSTEXPR_CHECK_EQUAL(std::to_underlying(e5()), static_cast<unsigned>(0));
 
         // use {} instead of () inside <> to avoid vexing parse
-        XSTD_CONSTEXPR_CHECK_EQUAL(to_underlying(e1_<e1{}>()), 0);
-        XSTD_CONSTEXPR_CHECK_EQUAL(to_underlying(e2_<e2{}>()), false);
-        XSTD_CONSTEXPR_CHECK_EQUAL(to_underlying(e3_<e3{}>()), static_cast<char>(0));
-        XSTD_CONSTEXPR_CHECK_EQUAL(to_underlying(e4_<e4{}>()), static_cast<unsigned char>(0));
-        XSTD_CONSTEXPR_CHECK_EQUAL(to_underlying(e5_<e5{}>()), static_cast<unsigned>(0));
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::to_underlying(e1_<e1{}>()), 0);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::to_underlying(e2_<e2{}>()), false);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::to_underlying(e3_<e3{}>()), static_cast<char>(0));
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::to_underlying(e4_<e4{}>()), static_cast<unsigned char>(0));
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::to_underlying(e5_<e5{}>()), static_cast<unsigned>(0));
 }
 
 template<class T>
@@ -60,20 +58,20 @@ BOOST_AUTO_TEST_CASE(ToUnderlyingTypeIsConstrained)
 BOOST_AUTO_TEST_CASE(AlignedSize)
 {
         // clang-format off
-        XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size( 0, 8),  0);
-        XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size( 1, 8),  8);
-        XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size( 8, 8),  8);
-        XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size( 9, 8), 16);
-        XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size(64, 8), 64);
-        XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size(65, 8), 72);
-        XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size(std::numeric_limits<std::size_t>::max() - 7, 8), std::numeric_limits<std::size_t>::max() - 7);
-        XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size(std::numeric_limits<std::size_t>::max() - 8, 8), std::numeric_limits<std::size_t>::max() - 7);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size( 0, 8),  0);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size( 1, 8),  8);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size( 8, 8),  8);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size( 9, 8), 16);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size(64, 8), 64);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size(65, 8), 72);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size(std::numeric_limits<std::size_t>::max() - 7, 8), std::numeric_limits<std::size_t>::max() - 7);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size(std::numeric_limits<std::size_t>::max() - 8, 8), std::numeric_limits<std::size_t>::max() - 7);
         // SIZE_MAX is divisible by 3, so this is the already-aligned case at
         // the very top of the range, with a non-power-of-two alignment. It
         // pins the contract as "the rounded result must fit", which is wider
         // than the (size + alignment - 1) rounding idiom can honour: that
         // form wraps to 0 here.
-        XSTD_CONSTEXPR_CHECK_EQUAL(aligned_size(std::numeric_limits<std::size_t>::max(), 3), std::numeric_limits<std::size_t>::max());
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size(std::numeric_limits<std::size_t>::max(), 3), std::numeric_limits<std::size_t>::max());
         // clang-format on
 }
 

@@ -12,12 +12,10 @@
 #include <cstdint>                     // int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t
 #include <type_traits>                 // false_type, integral_constant, is_constructible_v, is_convertible_v, is_empty_v, is_nothrow_constructible_v, is_nothrow_default_constructible_v, is_same_v, is_trivially_constructible_v, is_trivially_copyable_v, make_unsigned_t, true_type
 
-using namespace xstd;
-
 BOOST_AUTO_TEST_SUITE(TypeTraits)
 
 template<class T>
-using is_complex = is_specialization_of<T, std::complex>;
+using is_complex = xstd::is_specialization_of<T, std::complex>;
 
 template<class T>
 inline constexpr auto is_complex_v = is_complex<T>::value;
@@ -38,25 +36,25 @@ using color_ = std::integral_constant<color, N>;
 
 BOOST_AUTO_TEST_CASE(IsIntegralConstant)
 {
-        XSTD_CONSTEXPR_CHECK((is_integral_constant_v<std::true_type, bool>));
-        XSTD_CONSTEXPR_CHECK((is_integral_constant_v<std::false_type, bool>));
-        XSTD_CONSTEXPR_CHECK((not is_integral_constant_v<bool, bool>));
+        XSTD_CONSTEXPR_CHECK((xstd::is_integral_constant_v<std::true_type, bool>));
+        XSTD_CONSTEXPR_CHECK((xstd::is_integral_constant_v<std::false_type, bool>));
+        XSTD_CONSTEXPR_CHECK((not xstd::is_integral_constant_v<bool, bool>));
 
-        XSTD_CONSTEXPR_CHECK((is_integral_constant_v<int_<0>, int>));
-        XSTD_CONSTEXPR_CHECK((not is_integral_constant_v<int, int>));
+        XSTD_CONSTEXPR_CHECK((xstd::is_integral_constant_v<int_<0>, int>));
+        XSTD_CONSTEXPR_CHECK((not xstd::is_integral_constant_v<int, int>));
 
         // std::integral_constant's first parameter is any type usable as a
         // non-type template parameter, not just an integral one, and the
         // enum case is what xstd::to_underlying is built on. Pinned here
         // because narrowing this trait to std::integral would silently
         // break that without failing any of the checks above.
-        XSTD_CONSTEXPR_CHECK((is_integral_constant_v<color_<color::red>, color>));
-        XSTD_CONSTEXPR_CHECK((not is_integral_constant_v<color, color>));
+        XSTD_CONSTEXPR_CHECK((xstd::is_integral_constant_v<color_<color::red>, color>));
+        XSTD_CONSTEXPR_CHECK((not xstd::is_integral_constant_v<color, color>));
 
         // the wrapped type has to match: an integral_constant over one type
         // is not one over another
-        XSTD_CONSTEXPR_CHECK((not is_integral_constant_v<int_<0>, unsigned>));
-        XSTD_CONSTEXPR_CHECK((not is_integral_constant_v<color_<color::red>, unsigned>));
+        XSTD_CONSTEXPR_CHECK((not xstd::is_integral_constant_v<int_<0>, unsigned>));
+        XSTD_CONSTEXPR_CHECK((not xstd::is_integral_constant_v<color_<color::red>, unsigned>));
 }
 
 struct tag1;
@@ -64,8 +62,8 @@ struct tag2;
 
 BOOST_AUTO_TEST_CASE(EmptyType)
 {
-        using empty1 = empty_type<tag1>;
-        using empty2 = empty_type<tag2>;
+        using empty1 = xstd::empty_type<tag1>;
+        using empty2 = xstd::empty_type<tag2>;
 
         XSTD_CONSTEXPR_CHECK((std::is_empty_v<empty1>));
         XSTD_CONSTEXPR_CHECK((not std::is_same_v<empty1, empty2>));
@@ -99,14 +97,14 @@ BOOST_AUTO_TEST_CASE(EmptyType)
 // which is how a class with conditional members names each of them without
 // a separate declaration per tag. Both stand in for the same Type here:
 // that is exactly the case an unwritable tag would let collide.
-using member1 = conditional_data_member_t<false, tag1, struct member1_tag>;
-using member2 = conditional_data_member_t<false, tag1, struct member2_tag>;
+using member1 = xstd::conditional_data_member_t<false, tag1, struct member1_tag>;
+using member2 = xstd::conditional_data_member_t<false, tag1, struct member2_tag>;
 
 BOOST_AUTO_TEST_CASE(ConditionalDataMember)
 {
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<conditional_data_member_t<true, tag1, tag2>, tag1>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<conditional_data_member_t<false, tag1, tag2>, empty_type<tag2>>));
-        XSTD_CONSTEXPR_CHECK((std::is_empty_v<conditional_data_member_t<false, tag1, tag2>>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::conditional_data_member_t<true, tag1, tag2>, tag1>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::conditional_data_member_t<false, tag1, tag2>, xstd::empty_type<tag2>>));
+        XSTD_CONSTEXPR_CHECK((std::is_empty_v<xstd::conditional_data_member_t<false, tag1, tag2>>));
 
         // the tag names the member, not the type it stands in for, so two
         // absent members over the same Type still get distinct empty types
@@ -118,28 +116,28 @@ BOOST_AUTO_TEST_CASE(ConditionalDataMember)
         // the tag is inert when the member is present: same Type, same tags
         // as above, and the two agree once the condition holds
         XSTD_CONSTEXPR_CHECK((std::is_same_v<
-                              conditional_data_member_t<true, tag1, struct member1_tag>,
-                              conditional_data_member_t<true, tag1, struct member2_tag>>));
+                              xstd::conditional_data_member_t<true, tag1, struct member1_tag>,
+                              xstd::conditional_data_member_t<true, tag1, struct member2_tag>>));
 
         // an absent member never needs its tag defined
-        XSTD_CONSTEXPR_CHECK((std::is_empty_v<conditional_data_member_t<false, tag1, struct undefined_tag>>));
+        XSTD_CONSTEXPR_CHECK((std::is_empty_v<xstd::conditional_data_member_t<false, tag1, struct undefined_tag>>));
 }
 
 // A named concept rather than a bare requires-expression in the test body: a
 // requires-expression whose operand is invalid *and* non-dependent is a hard
 // error on GCC, so the type has to stay a template parameter.
 template<class T>
-concept has_unsigned_counterpart = requires { typename unsigned_counterpart_t<T>; };
+concept has_unsigned_counterpart = requires { typename xstd::unsigned_counterpart_t<T>; };
 
 BOOST_AUTO_TEST_CASE(UnsignedCounterpart)
 {
         // agrees with std::make_unsigned wherever std::make_unsigned answers
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<unsigned_counterpart_t<std::int8_t>, std::uint8_t>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<unsigned_counterpart_t<std::int16_t>, std::uint16_t>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<unsigned_counterpart_t<std::int32_t>, std::uint32_t>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<unsigned_counterpart_t<std::int64_t>, std::uint64_t>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<unsigned_counterpart_t<int>, std::make_unsigned_t<int>>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<unsigned_counterpart_t<unsigned>, unsigned>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::unsigned_counterpart_t<std::int8_t>, std::uint8_t>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::unsigned_counterpart_t<std::int16_t>, std::uint16_t>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::unsigned_counterpart_t<std::int32_t>, std::uint32_t>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::unsigned_counterpart_t<std::int64_t>, std::uint64_t>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::unsigned_counterpart_t<int>, std::make_unsigned_t<int>>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::unsigned_counterpart_t<unsigned>, unsigned>));
 
         // and answers "no" where std::make_unsigned is a hard error instead:
         // that is the whole point of an empty primary template. Each of these
@@ -159,8 +157,8 @@ BOOST_AUTO_TEST_CASE(UnsignedCounterpart)
 
         // a class type answers through a user-supplied specialization, which
         // is what the empty primary template leaves room for
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<unsigned_counterpart_t<test::signed_integer_class>, test::unsigned_integer_class>));
-        XSTD_CONSTEXPR_CHECK(not has_unsigned_counterpart<test::unsigned_integer_class>);
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::unsigned_counterpart_t<xstd::test::signed_integer_class>, xstd::test::unsigned_integer_class>));
+        XSTD_CONSTEXPR_CHECK(not has_unsigned_counterpart<xstd::test::unsigned_integer_class>);
 
         // __int128 is the one built-in type whose std::is_integral answer
         // depends on the dialect, so xstd names its counterpart outright
@@ -170,7 +168,7 @@ BOOST_AUTO_TEST_CASE(UnsignedCounterpart)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 #endif
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<unsigned_counterpart_t<__int128>, unsigned __int128>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::unsigned_counterpart_t<__int128>, unsigned __int128>));
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
