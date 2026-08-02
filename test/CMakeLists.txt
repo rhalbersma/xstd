@@ -120,6 +120,19 @@ find_package(
     unit_test_framework
 )
 
+# src/abseil.cpp is the only test that needs a compiled third-party library
+# rather than headers alone: absl::int128's division is out of line. It is also
+# the only one whose dependency is not already required by something else, so
+# it gets an off-switch. Turning this OFF drops the source from the glob below
+# and skips find_package entirely, which is the intended response if Abseil
+# ever fails to build on a toolchain in the matrix - the coverage lost is a
+# second witness for the integer-class concept, not the only one
+# (src/multiprecision.cpp is the first, and is header-only).
+option(XSTD_TEST_ABSEIL "Build the Abseil int128 test" ON)
+if(XSTD_TEST_ABSEIL)
+    find_package(absl CONFIG REQUIRED)
+endif()
+
 set(current_source_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)
 file(
     GLOB_RECURSE targets
@@ -127,6 +140,9 @@ file(
     RELATIVE ${current_source_dir}
     ${current_source_dir}/*.cpp
 )
+if(NOT XSTD_TEST_ABSEIL)
+    list(REMOVE_ITEM targets abseil.cpp)
+endif()
 
 foreach(t ${targets})
     cmake_path(GET t PARENT_PATH target_path)
@@ -142,6 +158,11 @@ foreach(t ${targets})
         Boost::unit_test_framework
         xstd_test_options
     )
+
+    # the one target with a library to link rather than just headers to find
+    if(target_id STREQUAL "abseil")
+        target_link_libraries(${target_id} PRIVATE absl::int128)
+    endif()
 
     add_test(NAME ${target_id} COMMAND ${target_id} --log_level=all)
 endforeach()

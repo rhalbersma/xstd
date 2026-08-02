@@ -11,6 +11,7 @@
     "test": {
       "description": "Build the Boost.Test-based unit tests",
       "dependencies": [
+        "abseil",
         "boost-multiprecision",
         "boost-test"
       ]
