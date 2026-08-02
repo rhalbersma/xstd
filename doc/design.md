@@ -516,8 +516,38 @@ which is the form callers actually want, and which
 this sets for the library: a trait gets a concept spelling when the concept
 enables a *use* the trait cannot, not merely so that both exist.
 
-Both are named as the noun the type satisfies rather than as `is_enum` /
-`is_specialization_of`, following how every concept in `<concepts>` reads.
+That rule is also why there is no `xstd::arithmetic_like` to go with
+`xstd::is_arithmetic_like_v`, and the reasons run in both directions.
+
+The naming rule disposes of it first: a `_like` name exists only where there
+is a standard entity to widen, and `<concepts>` has no `std::arithmetic`. It
+names `integral`, `signed_integral`, `unsigned_integral` and `floating_point`
+and stops - "is this a number" is not a constraint anyone writes, because a
+template that can do arithmetic on a type always knows which kind it needs.
+This is the mirror image of the missing `is_signed_integral_like_v`, and the
+three cases together are the whole rule:
+
+| standard | trait | concept | xstd |
+| :------- | :---- | :------ | :--- |
+| arithmetic | `std::is_arithmetic` | — | `is_arithmetic_like` only |
+| integral | `std::is_integral` | `std::integral` | both |
+| signed integral | — | `std::signed_integral` | `signed_integral_like` only |
+
+The use rule disposes of it a second time, and less obviously. Spelled the way
+every other concept here is - `concept arithmetic_like = is_arithmetic_like_v<T>;`
+- it would be an atomic constraint with no relationship to `integral_like`'s,
+so an overload set containing both would go *ambiguous* rather than preferring
+the integral one. A concept that looks more general than another and does not
+partial-order with it is worse than no concept at all. Spelling it
+`integral_like<T> or floating_point_like<T>` instead does partial-order
+correctly - a disjunction is subsumed by each of its disjuncts - but it
+duplicates the trait's definition in a second place that can drift from it,
+which is the arrangement `is_integral_like_v` was just moved *out of*. Neither
+price buys a use `requires is_arithmetic_like_v<T>` cannot already serve.
+
+Both concepts above are named as the noun the type satisfies rather than as
+`is_enum` / `is_specialization_of`, following how every concept in
+`<concepts>` reads.
 Beyond consistency, a concept sharing an unqualified name with the trait it
 wraps is ambiguous for anyone with using-directives for both namespaces,
 which for `enumeration` would have meant colliding with `std::is_enum`.

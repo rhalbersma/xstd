@@ -244,7 +244,15 @@ The naming follows one rule throughout: **an xstd entity that widens a standard 
 | `std::is_unsigned` | `xstd::is_unsigned_like` |
 | `std::is_integral` | `xstd::is_integral_like` |
 
-Each comes in both of the standard's spellings — the `bool_constant` named above, and the `_v` variable template that reads it — and each lives in `<xstd/type_traits.hpp>`, with the concept that reads it in `<xstd/concepts.hpp>`. There is deliberately no `is_signed_integral_like_v`, because there is no `std::is_signed_integral_v` — `signed_integral` exists only as a concept, spelled over `is_signed_v`, and `xstd::signed_integral_like` is spelled over `xstd::is_signed_like_v` the same way.
+Each comes in both of the standard's spellings — the `bool_constant` named above, and the `_v` variable template that reads it — and each lives in `<xstd/type_traits.hpp>`. Which of them also gets a concept in `<xstd/concepts.hpp>` follows the same rule, applied to what `<concepts>` names rather than to what `<type_traits>` does:
+
+| standard | trait | concept | xstd |
+| :------- | :---- | :------ | :--- |
+| arithmetic | `std::is_arithmetic` | — | `is_arithmetic_like` only |
+| integral | `std::is_integral` | `std::integral` | both |
+| signed integral | — | `std::signed_integral` | `signed_integral_like` only |
+
+So there is deliberately no `is_signed_integral_like`, because `signed_integral` exists only as a concept — and no `arithmetic_like` concept, because `<concepts>` stops at `integral` / `signed_integral` / `unsigned_integral` / `floating_point` and never names `arithmetic`. A template that can do arithmetic on a type always knows which kind it needs; one that genuinely wants either writes `requires xstd::is_arithmetic_like_v<T>`, exactly as it would write `requires std::is_arithmetic_v<T>` today. See [doc/design.md](doc/design.md) for the second reason, which is about overload resolution rather than naming.
 
 `<xstd/exposition_only.hpp>` is where the second half of `xstd::is_integral_like_v` is written out: `xstd::exposition_only::integral_class_type` is `[iterator.concept.winc]`'s integer-class type re-derived as a structural concept, since the standard's own version is a closed set of implementation-defined names no user type can join. It is installed because `<xstd/type_traits.hpp>` includes it, but it is exposition only in the standard's sense — it carries no stability promise, and everything it can answer is reachable as `xstd::is_integral_like_v` or `xstd::integral_like`.
 
