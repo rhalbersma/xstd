@@ -192,9 +192,11 @@ BOOST_AUTO_TEST_CASE(IntegerClassTypes)
         XSTD_CONSTEXPR_CHECK(not xstd::unsigned_integral_like<S>);
 
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<U> and xstd::unsigned_integral_like<U>);
-        // U is a perfectly good unsigned integer-like type, but no type names
-        // it as *its* counterpart, and it has none of its own
+        // U is its own unsigned counterpart, the way every unsigned type is.
+        // What keeps it out of signed_integral_like is its signedness, not a
+        // missing xstd::make_unsigned_like specialization
         XSTD_CONSTEXPR_CHECK(not xstd::signed_integral_like<U>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_signed_like_v<U>);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -146,8 +146,14 @@ Two things this design has to get right, both of which took a false start:
   same closed list, and outside it it is ill-formed rather than empty, so
   naming it in a concept turns the check that was supposed to answer "no"
   into a stopped compile. Hence `xstd::make_unsigned_like`, whose primary
-  template is deliberately empty. See below for why it is not called
-  `xstd::make_unsigned`.
+  template is deliberately empty. Its domain is `std::make_unsigned`'s own -
+  every integer-like type except `bool` - opened to the integer-class types,
+  in two specializations that split the work the way the standard splits it:
+  a built-in integral type answers what `std::make_unsigned` answers, signed
+  or unsigned alike, and an unsigned integer-*class* type is its own
+  counterpart. Only a *signed* class type has a partner the compiler cannot
+  work out, so that is the one line a user of such a type writes. See below
+  for why the trait is not called `xstd::make_unsigned`.
 - **Literals have to be spelled `static_cast<T>(0)`.** An integer-class type
   is only required to be *explicitly* convertible from an integral type
   ([iterator.concept.winc]), so `denom != 0` need not compile for one even

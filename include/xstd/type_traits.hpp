@@ -147,8 +147,24 @@ inline constexpr auto is_specialization_of_v<Primary<Args...>, Primary> = true;
 template<class T, template<class...> class Primary>
 using is_specialization_of = std::bool_constant<is_specialization_of_v<T, Primary>>;
 
-// The unsigned type that pairs with a signed integer-like type: what
-// std::make_unsigned answers, for the types it is willing to answer for.
+// The unsigned type that pairs with an integer-like type: what
+// std::make_unsigned answers, over the types xstd can answer for.
+//
+// The domain is every integer-like type except bool, which is std::make_unsigned's
+// own domain opened to the integer-class types. Two specializations cover it,
+// and the split is exactly the standard's:
+//
+// - a built-in integral type other than bool answers what std::make_unsigned
+//   answers, signed or unsigned alike. std::make_unsigned_t<unsigned> is
+//   unsigned, not an error, and neither is this;
+// - an unsigned integer-*class* type is its own counterpart, for the same
+//   reason and with the same answer. Its author writes no specialization at
+//   all: only a *signed* class type has a counterpart the compiler cannot
+//   work out, and that is the one line a user of such a type still writes.
+//
+// bool is left out because std::make_unsigned leaves it out ([meta.trans.sign]
+// asks for an integral type other than cv bool), and enumerations are left out
+// because nothing in xstd calls one integer-like.
 //
 // std::make_unsigned is closed in two separate ways. Its domain is the
 // built-in integral types other than bool, plus the enumerations - a list no
@@ -158,9 +174,9 @@ using is_specialization_of = std::bool_constant<is_specialization_of_v<T, Primar
 // survive: the check that was supposed to answer "no" stops the compile
 // instead. Hence the deliberately empty primary template here.
 // make_unsigned_like_t<T> is then a substitution failure - detectable, not
-// fatal - for every type that has no unsigned counterpart, and a user can
-// give one to a type of their own by specializing it. xstd::signed_integral_like
-// is built on exactly that, and is the reason this trait exists.
+// fatal - for every type outside the domain, and a user can bring a signed
+// type of their own into it by specializing. xstd::signed_integral_like is
+// built on exactly that, and is the reason this trait exists.
 //
 // Unlike std::make_unsigned this says nothing about cv-qualified types. No
 // cv-qualified type is xstd::integral_like - xstd::is_integral_like_v is
@@ -182,6 +198,22 @@ template<class T>
         requires std::is_same_v<T, std::remove_cv_t<T>> and std::is_integral_v<T> and (not std::is_same_v<T, bool>)
 struct make_unsigned_like<T> : std::make_unsigned<T>
 {};
+
+// The not-integral term is what keeps this disjoint from the specialization
+// above rather than more or less specialized than it: a built-in unsigned type
+// is answered there, by std::make_unsigned, and only the class types reach
+// here. is_unsigned_like_v is total, so asking it of an arbitrary T is safe,
+// and it already implies is_integral_like_v for a non-integral type - no
+// built-in floating-point type is unsigned, and no class type is
+// arithmetic-like without being integer-like. The integer-like term is spelled
+// out anyway, because the domain this trait means to cover is the integer-like
+// types and a reader should not have to derive that.
+template<class T>
+        requires (not std::is_integral_v<T>) and is_integral_like_v<T> and is_unsigned_like_v<T>
+struct make_unsigned_like<T>
+{
+        using type = T;
+};
 
 template<class T>
 using make_unsigned_like_t = make_unsigned_like<T>::type;

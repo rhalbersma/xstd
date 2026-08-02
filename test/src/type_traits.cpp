@@ -309,7 +309,8 @@ concept has_make_unsigned_like = requires { typename xstd::make_unsigned_like_t<
 
 BOOST_AUTO_TEST_CASE(MakeUnsignedLike)
 {
-        // agrees with std::make_unsigned wherever std::make_unsigned answers
+        // agrees with std::make_unsigned wherever std::make_unsigned answers,
+        // for the unsigned types as much as the signed ones
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<std::int8_t>, std::uint8_t>));
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<std::int16_t>, std::uint16_t>));
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<std::int32_t>, std::uint32_t>));
@@ -333,10 +334,12 @@ BOOST_AUTO_TEST_CASE(MakeUnsignedLike)
         // type is xstd::integral_like and none would ever be asked
         XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<int const>);
 
-        // a class type answers through a user-supplied specialization, which
-        // is what the empty primary template leaves room for
+        // a signed class type answers through a user-supplied specialization,
+        // which is what the empty primary template leaves room for - and an
+        // unsigned one is its own counterpart, with no specialization written
+        // for it at all, exactly as make_unsigned_like_t<unsigned> is unsigned
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<xstd::test::signed_integer_class>, xstd::test::unsigned_integer_class>));
-        XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<xstd::test::unsigned_integer_class>);
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<xstd::test::unsigned_integer_class>, xstd::test::unsigned_integer_class>));
 
         // __int128 is the one built-in type whose std::is_integral answer
         // depends on the dialect, so xstd names its counterpart outright

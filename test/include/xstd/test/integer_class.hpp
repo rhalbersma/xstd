@@ -168,11 +168,13 @@ class signed_integer_class
 
 } // namespace xstd::test
 
-// The user-supplied half of xstd::signed_integral_like: a class type has no
-// unsigned counterpart the compiler knows about, so it names one here. This
-// is the specialization every user of a non-built-in integer type writes, and
-// the reason xstd::make_unsigned_like's primary template is empty rather
-// than an alias for std::make_unsigned.
+// The user-supplied half of xstd::signed_integral_like: a *signed* class type
+// has no unsigned counterpart the compiler can work out, so it names one here.
+// This is the one specialization a user of a non-built-in integer type writes,
+// and the reason xstd::make_unsigned_like's primary template is empty rather
+// than an alias for std::make_unsigned. The unsigned type below needs none:
+// like every unsigned type, it is its own counterpart, and
+// xstd::make_unsigned_like says so without being told.
 template<>
 struct xstd::make_unsigned_like<xstd::test::signed_integer_class>
 {
