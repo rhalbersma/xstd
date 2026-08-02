@@ -6,9 +6,10 @@
 #include <xstd/exposition_only.hpp>    // integral_class_type, is_integral_like
 #include <xstd/test/constexpr.hpp>     // XSTD_CONSTEXPR_CHECK
 #include <xstd/test/integer_class.hpp> // signed_integer_class, unsigned_integer_class
-#include <boost/test/unit_test.hpp>    // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
+#include <boost/test/unit_test.hpp>    // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_CHECK
 #include <complex>                     // complex
 #include <concepts>                    // integral, regular
+#include <limits>                      // numeric_limits
 #include <type_traits>                 // is_integral_v
 
 BOOST_AUTO_TEST_SUITE(ExpositionOnly)
@@ -50,21 +51,23 @@ BOOST_AUTO_TEST_CASE(IntegralClassType)
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integral_class_type<color>);
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integral_class_type<int*>);
 
-        // std::regular leads the rest of the conjunction so that these are
-        // rejected before std::numeric_limits is instantiated over them: its
-        // primary template declares a static member function returning I,
-        // which for an array type is ill-formed rather than merely
-        // unspecialized. Each of these four is a hard error rather than a
-        // failing check if that ordering is disturbed.
+        // a cv-qualified class type, which is not assignable and so not
+        // std::regular either
+        XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integral_class_type<S const>);
+}
+
+// std::regular leads the rest of the conjunction so that these are rejected
+// before std::numeric_limits is instantiated over them: its primary template
+// declares a static member function returning I, which for an array type is
+// ill-formed rather than merely unspecialized. Each of these four is a hard
+// error rather than a failing check if that ordering is disturbed.
+BOOST_AUTO_TEST_CASE(IntegralClassTypeIsTotal)
+{
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integral_class_type<void>);
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integral_class_type<int&>);
         // NOLINTNEXTLINE(modernize-avoid-c-arrays): a built-in array is the type under test, not a container choice
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integral_class_type<int[3]>);
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integral_class_type<int()>);
-
-        // and a cv-qualified class type, which is not assignable and so not
-        // std::regular either
-        XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integral_class_type<S const>);
 }
 
 // [iterator.concept.winc]'s is-integer-like: integral, or an integer-class
@@ -81,19 +84,26 @@ BOOST_AUTO_TEST_CASE(IsIntegralLike)
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::is_integral_like<double>);
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::is_integral_like<std::complex<double>>);
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::is_integral_like<color>);
+}
 
-        // answered rather than hard-errored, which is the whole reason this
-        // is a concept and xstd::is_integral_like_v reads it
+// Answered rather than hard-errored, which is the whole reason this is a
+// concept and xstd::is_integral_like_v reads it rather than spelling the
+// requirements out as its own initializer.
+BOOST_AUTO_TEST_CASE(IsIntegralLikeIsTotal)
+{
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::is_integral_like<void>);
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::is_integral_like<int&>);
         // NOLINTNEXTLINE(modernize-avoid-c-arrays): a built-in array is the type under test, not a container choice
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::is_integral_like<int[3]>);
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::is_integral_like<int()>);
+}
 
-        // the one place this narrows what std::integral says yes to. const is
-        // excluded by std::regular as well, volatile is not - which is why
-        // the restriction is spelled with same_as and remove_cv_t rather than
-        // left to the rest of the conjunction
+// The one place this narrows what std::integral says yes to. const is
+// excluded by std::regular as well, volatile is not - which is why the
+// restriction is spelled with same_as and remove_cv_t rather than left to the
+// rest of the conjunction.
+BOOST_AUTO_TEST_CASE(IsIntegralLikeExcludesCvQualifiedTypes)
+{
         XSTD_CONSTEXPR_CHECK(std::integral<int const> and not xstd::exposition_only::is_integral_like<int const>);
         XSTD_CONSTEXPR_CHECK(std::integral<int volatile> and not xstd::exposition_only::is_integral_like<int volatile>);
         XSTD_CONSTEXPR_CHECK(std::regular<int volatile> and not std::regular<int const>);
@@ -102,18 +112,43 @@ BOOST_AUTO_TEST_CASE(IsIntegralLike)
 // __int128 is the type the two disjuncts trade places over: libstdc++
 // withholds it from std::is_integral outside GNU mode, where it is an
 // integer-class type in everything but name, and reports it as integral
-// inside GNU mode, where this concept declines it. Exactly one of the two
-// holds either way, which is what keeps xstd::is_integral_like_v's answer
-// dialect-independent.
+// inside GNU mode, where integral_class_type declines it. Exactly one of the
+// two claims it either way, which is what keeps is_integral_like's answer
+// dialect-independent. Naming the type is what -Wpedantic is for, hence the
+// same suppression the headers carry.
 #ifdef __SIZEOF_INT128__
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 #endif
-BOOST_AUTO_TEST_CASE(Int128IsAnsweredByExactlyOneDisjunct)
+
+// __SIZEOF_INT128__ says the *compiler* has the type. It says nothing about
+// whether the *standard library* describes it, and those come apart: clang-cl
+// has __int128 on x64, but the MSVC STL specializes neither std::is_integral
+// nor std::numeric_limits for it, so neither disjunct claims it and
+// is_integral_like correctly declines. std::numeric_limits is the gate
+// because it is what integral_class_type actually reads - the same gate, for
+// the same reason, as test/src/cstdlib.cpp's.
+//
+// A template so that the discarded branch is never instantiated: in a
+// non-templated context a discarded if-constexpr statement is still fully
+// checked, static_asserts included.
+template<class T>
+auto check_int128()
+        -> void
 {
-        XSTD_CONSTEXPR_CHECK(std::is_integral_v<__int128> != xstd::exposition_only::integral_class_type<__int128>);
-        XSTD_CONSTEXPR_CHECK(std::is_integral_v<unsigned __int128> != xstd::exposition_only::integral_class_type<unsigned __int128>);
+        if constexpr (std::numeric_limits<T>::is_specialized) {
+                static_assert(std::is_integral_v<T> != xstd::exposition_only::integral_class_type<T>);
+                static_assert(xstd::exposition_only::is_integral_like<T>);
+        }
+}
+
+BOOST_AUTO_TEST_CASE(Int128IsClaimedByExactlyOneDisjunct)
+{
+        check_int128<__int128>();
+        check_int128<unsigned __int128>();
+
+        BOOST_CHECK(true); // the MSVC STL leaves __int128 undescribed, see above
 }
 #ifdef __GNUC__
 #pragma GCC diagnostic pop

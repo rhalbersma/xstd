@@ -202,46 +202,52 @@ BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAdmitClassTypes)
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_unsigned_like<U>, std::true_type>));
 }
 
-// The fourth opened trait, and the one the standard's own answer is a closed
-// list rather than a property: std::is_integral_v is extended with
-// [iterator.concept.winc]'s integer-class types, opened structurally in
-// <xstd/exposition_only.hpp> and pinned in src/exposition_only.cpp. What is
-// checked here is the trait spelling itself - that it agrees with
-// std::is_integral_v wherever std::is_integral_v can answer, that it says yes
-// where the standard's closed list cannot, and that it stays total on the
-// types whose requirements are ill-formed rather than merely unsatisfied.
+// The fourth opened trait, and the one whose standard counterpart answers
+// from a closed list rather than from a property: std::is_integral_v is
+// extended with [iterator.concept.winc]'s integer-class types, opened
+// structurally in <xstd/exposition_only.hpp> and pinned in
+// src/exposition_only.cpp. The four cases below check the trait spelling
+// itself. Agreement with std::is_integral_v wherever it can answer is already
+// covered by the sweep above, which this trait joins.
 BOOST_AUTO_TEST_CASE(IsIntegralLike)
 {
-        XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<int> and std::is_integral_v<int>);
-        XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<bool> and std::is_integral_v<bool>);
-        XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<char32_t> and std::is_integral_v<char32_t>);
+        XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<int>);
+        XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<bool>);
+        XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<char32_t>);
 
-        XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<double> and not std::is_integral_v<double>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<double>);
         XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<color>);
         XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<std::complex<double>>);
 
-        // the widening: a class type no dialect could ever make integral
+        // the widening: class types no dialect could ever make integral
         XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<xstd::test::signed_integer_class>);
         XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<xstd::test::unsigned_integer_class>);
+}
 
-        // total where the requirements it reaches are ill-formed rather than
-        // unsatisfied: they sit inside a concept, whose conjunction
-        // short-circuits, so each of these is an answer and not a compile
-        // error
+// Total where the requirements it reaches are ill-formed rather than merely
+// unsatisfied: they sit inside a concept, whose conjunction short-circuits, so
+// each of these is an answer and not a compile error.
+BOOST_AUTO_TEST_CASE(IsIntegralLikeIsTotal)
+{
         XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<void>);
         XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<int&>);
         // NOLINTNEXTLINE(modernize-avoid-c-arrays): a built-in array is the type under test, not a container choice
         XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<int[3]>);
         XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<int()>);
+}
 
-        // and narrower than std::is_integral_v in exactly one place, for the
-        // same reason make_unsigned_like below says nothing about cv-qualified
-        // types
+// And narrower than std::is_integral_v in exactly one place, for the same
+// reason make_unsigned_like below says nothing about cv-qualified types.
+BOOST_AUTO_TEST_CASE(IsIntegralLikeExcludesCvQualifiedTypes)
+{
         XSTD_CONSTEXPR_CHECK(std::is_integral_v<int const> and not xstd::is_integral_like_v<int const>);
         XSTD_CONSTEXPR_CHECK(std::is_integral_v<int volatile> and not xstd::is_integral_like_v<int volatile>);
+}
 
-        // the bool_constant form, which is what std::conjunction and tag
-        // dispatch want and a concept cannot be
+// The bool_constant form, which is what std::conjunction and tag dispatch want
+// and a concept cannot be.
+BOOST_AUTO_TEST_CASE(IsIntegralLikeBoolConstant)
+{
         XSTD_CONSTEXPR_CHECK(xstd::is_integral_like<int>::value);
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_integral_like<int>, std::true_type>));
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_integral_like<double>, std::false_type>));
