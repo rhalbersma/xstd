@@ -176,6 +176,48 @@ is simply not formattable unless the user supplies a `std::formatter` for the
 element type. That is the existing lazy design doing the right thing without
 a new rule.
 
+### What a third-party integer-class type showed
+
+`test/src/multiprecision.cpp` runs the division family over
+Boost.Multiprecision's `int128_t`/`int256_t`/`int512_t`/`int1024_t` - the four
+widths that library's own documentation uses. The fixture in
+`test/include/xstd/test/integer_class.hpp` models the category, but it was
+written against this concept and could have been quietly fitted to it;
+Boost.Multiprecision was not. It satisfies `xstd::signed_integral_like`
+unmodified, for the price of one `xstd::make_unsigned_like` specialization per
+type - the same line a user writes for any integer type the compiler does not
+know about.
+
+It also covers a representation nothing else in the suite does. `cpp_int`'s
+signed types are *signed-magnitude*, so their range is symmetric:
+`min() == -max()`, where every other type tested - the built-in widths,
+`__int128`, the fixture - is two's complement and has one more negative value
+than positive. Two consequences fell out of that, and the first one was a bug
+in the test rather than in the library:
+
+- **Expected values for the `denom == MIN` case cannot be written as `max()`.**
+  `euclidean_div(-1, MIN)` has remainder `-1 - MIN`, which *equals* `max()`
+  only when `MIN == -max() - 1`. On a symmetric range it is `max() - 1`. The
+  corresponding check in `test/src/cstdlib.cpp` writes `max()` outright and is
+  right to, because every type it covers is two's complement; the
+  multiprecision battery has to derive the value from the type's own bounds.
+- **`abs`'s precondition is conservative here, not exact.** It is spelled
+  `x != numeric_limits<T>::min()` unconditionally, because on a two's
+  complement type `-MIN` is not representable. On a symmetric-magnitude type
+  `|MIN|` *is* representable and the call would be perfectly well-defined, so
+  the contract excludes an input it did not have to. That is a safe direction
+  for a precondition to err in - `uabs` covers the case with no precondition at
+  all - and tightening it would mean asking the type whether its range is
+  symmetric, which is a runtime-visible property of `numeric_limits`, not of
+  the width. It is left alone deliberately, and the test does not call
+  `abs(min())`.
+
+Abseil's `absl::int128` was checked the same way and also satisfies the concept
+unmodified, but is not in the test suite: it needs a compiled library rather
+than headers alone, on every vcpkg-using leg of a matrix whose development
+toolchains are all required, and being two's complement it covers nothing that
+`__int128` does not already cover.
+
 ### `xstd::uabs`
 
 `abs` cannot be total: `|x|` for the most negative value of a signed type is
