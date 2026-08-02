@@ -3,19 +3,20 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/type_traits.hpp>     // is_specialization_of, is_integral_constant, empty_type, conditional_data_member_t
-#include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK
-#include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
-#include <compare>                  // strong_ordering
-#include <complex>                  // complex
-#include <type_traits>              // false_type, integral_constant, is_constructible_v, is_convertible_v, is_empty_v, is_nothrow_constructible_v, is_nothrow_default_constructible_v, is_same_v, is_trivially_constructible_v, is_trivially_copyable_v, true_type
-
-using namespace xstd;
+#include <xstd/type_traits.hpp>        // is_specialization_of, is_integral_constant, empty_type, conditional_data_member_t, make_unsigned_like_t, is_arithmetic_like_v, is_signed_like_v, is_unsigned_like_v
+#include <xstd/test/constexpr.hpp>     // XSTD_CONSTEXPR_CHECK
+#include <xstd/test/integer_class.hpp> // signed_integer_class, unsigned_integer_class
+#include <boost/test/unit_test.hpp>    // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
+#include <compare>                     // strong_ordering
+#include <complex>                     // complex
+#include <cstdint>                     // int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t
+#include <limits>                      // numeric_limits
+#include <type_traits>                 // false_type, integral_constant, is_arithmetic_v, is_constructible_v, is_convertible_v, is_empty_v, is_nothrow_constructible_v, is_nothrow_default_constructible_v, is_same_v, is_signed_v, is_trivially_constructible_v, is_trivially_copyable_v, is_unsigned_v, make_unsigned_t, true_type
 
 BOOST_AUTO_TEST_SUITE(TypeTraits)
 
 template<class T>
-using is_complex = is_specialization_of<T, std::complex>;
+using is_complex = xstd::is_specialization_of<T, std::complex>;
 
 template<class T>
 inline constexpr auto is_complex_v = is_complex<T>::value;
@@ -36,25 +37,25 @@ using color_ = std::integral_constant<color, N>;
 
 BOOST_AUTO_TEST_CASE(IsIntegralConstant)
 {
-        XSTD_CONSTEXPR_CHECK((is_integral_constant_v<std::true_type, bool>));
-        XSTD_CONSTEXPR_CHECK((is_integral_constant_v<std::false_type, bool>));
-        XSTD_CONSTEXPR_CHECK((not is_integral_constant_v<bool, bool>));
+        XSTD_CONSTEXPR_CHECK((xstd::is_integral_constant_v<std::true_type, bool>));
+        XSTD_CONSTEXPR_CHECK((xstd::is_integral_constant_v<std::false_type, bool>));
+        XSTD_CONSTEXPR_CHECK((not xstd::is_integral_constant_v<bool, bool>));
 
-        XSTD_CONSTEXPR_CHECK((is_integral_constant_v<int_<0>, int>));
-        XSTD_CONSTEXPR_CHECK((not is_integral_constant_v<int, int>));
+        XSTD_CONSTEXPR_CHECK((xstd::is_integral_constant_v<int_<0>, int>));
+        XSTD_CONSTEXPR_CHECK((not xstd::is_integral_constant_v<int, int>));
 
         // std::integral_constant's first parameter is any type usable as a
         // non-type template parameter, not just an integral one, and the
         // enum case is what xstd::to_underlying is built on. Pinned here
         // because narrowing this trait to std::integral would silently
         // break that without failing any of the checks above.
-        XSTD_CONSTEXPR_CHECK((is_integral_constant_v<color_<color::red>, color>));
-        XSTD_CONSTEXPR_CHECK((not is_integral_constant_v<color, color>));
+        XSTD_CONSTEXPR_CHECK((xstd::is_integral_constant_v<color_<color::red>, color>));
+        XSTD_CONSTEXPR_CHECK((not xstd::is_integral_constant_v<color, color>));
 
         // the wrapped type has to match: an integral_constant over one type
         // is not one over another
-        XSTD_CONSTEXPR_CHECK((not is_integral_constant_v<int_<0>, unsigned>));
-        XSTD_CONSTEXPR_CHECK((not is_integral_constant_v<color_<color::red>, unsigned>));
+        XSTD_CONSTEXPR_CHECK((not xstd::is_integral_constant_v<int_<0>, unsigned>));
+        XSTD_CONSTEXPR_CHECK((not xstd::is_integral_constant_v<color_<color::red>, unsigned>));
 }
 
 struct tag1;
@@ -62,8 +63,8 @@ struct tag2;
 
 BOOST_AUTO_TEST_CASE(EmptyType)
 {
-        using empty1 = empty_type<tag1>;
-        using empty2 = empty_type<tag2>;
+        using empty1 = xstd::empty_type<tag1>;
+        using empty2 = xstd::empty_type<tag2>;
 
         XSTD_CONSTEXPR_CHECK((std::is_empty_v<empty1>));
         XSTD_CONSTEXPR_CHECK((not std::is_same_v<empty1, empty2>));
@@ -97,14 +98,14 @@ BOOST_AUTO_TEST_CASE(EmptyType)
 // which is how a class with conditional members names each of them without
 // a separate declaration per tag. Both stand in for the same Type here:
 // that is exactly the case an unwritable tag would let collide.
-using member1 = conditional_data_member_t<false, tag1, struct member1_tag>;
-using member2 = conditional_data_member_t<false, tag1, struct member2_tag>;
+using member1 = xstd::conditional_data_member_t<false, tag1, struct member1_tag>;
+using member2 = xstd::conditional_data_member_t<false, tag1, struct member2_tag>;
 
 BOOST_AUTO_TEST_CASE(ConditionalDataMember)
 {
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<conditional_data_member_t<true, tag1, tag2>, tag1>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<conditional_data_member_t<false, tag1, tag2>, empty_type<tag2>>));
-        XSTD_CONSTEXPR_CHECK((std::is_empty_v<conditional_data_member_t<false, tag1, tag2>>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::conditional_data_member_t<true, tag1, tag2>, tag1>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::conditional_data_member_t<false, tag1, tag2>, xstd::empty_type<tag2>>));
+        XSTD_CONSTEXPR_CHECK((std::is_empty_v<xstd::conditional_data_member_t<false, tag1, tag2>>));
 
         // the tag names the member, not the type it stands in for, so two
         // absent members over the same Type still get distinct empty types
@@ -116,11 +117,140 @@ BOOST_AUTO_TEST_CASE(ConditionalDataMember)
         // the tag is inert when the member is present: same Type, same tags
         // as above, and the two agree once the condition holds
         XSTD_CONSTEXPR_CHECK((std::is_same_v<
-                              conditional_data_member_t<true, tag1, struct member1_tag>,
-                              conditional_data_member_t<true, tag1, struct member2_tag>>));
+                              xstd::conditional_data_member_t<true, tag1, struct member1_tag>,
+                              xstd::conditional_data_member_t<true, tag1, struct member2_tag>>));
 
         // an absent member never needs its tag defined
-        XSTD_CONSTEXPR_CHECK((std::is_empty_v<conditional_data_member_t<false, tag1, struct undefined_tag>>));
+        XSTD_CONSTEXPR_CHECK((std::is_empty_v<xstd::conditional_data_member_t<false, tag1, struct undefined_tag>>));
+}
+
+// The three opened numeric traits. What makes them widenings rather than
+// replacements is that they agree with the standard's on every type the
+// standard's can answer for, so these are checked against std::is_arithmetic_v
+// / std::is_signed_v / std::is_unsigned_v directly rather than against
+// hand-written expectations - a table of expected answers could drift, an
+// equality against the trait being widened cannot.
+template<class T>
+auto check_agrees_with_std()
+        -> void
+{
+        XSTD_CONSTEXPR_CHECK(xstd::is_arithmetic_like_v<T> == std::is_arithmetic_v<T>);
+        XSTD_CONSTEXPR_CHECK(xstd::is_signed_like_v<T> == std::is_signed_v<T>);
+        XSTD_CONSTEXPR_CHECK(xstd::is_unsigned_like_v<T> == std::is_unsigned_v<T>);
+}
+
+BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAgreeWithStd)
+{
+        check_agrees_with_std<bool>();
+        check_agrees_with_std<char>();
+        check_agrees_with_std<signed char>();
+        check_agrees_with_std<unsigned char>();
+        check_agrees_with_std<short>();
+        check_agrees_with_std<int>();
+        check_agrees_with_std<unsigned>();
+        check_agrees_with_std<long long>();
+        check_agrees_with_std<float>();
+        check_agrees_with_std<double>();
+
+        // and on the types neither can call arithmetic
+        check_agrees_with_std<int*>();
+        check_agrees_with_std<color>();
+        check_agrees_with_std<std::complex<double>>();
+        check_agrees_with_std<void>();
+        check_agrees_with_std<int&>();
+        // NOLINTNEXTLINE(modernize-avoid-c-arrays): a built-in array is the type under test, not a container choice
+        check_agrees_with_std<int[3]>();
+}
+
+// Where they part company: a class type is arithmetic-like when it says so
+// through std::numeric_limits, which is the marker the standard itself uses
+// for exactly the arithmetic types. std::is_arithmetic_v can never say yes
+// here, and std::is_signed_v is spelled over it, so both of the standard's
+// answers are false for a type that plainly has a sign.
+BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAdmitClassTypes)
+{
+        using S = xstd::test::signed_integer_class;
+        using U = xstd::test::unsigned_integer_class;
+
+        XSTD_CONSTEXPR_CHECK(not std::is_arithmetic_v<S> and xstd::is_arithmetic_like_v<S>);
+        XSTD_CONSTEXPR_CHECK(not std::is_arithmetic_v<U> and xstd::is_arithmetic_like_v<U>);
+
+        XSTD_CONSTEXPR_CHECK(not std::is_signed_v<S> and xstd::is_signed_like_v<S>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_unsigned_like_v<S>);
+
+        XSTD_CONSTEXPR_CHECK(not xstd::is_signed_like_v<U> and xstd::is_unsigned_like_v<U>);
+
+        // the sign is read off the type the way the standard reads it -
+        // T(-1) < T(0) - not off std::numeric_limits, so the two must agree
+        XSTD_CONSTEXPR_CHECK(xstd::is_signed_like_v<S> == std::numeric_limits<S>::is_signed);
+        XSTD_CONSTEXPR_CHECK(xstd::is_signed_like_v<U> == std::numeric_limits<U>::is_signed);
+
+        // a class type with no std::numeric_limits specialization is not
+        // arithmetic-like, and is therefore neither signed nor unsigned
+        XSTD_CONSTEXPR_CHECK(not xstd::is_arithmetic_like_v<std::complex<double>>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_signed_like_v<std::complex<double>>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_unsigned_like_v<std::complex<double>>);
+
+        // and an incomplete class type is answered, not hard-errored: the
+        // trait being widened copes with one, so this has to as well
+        XSTD_CONSTEXPR_CHECK(not xstd::is_arithmetic_like_v<struct never_defined>);
+
+        // the bool_constant forms
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_arithmetic_like<S>, std::true_type>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_signed_like<U>, std::false_type>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_unsigned_like<U>, std::true_type>));
+}
+
+// A named concept rather than a bare requires-expression in the test body: a
+// requires-expression whose operand is invalid *and* non-dependent is a hard
+// error on GCC, so the type has to stay a template parameter.
+template<class T>
+concept has_make_unsigned_like = requires { typename xstd::make_unsigned_like_t<T>; };
+
+BOOST_AUTO_TEST_CASE(MakeUnsignedLike)
+{
+        // agrees with std::make_unsigned wherever std::make_unsigned answers
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<std::int8_t>, std::uint8_t>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<std::int16_t>, std::uint16_t>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<std::int32_t>, std::uint32_t>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<std::int64_t>, std::uint64_t>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<int>, std::make_unsigned_t<int>>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<unsigned>, unsigned>));
+
+        // and answers "no" where std::make_unsigned is a hard error instead:
+        // that is the whole point of an empty primary template. Each of these
+        // would stop the compile rather than evaluate to false if the trait
+        // inherited from std::make_unsigned unconditionally.
+        XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<bool>);
+        XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<double>);
+        XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<int*>);
+        XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<color>);
+        XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<std::complex<double>>);
+        XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<void>);
+
+        // cv-qualified types are outside the trait's domain, unlike
+        // std::make_unsigned's: they are not std::regular, so no cv-qualified
+        // type is xstd::integral_like and none would ever be asked
+        XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<int const>);
+
+        // a class type answers through a user-supplied specialization, which
+        // is what the empty primary template leaves room for
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<xstd::test::signed_integer_class>, xstd::test::unsigned_integer_class>));
+        XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<xstd::test::unsigned_integer_class>);
+
+        // __int128 is the one built-in type whose std::is_integral answer
+        // depends on the dialect, so xstd names its counterpart outright
+        // rather than deriving it
+#ifdef __SIZEOF_INT128__
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<__int128>, unsigned __int128>));
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+#endif
 }
 
 BOOST_AUTO_TEST_SUITE_END()

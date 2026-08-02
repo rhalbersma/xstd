@@ -35,9 +35,28 @@
 #   and expected results is nothing but literals, and naming them would move
 #   the test data away from the assertion that reads it - the value of a
 #   check like abs(T{-2}) == T{2} is that both numbers are visible at once.
+#
+# A fifth is dropped for a different reason: it says something true about a
+# type, but the wrong thing about the API.
+#
+# - performance-unnecessary-value-param wants div/euclidean_div/floored_div to
+#   take their operands by const reference, or to std::move them onwards. That
+#   advice is sound for an arbitrary class type and wrong for this one: the
+#   division family is specified over integer-*like* types and passes them the
+#   way the standard's own numeric algorithms pass integers, by value, which is
+#   what a register-sized operand wants. The finding only appears at all
+#   because src/multiprecision.cpp deliberately instantiates the family at 128,
+#   256, 512 and 1024 bits, where the copy stops being free - the widths the
+#   library is principally for do not draw it. Taking the advice would
+#   pessimise every built-in width to flatter the widest test type. Note that
+#   the diagnostics land in include/xstd/cstdlib.hpp but are governed by this
+#   file, because clang-tidy takes its configuration from the translation unit
+#   being analysed rather than from the header a finding is reported in; the
+#   header self-sufficiency units instantiate nothing and so never raise it.
 InheritParentConfig: true
 Checks: >
   -misc-use-internal-linkage,
   -modernize-use-designated-initializers,
   -performance-enum-size,
+  -performance-unnecessary-value-param,
   -readability-magic-numbers
