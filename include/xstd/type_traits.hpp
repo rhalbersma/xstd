@@ -7,9 +7,97 @@
 #define XSTD_TYPE_TRAITS_HPP
 
 #include <compare>     // strong_ordering (empty_type's defaulted <=>)
-#include <type_traits> // bool_constant, conditional_t, integral_constant, is_integral_v, is_same_v, make_unsigned, remove_cv_t, remove_cvref_t
+#include <concepts>    // constructible_from, totally_ordered
+#include <limits>      // numeric_limits
+#include <type_traits> // bool_constant, conditional_t, integral_constant, is_abstract_v, is_arithmetic_v, is_array_v, is_integral_v, is_object_v, is_same_v, make_unsigned, remove_cv_t, remove_cvref_t
 
 namespace xstd {
+
+// std::is_arithmetic, opened to class types - and the trait the other two
+// below, and xstd::integral_like, are built on.
+//
+// std::is_arithmetic_v is the root of the closed list: is_integral_v and
+// is_floating_point_v feed it, is_signed_v and is_unsigned_v are spelled over
+// it, and none of them can ever be true for a class type. Opening the root is
+// what lets the rest follow, rather than each one needing its own carve-out.
+//
+// std::numeric_limits is the marker for "arithmetic" here, because it is the
+// one the standard already uses that way: it is specialized for exactly the
+// arithmetic types, and a class type that means to behave like a number
+// specializes it too - the standard's own integer-class types
+// ([iterator.concept.winc]) and every extended-precision library do.
+//
+// The requires-clause is not a filter on what counts as arithmetic; it is what
+// makes the question askable at all. std::numeric_limits' primary template
+// declares static member functions returning T, which is ill-formed rather
+// than merely unspecialized for an array type or an abstract class, so those
+// have to be answered by the unconstrained primary below - which reports
+// std::is_arithmetic_v's own answer, false - before numeric_limits is ever
+// named. A concept could lean on conjunction short-circuiting instead; a
+// variable template's initializer has to be well-formed in every operand, so
+// the guard moves into the constraint, where a requires-clause's conjunction
+// short-circuits in the same way.
+//
+// That short-circuiting is load-bearing in the middle of the clause too: the
+// sizeof test has to be passed before std::is_abstract_v is named, because
+// is_abstract_v requires a complete type while std::is_arithmetic_v answers
+// false for an incomplete one quite happily. Without it this trait would be a
+// hard error exactly where the trait it widens is merely false, which is not
+// a widening.
+template<class T>
+inline constexpr auto is_arithmetic_like_v = std::is_arithmetic_v<T>;
+
+template<class T>
+        requires (not std::is_arithmetic_v<T>) and std::is_object_v<T> and (not std::is_array_v<T>) and requires { sizeof(T); } and (not std::is_abstract_v<T>)
+inline constexpr auto is_arithmetic_like_v<T> = std::numeric_limits<T>::is_specialized;
+
+template<class T>
+using is_arithmetic_like = std::bool_constant<is_arithmetic_like_v<T>>;
+
+// std::is_signed and std::is_unsigned, opened the same way, and spelled the
+// same way the standard spells them - is_arithmetic_v<T> && T(-1) < T(0) -
+// with the opened arithmetic test in place of the closed one. Asking the type
+// rather than reading std::numeric_limits<T>::is_signed keeps these two
+// definitionally identical to the standard's, so a built-in answer can never
+// drift from std::is_signed_v.
+//
+// The two extra constraints are again about askability rather than meaning:
+// forming T(-1) needs a T constructible from int, and comparing needs an
+// ordering. An arithmetic-like type without both cannot be asked the question,
+// and falls to the primary's false.
+//
+// One note for authors of arithmetic-like class types: static_cast<T>(-1) is a
+// constructor call, so a type whose only viable constructor takes an *unsigned*
+// parameter converts the -1 implicitly and draws -Wsign-conversion here, at
+// this line, inside this header. Giving the type a constructor from a signed
+// integral type - which [iterator.concept.winc] asks of integer-class types
+// anyway - is what avoids it. There is deliberately no pragma silencing it
+// from xstd's side: the conversion really is happening in the user's type, and
+// the diagnostic is pointing at something worth fixing there.
+template<class T>
+inline constexpr auto is_signed_like_v = false;
+
+template<class T>
+        requires is_arithmetic_like_v<T> and std::constructible_from<T, int> and std::totally_ordered<T>
+// Both checks fire only on the bool instantiation, where -1 and 0 are the
+// standard's own spelling of this test and turning them into bool literals
+// would change what is being asked. T is a template parameter, so neither
+// diagnostic is about the code as written.
+// NOLINTNEXTLINE(readability-implicit-bool-conversion,modernize-use-bool-literals)
+inline constexpr auto is_signed_like_v<T> = static_cast<T>(-1) < static_cast<T>(0);
+
+template<class T>
+using is_signed_like = std::bool_constant<is_signed_like_v<T>>;
+
+// No guard needed: both operands are well-formed for every T, and the pair
+// partitions the arithmetic-like types exactly as std::is_signed_v and
+// std::is_unsigned_v partition the arithmetic ones. bool lands on the unsigned
+// side of that partition in both spellings.
+template<class T>
+inline constexpr auto is_unsigned_like_v = is_arithmetic_like_v<T> and not is_signed_like_v<T>;
+
+template<class T>
+using is_unsigned_like = std::bool_constant<is_unsigned_like_v<T>>;
 
 template<class T, class U>
 inline constexpr auto is_integral_constant_v = false;

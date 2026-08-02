@@ -144,8 +144,6 @@ BOOST_AUTO_TEST_CASE(IntegralLike)
 BOOST_AUTO_TEST_CASE(IntegralLikeTraits)
 {
         XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<int> == xstd::integral_like<int>);
-        XSTD_CONSTEXPR_CHECK(xstd::is_signed_integral_like_v<int> == xstd::signed_integral_like<int>);
-        XSTD_CONSTEXPR_CHECK(xstd::is_unsigned_integral_like_v<unsigned> == xstd::unsigned_integral_like<unsigned>);
 
         XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<int>);
         XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<double>);
@@ -153,14 +151,13 @@ BOOST_AUTO_TEST_CASE(IntegralLikeTraits)
         // NOLINTNEXTLINE(modernize-avoid-c-arrays): a built-in array is the type under test, not a container choice
         XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<int[3]>);
 
-        XSTD_CONSTEXPR_CHECK(xstd::is_signed_integral_like_v<xstd::test::signed_integer_class>);
-        XSTD_CONSTEXPR_CHECK(not xstd::is_signed_integral_like_v<unsigned>);
+        XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<xstd::test::signed_integer_class>);
 
         // the bool_constant form, which is what std::conjunction and
         // tag dispatch want and a concept cannot be
         XSTD_CONSTEXPR_CHECK(xstd::is_integral_like<int>::value);
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_integral_like<int>, std::true_type>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_signed_integral_like<unsigned>, std::false_type>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_integral_like<double>, std::false_type>));
 }
 
 // Overloading on integral_like and signed_integral_like has to partial-order
@@ -205,7 +202,6 @@ BOOST_AUTO_TEST_CASE(IntegerClassTypes)
         XSTD_CONSTEXPR_CHECK(not xstd::unsigned_integral_like<S>);
 
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<U> and xstd::unsigned_integral_like<U>);
-        XSTD_CONSTEXPR_CHECK(xstd::is_signed_integral_like_v<S> and xstd::is_unsigned_integral_like_v<U>);
         // U is a perfectly good unsigned integer-like type, but no type names
         // it as *its* counterpart, and it has none of its own
         XSTD_CONSTEXPR_CHECK(not xstd::signed_integral_like<U>);

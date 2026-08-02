@@ -6,7 +6,7 @@
 #ifndef XSTD_CONCEPTS_HPP
 #define XSTD_CONCEPTS_HPP
 
-#include <xstd/type_traits.hpp> // is_specialization_of_v, make_unsigned_like_t
+#include <xstd/type_traits.hpp> // is_arithmetic_like_v, is_signed_like_v, is_specialization_of_v, is_unsigned_like_v, make_unsigned_like_t
 #include <concepts>             // constructible_from, regular, same_as, totally_ordered
 #include <limits>               // numeric_limits
 #include <type_traits>          // bool_constant, is_enum_v
@@ -70,7 +70,7 @@ template<class T>
 concept integral_like =
         std::regular<T> and
         std::totally_ordered<T> and
-        std::numeric_limits<T>::is_specialized and
+        is_arithmetic_like_v<T> and
         std::numeric_limits<T>::is_integer and
         std::constructible_from<T, int> and
         requires (T const a, T const b) {
@@ -89,12 +89,15 @@ concept integral_like =
 // "x < static_cast<T>(0)" does. Everything in <xstd/cstdlib.hpp> spells its
 // constants that second way for that reason.
 
-// The signedness split is taken from std::numeric_limits rather than from
-// std::is_signed, and that is not a stylistic preference: std::is_signed_v is
-// is_arithmetic_v<T> and T(-1) < T(0), and is_arithmetic_v is false for every
-// class type. Spelling these with std::is_signed_v would leave
+// The signedness split, spelled the way <concepts> spells its own:
+// std::signed_integral is integral<T> && is_signed_v<T>, and these are
+// integral_like<T> and is_signed_like_v<T>. Reaching for std::is_signed_v
+// directly would not do - it is is_arithmetic_v<T> && T(-1) < T(0), and
+// is_arithmetic_v is false for every class type, so it would leave
 // signed_integral_like rejecting precisely the integer-class types the concept
-// exists to admit, while still looking correct for the built-in widths.
+// exists to admit while still looking correct at every built-in width. That is
+// what xstd::is_signed_like_v opens, without changing the question being
+// asked.
 //
 // bool comes out unsigned_integral_like, exactly as std::unsigned_integral
 // <bool> already holds; these concepts widen the built-in ones rather than
@@ -109,7 +112,7 @@ concept integral_like =
 template<class T>
 concept unsigned_integral_like =
         integral_like<T> and
-        not std::numeric_limits<T>::is_signed;
+        is_unsigned_like_v<T>;
 
 // A signed integer-like type is one that also has somewhere to put a
 // magnitude that its own range cannot hold: |MIN| is one past MAX at every
@@ -120,51 +123,39 @@ concept unsigned_integral_like =
 template<class T>
 concept signed_integral_like =
         integral_like<T> and
-        std::numeric_limits<T>::is_signed and
+        is_signed_like_v<T> and
         requires { typename make_unsigned_like_t<T>; } and
         unsigned_integral_like<make_unsigned_like_t<T>> and
         std::constructible_from<make_unsigned_like_t<T>, T>;
 
-// The trait spellings, for the generic code that wants a value rather than a
-// constraint - std::conjunction, a tag-dispatch bool_constant, an
-// if constexpr over a pack. They complete the pairs the standard already has
-// (std::is_integral_v beside std::integral, std::is_signed_v beside
-// std::signed_integral), which is what makes them worth their place under this
-// library's rule that a second spelling has to enable a use the first cannot.
+// std::is_integral, opened - the trait spelling of integral_like, for generic
+// code that wants a value rather than a constraint (std::conjunction, a
+// tag-dispatch bool_constant, an if constexpr over a pack).
 //
-// The direction matters and is not reversible. The concept is the definition
-// and the trait reads it, never the other way round, for two reasons that both
-// bite:
+// This is the last of the four. There is deliberately no
+// is_signed_integral_like_v or is_unsigned_integral_like_v to go with the two
+// concepts below it, because the standard has no is_signed_integral_v or
+// is_unsigned_integral_v either: signed_integral and unsigned_integral exist
+// only as concepts, spelled over the is_signed_v / is_unsigned_v that xstd
+// opens in <xstd/type_traits.hpp>. A type only earns a _like spelling here
+// when the standard entity it widens exists to be widened.
 //
-// - Only a concept's conjunction short-circuits during satisfaction checking.
-//   The same requirements written as a variable template's initializer make
-//   every operand a hard error's worth of instantiation, so
-//   is_integral_like_v<int[3]> would stop the compile on
-//   std::numeric_limits<int[3]> instead of answering false - exactly the case
-//   std::regular is placed first to protect.
-// - A concept defined as an atomic constraint over a variable template no
-//   longer subsumes anything. Defining these concepts *from* the traits would
-//   silently break the partial ordering described above.
-//
-// So these are one-line readings of the concepts, and the concepts stay the
-// single source of truth.
+// Unlike the three in <xstd/type_traits.hpp>, this one reads its concept
+// rather than the other way round, and that direction is not free to reverse.
+// integral_like's requirements include a requires-expression and a
+// std::numeric_limits member; written out as a variable template's initializer
+// they would all have to be well-formed at once, so is_integral_like_v<int[3]>
+// would stop the compile instead of answering false. A concept's conjunction
+// short-circuits during satisfaction checking, so reading one keeps the trait
+// total. The three in <xstd/type_traits.hpp> reach the same safety through a
+// constrained partial specialization, which is what a variable template has
+// instead; integral_like is the one whose requirements do not fit in a
+// requires-clause.
 template<class T>
 inline constexpr auto is_integral_like_v = integral_like<T>;
 
 template<class T>
 using is_integral_like = std::bool_constant<is_integral_like_v<T>>;
-
-template<class T>
-inline constexpr auto is_signed_integral_like_v = signed_integral_like<T>;
-
-template<class T>
-using is_signed_integral_like = std::bool_constant<is_signed_integral_like_v<T>>;
-
-template<class T>
-inline constexpr auto is_unsigned_integral_like_v = unsigned_integral_like<T>;
-
-template<class T>
-using is_unsigned_integral_like = std::bool_constant<is_unsigned_integral_like_v<T>>;
 
 } // namespace xstd
 

@@ -3,14 +3,15 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/type_traits.hpp>        // is_specialization_of, is_integral_constant, empty_type, conditional_data_member_t, make_unsigned_like_t
+#include <xstd/type_traits.hpp>        // is_specialization_of, is_integral_constant, empty_type, conditional_data_member_t, make_unsigned_like_t, is_arithmetic_like_v, is_signed_like_v, is_unsigned_like_v
 #include <xstd/test/constexpr.hpp>     // XSTD_CONSTEXPR_CHECK
 #include <xstd/test/integer_class.hpp> // signed_integer_class, unsigned_integer_class
 #include <boost/test/unit_test.hpp>    // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <compare>                     // strong_ordering
 #include <complex>                     // complex
 #include <cstdint>                     // int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t
-#include <type_traits>                 // false_type, integral_constant, is_constructible_v, is_convertible_v, is_empty_v, is_nothrow_constructible_v, is_nothrow_default_constructible_v, is_same_v, is_trivially_constructible_v, is_trivially_copyable_v, make_unsigned_t, true_type
+#include <limits>                      // numeric_limits
+#include <type_traits>                 // false_type, integral_constant, is_arithmetic_v, is_constructible_v, is_convertible_v, is_empty_v, is_nothrow_constructible_v, is_nothrow_default_constructible_v, is_same_v, is_signed_v, is_trivially_constructible_v, is_trivially_copyable_v, is_unsigned_v, make_unsigned_t, true_type
 
 BOOST_AUTO_TEST_SUITE(TypeTraits)
 
@@ -121,6 +122,83 @@ BOOST_AUTO_TEST_CASE(ConditionalDataMember)
 
         // an absent member never needs its tag defined
         XSTD_CONSTEXPR_CHECK((std::is_empty_v<xstd::conditional_data_member_t<false, tag1, struct undefined_tag>>));
+}
+
+// The three opened numeric traits. What makes them widenings rather than
+// replacements is that they agree with the standard's on every type the
+// standard's can answer for, so these are checked against std::is_arithmetic_v
+// / std::is_signed_v / std::is_unsigned_v directly rather than against
+// hand-written expectations - a table of expected answers could drift, an
+// equality against the trait being widened cannot.
+template<class T>
+auto check_agrees_with_std()
+        -> void
+{
+        XSTD_CONSTEXPR_CHECK(xstd::is_arithmetic_like_v<T> == std::is_arithmetic_v<T>);
+        XSTD_CONSTEXPR_CHECK(xstd::is_signed_like_v<T> == std::is_signed_v<T>);
+        XSTD_CONSTEXPR_CHECK(xstd::is_unsigned_like_v<T> == std::is_unsigned_v<T>);
+}
+
+BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAgreeWithStd)
+{
+        check_agrees_with_std<bool>();
+        check_agrees_with_std<char>();
+        check_agrees_with_std<signed char>();
+        check_agrees_with_std<unsigned char>();
+        check_agrees_with_std<short>();
+        check_agrees_with_std<int>();
+        check_agrees_with_std<unsigned>();
+        check_agrees_with_std<long long>();
+        check_agrees_with_std<float>();
+        check_agrees_with_std<double>();
+
+        // and on the types neither can call arithmetic
+        check_agrees_with_std<int*>();
+        check_agrees_with_std<color>();
+        check_agrees_with_std<std::complex<double>>();
+        check_agrees_with_std<void>();
+        check_agrees_with_std<int&>();
+        // NOLINTNEXTLINE(modernize-avoid-c-arrays): a built-in array is the type under test, not a container choice
+        check_agrees_with_std<int[3]>();
+}
+
+// Where they part company: a class type is arithmetic-like when it says so
+// through std::numeric_limits, which is the marker the standard itself uses
+// for exactly the arithmetic types. std::is_arithmetic_v can never say yes
+// here, and std::is_signed_v is spelled over it, so both of the standard's
+// answers are false for a type that plainly has a sign.
+BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAdmitClassTypes)
+{
+        using S = xstd::test::signed_integer_class;
+        using U = xstd::test::unsigned_integer_class;
+
+        XSTD_CONSTEXPR_CHECK(not std::is_arithmetic_v<S> and xstd::is_arithmetic_like_v<S>);
+        XSTD_CONSTEXPR_CHECK(not std::is_arithmetic_v<U> and xstd::is_arithmetic_like_v<U>);
+
+        XSTD_CONSTEXPR_CHECK(not std::is_signed_v<S> and xstd::is_signed_like_v<S>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_unsigned_like_v<S>);
+
+        XSTD_CONSTEXPR_CHECK(not xstd::is_signed_like_v<U> and xstd::is_unsigned_like_v<U>);
+
+        // the sign is read off the type the way the standard reads it -
+        // T(-1) < T(0) - not off std::numeric_limits, so the two must agree
+        XSTD_CONSTEXPR_CHECK(xstd::is_signed_like_v<S> == std::numeric_limits<S>::is_signed);
+        XSTD_CONSTEXPR_CHECK(xstd::is_signed_like_v<U> == std::numeric_limits<U>::is_signed);
+
+        // a class type with no std::numeric_limits specialization is not
+        // arithmetic-like, and is therefore neither signed nor unsigned
+        XSTD_CONSTEXPR_CHECK(not xstd::is_arithmetic_like_v<std::complex<double>>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_signed_like_v<std::complex<double>>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_unsigned_like_v<std::complex<double>>);
+
+        // and an incomplete class type is answered, not hard-errored: the
+        // trait being widened copes with one, so this has to as well
+        XSTD_CONSTEXPR_CHECK(not xstd::is_arithmetic_like_v<struct never_defined>);
+
+        // the bool_constant forms
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_arithmetic_like<S>, std::true_type>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_signed_like<U>, std::false_type>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_unsigned_like<U>, std::true_type>));
 }
 
 // A named concept rather than a bare requires-expression in the test body: a

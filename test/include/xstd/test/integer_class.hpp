@@ -43,6 +43,19 @@ class unsigned_integer_class
             : m_value(value)
         {}
 
+        // Integer-class types are constructible from *any* integral type
+        // ([iterator.concept.winc]), signed ones included, and this overload
+        // is what makes that true here rather than leaving int to convert
+        // implicitly. It is load-bearing rather than decorative:
+        // xstd::is_signed_like_v forms static_cast<T>(-1), and without a
+        // signed constructor to select, that argument converts int to
+        // std::uint32_t implicitly and draws -Wsign-conversion from inside
+        // xstd's own header. A type modelling the category properly does not
+        // put its users in that position.
+        constexpr explicit unsigned_integer_class(std::int32_t value) noexcept
+            : m_value(static_cast<std::uint32_t>(value))
+        {}
+
         [[nodiscard]] constexpr explicit operator std::uint32_t() const noexcept
         {
                 return m_value;

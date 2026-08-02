@@ -450,13 +450,22 @@ way, and the `_like` suffix additionally echoes the standard's own
 "integer-class type" vocabulary for the same category of type.
 
 That gives the library a general rule, which is worth more than any single
-name: **an xstd entity that widens a standard one keeps the standard one's
-name and appends `_like`.** So `std::integral` becomes `xstd::integral_like`,
-`std::is_integral_v` becomes `xstd::is_integral_like_v`, and
-`std::make_unsigned` becomes `xstd::make_unsigned_like`. A reader who knows
-the standard name can derive the xstd name without looking it up, and the
-suffix marks exactly what is different about it - the entity is open where
-the standard's is closed.
+name: **an xstd entity that widens a standard one to class types keeps the
+standard one's name and appends `_like`.** So `std::integral` becomes
+`xstd::integral_like`, `std::is_arithmetic_v` becomes
+`xstd::is_arithmetic_like_v`, and `std::make_unsigned` becomes
+`xstd::make_unsigned_like`. A reader who knows the standard name can derive
+the xstd name without looking it up, and the suffix marks exactly what is
+different about it - the entity is open where the standard's is closed.
+
+The rule cuts both ways, and that is what keeps the set of names honest: a
+`_like` name exists only where there is a standard entity to widen. There is
+no `xstd::is_signed_integral_like_v` or `xstd::is_unsigned_integral_like_v`,
+because the standard has no `std::is_signed_integral_v` or
+`std::is_unsigned_integral_v` - `signed_integral` and `unsigned_integral`
+exist only as concepts, spelled over `is_signed_v` and `is_unsigned_v`. xstd
+therefore widens exactly those two, and its own signed and unsigned concepts
+are spelled over the results the same way the standard's are.
 
 `make_unsigned_like` is where the rule reads least well, and it is worth
 saying so: the suffix attaches to the whole trait name rather than to a
@@ -473,6 +482,53 @@ resolution to disambiguate them the way `xstd::to_underlying` and
 `std::to_underlying` are disambiguated by their argument types: two class
 templates of the same unqualified name from two namespaces in scope are simply
 ambiguous, with no way for the caller to mean one of them short of qualifying.
+
+### Opening `is_arithmetic` is what opens the rest
+
+`std::is_arithmetic_v` is the root of the closed list. `is_integral_v` and
+`is_floating_point_v` feed it; `is_signed_v` and `is_unsigned_v` are spelled
+over it (`is_arithmetic_v<T> && T(-1) < T(0)`, and its negation); and none of
+them can be true for a class type. So the productive move is to open the root
+rather than to work around each leaf: `xstd::is_arithmetic_like_v` is the one
+new judgement, and `is_signed_like_v` and `is_unsigned_like_v` then follow by
+copying the standard's own definitions with the opened test substituted in.
+
+An earlier revision of this branch instead spelled the signedness check as
+`std::numeric_limits<T>::is_signed` directly in the concept. That worked, but
+it answered a different question in the same place - and it left
+`xstd::is_signed_like_v` non-existent, so a caller who wanted the *value* had
+nowhere to go. Reaching for `std::is_signed_v` was not an option either: being
+`is_arithmetic_v`-based it is false for every class type, so it would have
+left `signed_integral_like` rejecting precisely the integer-class types the
+concept exists to admit, while still looking correct at every built-in width.
+
+`std::numeric_limits` is the marker `is_arithmetic_like_v` reads, because it is
+the one the standard already uses that way: it is specialized for exactly the
+arithmetic types, and a class type that means to behave like a number
+specializes it too.
+
+Two things the trait has to get right that a concept would have got for free,
+because a variable template's initializer must be well-formed in every operand
+where a concept's conjunction merely short-circuits:
+
+- **`std::numeric_limits<T>` cannot be named for every `T`.** Its primary
+  template declares static member functions returning `T`, which is ill-formed
+  rather than merely unspecialized for an array type or an abstract class. So
+  the `numeric_limits` reading lives in a *constrained partial specialization*,
+  and everything it cannot answer for falls through to an unconstrained primary
+  that reports `std::is_arithmetic_v`'s own answer.
+- **The guard must not be narrower than the trait it widens.**
+  `std::is_abstract_v` requires a complete type, while `std::is_arithmetic_v`
+  answers `false` for an incomplete one quite happily. A `requires { sizeof(T); }`
+  term sits before it in the same requires-clause - whose conjunction
+  short-circuits - so an incomplete class type is answered rather than
+  hard-errored. A widening whose domain is smaller than the original's is not a
+  widening, and `test/src/type_traits.cpp` pins that case.
+
+`is_signed_like_v` carries the same shape for the same reason: forming
+`T(-1)` needs a `T` constructible from `int` and comparing needs an ordering,
+so both sit in its requires-clause and an arithmetic-like type without them
+falls to the primary's `false`.
 
 ### Why the concepts are the definitions and the traits read them
 
