@@ -3,18 +3,20 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/exposition_only.hpp>    // integral_class_type, is_integral_like
-#include <xstd/test/constexpr.hpp>     // XSTD_CONSTEXPR_CHECK
-#include <boost/test/unit_test.hpp>    // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_CHECK
-#include <complex>                     // complex
-#include <concepts>                    // integral, regular
-#include <limits>                      // numeric_limits
-#include <type_traits>                 // is_integral_v
+#include <xstd/concepts/exposition_only/integral-class.hpp> // integral_class_type, is_integral_like
+#include <xstd/test/constexpr.hpp>                          // XSTD_CONSTEXPR_CHECK
+#include <boost/test/unit_test.hpp>                         // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_CHECK
+#include <complex>                                          // complex
+#include <concepts>                                         // integral, regular
+#include <limits>                                           // numeric_limits
+#include <type_traits>                                      // is_integral_v
 
 BOOST_AUTO_TEST_SUITE(ExpositionOnly)
 
 enum class color : unsigned { red = 1 };
+// clang-format off
 struct not_a_number {};
+// clang-format on
 
 // The half of xstd::is_integral_like_v that std::is_integral cannot answer:
 // the structural rendering of [iterator.concept.winc]'s integer-class types.
@@ -39,7 +41,6 @@ BOOST_AUTO_TEST_CASE(IntegralClassType)
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integral_class_type<not_a_number>);
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integral_class_type<color>);
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integral_class_type<int*>);
-
 }
 
 // std::regular leads the rest of the conjunction so that these are rejected

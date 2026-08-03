@@ -8,12 +8,17 @@
 
 #include <cstdint>
 
-// GCC and Clang expose 128-bit integers as language-extension fundamental
-// types. MSVC does not, but its standard library supplies the constexpr
-// integer classes it uses internally for C++23 library facilities. These
-// aliases give portable code one public spelling while retaining each
-// toolchain's native representation and operator implementation.
-#if defined(__SIZEOF_INT128__)
+// Prefer the Microsoft STL's integer classes; otherwise use the compiler's
+// 128-bit extension.
+#ifdef _MSVC_STL_VERSION
+#include <__msvc_int128.hpp>
+namespace xstd {
+
+using int128_t = std::_Signed128;
+using uint128_t = std::_Unsigned128;
+
+} // namespace xstd
+#elifdef __SIZEOF_INT128__
 #ifdef __GNUC__
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
@@ -27,14 +32,6 @@ using uint128_t = unsigned __int128;
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
-#elif defined(_MSVC_STL_VERSION)
-#include <__msvc_int128.hpp>
-namespace xstd {
-
-using int128_t = std::_Signed128;
-using uint128_t = std::_Unsigned128;
-
-} // namespace xstd
 #else
 #error "xstd::int128_t requires GCC/Clang __int128 or the Microsoft STL 128-bit integer classes"
 #endif

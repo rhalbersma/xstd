@@ -3,14 +3,14 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/type_traits.hpp>        // is_specialization_of, is_integral_constant, empty_type, conditional_data_member_t, make_signed_like_t, make_unsigned_like_t, is_arithmetic_like_v, is_integral_like, is_integral_like_v, is_signed_like_v, is_unsigned_like_v
-#include <xstd/test/constexpr.hpp>     // XSTD_CONSTEXPR_CHECK
-#include <boost/test/unit_test.hpp>    // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
-#include <compare>                     // strong_ordering
-#include <complex>                     // complex
-#include <cstdint>                     // int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t
-#include <limits>                      // numeric_limits
-#include <type_traits>                 // false_type, integral_constant, is_arithmetic_v, is_constructible_v, is_convertible_v, is_empty_v, is_integral_v, is_nothrow_constructible_v, is_nothrow_default_constructible_v, is_same_v, is_signed_v, is_trivially_constructible_v, is_trivially_copyable_v, is_unsigned_v, make_unsigned_t, true_type
+#include <xstd/type_traits.hpp>     // is_specialization_of, is_integral_constant, empty_type, conditional_data_member_t, make_signed_like_t, make_unsigned_like_t, is_arithmetic_like_v, is_integral_like, is_integral_like_v, is_signed_like_v, is_unsigned_like_v
+#include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK
+#include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
+#include <compare>                  // strong_ordering
+#include <complex>                  // complex
+#include <cstdint>                  // int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t
+#include <limits>                   // numeric_limits
+#include <type_traits>              // false_type, integral_constant, is_arithmetic_v, is_constructible_v, is_convertible_v, is_empty_v, is_integral_v, is_nothrow_constructible_v, is_nothrow_default_constructible_v, is_same_v, is_signed_v, is_trivially_constructible_v, is_trivially_copyable_v, is_unsigned_v, make_unsigned_t, true_type
 
 // An incomplete class type is answered, not hard-errored: the traits being
 // widened cope with one, so these have to as well. It is the sizeof term in
@@ -31,11 +31,13 @@ BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAnswerForIncompleteTypes)
 // operators: the specialization is the whole fixture. Both live out here
 // because an explicit specialization of a standard-library template has to be
 // at global scope, and BOOST_AUTO_TEST_SUITE opens a namespace.
+// clang-format off
 struct not_an_integer_class_type {};
 
 template<>
 // NOLINTNEXTLINE(bugprone-std-namespace-modification): permitted by [namespace.std]/2 for a program-defined type
 struct std::numeric_limits<not_an_integer_class_type> : std::numeric_limits<double> {};
+// clang-format on
 
 BOOST_AUTO_TEST_SUITE(TypeTraits)
 
@@ -190,7 +192,7 @@ BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAgreeWithStd)
 // The fourth opened trait, and the one whose standard counterpart answers
 // from a closed list rather than from a property: std::is_integral_v is
 // extended with [iterator.concept.winc]'s integer-class types, opened
-// structurally in <xstd/exposition_only.hpp> and pinned in
+// structurally in <xstd/concepts/exposition_only/integral-class.hpp> and pinned in
 // src/exposition_only.cpp. The four cases below check the trait spelling
 // itself. Agreement with std::is_integral_v wherever it can answer is already
 // covered by the sweep above, which this trait joins.
