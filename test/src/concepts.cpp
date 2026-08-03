@@ -3,7 +3,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/concepts.hpp>           // enumeration, specialization_of, integral_like, signed_integral_like, unsigned_integral_like
+#include <xstd/concepts.hpp>           // specialization_of, integral_like, signed_integral_like, unsigned_integral_like
 #include <xstd/type_traits.hpp>        // empty_type, is_integral_like_v, is_specialization_of_v
 #include <xstd/test/constexpr.hpp>     // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
 #include <xstd/test/integer_class.hpp> // signed_integer_class, unsigned_integer_class
@@ -15,24 +15,6 @@
 #include <type_traits>                 // make_unsigned_t
 
 BOOST_AUTO_TEST_SUITE(Concepts)
-
-enum unscoped { u0 };
-enum class scoped : unsigned { s0 };
-struct not_an_enum
-{};
-
-BOOST_AUTO_TEST_CASE(Enumeration)
-{
-        XSTD_CONSTEXPR_CHECK(xstd::enumeration<unscoped>);
-        XSTD_CONSTEXPR_CHECK(xstd::enumeration<scoped>);
-
-        XSTD_CONSTEXPR_CHECK(not xstd::enumeration<int>);
-        XSTD_CONSTEXPR_CHECK(not xstd::enumeration<bool>);
-        XSTD_CONSTEXPR_CHECK(not xstd::enumeration<not_an_enum>);
-        XSTD_CONSTEXPR_CHECK(not xstd::enumeration<scoped&>);
-        XSTD_CONSTEXPR_CHECK(not xstd::enumeration<scoped*>);
-        XSTD_CONSTEXPR_CHECK(not xstd::enumeration<void>);
-}
 
 // the partial application a type-constraint needs: the primary template alone
 template<xstd::specialization_of<std::complex> T>

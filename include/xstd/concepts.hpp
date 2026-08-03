@@ -8,19 +8,9 @@
 
 #include <xstd/type_traits.hpp> // is_integral_like_v, is_signed_like_v, is_specialization_of_v, is_unsigned_like_v, make_unsigned_like_t
 #include <concepts>             // constructible_from
-#include <type_traits>          // bool_constant, is_enum_v, is_nothrow_constructible_v
+#include <type_traits>          // bool_constant, is_nothrow_constructible_v
 
 namespace xstd {
-
-// <concepts> covers the built-in numeric categories - integral,
-// signed_integral, unsigned_integral, floating_point - but has nothing for
-// enums, so a template that wants one has to fall back on a requires-clause
-// over std::is_enum_v. Spelled as the noun the type satisfies rather than as
-// is_enum, because that is how every concept in <concepts> reads (integral,
-// destructible, regular), and because a concept sharing a name with the trait
-// it wraps would be ambiguous under using-directives for both namespaces.
-template<class T>
-concept enumeration = std::is_enum_v<T>;
 
 // The constraint spelling of xstd::is_specialization_of. The type under test
 // comes first so that a partial application names the primary template alone,
@@ -35,9 +25,9 @@ concept specialization_of = is_specialization_of_v<T, Primary>;
 
 // The open counterpart of <concepts>'s integral / signed_integral /
 // unsigned_integral, and the constraint spelling of xstd::is_integral_like_v
-// - the same relation enumeration has to std::is_enum_v and specialization_of
-// has to xstd::is_specialization_of_v, and the one std::integral itself has
-// to std::is_integral_v.
+// - the same relation specialization_of has to
+// xstd::is_specialization_of_v, and the one std::integral itself has to
+// std::is_integral_v.
 //
 // What the trait opens, and how, is <xstd/type_traits.hpp>'s business. The
 // short version: <concepts>'s three are spelled over std::is_integral, which
