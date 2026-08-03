@@ -7,9 +7,6 @@
 #define XSTD_UTILITY_HPP
 
 #include <xstd/concepts.hpp> // enumeration
-#include <cassert>           // assert
-#include <cstddef>           // size_t
-#include <limits>            // numeric_limits
 #include <type_traits>       // integral_constant, underlying_type_t
 #include <utility>           // to_underlying
 
@@ -29,22 +26,6 @@ template<enumeration Enum, Enum N>
 [[nodiscard]] constexpr auto to_underlying(std::integral_constant<Enum, N>) noexcept
 {
         return std::integral_constant<std::underlying_type_t<Enum>, std::to_underlying(N)>();
-}
-
-// Rounds size up to the next multiple of alignment, e.g. so a requested
-// number of bits can be rounded up to a whole number of storage blocks.
-[[nodiscard]] constexpr auto aligned_size(std::size_t size, std::size_t alignment) noexcept
-        -> std::size_t
-{
-        assert(alignment != 0);
-        auto const remainder = size % alignment;
-        if (remainder == 0) {
-                return size;
-        }
-
-        auto const padding = alignment - remainder;
-        assert(size <= std::numeric_limits<std::size_t>::max() - padding);
-        return size + padding;
 }
 
 } // namespace xstd
