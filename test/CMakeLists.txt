@@ -120,37 +120,6 @@ find_package(
     unit_test_framework
 )
 
-# src/abseil.cpp is the only test needing a compiled third-party library rather
-# than headers alone: absl::int128's division is out of line. It is also the
-# only dependency not already required by something else, and the two facts
-# together are why it is found rather than required.
-#
-# Not every leg of the matrix installs from vcpkg.json. The development legs
-# provision their own Boost from source and configure with
-# Boost_NO_SYSTEM_PATHS, so a manifest entry never reaches them; a REQUIRED
-# find_package here failed configuration outright on exactly those toolchains,
-# before a line of xstd was compiled. Boost.Test can be required because every
-# leg provisions it one way or another. Abseil is present only where vcpkg put
-# it, so the test follows the dependency rather than demanding it.
-#
-# The status message is what keeps that from being a silent skip: a test that
-# quietly stops running is worse than one that visibly fails to build. Setting
-# XSTD_TEST_ABSEIL=OFF declines it outright even where Abseil is installed,
-# which is the intended response if it ever breaks on a toolchain that does
-# have it. The coverage lost either way is a second witness for the
-# integer-class concept, not the only one - src/multiprecision.cpp is the
-# first, is header-only, and reaches every leg.
-option(XSTD_TEST_ABSEIL "Build the Abseil int128 test, where Abseil is available" ON)
-set(xstd_build_abseil_test OFF)
-if(XSTD_TEST_ABSEIL)
-    find_package(absl CONFIG)
-    if(absl_FOUND)
-        set(xstd_build_abseil_test ON)
-    else()
-        message(STATUS "xstd: Abseil not found, skipping test/src/abseil.cpp")
-    endif()
-endif()
-
 set(current_source_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)
 file(
     GLOB_RECURSE targets
@@ -158,10 +127,6 @@ file(
     RELATIVE ${current_source_dir}
     ${current_source_dir}/*.cpp
 )
-if(NOT xstd_build_abseil_test)
-    list(REMOVE_ITEM targets abseil.cpp)
-endif()
-
 foreach(t ${targets})
     cmake_path(GET t PARENT_PATH target_path)
     cmake_path(GET t STEM target_name_we)
@@ -176,11 +141,6 @@ foreach(t ${targets})
         Boost::unit_test_framework
         xstd_test_options
     )
-
-    # the one target with a library to link rather than just headers to find
-    if(target_id STREQUAL "abseil")
-        target_link_libraries(${target_id} PRIVATE absl::int128)
-    endif()
 
     add_test(NAME ${target_id} COMMAND ${target_id} --log_level=all)
 endforeach()

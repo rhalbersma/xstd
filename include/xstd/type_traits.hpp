@@ -6,9 +6,10 @@
 #ifndef XSTD_TYPE_TRAITS_HPP
 #define XSTD_TYPE_TRAITS_HPP
 
+#include <xstd/cstdint.hpp>         // int128_t, uint128_t
 #include <xstd/exposition_only.hpp> // is_integral_like
 #include <compare>                  // strong_ordering (empty_type's defaulted <=>)
-#include <type_traits>              // bool_constant, conditional_t, integral_constant, is_floating_point_v, is_integral_v, is_same_v, make_unsigned, remove_cv_t, remove_cvref_t
+#include <type_traits>              // bool_constant, conditional_t, integral_constant, is_floating_point_v, is_integral_v, is_same_v, make_signed, make_unsigned, remove_cv_t, remove_cvref_t, type_identity
 
 namespace xstd {
 
@@ -58,15 +59,10 @@ using is_integral_like = std::bool_constant<is_integral_like_v<T>>;
 // answering yes would leave is_signed_like_v below reporting a sign for a type
 // no concept in this library accepts.
 //
-// The floating-point half carries the same restriction to cv-unqualified types
-// that is_integral_like_v does, so that both halves answer over one domain
-// rather than two. See <xstd/exposition_only.hpp> for why that domain is what
-// it is; std::is_floating_point_v itself is cv-transparent, as
-// std::is_integral_v is.
 template<class T>
 inline constexpr auto is_arithmetic_like_v =
         is_integral_like_v<T> or
-        (std::is_floating_point_v<T> and std::is_same_v<T, std::remove_cv_t<T>>);
+        std::is_floating_point_v<T>;
 
 template<class T>
 using is_arithmetic_like = std::bool_constant<is_arithmetic_like_v<T>>;
@@ -87,7 +83,7 @@ using is_arithmetic_like = std::bool_constant<is_arithmetic_like_v<T>>;
 // answering correctly - neither signed nor unsigned - if one ever turns up.
 //
 // The guard is the standard's own and nothing more. An earlier revision needed
-// two extra terms, std::constructible_from<T, int> and std::totally_ordered
+// two extra terms, std::constructible_from<T, int> and strong three-way ordering
 // <T>, because is_arithmetic_like_v was then a std::numeric_limits reading and
 // a class type can specialize numeric_limits without being constructible from
 // int or ordered - which would make forming T(-1) a hard error rather than a
@@ -147,8 +143,28 @@ inline constexpr auto is_specialization_of_v<Primary<Args...>, Primary> = true;
 template<class T, template<class...> class Primary>
 using is_specialization_of = std::bool_constant<is_specialization_of_v<T, Primary>>;
 
-// The unsigned type that pairs with an integer-like type: what
-// std::make_unsigned answers, over the types xstd can answer for.
+// The signed and unsigned types that pair with an integer-like type: what
+// std::make_signed and std::make_unsigned answer, over the types xstd can
+// answer for. Both empty primary templates make an unsupported association a
+// substitution failure, and both forward successful answers by inheritance in
+// the Boost.MPL metafunction-forwarding style.
+template<class T>
+struct make_signed_like {};
+
+template<class T>
+        requires std::is_integral_v<T> and (not std::is_same_v<std::remove_cv_t<T>, bool>)
+struct make_signed_like<T> : std::make_signed<T> {};
+
+// A signed integer-class type is its own signed counterpart. An unsigned class
+// type needs a user specialization naming its signed partner.
+template<class T>
+        requires (not std::is_integral_v<T>) and is_integral_like_v<T> and is_signed_like_v<T>
+struct make_signed_like<T> : std::type_identity<T> {};
+
+template<class T>
+using make_signed_like_t = make_signed_like<T>::type;
+
+// The unsigned half follows the same arrangement.
 //
 // The domain is every integer-like type except bool, which is std::make_unsigned's
 // own domain opened to the integer-class types. Two specializations cover it,
@@ -175,29 +191,18 @@ using is_specialization_of = std::bool_constant<is_specialization_of_v<T, Primar
 // instead. Hence the deliberately empty primary template here.
 // make_unsigned_like_t<T> is then a substitution failure - detectable, not
 // fatal - for every type outside the domain, and a user can bring a signed
-// type of their own into it by specializing. xstd::signed_integral_like is
-// built on exactly that, and is the reason this trait exists.
+// type of their own into it by specializing. Operations such as xstd::uabs
+// use that detectable association in their own interface.
 //
-// Unlike std::make_unsigned this says nothing about cv-qualified types. No
-// cv-qualified type is xstd::integral_like - xstd::is_integral_like_v is
-// guarded by the same remove_cv_t test the partial specialization below is,
-// for the same reason - so there is no signed integer-like type whose
-// counterpart a cv-qualified answer would name. Leaving them out is
-// also what keeps the trait's domain the same on every platform: the
-// __int128 specialization below names one type, and a cv-carrying trait
-// would answer for its qualified forms only where the partial specialization
-// happens to match them.
-//
-// std::is_integral_v is true for cv-qualified types as well, so the
-// remove_cv_t test is what does that restricting - it is not redundant.
+// As with std::make_unsigned, the built-in specialization accepts
+// cv-qualified integral types and preserves their qualifiers. This keeps its
+// domain aligned with integral_like's cv-transparent built-in branch.
 template<class T>
-struct make_unsigned_like
-{};
+struct make_unsigned_like {};
 
 template<class T>
-        requires std::is_same_v<T, std::remove_cv_t<T>> and std::is_integral_v<T> and (not std::is_same_v<T, bool>)
-struct make_unsigned_like<T> : std::make_unsigned<T>
-{};
+        requires std::is_integral_v<T> and (not std::is_same_v<std::remove_cv_t<T>, bool>)
+struct make_unsigned_like<T> : std::make_unsigned<T> {};
 
 // The not-integral term is what keeps this disjoint from the specialization
 // above rather than more or less specialized than it: a built-in unsigned type
@@ -210,10 +215,7 @@ struct make_unsigned_like<T> : std::make_unsigned<T>
 // types and a reader should not have to derive that.
 template<class T>
         requires (not std::is_integral_v<T>) and is_integral_like_v<T> and is_unsigned_like_v<T>
-struct make_unsigned_like<T>
-{
-        using type = T;
-};
+struct make_unsigned_like<T> : std::type_identity<T> {};
 
 template<class T>
 using make_unsigned_like_t = make_unsigned_like<T>::type;
@@ -244,13 +246,21 @@ using make_unsigned_like_t = make_unsigned_like<T>::type;
 #pragma GCC diagnostic ignored "-Wpedantic"
 #endif
 template<>
-struct make_unsigned_like<__int128>
-{
-        using type = unsigned __int128;
-};
+struct make_signed_like<unsigned __int128> : std::type_identity<__int128> {};
+
+template<>
+struct make_unsigned_like<__int128> : std::type_identity<unsigned __int128> {};
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif
+#endif
+
+#if defined(_MSVC_STL_VERSION) && !defined(__SIZEOF_INT128__)
+template<>
+struct make_signed_like<uint128_t> : std::type_identity<int128_t> {};
+
+template<>
+struct make_unsigned_like<int128_t> : std::type_identity<uint128_t> {};
 #endif
 
 template<class Tag>
@@ -269,8 +279,7 @@ struct empty_type
         // a hidden friend, so it is found by argument-dependent lookup only;
         // still implicitly declares the defaulted operator== that lets an
         // enclosing class default its own comparisons over this member
-        [[nodiscard]] friend constexpr auto operator<=>(empty_type const&, empty_type const&) noexcept
-                -> std::strong_ordering = default;
+        [[nodiscard]] friend constexpr auto operator<=>(empty_type, empty_type) noexcept -> std::strong_ordering = default;
 };
 
 // Tag names the member, not the type it stands in for: two

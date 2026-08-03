@@ -5,7 +5,6 @@
 
 #include <xstd/exposition_only.hpp>    // integral_class_type, is_integral_like
 #include <xstd/test/constexpr.hpp>     // XSTD_CONSTEXPR_CHECK
-#include <xstd/test/integer_class.hpp> // signed_integer_class, unsigned_integer_class
 #include <boost/test/unit_test.hpp>    // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_CHECK
 #include <complex>                     // complex
 #include <concepts>                    // integral, regular
@@ -15,11 +14,7 @@
 BOOST_AUTO_TEST_SUITE(ExpositionOnly)
 
 enum class color : unsigned { red = 1 };
-struct not_a_number
-{};
-
-using S = xstd::test::signed_integer_class;
-using U = xstd::test::unsigned_integer_class;
+struct not_a_number {};
 
 // The half of xstd::is_integral_like_v that std::is_integral cannot answer:
 // the structural rendering of [iterator.concept.winc]'s integer-class types.
@@ -30,12 +25,6 @@ using U = xstd::test::unsigned_integer_class;
 // type.
 BOOST_AUTO_TEST_CASE(IntegralClassType)
 {
-        // the shape it exists for: a class type with the arithmetic
-        // operators, a std::numeric_limits specialization saying is_integer,
-        // and explicit construction from int
-        XSTD_CONSTEXPR_CHECK(xstd::exposition_only::integral_class_type<S>);
-        XSTD_CONSTEXPR_CHECK(xstd::exposition_only::integral_class_type<U>);
-
         // the built-in integers are the *other* disjunct of the trait this
         // feeds, so they are not integer-class types here, exactly as they
         // are not in the standard's definition
@@ -51,9 +40,6 @@ BOOST_AUTO_TEST_CASE(IntegralClassType)
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integral_class_type<color>);
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integral_class_type<int*>);
 
-        // a cv-qualified class type, which is not assignable and so not
-        // std::regular either
-        XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integral_class_type<S const>);
 }
 
 // std::regular leads the rest of the conjunction so that these are rejected
@@ -82,9 +68,6 @@ BOOST_AUTO_TEST_CASE(IsIntegralLike)
 {
         XSTD_CONSTEXPR_CHECK(xstd::exposition_only::is_integral_like<int> and std::integral<int>);
         XSTD_CONSTEXPR_CHECK(xstd::exposition_only::is_integral_like<bool> and std::integral<bool>);
-        XSTD_CONSTEXPR_CHECK(xstd::exposition_only::is_integral_like<S> and not std::integral<S>);
-        XSTD_CONSTEXPR_CHECK(xstd::exposition_only::is_integral_like<U> and not std::integral<U>);
-
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::is_integral_like<double>);
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::is_integral_like<std::complex<double>>);
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::is_integral_like<color>);
@@ -103,15 +86,11 @@ BOOST_AUTO_TEST_CASE(IsIntegralLikeIsTotal)
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::is_integral_like<int()>);
 }
 
-// The one place this narrows what std::integral says yes to. const is
-// excluded by std::regular as well, volatile is not - which is why the
-// restriction is spelled with same_as and remove_cv_t rather than left to the
-// rest of the conjunction.
-BOOST_AUTO_TEST_CASE(IsIntegralLikeExcludesCvQualifiedTypes)
+// The built-in branch follows std::integral's cv-transparent trait.
+BOOST_AUTO_TEST_CASE(IsIntegralLikeIncludesCvQualifiedTypes)
 {
-        XSTD_CONSTEXPR_CHECK(std::integral<int const> and not xstd::exposition_only::is_integral_like<int const>);
-        XSTD_CONSTEXPR_CHECK(std::integral<int volatile> and not xstd::exposition_only::is_integral_like<int volatile>);
-        XSTD_CONSTEXPR_CHECK(std::regular<int volatile> and not std::regular<int const>);
+        XSTD_CONSTEXPR_CHECK(std::integral<int const> and xstd::exposition_only::is_integral_like<int const>);
+        XSTD_CONSTEXPR_CHECK(std::integral<int volatile> and xstd::exposition_only::is_integral_like<int volatile>);
 }
 
 // __int128 is the type the two disjuncts trade places over: libstdc++

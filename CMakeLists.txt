@@ -38,6 +38,7 @@ target_sources(
     BASE_DIRS include
     FILES
         include/xstd/concepts.hpp
+        include/xstd/cstdint.hpp
         include/xstd/cstdlib.hpp
         include/xstd/exposition_only.hpp
         include/xstd/memory.hpp
