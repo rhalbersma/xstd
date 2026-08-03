@@ -6,9 +6,9 @@
 #ifndef XSTD_CONCEPTS_HPP
 #define XSTD_CONCEPTS_HPP
 
-#include <xstd/concepts/integral_like.hpp>
-#include <xstd/concepts/signed_integral_like.hpp>
-#include <xstd/concepts/specialization_of.hpp>
-#include <xstd/concepts/unsigned_integral_like.hpp>
+#include <xstd/concepts/integral_like.hpp>          // integral_like
+#include <xstd/concepts/signed_integral_like.hpp>   // signed_integral_like
+#include <xstd/concepts/specialization_of.hpp>      // specialization_of
+#include <xstd/concepts/unsigned_integral_like.hpp> // unsigned_integral_like
 
 #endif // XSTD_CONCEPTS_HPP
