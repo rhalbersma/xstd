@@ -220,48 +220,18 @@ struct make_unsigned_like<T> : std::type_identity<T> {};
 template<class T>
 using make_unsigned_like_t = make_unsigned_like<T>::type;
 
-// __int128 is where "integral" stops being a property of a type and becomes a
-// property of the dialect. GCC and Clang predefine __GLIBCXX_TYPE_INT_N_0
-// only outside __STRICT_ANSI__, and libstdc++ gates both its std::is_integral
-// entry and its __make_unsigned overload on that macro, so in the strictly
-// conforming dialect this library targets the partial specialization above
-// does not match and std::make_unsigned<__int128> is a hard error rather than
-// a substitution failure. libc++ has no such gate, so there the partial
-// specialization matches in every dialect and this explicit specialization
-// merely agrees with it. GCC withholds the integral answer because intmax_t
-// has to be the widest signed integer type and is 64-bit for ABI reasons - a
-// contradiction it resolves in the standard's favor exactly when asked to be
-// standard, and lets stand otherwise, where std::signed_integral<__int128>
-// and sizeof(std::intmax_t) == 8 both hold at once.
-//
-// The type is a language extension, so naming it is what -Wpedantic is for.
-// Suppressing that diagnostic is the whole service this specialization
-// performs: without it every user of a 128-bit division would have to write
-// the specialization, and the suppression, themselves. The pragma is guarded
-// because MSVC, which has no __int128 to have an opinion about, does not know
-// it.
-#ifdef __SIZEOF_INT128__
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
-#endif
-template<>
-struct make_signed_like<unsigned __int128> : std::type_identity<__int128> {};
-
-template<>
-struct make_unsigned_like<__int128> : std::type_identity<unsigned __int128> {};
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
-#endif
-
-#if defined(_MSVC_STL_VERSION) && !defined(__SIZEOF_INT128__)
+// The public 128-bit pair is the one platform-independent exception to the
+// rules above. In a strictly conforming libstdc++ dialect its underlying
+// __int128 types are withheld from std::is_integral and therefore miss the
+// built-in partial specializations; on the Microsoft STL they are class types
+// whose cross-direction association cannot be inferred. <xstd/cstdint.hpp>
+// owns both platform choices, so the transformations need only name its
+// public aliases here and remain independent of either implementation.
 template<>
 struct make_signed_like<uint128_t> : std::type_identity<int128_t> {};
 
 template<>
 struct make_unsigned_like<int128_t> : std::type_identity<uint128_t> {};
-#endif
 
 template<class Tag>
 struct empty_type
