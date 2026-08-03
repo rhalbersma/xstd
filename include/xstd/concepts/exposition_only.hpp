@@ -35,7 +35,7 @@ concept integer_class_type =
                 { static_cast<I>(+a) } noexcept -> std::same_as<I>;
                 { static_cast<I>(-a) } noexcept -> std::same_as<I>;
                 { static_cast<I>(~a) } noexcept -> std::same_as<I>;
-                { !a } noexcept -> std::same_as<bool>;
+                { not a } noexcept -> std::same_as<bool>;
         } and
         requires (I a, I const b, std::size_t n) {
                 { a += b } noexcept -> std::same_as<I&>;

@@ -3,7 +3,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/type_traits.hpp>     // is_specialization_of, is_integral_constant, empty_type, conditional_data_member_t, make_signed_like_t, make_unsigned_like_t, is_arithmetic_like_v, is_integral_like, is_integral_like_v, is_signed_like_v, is_unsigned_like_v
+#include <xstd/type_traits.hpp>     // is_specialization_of, empty_type, conditional_data_member_t, make_signed_like_t, make_unsigned_like_t, is_arithmetic_like_v, is_integral_like, is_integral_like_v, is_signed_like_v, is_unsigned_like_v
 #include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <compare>                  // strong_ordering
@@ -53,36 +53,7 @@ BOOST_AUTO_TEST_CASE(IsSpecializationOf)
         XSTD_CONSTEXPR_CHECK((not is_complex_v<int>));
 }
 
-template<int N>
-using int_ = std::integral_constant<int, N>;
-
 enum class color : unsigned { red = 1 };
-
-template<color N>
-using color_ = std::integral_constant<color, N>;
-
-BOOST_AUTO_TEST_CASE(IsIntegralConstant)
-{
-        XSTD_CONSTEXPR_CHECK((xstd::is_integral_constant_v<std::true_type, bool>));
-        XSTD_CONSTEXPR_CHECK((xstd::is_integral_constant_v<std::false_type, bool>));
-        XSTD_CONSTEXPR_CHECK((not xstd::is_integral_constant_v<bool, bool>));
-
-        XSTD_CONSTEXPR_CHECK((xstd::is_integral_constant_v<int_<0>, int>));
-        XSTD_CONSTEXPR_CHECK((not xstd::is_integral_constant_v<int, int>));
-
-        // std::integral_constant's first parameter is any type usable as a
-        // non-type template parameter, not just an integral one, and the
-        // enum case is what xstd::to_underlying is built on. Pinned here
-        // because narrowing this trait to std::integral would silently
-        // break that without failing any of the checks above.
-        XSTD_CONSTEXPR_CHECK((xstd::is_integral_constant_v<color_<color::red>, color>));
-        XSTD_CONSTEXPR_CHECK((not xstd::is_integral_constant_v<color, color>));
-
-        // the wrapped type has to match: an integral_constant over one type
-        // is not one over another
-        XSTD_CONSTEXPR_CHECK((not xstd::is_integral_constant_v<int_<0>, unsigned>));
-        XSTD_CONSTEXPR_CHECK((not xstd::is_integral_constant_v<color_<color::red>, unsigned>));
-}
 
 struct tag1;
 struct tag2;

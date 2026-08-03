@@ -48,7 +48,6 @@ target_sources(
         include/xstd/memory.hpp
         include/xstd/type_traits.hpp
         include/xstd/type_traits/conditional_data_member.hpp
-        include/xstd/type_traits/integral_constant.hpp
         include/xstd/type_traits/is_arithmetic_like.hpp
         include/xstd/type_traits/is_integral_like.hpp
         include/xstd/type_traits/is_signed_like.hpp

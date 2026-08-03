@@ -24,8 +24,7 @@ Three themes run across the otherwise unrelated headers:
   accept a plain enum the way `std::to_underlying` does - it also accepts
   an enum wrapped in `std::integral_constant` and returns the result
   still wrapped, preserving its compile-time-constant-ness rather than
-  collapsing it to a runtime value. `xstd::is_integral_constant` exists so
-  generic code can detect that wrapping at all. The underlying idea: a
+  collapsing it to a runtime value. The underlying idea: a
   `std::integral_constant<Enum, E>` is a value of `Enum` that also happens
   to carry its value in the type system, and library functions that take
   `Enum` should be able to take that too, without the caller needing a
@@ -680,27 +679,6 @@ for cv-qualified built-in integral types and carry their qualifiers through. Tha
 the cv-transparent standard category traits and concepts. Integer-class types
 are still checked as written: stripping cv from an arbitrary class would test
 a different type with a potentially different operator surface.
-
-### Why `is_integral_constant` does not constrain the wrapped type
-
-`std::integral_constant<T, v>` puts no constraint on `T`: anything usable as
-a non-type template parameter works, enums and pointers included. The
-obvious-looking tightening -
-
-    template<std::integral U, U N>
-    inline constexpr auto is_integral_constant_v<std::integral_constant<U, N>, U> = true;
-
-- would therefore be a narrowing rather than a clarification, and it would
-narrow away precisely the case the header is built around: `xstd::to_underlying`
-exists to accept `std::integral_constant<Enum, N>`, and the trait exists so
-generic code can detect that wrapping at all. Constraining `U` to
-`std::integral` would leave the trait blind to it.
-
-Without the constraint the trait is already exact - the primary template is
-`false`, and only `std::integral_constant<U, N>` matches the specialization -
-so there is nothing over-broad to tighten. The enum case is pinned by a test
-rather than left implicit, because every other check in that test uses `bool`
-or `int` and so would keep passing if someone made this change anyway.
 
 ## CI and toolchain support
 
