@@ -11,6 +11,7 @@
 
 namespace xstd {
 
+// std::is_arithmetic with its integral half opened to integral-like types.
 template<class T>
 inline constexpr auto is_arithmetic_like_v = is_integral_like_v<T> or std::is_floating_point_v<T>;
 

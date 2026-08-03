@@ -11,6 +11,7 @@
 
 namespace xstd {
 
+// std::is_unsigned with the arithmetic test opened to arithmetic-like types.
 template<class T>
 inline constexpr auto is_unsigned_like_v = false;
 

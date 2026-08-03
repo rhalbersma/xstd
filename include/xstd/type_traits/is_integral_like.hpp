@@ -11,6 +11,7 @@
 
 namespace xstd {
 
+// The trait spelling of xstd::integral_like.
 template<class T>
 inline constexpr auto is_integral_like_v = integral_like<T>;
 

@@ -10,6 +10,7 @@
 
 namespace xstd {
 
+// The open counterpart of std::integral, admitting integer-class types.
 template<class T>
 concept integral_like = std::integral<T> or exposition_only::integer_class_type<T>;
 

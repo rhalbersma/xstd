@@ -10,6 +10,7 @@
 
 namespace xstd {
 
+// The constraint spelling of xstd::is_specialization_of.
 template<class T, template<class...> class Primary>
 concept specialization_of = is_specialization_of_v<T, Primary>;
 

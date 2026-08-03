@@ -10,6 +10,7 @@
 
 namespace xstd {
 
+// Whether T is a specialization of a type-parameter-only class template.
 template<class T, template<class...> class Primary>
 inline constexpr auto is_specialization_of_v = false;
 
