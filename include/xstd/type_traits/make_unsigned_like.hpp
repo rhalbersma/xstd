@@ -15,29 +15,27 @@ namespace xstd {
 
 // Unsigned counterparts for integral-like types. The empty primary makes an
 // unsupported association a substitution failure.
+// clang-format off
 template<class T>
-struct make_unsigned_like
-{};
+struct make_unsigned_like {};
 
 template<class T>
         requires std::is_integral_v<T> and (not std::is_same_v<std::remove_cv_t<T>, bool>)
-struct make_unsigned_like<T> : std::make_unsigned<T>
-{};
+struct make_unsigned_like<T> : std::make_unsigned<T> {};
 
 // An unsigned integer-class type is its own unsigned counterpart; a signed one
 // needs a user specialization naming its unsigned partner.
 template<class T>
         requires (not std::is_integral_v<T>) and is_integral_like_v<T> and is_unsigned_like_v<T>
-struct make_unsigned_like<T> : std::type_identity<T>
-{};
+struct make_unsigned_like<T> : std::type_identity<T> {};
 
 template<class T>
 using make_unsigned_like_t = make_unsigned_like<T>::type;
 
 // The public 128-bit aliases provide their cross-direction association.
 template<>
-struct make_unsigned_like<int128_t> : std::type_identity<uint128_t>
-{};
+struct make_unsigned_like<int128_t> : std::type_identity<uint128_t> {};
+// clang-format on
 
 } // namespace xstd
 
