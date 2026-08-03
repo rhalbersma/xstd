@@ -19,8 +19,7 @@ struct div_t
 
 // Explicit to keep -Wctad-maybe-unsupported quiet.
 template<signed_integral_like S>
-div_t(S, S)
-        -> div_t<S>;
+div_t(S, S) -> div_t<S>;
 
 } // namespace xstd
 
