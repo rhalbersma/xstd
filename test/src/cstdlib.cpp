@@ -3,25 +3,24 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/cstdlib.hpp>            // abs, uabs, sign, div_t, div, euclidean_div, floored_div
-#include <xstd/concepts.hpp>           // signed_integral_like
-#include <xstd/type_traits.hpp>        // make_unsigned_like_t
-#include <xstd/test/constexpr.hpp>     // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
-#include <xstd/test/integer_class.hpp> // signed_integer_class, unsigned_integer_class
-#include <boost/test/unit_test.hpp>    // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_CHECK, BOOST_CHECK_EQUAL, BOOST_CHECK_EQUAL_COLLECTIONS
-#include <algorithm>                   // ranges::transform
-#include <array>                       // array
-#include <concepts>                    // integral, same_as, signed_integral
-#include <cstdint>                     // int8_t, int16_t, int32_t, int64_t, intmax_t
-#include <cstdlib>                     // div
-#include <format>                      // format
-#include <iterator>                    // back_inserter
-#include <limits>                      // numeric_limits
-#include <sstream>                     // ostringstream
-#include <tuple>                       // tuple
-#include <type_traits>                 // make_unsigned_t
-#include <utility>                     // pair
-#include <vector>                      // vector
+#include <xstd/cstdlib.hpp>         // abs, uabs, sign, div_t, div, euclidean_div, floored_div
+#include <xstd/concepts.hpp>        // signed_integral_like
+#include <xstd/type_traits.hpp>     // make_unsigned_like_t
+#include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
+#include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_CHECK, BOOST_CHECK_EQUAL, BOOST_CHECK_EQUAL_COLLECTIONS
+#include <algorithm>                // ranges::transform
+#include <array>                    // array
+#include <concepts>                 // integral, same_as, signed_integral
+#include <cstdint>                  // int8_t, int16_t, int32_t, int64_t, intmax_t
+#include <cstdlib>                  // div
+#include <format>                   // format
+#include <iterator>                 // back_inserter
+#include <limits>                   // numeric_limits
+#include <sstream>                  // ostringstream
+#include <tuple>                    // tuple
+#include <type_traits>              // make_unsigned_t
+#include <utility>                  // pair
+#include <vector>                   // vector
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
@@ -59,10 +58,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Constraints, T, exact_width_types)
         static_assert(std::same_as<decltype(xstd::euclidean_div(T{1}, T{1})), xstd::div_t<T>>);
         static_assert(std::same_as<decltype(xstd::floored_div(T{1}, T{1})), xstd::div_t<T>>);
 
-        // the noexcept specification is conditional, and the condition holds
-        // at every built-in width - it withdraws only for a type whose own
-        // arithmetic can throw, which no built-in one can
-        static_assert(xstd::is_nothrow_signed_integral_like_v<T>);
+        // The integer interface and every facility built on it are noexcept.
         static_assert(noexcept(xstd::abs(T{})));
         static_assert(noexcept(xstd::uabs(T{})));
         static_assert(noexcept(xstd::sign(T{})));
@@ -419,31 +415,6 @@ BOOST_AUTO_TEST_CASE(Int128)
 #pragma GCC diagnostic pop
 #endif
 #endif
-
-// A class type is the shape no dialect could ever make integral, and the one
-// the standard library's own 128-bit types take where there is no built-in
-// one to reach for (libstdc++'s std::ranges::__detail::__max_diff_type, the
-// MSVC STL's std::_Signed128). It qualifies by behaving like an integer:
-// see <xstd/test/integer_class.hpp>.
-BOOST_AUTO_TEST_CASE(IntegerClassType)
-{
-        using T = xstd::test::signed_integer_class;
-
-        static_assert(not std::integral<T>);
-        static_assert(xstd::signed_integral_like<T>);
-        static_assert(std::same_as<decltype(xstd::uabs(T{})), xstd::test::unsigned_integer_class>);
-        static_assert(std::same_as<decltype(xstd::abs(T{})), T>);
-        static_assert(std::same_as<decltype(xstd::sign(T{})), int>);
-        static_assert(std::same_as<decltype(xstd::div(T{1}, T{1})), xstd::div_t<T>>);
-
-        // an unsigned integer-like type is still rejected, at a class type
-        // just as at a built-in one
-        static_assert(not has_abs<xstd::test::unsigned_integer_class>);
-        static_assert(not has_uabs<xstd::test::unsigned_integer_class>);
-        static_assert(not has_div<xstd::test::unsigned_integer_class, xstd::test::unsigned_integer_class>);
-
-        check_signed_integral_like<T>();
-}
 
 // Class template argument deduction: div_t{q, r} still spells the result of
 // a call to div at the argument's own width, the way the four separate

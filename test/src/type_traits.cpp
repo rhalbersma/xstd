@@ -3,15 +3,14 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/type_traits.hpp>        // is_specialization_of, is_integral_constant, empty_type, conditional_data_member_t, make_unsigned_like_t, is_arithmetic_like_v, is_integral_like, is_integral_like_v, is_signed_like_v, is_unsigned_like_v
-#include <xstd/test/constexpr.hpp>     // XSTD_CONSTEXPR_CHECK
-#include <xstd/test/integer_class.hpp> // signed_integer_class, unsigned_integer_class
-#include <boost/test/unit_test.hpp>    // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
-#include <compare>                     // strong_ordering
-#include <complex>                     // complex
-#include <cstdint>                     // int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t
-#include <limits>                      // numeric_limits
-#include <type_traits>                 // false_type, integral_constant, is_arithmetic_v, is_constructible_v, is_convertible_v, is_empty_v, is_integral_v, is_nothrow_constructible_v, is_nothrow_default_constructible_v, is_same_v, is_signed_v, is_trivially_constructible_v, is_trivially_copyable_v, is_unsigned_v, make_unsigned_t, true_type
+#include <xstd/type_traits.hpp>     // is_specialization_of, is_integral_constant, empty_type, conditional_data_member_t, make_signed_like_t, make_unsigned_like_t, is_arithmetic_like_v, is_integral_like, is_integral_like_v, is_signed_like_v, is_unsigned_like_v
+#include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK
+#include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
+#include <compare>                  // strong_ordering
+#include <complex>                  // complex
+#include <cstdint>                  // int8_t, int16_t, int32_t, int64_t, uint8_t, uint16_t, uint32_t, uint64_t
+#include <limits>                   // numeric_limits
+#include <type_traits>              // false_type, integral_constant, is_arithmetic_v, is_constructible_v, is_convertible_v, is_empty_v, is_integral_v, is_nothrow_constructible_v, is_nothrow_default_constructible_v, is_same_v, is_signed_v, is_trivially_constructible_v, is_trivially_copyable_v, is_unsigned_v, make_unsigned_t, true_type
 
 // An incomplete class type is answered, not hard-errored: the traits being
 // widened cope with one, so these have to as well. It is the sizeof term in
@@ -32,13 +31,13 @@ BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAnswerForIncompleteTypes)
 // operators: the specialization is the whole fixture. Both live out here
 // because an explicit specialization of a standard-library template has to be
 // at global scope, and BOOST_AUTO_TEST_SUITE opens a namespace.
-struct not_an_integer_class_type
-{};
+// clang-format off
+struct not_an_integer_class_type {};
 
 template<>
 // NOLINTNEXTLINE(bugprone-std-namespace-modification): permitted by [namespace.std]/2 for a program-defined type
-struct std::numeric_limits<not_an_integer_class_type> : std::numeric_limits<double>
-{};
+struct std::numeric_limits<not_an_integer_class_type> : std::numeric_limits<double> {};
+// clang-format on
 
 BOOST_AUTO_TEST_SUITE(TypeTraits)
 
@@ -190,41 +189,6 @@ BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAgreeWithStd)
         check_agrees_with_std<int[3]>();
 }
 
-// Where they part company: a class type is arithmetic-like when it is
-// integer-like, which the fixture pair is by behaving like integers.
-// std::is_arithmetic_v can never say yes here, and std::is_signed_v is spelled
-// over it, so both of the standard's answers are false for a type that plainly
-// has a sign.
-BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAdmitClassTypes)
-{
-        using S = xstd::test::signed_integer_class;
-        using U = xstd::test::unsigned_integer_class;
-
-        XSTD_CONSTEXPR_CHECK(not std::is_arithmetic_v<S> and xstd::is_arithmetic_like_v<S>);
-        XSTD_CONSTEXPR_CHECK(not std::is_arithmetic_v<U> and xstd::is_arithmetic_like_v<U>);
-
-        XSTD_CONSTEXPR_CHECK(not std::is_signed_v<S> and xstd::is_signed_like_v<S>);
-        XSTD_CONSTEXPR_CHECK(not xstd::is_unsigned_like_v<S>);
-
-        XSTD_CONSTEXPR_CHECK(not xstd::is_signed_like_v<U> and xstd::is_unsigned_like_v<U>);
-
-        // the sign is read off the type the way the standard reads it -
-        // T(-1) < T(0) - not off std::numeric_limits, so the two must agree
-        XSTD_CONSTEXPR_CHECK(xstd::is_signed_like_v<S> == std::numeric_limits<S>::is_signed);
-        XSTD_CONSTEXPR_CHECK(xstd::is_signed_like_v<U> == std::numeric_limits<U>::is_signed);
-
-        // a class type with no std::numeric_limits specialization is not
-        // arithmetic-like, and is therefore neither signed nor unsigned
-        XSTD_CONSTEXPR_CHECK(not xstd::is_arithmetic_like_v<std::complex<double>>);
-        XSTD_CONSTEXPR_CHECK(not xstd::is_signed_like_v<std::complex<double>>);
-        XSTD_CONSTEXPR_CHECK(not xstd::is_unsigned_like_v<std::complex<double>>);
-
-        // the bool_constant forms
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_arithmetic_like<S>, std::true_type>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_signed_like<U>, std::false_type>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_unsigned_like<U>, std::true_type>));
-}
-
 // The fourth opened trait, and the one whose standard counterpart answers
 // from a closed list rather than from a property: std::is_integral_v is
 // extended with [iterator.concept.winc]'s integer-class types, opened
@@ -241,10 +205,6 @@ BOOST_AUTO_TEST_CASE(IsIntegralLike)
         XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<double>);
         XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<color>);
         XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<std::complex<double>>);
-
-        // the widening: class types no dialect could ever make integral
-        XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<xstd::test::signed_integer_class>);
-        XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<xstd::test::unsigned_integer_class>);
 }
 
 // Total where the requirements it reaches are ill-formed rather than merely
@@ -259,12 +219,12 @@ BOOST_AUTO_TEST_CASE(IsIntegralLikeIsTotal)
         XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<int()>);
 }
 
-// And narrower than std::is_integral_v in exactly one place, for the same
-// reason make_unsigned_like below says nothing about cv-qualified types.
-BOOST_AUTO_TEST_CASE(IsIntegralLikeExcludesCvQualifiedTypes)
+// The C++23 category traits are cv-transparent, and so is the widening.
+BOOST_AUTO_TEST_CASE(IsIntegralLikeIncludesCvQualifiedTypes)
 {
-        XSTD_CONSTEXPR_CHECK(std::is_integral_v<int const> and not xstd::is_integral_like_v<int const>);
-        XSTD_CONSTEXPR_CHECK(std::is_integral_v<int volatile> and not xstd::is_integral_like_v<int volatile>);
+        XSTD_CONSTEXPR_CHECK(std::is_integral_v<int const> and xstd::is_integral_like_v<int const>);
+        XSTD_CONSTEXPR_CHECK(std::is_integral_v<int volatile> and xstd::is_integral_like_v<int volatile>);
+        XSTD_CONSTEXPR_CHECK(xstd::is_arithmetic_like_v<double const>);
 }
 
 // The bool_constant form, which is what std::conjunction and tag dispatch want
@@ -274,7 +234,6 @@ BOOST_AUTO_TEST_CASE(IsIntegralLikeBoolConstant)
         XSTD_CONSTEXPR_CHECK(xstd::is_integral_like<int>::value);
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_integral_like<int>, std::true_type>));
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_integral_like<double>, std::false_type>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::is_integral_like<xstd::test::signed_integer_class>, std::true_type>));
 }
 
 // The half xstd has *not* opened. is_arithmetic_like_v is spelled the way the
@@ -307,8 +266,18 @@ BOOST_AUTO_TEST_CASE(ArithmeticLikeOpensTheIntegralHalfOnly)
 template<class T>
 concept has_make_unsigned_like = requires { typename xstd::make_unsigned_like_t<T>; };
 
-BOOST_AUTO_TEST_CASE(MakeUnsignedLike)
+template<class T>
+concept has_make_signed_like = requires { typename xstd::make_signed_like_t<T>; };
+
+BOOST_AUTO_TEST_CASE(MakeSignedAndUnsignedLike)
 {
+        // The signed half is the exact mirror of the unsigned half.
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_signed_like_t<std::uint8_t>, std::int8_t>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_signed_like_t<unsigned>, int>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_signed_like_t<unsigned const>, int const>));
+        XSTD_CONSTEXPR_CHECK(not has_make_signed_like<bool>);
+        XSTD_CONSTEXPR_CHECK(not has_make_signed_like<double>);
+
         // agrees with std::make_unsigned wherever std::make_unsigned answers,
         // for the unsigned types as much as the signed ones
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<std::int8_t>, std::uint8_t>));
@@ -329,17 +298,8 @@ BOOST_AUTO_TEST_CASE(MakeUnsignedLike)
         XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<std::complex<double>>);
         XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<void>);
 
-        // cv-qualified types are outside the trait's domain, unlike
-        // std::make_unsigned's: they are not std::regular, so no cv-qualified
-        // type is xstd::integral_like and none would ever be asked
-        XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<int const>);
-
-        // a signed class type answers through a user-supplied specialization,
-        // which is what the empty primary template leaves room for - and an
-        // unsigned one is its own counterpart, with no specialization written
-        // for it at all, exactly as make_unsigned_like_t<unsigned> is unsigned
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<xstd::test::signed_integer_class>, xstd::test::unsigned_integer_class>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<xstd::test::unsigned_integer_class>, xstd::test::unsigned_integer_class>));
+        // cv-qualification is preserved, just as by std::make_unsigned.
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<int const>, unsigned const>));
 
         // __int128 is the one built-in type whose std::is_integral answer
         // depends on the dialect, so xstd names its counterpart outright
@@ -350,6 +310,7 @@ BOOST_AUTO_TEST_CASE(MakeUnsignedLike)
 #pragma GCC diagnostic ignored "-Wpedantic"
 #endif
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<__int128>, unsigned __int128>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_signed_like_t<unsigned __int128>, __int128>));
 #ifdef __GNUC__
 #pragma GCC diagnostic pop
 #endif

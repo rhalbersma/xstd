@@ -7,20 +7,8 @@
 #define XSTD_CONCEPTS_HPP
 
 #include <xstd/type_traits.hpp> // is_integral_like_v, is_signed_like_v, is_specialization_of_v, is_unsigned_like_v, make_unsigned_like_t
-#include <concepts>             // constructible_from
-#include <type_traits>          // bool_constant, is_enum_v, is_nothrow_constructible_v
 
 namespace xstd {
-
-// <concepts> covers the built-in numeric categories - integral,
-// signed_integral, unsigned_integral, floating_point - but has nothing for
-// enums, so a template that wants one has to fall back on a requires-clause
-// over std::is_enum_v. Spelled as the noun the type satisfies rather than as
-// is_enum, because that is how every concept in <concepts> reads (integral,
-// destructible, regular), and because a concept sharing a name with the trait
-// it wraps would be ambiguous under using-directives for both namespaces.
-template<class T>
-concept enumeration = std::is_enum_v<T>;
 
 // The constraint spelling of xstd::is_specialization_of. The type under test
 // comes first so that a partial application names the primary template alone,
@@ -35,9 +23,9 @@ concept specialization_of = is_specialization_of_v<T, Primary>;
 
 // The open counterpart of <concepts>'s integral / signed_integral /
 // unsigned_integral, and the constraint spelling of xstd::is_integral_like_v
-// - the same relation enumeration has to std::is_enum_v and specialization_of
-// has to xstd::is_specialization_of_v, and the one std::integral itself has
-// to std::is_integral_v.
+// - the same relation specialization_of has to
+// xstd::is_specialization_of_v, and the one std::integral itself has to
+// std::is_integral_v.
 //
 // What the trait opens, and how, is <xstd/type_traits.hpp>'s business. The
 // short version: <concepts>'s three are spelled over std::is_integral, which
@@ -55,10 +43,8 @@ concept specialization_of = is_specialization_of_v<T, Primary>;
 //
 // The trait admits both, by asking what a type does rather than what it is
 // called, so a user's own type qualifies by behaving correctly instead of by
-// being enumerated somewhere. It is a strict superset of std::integral at
-// every cv-unqualified type; the cv-qualified spellings std::integral also
-// accepts are outside its domain, deliberately and for the reasons given
-// where it is defined.
+// being enumerated somewhere. It is a superset of std::integral, including
+// the cv-qualified spellings accepted by that standard concept.
 template<class T>
 concept integral_like = is_integral_like_v<T>;
 
@@ -70,21 +56,16 @@ concept integral_like = is_integral_like_v<T>;
 // signed_integral_like rejecting precisely the integer-class types the concept
 // exists to admit while still looking correct at every built-in width. That is
 // what xstd::is_signed_like_v opens, without changing the question being
-// asked.
+// asked. std::unsigned_integral negates signed_integral; after substituting
+// the opened atoms and simplifying its repeated integral test, that becomes
+// integral_like<T> and not is_signed_like_v<T> below.
 //
 // bool comes out unsigned_integral_like, exactly as std::unsigned_integral
 // <bool> already holds; these concepts widen the built-in ones rather than
 // tidy them up.
 //
-// The unsigned one is where the parallel with <concepts> deliberately stops.
-// std::unsigned_integral is integral<T> && !signed_integral<T>, and copying
-// that shape here would be wrong, because signed_integral_like asks for more
-// than a sign: a signed integer-class type whose author has not specialized
-// xstd::make_unsigned_like fails it, and "integral_like and not
-// signed_integral_like" would then report that type as *unsigned*. Asking
-// is_unsigned_like_v - the standard's own T(0) < T(-1), over the opened
-// arithmetic test - answers the question actually being asked, and leaves such
-// a type neither signed nor unsigned, which is what it is.
+// The unsigned concept deliberately follows the standard's spelling as the
+// negation of signedness, rather than being based on is_unsigned_like_v.
 //
 // Both are written as "integral_like<T> and ..." rather than as a flat list of
 // requirements, so that each one *subsumes* integral_like. That is what lets a
@@ -105,93 +86,15 @@ concept integral_like = is_integral_like_v<T>;
 template<class T>
 concept unsigned_integral_like =
         integral_like<T> and
-        is_unsigned_like_v<T>;
+        (not is_signed_like_v<T>);
 
-// A signed integer-like type is one that also has somewhere to put a
-// magnitude that its own range cannot hold: |MIN| is one past MAX at every
-// width, so an unsigned counterpart is part of what makes a signed integer
-// usable, not an optional extra. Requiring it here is what lets xstd::uabs be
-// total, and what makes the division family's postconditions checkable on a
-// denominator of MIN.
+// Like std::signed_integral, this concept classifies only by integrality and
+// signedness. Operations which need an unsigned counterpart constrain that
+// operation separately; they are not part of the numeric category itself.
 template<class T>
 concept signed_integral_like =
         integral_like<T> and
-        is_signed_like_v<T> and
-        requires { typename make_unsigned_like_t<T>; } and
-        unsigned_integral_like<make_unsigned_like_t<T>> and
-        std::constructible_from<make_unsigned_like_t<T>, T>;
-
-// The same question integral_like asks, asked again of every operation it
-// requires: can any of them throw?
-//
-// For a built-in type the answer is always yes-they-are-noexcept, and this
-// trait is a constant true. It exists for the other kind: an integer-class
-// type is under no obligation to be non-throwing, and
-// Boost.Multiprecision's operator/ really does throw std::overflow_error on a
-// zero divisor. <xstd/cstdlib.hpp> uses these two to say noexcept exactly
-// rather than approximately - unconditionally noexcept would be a promise the
-// library cannot keep on such a type's behalf, and dropping noexcept
-// altogether would give up a guarantee that is true at every built-in width.
-//
-// A note on the names, since this file argues elsewhere that _like belongs
-// only to entities widening a standard one, and that there is deliberately no
-// is_signed_integral_like_v. Neither of these is a widening: the standard has
-// no is_nothrow_integral to open. They are the nothrow *companions* of
-// is_integral_like and of signed_integral_like, in the sense that
-// std::is_nothrow_constructible is the companion of std::is_constructible -
-// the _like travels with the notion they are derived from. And the signed one
-// earns a name here where a plain is_signed_integral_like_v did not, because
-// it is not a second spelling of a concept that already exists: there is no
-// nothrow concept for it to duplicate.
-template<class T>
-inline constexpr auto is_nothrow_integral_like_v = false;
-
-// The static_casts match, operator for operator, the requirement set
-// integral_like reaches through its trait - xstd::exposition_only::
-// integral_class_type - and are load-bearing for the same reason they are
-// there: an operator may return something that is not yet a T - a promoted int
-// for the narrow widths, an expression-template proxy for a type like
-// Boost.Multiprecision's - and materialising that is itself an operation that
-// can throw. clang-tidy sees only the instantiations where the operator
-// already returns T and calls the cast redundant; it is redundant for those
-// and necessary for the others, which is what a template is for. It does not
-// raise this against the identical casts in that concept, which sit inside a
-// concept rather than a variable template.
-//
-// NOLINTBEGIN(readability-redundant-casting)
-template<integral_like T>
-inline constexpr auto is_nothrow_integral_like_v<T> = requires (T const a, T const b) {
-        { static_cast<T>(0) } noexcept;
-        { static_cast<T>(-a) } noexcept;
-        { static_cast<T>(a + b) } noexcept;
-        { static_cast<T>(a - b) } noexcept;
-        { static_cast<T>(a * b) } noexcept;
-        { static_cast<T>(a / b) } noexcept;
-        { static_cast<T>(a % b) } noexcept;
-        { a < b } noexcept;
-        { a == b } noexcept;
-};
-// NOLINTEND(readability-redundant-casting)
-
-template<class T>
-using is_nothrow_integral_like = std::bool_constant<is_nothrow_integral_like_v<T>>;
-
-// Everything above, for both halves of the signed/unsigned pair, plus the
-// conversion between them: exactly the set of operations <xstd/cstdlib.hpp>
-// performs. uabs converts T to its counterpart and does the arithmetic there,
-// and the division family's postconditions run through uabs, so no function in
-// that header touches one type without the other.
-template<class T>
-inline constexpr auto is_nothrow_signed_integral_like_v = false;
-
-template<signed_integral_like T>
-inline constexpr auto is_nothrow_signed_integral_like_v<T> =
-        is_nothrow_integral_like_v<T> and
-        is_nothrow_integral_like_v<make_unsigned_like_t<T>> and
-        std::is_nothrow_constructible_v<make_unsigned_like_t<T>, T>;
-
-template<class T>
-using is_nothrow_signed_integral_like = std::bool_constant<is_nothrow_signed_integral_like_v<T>>;
+        is_signed_like_v<T>;
 
 } // namespace xstd
 

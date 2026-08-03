@@ -6,9 +6,8 @@
 #ifndef XSTD_UTILITY_HPP
 #define XSTD_UTILITY_HPP
 
-#include <xstd/concepts.hpp> // enumeration
-#include <type_traits>       // integral_constant, underlying_type_t
-#include <utility>           // to_underlying
+#include <type_traits> // integral_constant, is_enum_v, underlying_type_t
+#include <utility>     // to_underlying
 
 namespace xstd {
 
@@ -18,11 +17,9 @@ namespace xstd {
 // xstd::uabs's is: it would mention std::underlying_type_t<Enum>, and Clang
 // before 21 (no CWG2369) substitutes the return type before checking the
 // constraint, turning to_underlying(non_enum) in a requires-expression from
-// false into a hard error. The constraint is a type-constraint on Enum, which
-// reads next to the parameter it restricts and is checked at the same point a
-// requires-clause in the template head would be, so it leaves that ordering
-// unchanged.
-template<enumeration Enum, Enum N>
+// false into a hard error.
+template<class Enum, Enum N>
+        requires std::is_enum_v<Enum>
 [[nodiscard]] constexpr auto to_underlying(std::integral_constant<Enum, N>) noexcept
 {
         return std::integral_constant<std::underlying_type_t<Enum>, std::to_underlying(N)>();

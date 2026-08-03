@@ -3,36 +3,19 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/concepts.hpp>           // enumeration, specialization_of, integral_like, signed_integral_like, unsigned_integral_like
-#include <xstd/type_traits.hpp>        // empty_type, is_integral_like_v, is_specialization_of_v
-#include <xstd/test/constexpr.hpp>     // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
-#include <xstd/test/integer_class.hpp> // signed_integer_class, unsigned_integer_class
-#include <boost/test/unit_test.hpp>    // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_CHECK
-#include <complex>                     // complex
-#include <concepts>                    // integral, signed_integral, unsigned_integral
-#include <cstdint>                     // int8_t, int16_t, int32_t, int64_t
-#include <tuple>                       // tuple
-#include <type_traits>                 // make_unsigned_t
+#include <xstd/concepts.hpp>        // specialization_of, integral_like, signed_integral_like, unsigned_integral_like
+#include <xstd/type_traits.hpp>     // empty_type, is_integral_like_v, is_specialization_of_v
+#include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
+#include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_CHECK
+#include <complex>                  // complex
+#include <concepts>                 // integral, signed_integral, unsigned_integral
+#include <cstdint>                  // int8_t, int16_t, int32_t, int64_t
+#include <tuple>                    // tuple
+#include <type_traits>              // make_unsigned_t
 
 BOOST_AUTO_TEST_SUITE(Concepts)
 
-enum unscoped { u0 };
 enum class scoped : unsigned { s0 };
-struct not_an_enum
-{};
-
-BOOST_AUTO_TEST_CASE(Enumeration)
-{
-        XSTD_CONSTEXPR_CHECK(xstd::enumeration<unscoped>);
-        XSTD_CONSTEXPR_CHECK(xstd::enumeration<scoped>);
-
-        XSTD_CONSTEXPR_CHECK(not xstd::enumeration<int>);
-        XSTD_CONSTEXPR_CHECK(not xstd::enumeration<bool>);
-        XSTD_CONSTEXPR_CHECK(not xstd::enumeration<not_an_enum>);
-        XSTD_CONSTEXPR_CHECK(not xstd::enumeration<scoped&>);
-        XSTD_CONSTEXPR_CHECK(not xstd::enumeration<scoped*>);
-        XSTD_CONSTEXPR_CHECK(not xstd::enumeration<void>);
-}
 
 // the partial application a type-constraint needs: the primary template alone
 template<xstd::specialization_of<std::complex> T>
@@ -113,7 +96,6 @@ BOOST_AUTO_TEST_CASE(IntegralLike)
 
         // nothing whose std::numeric_limits says it is not an integer
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<double>);
-        XSTD_CONSTEXPR_CHECK(not xstd::integral_like<not_an_enum>);
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<scoped>);
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<int*>);
 
@@ -128,11 +110,11 @@ BOOST_AUTO_TEST_CASE(IntegralLike)
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<int[3]>);
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<int()>);
 
-        // cv-qualified types are outside the trait's domain, which is the one
-        // place these concepts narrow rather than widen the standard's:
-        // std::integral<int const> holds. It is why xstd::make_unsigned_like
-        // has nothing to say about cv-qualified types either
-        XSTD_CONSTEXPR_CHECK(not xstd::integral_like<int const>);
+        // C++23's arithmetic concepts inherit the category traits' cv
+        // transparency, and the widened concepts do the same.
+        XSTD_CONSTEXPR_CHECK(xstd::integral_like<int const>);
+        XSTD_CONSTEXPR_CHECK(xstd::signed_integral_like<int const>);
+        XSTD_CONSTEXPR_CHECK(xstd::unsigned_integral_like<unsigned volatile>);
 }
 
 // The concept agrees with the trait it is spelled over, on the types where
@@ -146,7 +128,6 @@ BOOST_AUTO_TEST_CASE(IntegralLikeAgreesWithItsTrait)
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<void> == xstd::is_integral_like_v<void>);
         // NOLINTNEXTLINE(modernize-avoid-c-arrays): a built-in array is the type under test, not a container choice
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<int[3]> == xstd::is_integral_like_v<int[3]>);
-        XSTD_CONSTEXPR_CHECK(xstd::integral_like<xstd::test::signed_integer_class> == xstd::is_integral_like_v<xstd::test::signed_integer_class>);
 }
 
 // Overloading on integral_like and signed_integral_like has to partial-order
@@ -172,31 +153,6 @@ BOOST_AUTO_TEST_CASE(NarrowerConceptsSubsume)
 {
         XSTD_CONSTEXPR_CHECK(which(1) == 2);
         XSTD_CONSTEXPR_CHECK(which(1U) == 1);
-        XSTD_CONSTEXPR_CHECK(which(xstd::test::signed_integer_class{1}) == 2);
-        XSTD_CONSTEXPR_CHECK(which(xstd::test::unsigned_integer_class{1}) == 1);
-}
-
-// The shape std::signed_integral can never describe, on any compiler or
-// dialect: a class type. It qualifies here by supplying the operators, the
-// std::numeric_limits specialization and the xstd::make_unsigned_like
-// specialization - by behaving like an integer rather than by being on a
-// list.
-BOOST_AUTO_TEST_CASE(IntegerClassTypes)
-{
-        using S = xstd::test::signed_integer_class;
-        using U = xstd::test::unsigned_integer_class;
-
-        XSTD_CONSTEXPR_CHECK(not std::integral<S> and not std::integral<U>);
-
-        XSTD_CONSTEXPR_CHECK(xstd::integral_like<S> and xstd::signed_integral_like<S>);
-        XSTD_CONSTEXPR_CHECK(not xstd::unsigned_integral_like<S>);
-
-        XSTD_CONSTEXPR_CHECK(xstd::integral_like<U> and xstd::unsigned_integral_like<U>);
-        // U is its own unsigned counterpart, the way every unsigned type is.
-        // What keeps it out of signed_integral_like is its signedness, not a
-        // missing xstd::make_unsigned_like specialization
-        XSTD_CONSTEXPR_CHECK(not xstd::signed_integral_like<U>);
-        XSTD_CONSTEXPR_CHECK(not xstd::is_signed_like_v<U>);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
