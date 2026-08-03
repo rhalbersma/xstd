@@ -1,0 +1,26 @@
+//          Copyright Rein Halbersma 2014-2026.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
+#ifndef XSTD_CSTDLIB_UABS_HPP
+#define XSTD_CSTDLIB_UABS_HPP
+
+#include <xstd/concepts/signed_integral_like.hpp>  // signed_integral_like
+#include <xstd/type_traits/make_unsigned_like.hpp> // make_unsigned_like_t
+
+namespace xstd {
+
+// Total absolute value, returning the unsigned counterpart so MIN is valid.
+template<signed_integral_like T>
+[[nodiscard]] constexpr auto uabs(T x) noexcept
+{
+        using U = make_unsigned_like_t<T>;
+        auto const zero = static_cast<U>(0);
+        auto const u = static_cast<U>(x);
+        return static_cast<U>(x < static_cast<T>(0) ? zero - u : u);
+}
+
+} // namespace xstd
+
+#endif // XSTD_CSTDLIB_UABS_HPP
