@@ -6,13 +6,27 @@
 #ifndef XSTD_TYPE_TRAITS_HPP
 #define XSTD_TYPE_TRAITS_HPP
 
-#include <xstd/type_traits/is_integral_like.hpp>        // is_integral_like, is_integral_like_v
-#include <xstd/type_traits/is_arithmetic_like.hpp>      // is_arithmetic_like, is_arithmetic_like_v
-#include <xstd/type_traits/is_signed_like.hpp>          // is_signed_like, is_signed_like_v
-#include <xstd/type_traits/is_unsigned_like.hpp>        // is_unsigned_like, is_unsigned_like_v
-#include <xstd/type_traits/make_signed_like.hpp>        // make_signed_like, make_signed_like_t
-#include <xstd/type_traits/make_unsigned_like.hpp>      // make_unsigned_like, make_unsigned_like_t
-#include <xstd/type_traits/is_specialization_of.hpp>    // is_specialization_of, is_specialization_of_v
-#include <xstd/type_traits/conditional_data_member.hpp> // conditional_data_member_t, empty_type
+// Helper classes
+#include <xstd/type_traits/empty_type.hpp> // empty_type
+
+// Primary type categories
+#include <xstd/type_traits/is_integral_like.hpp> // is_integral_like, is_integral_like_v
+
+// Composite type categories
+#include <xstd/type_traits/is_arithmetic_like.hpp> // is_arithmetic_like, is_arithmetic_like_v
+
+// Type properties
+#include <xstd/type_traits/is_signed_like.hpp>   // is_signed_like, is_signed_like_v
+#include <xstd/type_traits/is_unsigned_like.hpp> // is_unsigned_like, is_unsigned_like_v
+
+// Type relationships
+#include <xstd/type_traits/is_specialization_of.hpp> // is_specialization_of, is_specialization_of_v
+
+// Sign modifiers
+#include <xstd/type_traits/make_signed_like.hpp>   // make_signed_like, make_signed_like_t
+#include <xstd/type_traits/make_unsigned_like.hpp> // make_unsigned_like, make_unsigned_like_t
+
+// Miscellaneous transformations
+#include <xstd/type_traits/conditional_data_member.hpp> // conditional_data_member_t
 
 #endif // XSTD_TYPE_TRAITS_HPP

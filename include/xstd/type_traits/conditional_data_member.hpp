@@ -6,26 +6,10 @@
 #ifndef XSTD_TYPE_TRAITS_CONDITIONAL_DATA_MEMBER_HPP
 #define XSTD_TYPE_TRAITS_CONDITIONAL_DATA_MEMBER_HPP
 
-#include <compare>     // strong_ordering
-#include <type_traits> // conditional_t, is_same_v, remove_cvref_t
+#include <xstd/type_traits/empty_type.hpp> // empty_type
+#include <type_traits>                     // conditional_t
 
 namespace xstd {
-
-template<class Tag>
-struct empty_type
-{
-        [[nodiscard]] constexpr empty_type() noexcept = default;
-
-        // Lets an enclosing class construct this like any alternative member,
-        // without allowing the catch-all to hijack copy or move construction.
-        template<class... Args>
-                requires ((not std::is_same_v<std::remove_cvref_t<Args>, empty_type>) and ...)
-        [[nodiscard]] constexpr explicit empty_type(Args&&...) noexcept
-        {}
-
-        // Lets an enclosing class default comparisons over this member.
-        [[nodiscard]] friend constexpr auto operator<=>(empty_type, empty_type) noexcept -> std::strong_ordering = default;
-};
 
 // Tag keeps multiple absent [[no_unique_address]] members distinct.
 template<bool Condition, class Type, class Tag>
