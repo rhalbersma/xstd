@@ -27,9 +27,7 @@ BOOST_AUTO_TEST_SUITE(CStdLib)
 // The exact-width signed types, which is what one constrained template buys
 // over the <cstdlib>-style abs/labs/llabs/imaxabs naming: int8_t and int16_t
 // have no name in that scheme at all, and the two that do (int32_t, int64_t)
-// no longer need one. The two shapes of 128-bit integer - the built-in
-// __int128 and a class type - get their own cases further down, since neither
-// can appear in a list of built-in widths.
+// no longer need one. The portable 128-bit aliases get their own case below.
 using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t>;
 
 // Named concepts rather than bare requires-expressions in the test bodies:
@@ -363,58 +361,16 @@ BOOST_AUTO_TEST_CASE(BuiltInWidths)
         check_built_in_width<std::intmax_t>();
 }
 
-// The two shapes a 128-bit integer comes in, and the reason the constraint is
-// xstd::signed_integral_like rather than std::signed_integral.
-//
-// __int128 is a built-in type whose std::is_integral answer is a property of
-// the dialect rather than of the type: libstdc++ withholds it outside GNU
-// mode - the strictly conforming mode this project builds in - while libc++
-// gives it in every mode. std::signed_integral therefore covers this type on
-// some standard libraries and not others, at no fault of the type's.
-// Naming it is what -Wpedantic is for, hence the same suppression the header
-// carries.
-#ifdef __SIZEOF_INT128__
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
-#endif
-
-// __SIZEOF_INT128__ says the *compiler* has the type. It says nothing about
-// whether the *standard library* describes it, and those come apart: clang-cl
-// has __int128 on x64, but the MSVC STL specializes neither std::is_integral
-// nor std::numeric_limits for it, so nothing there says it is an integer and
-// integral_like correctly declines. numeric_limits is the gate rather than a
-// standard-library predefine because it is the thing integral_like actually
-// reads - if a library ever specializes it, this case starts testing on its
-// own, and if one specializes it while something else is missing, the
-// assertions below still fire rather than being skipped.
-//
-// A template so that the discarded branch is never instantiated: in a
-// non-templated context a discarded if-constexpr statement is still fully
-// checked, static_asserts included.
-template<class T>
-auto check_int128()
-        -> void
+// Platform details stay behind the xstd aliases; consumers and tests use only
+// the portable public names.
+BOOST_AUTO_TEST_CASE(Int128Aliases)
 {
-        if constexpr (std::numeric_limits<T>::is_specialized) {
-                static_assert(xstd::signed_integral_like<T>);
-                static_assert(std::same_as<decltype(xstd::uabs(T{})), xstd::make_unsigned_like_t<T>>);
-                static_assert(std::same_as<decltype(xstd::div(T{1}, T{1})), xstd::div_t<T>>);
+        static_assert(xstd::signed_integral_like<xstd::int128_t>);
+        static_assert(std::same_as<decltype(xstd::uabs(xstd::int128_t{})), xstd::uint128_t>);
+        static_assert(std::same_as<decltype(xstd::div(xstd::int128_t{1}, xstd::int128_t{1})), xstd::div_t<xstd::int128_t>>);
 
-                check_signed_integral_like<T>();
-        }
+        check_signed_integral_like<xstd::int128_t>();
 }
-
-BOOST_AUTO_TEST_CASE(Int128)
-{
-        check_int128<__int128>();
-
-        BOOST_CHECK(true); // the MSVC STL leaves __int128 undescribed, see above
-}
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
-#endif
 
 // Class template argument deduction: div_t{q, r} still spells the result of
 // a call to div at the argument's own width, the way the four separate

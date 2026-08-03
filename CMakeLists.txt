@@ -38,13 +38,23 @@ target_sources(
     BASE_DIRS include
     FILES
         include/xstd/concepts.hpp
-        include/xstd/concepts/exposition_only/integral-class.hpp
+        include/xstd/concepts/exposition_only.hpp
+        include/xstd/concepts/integral_like.hpp
+        include/xstd/concepts/signed_integral_like.hpp
+        include/xstd/concepts/specialization_of.hpp
+        include/xstd/concepts/unsigned_integral_like.hpp
         include/xstd/cstdint.hpp
         include/xstd/cstdlib.hpp
         include/xstd/memory.hpp
         include/xstd/type_traits.hpp
-        include/xstd/type_traits/numeric.hpp
-        include/xstd/type_traits/sign_modifications.hpp
+        include/xstd/type_traits/conditional_data_member.hpp
+        include/xstd/type_traits/is_arithmetic_like.hpp
+        include/xstd/type_traits/is_integral_like.hpp
+        include/xstd/type_traits/is_signed_like.hpp
+        include/xstd/type_traits/is_specialization_of.hpp
+        include/xstd/type_traits/is_unsigned_like.hpp
+        include/xstd/type_traits/make_signed_like.hpp
+        include/xstd/type_traits/make_unsigned_like.hpp
         include/xstd/utility.hpp
 )
 
