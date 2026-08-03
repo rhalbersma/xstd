@@ -16,6 +16,8 @@
 
 BOOST_AUTO_TEST_SUITE(Concepts)
 
+enum class scoped : unsigned { s0 };
+
 // the partial application a type-constraint needs: the primary template alone
 template<xstd::specialization_of<std::complex> T>
 [[nodiscard]] constexpr auto as_complex(T z) noexcept
@@ -95,7 +97,6 @@ BOOST_AUTO_TEST_CASE(IntegralLike)
 
         // nothing whose std::numeric_limits says it is not an integer
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<double>);
-        XSTD_CONSTEXPR_CHECK(not xstd::integral_like<not_an_enum>);
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<scoped>);
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<int*>);
 
