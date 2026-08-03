@@ -6,7 +6,9 @@
 #ifndef XSTD_EXPOSITION_ONLY_HPP
 #define XSTD_EXPOSITION_ONLY_HPP
 
-#include <concepts>    // constructible_from, integral, regular, same_as, totally_ordered
+#include <compare>     // strong_ordering
+#include <concepts>    // constructible_from, integral, regular, same_as, three_way_comparable
+#include <cstddef>     // size_t
 #include <limits>      // numeric_limits
 #include <type_traits> // remove_cv_t
 
@@ -72,7 +74,8 @@ namespace xstd::exposition_only {
 //   where libstdc++ and libc++ happen to answer false. A trait that widens
 //   std::is_integral_v has to cope with an incomplete type at least as well as
 //   std::is_integral_v does, and it answers false for one quite happily.
-// - std::regular and std::totally_ordered. B(I), the hypothetical extended
+// - std::regular and std::three_way_comparable<I, std::strong_ordering>, as
+//   required verbatim by [iterator.concept.winc]. B(I), the hypothetical extended
 //   integer type an integer-class type behaves as, is copyable, default
 //   constructible, equality-comparable and ordered, so I is too. std::regular
 //   leads the rest of the conjunction for a second reason: std::numeric_limits'
@@ -90,42 +93,82 @@ namespace xstd::exposition_only {
 //   std::constructible_from is the right question and "a < 0" is not: that
 //   expression need not compile for one, while "a < static_cast<I>(0)" does.
 //   Everything in <xstd/cstdlib.hpp> spells its constants the second way.
-// - the six arithmetic operators, each written through static_cast<I>. The
+// - the complete same-type integer operator family, required not to throw.
+//   Value-producing operators are written through static_cast<I>. The
 //   built-in types promote - int8_t + int8_t is an int - so requiring the
 //   operators to return I directly would exclude precisely the widths this
 //   library exists to cover, while requiring the cast to land on I rather
 //   than on merely something convertible is what keeps a partial imitation
 //   out.
 //
-// What is deliberately *not* required, though [iterator.concept.winc] does
-// require it of the standard's own integer-class types: ++ and --, the
-// compound assignments, the bitwise and shift operators, explicit conversion
-// back to any integral type, contextual conversion to bool, the common_type
-// specializations, and a width greater than 64. The inclusion therefore runs
-// one way and only one way - every integer-class type satisfies this concept,
-// since the standard asks strictly more of one - which is the direction that
-// matters: no type the standard blesses is turned away. Asking for the rest
-// would turn away types that do everything xstd will ever ask of them,
-// starting with the 32-bit fixture in test/include/xstd/test/integer_class.hpp
-// and with any user's type that provides arithmetic without bit-twiddling. A
-// concept is a promise about what will be *used*, and <xstd/cstdlib.hpp> uses
-// exactly what is listed above.
+// Increment and decrement have the semantic effects of += I(1) and -= I(1);
+// a requires-expression can check their signatures but cannot prove that law.
+// Each arity and operand shape has its own requires-expression: zero is
+// nullary, unary operators and increment/decrement name one I, same-type
+// binary and compound operators name two, and shifts pair one I with a bit
+// position (`std::size_t`). Value-producing and mutating shifts are separate
+// again so that each local parameter is used. This is the interface needed by
+// integer storage backends as well as arithmetic algorithms.
+//
+// The requirements that cannot be established structurally remain semantic:
+// the exact two's-complement range, modulo arithmetic, conversion values,
+// common_type closure with every other integer-like type, and width.
 template<class I>
 concept integral_class_type =
         (not std::integral<I>) and
         requires { sizeof(I); } and
         std::regular<I> and
-        std::totally_ordered<I> and
+        std::three_way_comparable<I, std::strong_ordering> and
         std::numeric_limits<I>::is_specialized and
         std::numeric_limits<I>::is_integer and
         std::constructible_from<I, int> and
+        requires {
+                { static_cast<I>(0) } noexcept -> std::same_as<I>;
+        } and
+        requires (I const a) {
+                { static_cast<I>(+a) } noexcept -> std::same_as<I>;
+                { static_cast<I>(-a) } noexcept -> std::same_as<I>;
+                { static_cast<I>(~a) } noexcept -> std::same_as<I>;
+        } and
         requires (I const a, I const b) {
-                { static_cast<I>(-a) } -> std::same_as<I>;
-                { static_cast<I>(a + b) } -> std::same_as<I>;
-                { static_cast<I>(a - b) } -> std::same_as<I>;
-                { static_cast<I>(a * b) } -> std::same_as<I>;
-                { static_cast<I>(a / b) } -> std::same_as<I>;
-                { static_cast<I>(a % b) } -> std::same_as<I>;
+                { static_cast<I>(a + b) } noexcept -> std::same_as<I>;
+                { static_cast<I>(a - b) } noexcept -> std::same_as<I>;
+                { static_cast<I>(a * b) } noexcept -> std::same_as<I>;
+                { static_cast<I>(a / b) } noexcept -> std::same_as<I>;
+                { static_cast<I>(a % b) } noexcept -> std::same_as<I>;
+                { static_cast<I>(a & b) } noexcept -> std::same_as<I>;
+                { static_cast<I>(a | b) } noexcept -> std::same_as<I>;
+                { static_cast<I>(a ^ b) } noexcept -> std::same_as<I>;
+                // [iterator.concept.winc] requires the same result type and
+                // value category as the corresponding operations on B(I).
+                // Built-in equality is a bool prvalue, not merely a
+                // boolean-testable proxy; integral <=> is strong_ordering.
+                { a == b } noexcept -> std::same_as<bool>;
+                { a <=> b } noexcept -> std::same_as<std::strong_ordering>;
+        } and
+        requires (I a, I const b) {
+                { a += b } noexcept -> std::same_as<I&>;
+                { a -= b } noexcept -> std::same_as<I&>;
+                { a *= b } noexcept -> std::same_as<I&>;
+                { a /= b } noexcept -> std::same_as<I&>;
+                { a %= b } noexcept -> std::same_as<I&>;
+                { a &= b } noexcept -> std::same_as<I&>;
+                { a |= b } noexcept -> std::same_as<I&>;
+                { a ^= b } noexcept -> std::same_as<I&>;
+        } and
+        requires (I a) {
+                { ++a } noexcept -> std::same_as<I&>;
+                { a++ } noexcept -> std::same_as<I>;
+                { --a } noexcept -> std::same_as<I&>;
+                { a-- } noexcept -> std::same_as<I>;
+        } and
+        requires (I const a, std::size_t n) {
+                { static_cast<I>(a << n) } noexcept -> std::same_as<I>;
+                { static_cast<I>(a >> n) } noexcept -> std::same_as<I>;
+        } and
+        requires (I a, std::size_t n) {
+                { a <<= n } noexcept -> std::same_as<I&>;
+                { a >>= n } noexcept -> std::same_as<I&>;
         };
 
 // [iterator.concept.winc]'s is-integer-like: an integral type, or an
@@ -133,28 +176,23 @@ concept integral_class_type =
 // value, and xstd::integral_like is this concept's public name; both are
 // spelled over it rather than duplicating it.
 //
-// Two deliberate departures from the standard's is-integer-like:
+// One deliberate departure from the standard's iterator-only
+// is-integer-like:
 //
 // - bool is included here and excluded there (LWG 3467). xstd's concepts
 //   widen std::integral, which accepts bool, and they widen it rather than
 //   tidy it up: bool comes out xstd::unsigned_integral_like exactly as
 //   std::unsigned_integral<bool> already holds. is-integer-like has a
 //   different job - describing what an iterator's difference type may be -
-//   and bool is not one of those.
-// - cv-qualified types are excluded here and included there. std::integral
-//   <int const> holds, but no cv-qualified type is one
-//   xstd::make_unsigned_like will name a counterpart for, and no function in
-//   <xstd/cstdlib.hpp> can be instantiated at one, since a by-value parameter
-//   deduces its cv-qualifiers away. Excluding them keeps the domain the same
-//   as make_unsigned_like's, which is restricted by the same same_as test.
-//   The restriction is load-bearing for the first disjunct only: a
-//   cv-qualified class type is already turned away by integral_class_type's
-//   std::regular, and std::regular alone would not do the job here either -
-//   it rejects int const, which is not assignable, but accepts int volatile,
-//   which is.
+//   and bool is not one of those. As a public numeric widening of
+//   std::integral, this also follows the standard arithmetic concepts for
+//   cv-qualified integral types:
+//   std::integral<const int> is true because the underlying type trait is
+//   cv-transparent. A cv-qualified class type still fails integral_class_type's
+//   std::regular requirement; removing cv-qualification from an arbitrary class
+//   would instead test a different type with a different operator surface.
 template<class I>
 concept is_integral_like =
-        std::same_as<I, std::remove_cv_t<I>> and
         (std::integral<I> or integral_class_type<I>);
 
 } // namespace xstd::exposition_only

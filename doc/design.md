@@ -123,7 +123,7 @@ answer - in two steps rather than one:
 - `xstd::exposition_only::integral_class_type` in
   `<xstd/exposition_only.hpp>` is the standard's *integer-class type*
   re-derived structurally: a concept that asks what a type *does* -
-  `std::regular`, `std::totally_ordered`, a specialized `std::numeric_limits`
+  `std::regular`, `std::three_way_comparable<I, std::strong_ordering>`, a specialized `std::numeric_limits`
   saying `is_integer`, explicit construction from `int`, and the six
   arithmetic operators - rather than what it is called.
 - `xstd::is_integral_like_v` in `<xstd/type_traits.hpp>` is then the
@@ -131,29 +131,30 @@ answer - in two steps rather than one:
   in `<xstd/concepts.hpp>` is its constraint spelling, the same way
   `std::integral` is `std::is_integral_v`'s.
 
-It is a strict superset of `std::integral` at every cv-unqualified type, so
-every type that worked before still works, with the same result types and the
-same values. The one narrowing is deliberate: `std::integral<int const>`
-holds and `xstd::integral_like<int const>` does not, because no cv-qualified
-type has a `make_unsigned_like` counterpart and no function in
-`<xstd/cstdlib.hpp>` can be instantiated at one.
+It is a superset of `std::integral`, including cv-qualified integral types.
+That follows C++23's definition directly: `std::integral<T>` reads the
+cv-transparent `std::is_integral_v<T>`, so `std::integral<const int>` holds.
+The widened category must not introduce a different cv policy.
 
 Two things this design has to get right, both of which took a false start:
 
-- **The unsigned pairing has to be an open trait too.** `uabs` needs the
-  unsigned counterpart of its argument type, and `signed_integral_like` needs
-  to *test* for one. `std::make_unsigned` can do neither: its domain is the
+- **The signed/unsigned pairing has to be open too.** `uabs` needs the
+  unsigned counterpart of its argument type, and generic code needs the
+  inverse transformation as well. `std::make_signed` and `std::make_unsigned`
+  cannot provide either direction for an integer-class type: their domain is the
   same closed list, and outside it it is ill-formed rather than empty, so
   naming it in a concept turns the check that was supposed to answer "no"
-  into a stopped compile. Hence `xstd::make_unsigned_like`, whose primary
-  template is deliberately empty. Its domain is `std::make_unsigned`'s own -
+  into a stopped compile. Hence `xstd::make_signed_like` and
+  `xstd::make_unsigned_like`, whose primary templates are deliberately empty.
+  Their domain is the standard transformations' own -
   every integer-like type except `bool` - opened to the integer-class types,
   in two specializations that split the work the way the standard splits it:
-  a built-in integral type answers what `std::make_unsigned` answers, signed
-  or unsigned alike, and an unsigned integer-*class* type is its own
-  counterpart. Only a *signed* class type has a partner the compiler cannot
-  work out, so that is the one line a user of such a type writes. See below
-  for why the trait is not called `xstd::make_unsigned`.
+  a built-in integral type forwards to the corresponding standard trait, and
+  an integer-*class* type is its own counterpart on the side it already
+  occupies. The reverse direction is a one-line specialization inheriting
+  from `std::type_identity<Partner>`, in the Boost.MPL metafunction-forwarding
+  style. The numeric category itself does not require this operation-specific
+  association. See below for the `_like` names.
 - **Literals have to be spelled `static_cast<T>(0)`.** An integer-class type
   is only required to be *explicitly* convertible from an integral type
   ([iterator.concept.winc]), so `denom != 0` need not compile for one even
@@ -197,85 +198,11 @@ is simply not formattable unless the user supplies a `std::formatter` for the
 element type. That is the existing lazy design doing the right thing without
 a new rule.
 
-### What a third-party integer-class type showed
+### Integer operations are `noexcept`
 
-`test/src/multiprecision.cpp` runs the division family over
-Boost.Multiprecision's `int128_t`/`int256_t`/`int512_t`/`int1024_t` - the four
-widths that library's own documentation uses. The fixture in
-`test/include/xstd/test/integer_class.hpp` models the category, but it was
-written against this concept and could have been quietly fitted to it;
-Boost.Multiprecision was not. It satisfies `xstd::signed_integral_like`
-unmodified, for the price of one `xstd::make_unsigned_like` specialization per
-type - the same line a user writes for any integer type the compiler does not
-know about.
+Built-in integer operations do not allocate and do not throw. Integer-class types are required to expose the same guarantee syntactically: every construction, comparison, arithmetic, bitwise, shift, compound-assignment, and increment/decrement expression checked by `integral_class_type` is a `noexcept` compound requirement. Prefix and postfix `++` and `--` additionally have the semantic effects of `+= I(1)` and `-= I(1)`, respectively; a requires-expression can verify their signatures and exception specifications but cannot prove that behavioral law. These requirements deliberately exclude heap-allocated and other potentially throwing arbitrary-precision types.
 
-It also covers a representation nothing else in the suite does. `cpp_int`'s
-signed types are *signed-magnitude*, so their range is symmetric:
-`min() == -max()`, where every other type tested - the built-in widths,
-`__int128`, the fixture - is two's complement and has one more negative value
-than positive. Two consequences fell out of that, and the first one was a bug
-in the test rather than in the library:
-
-- **Expected values for the `denom == MIN` case cannot be written as `max()`.**
-  `euclidean_div(-1, MIN)` has remainder `-1 - MIN`, which *equals* `max()`
-  only when `MIN == -max() - 1`. On a symmetric range it is `max() - 1`. The
-  corresponding check in `test/src/cstdlib.cpp` writes `max()` outright and is
-  right to, because every type it covers is two's complement; the
-  multiprecision battery has to derive the value from the type's own bounds.
-- **`abs`'s precondition is conservative here, not exact.** It is spelled
-  `x != numeric_limits<T>::min()` unconditionally, because on a two's
-  complement type `-MIN` is not representable. On a symmetric-magnitude type
-  `|MIN|` *is* representable and the call would be perfectly well-defined, so
-  the contract excludes an input it did not have to. That is a safe direction
-  for a precondition to err in - `uabs` covers the case with no precondition at
-  all - and tightening it would mean asking the type whether its range is
-  symmetric, which is a runtime-visible property of `numeric_limits`, not of
-  the width. It is left alone deliberately, and the test does not call
-  `abs(min())`.
-
-Abseil's `absl::int128` was checked the same way and also satisfies the concept
-unmodified, but is not in the test suite: it needs a compiled library rather
-than headers alone, on every vcpkg-using leg of a matrix whose development
-toolchains are all required, and being two's complement it covers nothing that
-`__int128` does not already cover.
-
-### `noexcept` is conditional, because an integer-class type may throw
-
-`abs`, `uabs`, `sign`, `div`, `euclidean_div` and `floored_div` are
-`noexcept(...)` rather than plain `noexcept`. At every built-in width the
-condition is `true` and nothing changes: division by zero is undefined
-behaviour there, not an exception, so there is nothing to escape. For an
-integer-class type it is a promise the library cannot make on the type's
-behalf - Boost.Multiprecision's `operator/` throws `std::overflow_error` on a
-zero divisor, and an unconditional `noexcept` would turn that into
-`std::terminate` at the boundary.
-
-The condition is spelled through two traits in `<xstd/concepts.hpp>` rather
-than as a `noexcept(noexcept(...))` chain per signature, which is what keeps
-the declarations readable:
-
-- `is_nothrow_integral_like_v<T>` asks whether every operation `integral_like`
-  requires is `noexcept`. `abs` and `sign` use it, since they touch only `T`.
-- `is_nothrow_signed_integral_like_v<T>` asks the same of both halves of the
-  signed/unsigned pair, plus the conversion between them. `uabs` and the three
-  division functions use it, because `uabs` does its arithmetic in the
-  counterpart type and the division postconditions run through `uabs`.
-
-Neither is a widening of a standard trait - there is no `std::is_nothrow_integral`
-to open - so the `_like` in their names travels with the notion they are derived
-from, the way `std::is_nothrow_constructible` is the companion of
-`std::is_constructible` rather than a different question. The signed one earns a
-name where a plain `is_signed_integral_like_v` was rejected, because it is not a
-second spelling of an existing concept: there is no nothrow concept to duplicate.
-
-This was found by clang-tidy's `bugprone-exception-escape` as soon as
-`test/src/multiprecision.cpp` instantiated the family, and it was right to
-complain. The throw is only reachable out of contract - all three division
-functions assert `denom != 0` first - so an unconditional `noexcept` would not
-have been *wrong* so much as imprecise, and suppressing the check was the first
-response. Making the specification exact is better: the check stays enabled
-everywhere, the guarantee is still unconditional at every width the library is
-principally for, and a caller who wants to know can ask the trait directly.
+`abs`, `uabs`, `sign`, `div`, `euclidean_div` and `floored_div` are plain, unconditionally `noexcept`. Separate nothrow companion traits would not make that interface guarantee stronger and are not part of the interface.
 
 ### `xstd::uabs`
 
@@ -576,8 +503,8 @@ That gives the library a general rule, which is worth more than any single
 name: **an xstd entity that widens a standard one to class types keeps the
 standard one's name and appends `_like`.** So `std::integral` becomes
 `xstd::integral_like`, `std::is_arithmetic_v` becomes
-`xstd::is_arithmetic_like_v`, and `std::make_unsigned` becomes
-`xstd::make_unsigned_like`. A reader who knows the standard name can derive
+`xstd::is_arithmetic_like_v`, and `std::make_signed` / `std::make_unsigned`
+become `xstd::make_signed_like` / `xstd::make_unsigned_like`. A reader who knows the standard name can derive
 the xstd name without looking it up, and the suffix marks exactly what is
 different about it - the entity is open where the standard's is closed.
 
@@ -590,7 +517,7 @@ exist only as concepts, spelled over `is_signed_v` and `is_unsigned_v`. xstd
 therefore widens exactly those two, and its own signed and unsigned concepts
 are spelled over the results the same way the standard's are.
 
-`make_unsigned_like` is where the rule reads least well, and it is worth
+`make_signed_like` and `make_unsigned_like` are where the rule reads least well, and it is worth
 saying so: the suffix attaches to the whole trait name rather than to a
 predicate, so it says "the `make_unsigned`-like trait" rather than describing
 its result, which is not "unsigned-like" but simply unsigned. A name like
@@ -599,8 +526,8 @@ the grounds that one predictable rule beats a set of individually nicer names:
 having to remember which extensions were renamed and which were suffixed is a
 worse tax than one slightly awkward reading.
 
-The rule also disposes of the collision on its own terms. `xstd::make_unsigned`
-would have been the tempting name, but class templates have no overload
+The rule also disposes of the collision on its own terms. `xstd::make_signed`
+and `xstd::make_unsigned` would have been tempting names, but class templates have no overload
 resolution to disambiguate them the way `xstd::to_underlying` and
 `std::to_underlying` are disambiguated by their argument types: two class
 templates of the same unqualified name from two namespaces in scope are simply
@@ -633,6 +560,14 @@ whereas "is this type an integer" does, and is exactly what
   exposition-only concept and a second disjunct, with nothing else moving.
 - `is_signed_like_v` and `is_unsigned_like_v` then follow by copying the
   standard's own definitions with the opened arithmetic test substituted in.
+
+The public concepts follow [concepts.arithmetic] just as literally. After
+substituting the open traits, `signed_integral_like<T>` is
+`integral_like<T> && is_signed_like_v<T>`. C++23 defines
+`unsigned_integral<T>` as `integral<T> && !signed_integral<T>`, not with
+`is_unsigned_v`; simplifying the duplicated integral atom gives
+`integral_like<T> && !is_signed_like_v<T>`. This also preserves the shared
+atomic `integral_like<T>` constraint needed for subsumption.
 
 An earlier revision also spelled the signedness check as
 `std::numeric_limits<T>::is_signed` directly in the concept. That worked, but
@@ -672,7 +607,7 @@ short-circuits:
 specialization for the same reason, and their guard is now the standard's own
 and nothing more: `requires is_arithmetic_like_v<T>`, with everything else
 falling to the primary's `false`. An earlier revision needed two extra terms -
-`std::constructible_from<T, int>` and `std::totally_ordered<T>` - because
+`std::constructible_from<T, int>` and strong three-way ordering - because
 `is_arithmetic_like_v` was then a `numeric_limits` reading, and a class type
 can specialize `numeric_limits` without being constructible from `int` or
 ordered, which would have made forming `T(-1)` a hard error rather than a
@@ -739,17 +674,11 @@ class type, so it would leave `signed_integral_like` rejecting precisely the
 integer-class types the concept exists to admit - while still looking correct
 at every built-in width.
 
-`make_unsigned_like` is deliberately narrower than `std::make_unsigned` in
-one respect: it says nothing about cv-qualified types, where
-`std::make_unsigned` carries the qualifiers through. Nothing is lost, because
-`is_integral_like_v` is restricted by the same `remove_cv_t` test, so no
-cv-qualified type is `integral_like` to begin with. That restriction is
-written out rather than left to `std::regular`, which rejects `int const` -
-not assignable - but accepts `int volatile`, which is. What is gained is a
-domain that is the same on every platform: the `__int128` specialization
-names one type, and a cv-carrying trait would answer for that type's
-qualified forms only on the standard libraries where the generic partial
-specialization happens to match them too.
+`make_signed_like` and `make_unsigned_like` follow their standard counterparts
+for cv-qualified built-in integral types and carry their qualifiers through. That is consistent with
+the cv-transparent standard category traits and concepts. Integer-class types
+are still checked as written: stripping cv from an arbitrary class would test
+a different type with a potentially different operator surface.
 
 ### Why `is_integral_constant` does not constrain the wrapped type
 
