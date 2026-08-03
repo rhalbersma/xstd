@@ -12,13 +12,13 @@
 namespace xstd {
 
 // Total absolute value, returning the unsigned counterpart so MIN is valid.
-template<signed_integral_like T>
-[[nodiscard]] constexpr auto uabs(T x) noexcept
+template<signed_integral_like S>
+[[nodiscard]] constexpr auto uabs(S x) noexcept
 {
-        using U = make_unsigned_like_t<T>;
+        using U = make_unsigned_like_t<S>;
         auto const zero = static_cast<U>(0);
         auto const u = static_cast<U>(x);
-        return static_cast<U>(x < static_cast<T>(0) ? zero - u : u);
+        return static_cast<U>(x < static_cast<S>(0) ? zero - u : u);
 }
 
 } // namespace xstd

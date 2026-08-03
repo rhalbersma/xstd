@@ -13,13 +13,13 @@
 namespace xstd {
 
 // constexpr generalization of abs/labs/llabs/imaxabs.
-template<signed_integral_like T>
-[[nodiscard]] constexpr auto abs(T x) noexcept
-        -> T
+template<signed_integral_like S>
+[[nodiscard]] constexpr auto abs(S x) noexcept
+        -> S
 {
-        auto const zero = static_cast<T>(0);
-        assert(x != std::numeric_limits<T>::min()); // -x would overflow
-        return static_cast<T>(x < zero ? -x : x);
+        auto const zero = static_cast<S>(0);
+        assert(x != std::numeric_limits<S>::min()); // -x would overflow
+        return static_cast<S>(x < zero ? -x : x);
 }
 
 } // namespace xstd
