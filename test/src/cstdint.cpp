@@ -25,11 +25,6 @@ BOOST_AUTO_TEST_CASE(Int128)
         static_assert(xstd::unsigned_integral_like<xstd::uint128_t>);
         static_assert(std::is_same_v<xstd::make_signed_like_t<xstd::uint128_t>, xstd::int128_t>);
         static_assert(std::is_same_v<xstd::make_unsigned_like_t<xstd::int128_t>, xstd::uint128_t>);
-#ifdef _MSVC_STL_VERSION
-        static_assert(std::is_same_v<xstd::int128_t, std::_Signed128>);
-        static_assert(std::is_same_v<xstd::uint128_t, std::_Unsigned128>);
-#endif
-
         XSTD_CONSTEXPR_CHECK(xstd::int128_t{-1} < xstd::int128_t{0});
         XSTD_CONSTEXPR_CHECK((xstd::uint128_t{1} << 127) > xstd::uint128_t{0});
 }

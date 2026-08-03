@@ -86,11 +86,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(IntegralLikeIsASupersetOfIntegral, T, exact_width_
 
 BOOST_AUTO_TEST_CASE(IntegralLike)
 {
-        // the built-in character and boolean types, which std::integral also
-        // accepts. bool comes out unsigned, exactly as std::unsigned_integral
-        // <bool> already holds - these concepts widen the standard ones
-        // rather than tidy them up
-        XSTD_CONSTEXPR_CHECK(xstd::integral_like<bool> and xstd::unsigned_integral_like<bool>);
+        // [iterator.concept.winc]'s integer-like category explicitly excludes
+        // cv bool even though std::integral and std::unsigned_integral accept it.
+        XSTD_CONSTEXPR_CHECK(not xstd::integral_like<bool> and not xstd::unsigned_integral_like<bool>);
         XSTD_CONSTEXPR_CHECK(not xstd::signed_integral_like<bool>);
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<char> and xstd::integral_like<char32_t>);
 

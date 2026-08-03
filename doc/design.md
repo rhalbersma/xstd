@@ -120,18 +120,20 @@ neither reused from outside nor joined by a user's type. xstd therefore needs
 its own, open version, and builds it the way the standard builds its own
 answer - in two steps rather than one:
 
-- `xstd::exposition_only::integral_class_type` in
-  `<xstd/concepts/exposition_only/integral-class.hpp>` is the standard's *integer-class type*
+- `xstd::exposition_only::integer_class_type` in
+  `<xstd/concepts/exposition_only.hpp>` is the standard's *integer-class type*
   re-derived structurally: a concept that asks what a type *does* -
   `std::regular`, `std::three_way_comparable<I, std::strong_ordering>`, a specialized `std::numeric_limits`
   saying `is_integer`, explicit construction from `int`, and the six
   arithmetic operators - rather than what it is called.
-- `xstd::is_integral_like_v` in `<xstd/type_traits.hpp>` is then the
-  standard's *is-integer-like*: `std::integral`, or that. `xstd::integral_like`
-  in `<xstd/concepts.hpp>` is its constraint spelling, the same way
+- `xstd::exposition_only::is_integer_like` is then the standard's
+  *is-integer-like*: any type other than cv `bool` that is `std::integral`, or
+  an integer-class type. `xstd::is_integral_like_v` and `xstd::integral_like`
+  expose its trait and constraint spellings, the same way
   `std::integral` is `std::is_integral_v`'s.
 
-It is a superset of `std::integral`, including cv-qualified integral types.
+Apart from the standard-mandated exclusion of cv `bool`, it includes the
+`std::integral` types, including cv-qualified integral types.
 That follows C++23's definition directly: `std::integral<T>` reads the
 cv-transparent `std::is_integral_v<T>`, so `std::integral<const int>` holds.
 The widened category must not introduce a different cv policy.
@@ -160,36 +162,35 @@ Two things this design has to get right, both of which took a false start:
   ([iterator.concept.winc]), so `denom != 0` need not compile for one even
   though `denom != static_cast<T>(0)` does. Every constant in
   `<xstd/cstdlib.hpp>` is written that second way, which is why
-  `integral_class_type` requires `std::constructible_from<I, int>` rather than
+  `integer_class_type` requires `std::constructible_from<I, int>` rather than
   a comparison against a literal. For the built-in widths the two spellings are
   the same expression after promotion.
-- **`std::regular` has to lead the conjunction.** `std::numeric_limits`'
+- **The completeness guard has to lead the conjunction.** `std::numeric_limits`'
   primary template declares a static member function returning `I`, which for
   an array type is ill-formed rather than merely unspecialized - so
-  `integral_class_type<int[3]>` would be a hard error if the `numeric_limits`
-  terms were checked first. Putting `std::regular` first rejects arrays,
-  references, `void` and function types before `numeric_limits` is ever
-  instantiated over them. Four checks in `test/src/exposition_only.cpp` pin
-  that ordering, and four more in `test/src/concepts.cpp` pin that the public
+  `integer_class_type<int[3]>` would be a hard error if the `numeric_limits`
+  terms were checked first. `sizeof(I)` first rejects incomplete and
+  non-object types before `numeric_limits` is ever instantiated over them;
+  the remaining constraints then follow the standard's order, with
+  `numeric_limits` last. Checks in `test/src/exposition_only.cpp` pin that
+  behavior, and checks in `test/src/concepts.cpp` pin that the public
   concept inherits it; each becomes a compile error if it is disturbed.
 
 Three claims that were made for the old "128-bit integers are out" position
 do not survive contact:
 
-- **`-pedantic-errors` was never the obstacle.** It is dialect-independent -
-  it rejects naming `__int128` in GNU mode too - and it is suppressible with
-  `#pragma GCC diagnostic ignored "-Wpedantic"`, which is what
-  `<xstd/type_traits.hpp>` does around its one `__int128` specialization.
-  Switching the project to `gnu++23` would therefore not have helped, and
-  would have cost the strict-conformance policy for nothing.
+- **`-pedantic-errors` was never the obstacle.** All platform-specific type
+  selection is isolated in `<xstd/cstdint.hpp>`; every other header consumes
+  only `xstd::int128_t` and `xstd::uint128_t`. Switching the project to
+  `gnu++23` would therefore not have helped, and would have cost the
+  strict-conformance policy for nothing.
 - **MSVC does have a 128-bit integer type.** `std::_Signed128` is not
   integral, has no `std::make_unsigned` and no `std::formatter` - but it is
   precisely an integer-class type, so `signed_integral_like` reaches it with
   one user-written `make_unsigned_like` specialization.
 - **The exemption would not have been needed.** Supporting these types costs
-  no carve-out from the project's conformance flags: the headers compile
-  clean under `-Weverything -pedantic-errors -Werror`, and the tests name
-  `__int128` under the same local pragma the header uses.
+  no carve-out from the project's conformance flags: the public aliases hide
+  the platform representation from traits, algorithms, and their tests.
 
 What is *not* extended is formatting. `std::formatter<xstd::div_t<T>>`
 delegates to the tuple formatter, and a partial specialization's body is
@@ -200,7 +201,7 @@ a new rule.
 
 ### Integer operations are `noexcept`
 
-Built-in integer operations do not allocate and do not throw. Integer-class types are required to expose the same guarantee syntactically: every construction, comparison, arithmetic, bitwise, shift, compound-assignment, and increment/decrement expression checked by `integral_class_type` is a `noexcept` compound requirement. Prefix and postfix `++` and `--` additionally have the semantic effects of `+= I(1)` and `-= I(1)`, respectively; a requires-expression can verify their signatures and exception specifications but cannot prove that behavioral law. These requirements deliberately exclude heap-allocated and other potentially throwing arbitrary-precision types.
+Built-in integer operations do not allocate and do not throw. Integer-class types are required to expose the same guarantee syntactically: every construction, comparison, arithmetic, bitwise, shift, compound-assignment, and increment/decrement expression checked by `integer_class_type` is a `noexcept` compound requirement. Prefix and postfix `++` and `--` additionally have the semantic effects of `+= I(1)` and `-= I(1)`, respectively; a requires-expression can verify their signatures and exception specifications but cannot prove that behavioral law. These requirements deliberately exclude heap-allocated and other potentially throwing arbitrary-precision types.
 
 `abs`, `uabs`, `sign`, `div`, `euclidean_div` and `floored_div` are plain, unconditionally `noexcept`. Separate nothrow companion traits would not make that interface guarantee stronger and are not part of the interface.
 
@@ -579,7 +580,7 @@ left `signed_integral_like` rejecting precisely the integer-class types the
 concept exists to admit, while still looking correct at every built-in width.
 
 `std::numeric_limits` is still the marker for "this type is a number", read
-where it belongs - inside `integral_class_type`, alongside the operators that
+where it belongs - inside `integer_class_type`, alongside the operators that
 say what kind of number. It is the marker the standard already uses that way:
 it is specialized for exactly the arithmetic types, and a class type that means
 to behave like a number specializes it too.
@@ -600,7 +601,7 @@ short-circuits:
   while `std::destructible` - the first thing `std::regular` asks - requires a
   complete type, and the MSVC STL diagnoses one outright where libstdc++ and
   libc++ happen to answer `false`. A `requires { sizeof(I); }` term therefore
-  sits ahead of `std::regular` in `integral_class_type`, and
+  sits ahead of `std::regular` in `integer_class_type`, and
   `test/src/type_traits.cpp` pins the case for all four traits.
 
 `is_signed_like_v` and `is_unsigned_like_v` each carry a constrained partial
@@ -612,7 +613,7 @@ falling to the primary's `false`. An earlier revision needed two extra terms -
 can specialize `numeric_limits` without being constructible from `int` or
 ordered, which would have made forming `T(-1)` a hard error rather than a
 `false`. Arithmetic-like now *means* integer-like or floating-point, and
-`integral_class_type` asks a class type for exactly those two, so the standard's
+`integer_class_type` asks a class type for exactly those two, so the standard's
 guard carries them.
 
 Both are the standard's own comparisons, including the unsigned one:
@@ -637,7 +638,7 @@ then has one for each, which is what earns the second spelling its place under
 this file's rule that it has to enable a use the first cannot.
 
 `is_integral_like_v` is the one that cannot be *written* that way, and that is
-what `<xstd/concepts/exposition_only/integral-class.hpp>` is for. Three constraints pin the shape:
+what `<xstd/concepts/exposition_only.hpp>` is for. Three constraints pin the shape:
 
 - **Only a concept's conjunction short-circuits during satisfaction checking.**
   In a variable template's initializer, `A and B` still requires every operand

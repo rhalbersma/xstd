@@ -14,7 +14,7 @@
 
 // An incomplete class type is answered, not hard-errored: the traits being
 // widened cope with one, so these have to as well. It is the sizeof term in
-// xstd::exposition_only::integral_class_type that keeps them total - every
+// xstd::exposition_only::integer_class_type that keeps them total - every
 // question after it, std::regular's std::destructible first, needs a complete
 // type to be well-formed rather than merely false.
 BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAnswerForIncompleteTypes)
@@ -168,7 +168,6 @@ auto check_agrees_with_std()
 
 BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAgreeWithStd)
 {
-        check_agrees_with_std<bool>();
         check_agrees_with_std<char>();
         check_agrees_with_std<signed char>();
         check_agrees_with_std<unsigned char>();
@@ -192,14 +191,14 @@ BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAgreeWithStd)
 // The fourth opened trait, and the one whose standard counterpart answers
 // from a closed list rather than from a property: std::is_integral_v is
 // extended with [iterator.concept.winc]'s integer-class types, opened
-// structurally in <xstd/concepts/exposition_only/integral-class.hpp> and pinned in
+// structurally in <xstd/concepts/exposition_only.hpp> and pinned in
 // src/exposition_only.cpp. The four cases below check the trait spelling
 // itself. Agreement with std::is_integral_v wherever it can answer is already
 // covered by the sweep above, which this trait joins.
 BOOST_AUTO_TEST_CASE(IsIntegralLike)
 {
         XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<int>);
-        XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<bool>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<bool>);
         XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<char32_t>);
 
         XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<double>);
@@ -300,21 +299,6 @@ BOOST_AUTO_TEST_CASE(MakeSignedAndUnsignedLike)
 
         // cv-qualification is preserved, just as by std::make_unsigned.
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<int const>, unsigned const>));
-
-        // __int128 is the one built-in type whose std::is_integral answer
-        // depends on the dialect, so xstd names its counterpart outright
-        // rather than deriving it
-#ifdef __SIZEOF_INT128__
-#ifdef __GNUC__
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
-#endif
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<__int128>, unsigned __int128>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_signed_like_t<unsigned __int128>, __int128>));
-#ifdef __GNUC__
-#pragma GCC diagnostic pop
-#endif
-#endif
 }
 
 BOOST_AUTO_TEST_SUITE_END()
