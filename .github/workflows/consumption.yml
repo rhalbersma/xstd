@@ -84,6 +84,7 @@ jobs:
           cat > main.cpp << 'CPP'
           #include <xstd/concepts.hpp>
           #include <xstd/cstdlib.hpp>
+          #include <xstd/format.hpp>
           #include <xstd/type_traits.hpp>
           #include <xstd/utility.hpp>
           #include <complex>
@@ -127,6 +128,7 @@ jobs:
           cat > main.cpp << 'CPP'
           #include <xstd/concepts.hpp>
           #include <xstd/cstdlib.hpp>
+          #include <xstd/format.hpp>
           #include <xstd/type_traits.hpp>
           #include <xstd/utility.hpp>
           #include <complex>
@@ -163,6 +165,7 @@ jobs:
           cat > main.cpp << 'CPP'
           #include <xstd/concepts.hpp>
           #include <xstd/cstdlib.hpp>
+          #include <xstd/format.hpp>
           #include <xstd/type_traits.hpp>
           #include <xstd/utility.hpp>
           #include <complex>
