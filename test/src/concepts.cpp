@@ -86,9 +86,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(IntegralLikeIsASupersetOfIntegral, T, exact_width_
 
 BOOST_AUTO_TEST_CASE(IntegralLike)
 {
-        // [iterator.concept.winc]'s integer-like category explicitly excludes
-        // cv bool even though std::integral and std::unsigned_integral accept it.
-        XSTD_CONSTEXPR_CHECK(not xstd::integral_like<bool> and not xstd::unsigned_integral_like<bool>);
+        // The built-in branch follows std::integral, including its treatment
+        // of bool as an unsigned integral type.
+        XSTD_CONSTEXPR_CHECK(xstd::integral_like<bool> and xstd::unsigned_integral_like<bool>);
         XSTD_CONSTEXPR_CHECK(not xstd::signed_integral_like<bool>);
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<char> and xstd::integral_like<char32_t>);
 

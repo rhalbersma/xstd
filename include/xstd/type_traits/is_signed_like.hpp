@@ -6,18 +6,19 @@
 #ifndef XSTD_TYPE_TRAITS_IS_SIGNED_LIKE_HPP
 #define XSTD_TYPE_TRAITS_IS_SIGNED_LIKE_HPP
 
-#include <xstd/type_traits/is_arithmetic_like.hpp>
-#include <type_traits>
+#include <xstd/type_traits/is_arithmetic_like.hpp> // is_arithmetic_like_v
+#include <limits>                                  // numeric_limits
+#include <type_traits>                             // bool_constant
 
 namespace xstd {
 
+// std::is_signed with the arithmetic test opened to arithmetic-like types.
 template<class T>
 inline constexpr auto is_signed_like_v = false;
 
 template<class T>
         requires is_arithmetic_like_v<T>
-// NOLINTNEXTLINE(readability-implicit-bool-conversion,modernize-use-bool-literals)
-inline constexpr auto is_signed_like_v<T> = static_cast<T>(-1) < static_cast<T>(0);
+inline constexpr auto is_signed_like_v<T> = std::numeric_limits<T>::is_signed;
 
 template<class T>
 using is_signed_like = std::bool_constant<is_signed_like_v<T>>;

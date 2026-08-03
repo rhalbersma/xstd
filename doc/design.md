@@ -116,8 +116,7 @@ The standard hit the same wall and answered it with *integer-class types*
 spelled with `same_as` against each implementation's own reserved names
 (libstdc++ does exactly this in `<bits/iterator_concepts.h>`), so it can be
 neither reused from outside nor joined by a user's type. xstd therefore needs
-its own, open version, and builds it the way the standard builds its own
-answer - in two steps rather than one:
+its own, open version:
 
 - `xstd::exposition_only::integer_class_type` in
   `<xstd/concepts/exposition_only.hpp>` is the standard's *integer-class type*
@@ -125,14 +124,10 @@ answer - in two steps rather than one:
   `std::regular`, `std::three_way_comparable<I, std::strong_ordering>`, a specialized `std::numeric_limits`
   saying `is_integer`, explicit construction from `int`, and the six
   arithmetic operators - rather than what it is called.
-- `xstd::exposition_only::is_integer_like` is then the standard's
-  *is-integer-like*: any type other than cv `bool` that is `std::integral`, or
-  an integer-class type. `xstd::is_integral_like_v` and `xstd::integral_like`
-  expose its trait and constraint spellings, the same way
-  `std::integral` is `std::is_integral_v`'s.
-
-Apart from the standard-mandated exclusion of cv `bool`, it includes the
-`std::integral` types, including cv-qualified integral types.
+`xstd::integral_like` combines that structural concept directly with
+`std::integral`; `xstd::is_integral_like_v` exposes the same answer as a
+trait. It therefore includes all `std::integral` types, including `bool` and
+cv-qualified integral types.
 That follows C++23's definition directly: `std::integral<T>` reads the
 cv-transparent `std::is_integral_v<T>`, so `std::integral<const int>` holds.
 The widened category must not introduce a different cv policy.
