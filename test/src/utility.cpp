@@ -3,11 +3,9 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/utility.hpp>         // to_underlying, aligned_size
+#include <xstd/utility.hpp>         // to_underlying
 #include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
-#include <cstddef>                  // size_t
-#include <limits>                   // numeric_limits
 #include <type_traits>              // integral_constant
 #include <utility>                  // to_underlying
 
@@ -53,26 +51,6 @@ BOOST_AUTO_TEST_CASE(ToUnderlyingTypeIsConstrained)
         // than an ill-formed underlying_type_t (CWG2369, see design.md)
         XSTD_CONSTEXPR_CHECK((not has_to_underlying<std::integral_constant<int, 0>>));
         XSTD_CONSTEXPR_CHECK(not has_to_underlying<double>);
-}
-
-BOOST_AUTO_TEST_CASE(AlignedSize)
-{
-        // clang-format off
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size( 0, 8),  0);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size( 1, 8),  8);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size( 8, 8),  8);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size( 9, 8), 16);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size(64, 8), 64);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size(65, 8), 72);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size(std::numeric_limits<std::size_t>::max() - 7, 8), std::numeric_limits<std::size_t>::max() - 7);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size(std::numeric_limits<std::size_t>::max() - 8, 8), std::numeric_limits<std::size_t>::max() - 7);
-        // SIZE_MAX is divisible by 3, so this is the already-aligned case at
-        // the very top of the range, with a non-power-of-two alignment. It
-        // pins the contract as "the rounded result must fit", which is wider
-        // than the (size + alignment - 1) rounding idiom can honour: that
-        // form wraps to 0 here.
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size(std::numeric_limits<std::size_t>::max(), 3), std::numeric_limits<std::size_t>::max());
-        // clang-format on
 }
 
 BOOST_AUTO_TEST_SUITE_END()

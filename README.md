@@ -20,8 +20,9 @@ xstd is a header-only C++23 library for small standard-library extensions that c
 | `<xstd/concepts.hpp>` | `enumeration` <br> `specialization_of` <br> `integral_like` <br> `unsigned_integral_like` <br> `signed_integral_like` <br> `is_nothrow_integral_like` <br> `is_nothrow_signed_integral_like` | Is a type an enumeration type? <br> Constraint form of `is_specialization_of` <br> Constraint form of `is_integral_like` <br> Open form of `std::unsigned_integral` <br> Open form of `std::signed_integral` <br> Is every operation `integral_like` requires `noexcept`? <br> The same, for both halves of the signed/unsigned pair | none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> none <br> none |
 | `<xstd/cstdlib.hpp>` | `sign` <br> `abs` <br> `uabs` <br> `div_t` <br> `div` <br> `euclidean_div` <br> `floored_div` | `constexpr`, any signed integer-like type <br> `constexpr`, any signed integer-like type <br> Total `\|x\|`, returning the unsigned counterpart <br> Defaulted equality comparison, `std::format` support where the element type has it <br> `constexpr`, any signed integer-like type <br> Euclidean division <br> Floored division | [Boost.Math](https://www.boost.org/doc/libs/1_80_0/libs/math/doc/html/math_toolkit/sign_functions.html) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Rust `unsigned_abs`](https://doc.rust-lang.org/std/primitive.i32.html#method.unsigned_abs) (no C++ equivalent) <br> [p2286r8](https://wg21.link/p2286r8), [p3391](https://wg21.link/p3391) (C++29, not yet implemented) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) |
 | `<xstd/exposition_only.hpp>` | `integral_class_type` <br> `is_integral_like` | Structural form of an integer-class type <br> Structural form of `is-integer-like`, over the above | [iterator.concept.winc] <br> [iterator.concept.winc] |
+| `<xstd/memory.hpp>` | `aligned_size` | Round a size up to a power-of-two alignment | none |
 | `<xstd/type_traits.hpp>` | `is_integral_like` <br> `is_arithmetic_like` <br> `is_signed_like` <br> `is_unsigned_like` <br> `is_integral_constant` <br> `is_specialization_of` <br> `make_unsigned_like` <br> `empty_type` <br> `conditional_data_member_t` | `std::is_integral`, opened to integer-class types <br> `std::is_arithmetic`, opened through the integral half <br> `std::is_signed`, opened the same way <br> `std::is_unsigned`, opened the same way <br> Is a type an `integral_constant`? <br> Is a type a class template specialization? <br> Open, user-specializable `std::make_unsigned` <br> A tagged empty type <br> A conditionally present member | [iterator.concept.winc] (`is-integer-like`) <br> none <br> none <br> none <br> none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> none <br> none <br> none |
-| `<xstd/utility.hpp>` | `to_underlying` <br> `aligned_size` | `std::integral_constant` overload <br> Round a size up to a multiple of an alignment | none <br> none |
+| `<xstd/utility.hpp>` | `to_underlying` | `std::integral_constant` overload | none |
 
 ## Using xstd
 
@@ -79,12 +80,12 @@ static_assert(std::is_same_v<value, std::integral_constant<unsigned, 1>>);
 
 ### Rounding a size up to an alignment
 
-`xstd::aligned_size` rounds a requested size up to the next multiple of an alignment, e.g. to turn a bit count into a whole number of storage blocks. Its alignment must be nonzero and the rounded result must fit in `std::size_t`; violations are guarded by `assert`:
+`xstd::aligned_size` rounds a requested size up to the next multiple of an alignment, e.g. to turn a bit count into a whole number of storage blocks. Its alignment must be a power of two and the rounded result must fit in `std::size_t`; violations are guarded by `assert`:
 
 ```cpp
-#include <xstd/utility.hpp>
+#include <xstd/memory.hpp>
 
-static_assert(xstd::aligned_size(100, 64) == 128);
+static_assert(xstd::aligned_size(64, 100) == 128);
 ```
 
 ### Absolute value without a precondition
