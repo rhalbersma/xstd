@@ -169,7 +169,7 @@ BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAgreeWithStd)
 BOOST_AUTO_TEST_CASE(IsIntegralLike)
 {
         XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<int>);
-        XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<bool>);
+        XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<bool>);
         XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<char32_t>);
 
         XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<double>);

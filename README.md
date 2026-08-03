@@ -17,12 +17,14 @@ xstd is a header-only C++23 library for small standard-library extensions that c
 
 | Header | Additions, in order of definition | Description | Reference |
 | :----- | :-------------------------------- | :---------- | :-------- |
-| `<xstd/concepts.hpp>` | `specialization_of` <br> `integral_like` <br> `unsigned_integral_like` <br> `signed_integral_like` | Constraint form of `is_specialization_of` <br> Constraint form of `is_integral_like` <br> Open form of `std::unsigned_integral` <br> Open form of `std::signed_integral` | [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) |
+| `<xstd/concepts.hpp>` | `integral_like` <br> `signed_integral_like` <br> `unsigned_integral_like` <br> `specialization_of` | Constraint form of `is_integral_like` <br> Open form of `std::signed_integral` <br> Open form of `std::unsigned_integral` <br> Constraint form of `is_specialization_of` | [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) |
 | `<xstd/cstdint.hpp>` | `int128_t` <br> `uint128_t` | Platform 128-bit signed integer <br> Platform 128-bit unsigned integer | none <br> none |
-| `<xstd/cstdlib.hpp>` | `sign` <br> `abs` <br> `uabs` <br> `div_t` <br> `div` <br> `euclidean_div` <br> `floored_div` | `constexpr`, any signed integer-like type <br> `constexpr`, any signed integer-like type <br> Total `\|x\|`, returning the unsigned counterpart <br> Defaulted equality comparison, `std::format` support where the element type has it <br> `constexpr`, any signed integer-like type <br> Euclidean division <br> Floored division | [Boost.Math](https://www.boost.org/doc/libs/1_80_0/libs/math/doc/html/math_toolkit/sign_functions.html) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Rust `unsigned_abs`](https://doc.rust-lang.org/std/primitive.i32.html#method.unsigned_abs) (no C++ equivalent) <br> [p2286r8](https://wg21.link/p2286r8), [p3391](https://wg21.link/p3391) (C++29, not yet implemented) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) |
-| `<xstd/concepts/exposition_only.hpp>` | `integer_class_type` <br> `is_integer_like` | Structural form of an integer-class type <br> Structural form of `is-integer-like`, over the above | [iterator.concept.winc] <br> [iterator.concept.winc] |
+| `<xstd/cstdlib.hpp>` | `div_t` <br> `sign` <br> `abs` <br> `uabs` <br> `div` <br> `euclidean_div` <br> `floored_div` | Defaulted equality comparison <br> `constexpr`, any signed integer-like type <br> `constexpr`, any signed integer-like type <br> Total `\|x\|`, returning the unsigned counterpart <br> `constexpr`, any signed integer-like type <br> Euclidean division <br> Floored division | none <br> [Boost.Math](https://www.boost.org/doc/libs/1_80_0/libs/math/doc/html/math_toolkit/sign_functions.html) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Rust `unsigned_abs`](https://doc.rust-lang.org/std/primitive.i32.html#method.unsigned_abs) (no C++ equivalent) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) |
+| `<xstd/concepts/exposition_only.hpp>` | `integer_class_type` | Structural form of an integer-class type | [iterator.concept.winc] |
+| `<xstd/format.hpp>` | `formatter<div_t>` | `std::format` support where the element type has it | [p2286r8](https://wg21.link/p2286r8), [p3391](https://wg21.link/p3391) (C++29, not yet implemented) |
 | `<xstd/memory.hpp>` | `aligned_size` | Round a size up to a power-of-two alignment | none |
-| `<xstd/type_traits.hpp>` | `is_integral_like` <br> `is_arithmetic_like` <br> `is_signed_like` <br> `is_unsigned_like` <br> `is_specialization_of` <br> `make_signed_like` <br> `make_unsigned_like` <br> `empty_type` <br> `conditional_data_member_t` | `std::is_integral`, opened to integer-class types <br> `std::is_arithmetic`, opened through the integral half <br> `std::is_signed`, opened the same way <br> `std::is_unsigned`, opened the same way <br> Is a type a class template specialization? <br> Open, user-specializable `std::make_signed` <br> Open, user-specializable `std::make_unsigned` <br> A tagged empty type <br> A conditionally present member | [iterator.concept.winc] (`is-integer-like`) <br> none <br> none <br> none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> none <br> none <br> none <br> none |
+| `<xstd/ostream.hpp>` | `operator<<(ostream, div_t)` | Narrow stream support for test-framework diagnostics | none |
+| `<xstd/type_traits.hpp>` | `empty_type` <br> `is_integral_like` <br> `is_arithmetic_like` <br> `is_signed_like` <br> `is_unsigned_like` <br> `is_specialization_of` <br> `make_signed_like` <br> `make_unsigned_like` <br> `conditional_data_member_t` | A tagged empty type <br> `std::is_integral`, opened to integer-class types <br> `std::is_arithmetic`, opened through the integral half <br> `std::is_signed`, opened the same way <br> `std::is_unsigned`, opened the same way <br> Is a type a class template specialization? <br> Open, user-specializable `std::make_signed` <br> Open, user-specializable `std::make_unsigned` <br> A conditionally present member | none <br> [iterator.concept.winc] (`is-integer-like`) <br> none <br> none <br> none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> none <br> none <br> none |
 | `<xstd/utility.hpp>` | `to_underlying` | `std::integral_constant` overload | none |
 
 ## Using xstd
@@ -120,6 +122,7 @@ static_assert(xstd::uabs(std::int8_t{-128}) == std::uint8_t{128});
 ```cpp
 #include <format>
 #include <xstd/cstdlib.hpp>
+#include <xstd/format.hpp>
 
 constexpr auto euclidean = xstd::euclidean_div(-8, 3);
 static_assert(euclidean.quot == -3);
@@ -134,7 +137,7 @@ auto const text = std::format("{}", floored); // "(-3, 1)"
 
 `xstd::div`, `xstd::euclidean_div`, and `xstd::floored_div` require a nonzero denominator. Like built-in signed integer division, `MIN / -1` is outside their contract. `xstd::div` follows C++'s truncated division semantics, `xstd::euclidean_div` always returns a nonnegative remainder, and `xstd::floored_div` returns a remainder with the divisor's sign unless the remainder is zero. Each returns `xstd::div_t<T>` for its argument type `T`; class template argument deduction means the result can still be written `xstd::div_t{quot, rem}`.
 
-Formatting `xstd::div_t` requires C++23 standard-library support for formatting tuple-like values. This is covered by the continuously tested compiler and standard-library versions below. Prefer `std::format`/`std::print` over its `operator<<`, which exists only for test-framework diagnostics.
+Formatting `xstd::div_t` requires including `<xstd/format.hpp>` and C++23 standard-library support for formatting tuple-like values. This is covered by the continuously tested compiler and standard-library versions below. Its `operator<<` is provided separately by `<xstd/ostream.hpp>` for test-framework diagnostics; prefer `std::format`/`std::print` in application code.
 
 Formatting is the one operation here that isn't `constexpr`: the tuple formatter it delegates to isn't either. That is tracked rather than fixed in place — once a standard library implements [p3391](https://wg21.link/p3391) (`constexpr std::format`, approved for C++29) and defines `__cpp_lib_constexpr_format`, `std::format("{}", xstd::floored_div(-8, 3))` becomes usable in a constant expression with no change on the calling side. `operator<<` stays runtime-only whatever happens, since `std::ostream` does.
 
@@ -162,7 +165,7 @@ struct xstd::make_unsigned_like<my_int128> : std::type_identity<my_uint128> {};
 static_assert(xstd::signed_integral_like<my_int128>);
 ```
 
-Formatting is the one thing that does not follow: `std::formatter<xstd::div_t<T>>` delegates to the tuple formatter, so a `div_t` over a type without a `std::formatter` simply isn't formattable. The specialization's body is instantiated only where it is used, so this costs nothing until you try.
+Formatting is the one thing that does not follow: the specialization in `<xstd/format.hpp>` delegates to the tuple formatter, so a `div_t` over a type without a `std::formatter` simply isn't formattable. Its body is instantiated only where it is used.
 
 See [doc/design.md](doc/design.md) for the rationale behind these APIs' shapes (why one template rather than four overloads, and why the constraint is `integral_like` rather than `std::signed_integral`).
 
@@ -229,7 +232,7 @@ static_assert(xstd::unsigned_integral_like<unsigned>);
 static_assert(not xstd::signed_integral_like<double>);
 ```
 
-These concepts follow [iterator.concept.winc]'s integer-like category, including its explicit exclusion of cv-qualified `bool`; otherwise they include the integral types and add structurally recognized integer-class types. `xstd::make_signed_like` and `xstd::make_unsigned_like` open the standard transformation traits to integer-class types. Built-in types are forwarded to the corresponding standard trait, while a class type is its own counterpart on the side it already occupies. The opposite direction is supplied with a one-line `std::type_identity` specialization. Unlike the standard transformations, the xstd primary templates are empty rather than ill-formed outside their domain, so their availability can be tested safely.
+These concepts include every `std::integral` type, including cv-qualified `bool`, and add structurally recognized integer-class types from [iterator.concept.winc]. `xstd::make_signed_like` and `xstd::make_unsigned_like` open the standard transformation traits to integer-class types. Built-in types are forwarded to the corresponding standard trait, while a class type is its own counterpart on the side it already occupies. The opposite direction is supplied with a one-line `std::type_identity` specialization. Unlike the standard transformations, the xstd primary templates are empty rather than ill-formed outside their domain, so their availability can be tested safely.
 
 The naming follows one rule throughout: **an xstd entity that widens a standard one to class types keeps the standard name and appends `_like`.** The rule cuts both ways — a `_like` name exists only where there is a standard entity to widen — so what xstd adds is exactly the four the standard has:
 
@@ -279,7 +282,7 @@ Each opened trait agrees with the one it widens on every cv-unqualified type tha
 
 Using xstd requires a conforming [C++23](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2023/n4950.pdf) compiler and CMake 3.28 or later. Beyond those, nothing: the library is header-only, depends on no third-party code, and links against nothing, so adding it to a project adds no transitive requirements of its own. It is expected to work with any compiler that implements the C++23 features it uses. No compiler extension is needed and none is enabled — the headers compile in the strictly conforming dialect, and reach `__int128` there without one.
 
-`std::format` for tuple-like types is the one library facility only *some* of xstd needs: it is required to format an `xstd::div_t`, and not to include the header or to use any other operation, since the `std::formatter` specialization's body is instantiated only where it is used.
+`std::format` for tuple-like types is the one library facility only *some* of xstd needs: it is isolated in `<xstd/format.hpp>` and is not required to include `<xstd/cstdlib.hpp>` or use any other operation.
 
 Running xstd's own test suite does have dependencies, which consumers never build. They are listed in [CONTRIBUTING.md](CONTRIBUTING.md).
 

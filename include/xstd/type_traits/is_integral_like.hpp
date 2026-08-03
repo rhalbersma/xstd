@@ -6,11 +6,12 @@
 #ifndef XSTD_TYPE_TRAITS_IS_INTEGRAL_LIKE_HPP
 #define XSTD_TYPE_TRAITS_IS_INTEGRAL_LIKE_HPP
 
-#include <xstd/concepts/integral_like.hpp>
-#include <type_traits>
+#include <xstd/concepts/integral_like.hpp> // integral_like
+#include <type_traits>                     // bool_constant
 
 namespace xstd {
 
+// The trait spelling of xstd::integral_like.
 template<class T>
 inline constexpr auto is_integral_like_v = integral_like<T>;
 

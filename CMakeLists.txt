@@ -45,9 +45,19 @@ target_sources(
         include/xstd/concepts/unsigned_integral_like.hpp
         include/xstd/cstdint.hpp
         include/xstd/cstdlib.hpp
+        include/xstd/cstdlib/abs.hpp
+        include/xstd/cstdlib/div.hpp
+        include/xstd/cstdlib/div_t.hpp
+        include/xstd/cstdlib/euclidean_div.hpp
+        include/xstd/cstdlib/floored_div.hpp
+        include/xstd/cstdlib/sign.hpp
+        include/xstd/cstdlib/uabs.hpp
+        include/xstd/format.hpp
         include/xstd/memory.hpp
+        include/xstd/ostream.hpp
         include/xstd/type_traits.hpp
         include/xstd/type_traits/conditional_data_member.hpp
+        include/xstd/type_traits/empty_type.hpp
         include/xstd/type_traits/is_arithmetic_like.hpp
         include/xstd/type_traits/is_integral_like.hpp
         include/xstd/type_traits/is_signed_like.hpp

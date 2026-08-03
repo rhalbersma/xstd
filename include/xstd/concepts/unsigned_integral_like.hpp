@@ -6,11 +6,13 @@
 #ifndef XSTD_CONCEPTS_UNSIGNED_INTEGRAL_LIKE_HPP
 #define XSTD_CONCEPTS_UNSIGNED_INTEGRAL_LIKE_HPP
 
-#include <xstd/concepts/integral_like.hpp>
-#include <xstd/type_traits/is_unsigned_like.hpp>
+#include <xstd/concepts/integral_like.hpp>       // integral_like
+#include <xstd/type_traits/is_unsigned_like.hpp> // is_unsigned_like_v
 
 namespace xstd {
 
+// Mirrors std::unsigned_integral while preserving integral_like as an atomic
+// constraint for subsumption.
 template<class T>
 concept unsigned_integral_like = integral_like<T> and is_unsigned_like_v<T>;
 

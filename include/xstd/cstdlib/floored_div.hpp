@@ -1,0 +1,35 @@
+//          Copyright Rein Halbersma 2014-2026.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
+#ifndef XSTD_CSTDLIB_FLOORED_DIV_HPP
+#define XSTD_CSTDLIB_FLOORED_DIV_HPP
+
+#include <xstd/cstdlib/div.hpp>  // div
+#include <xstd/cstdlib/sign.hpp> // sign
+#include <xstd/cstdlib/uabs.hpp> // uabs
+#include <cassert>               // assert
+
+namespace xstd {
+
+// Floored division: the remainder has the denominator's sign.
+template<signed_integral_like S>
+[[nodiscard]] constexpr auto floored_div(S numer, S denom) noexcept
+        -> div_t<S>
+{
+        assert(denom != static_cast<S>(0));
+        auto const [qT, rT] = div(numer, denom);
+        auto const zero = static_cast<S>(0);
+        auto const one = static_cast<S>(1);
+        auto const adjust = sign(rT) == -sign(denom);
+        auto const qF = static_cast<S>(qT - (adjust ? one : zero));
+        auto const rF = static_cast<S>(rT + (adjust ? denom : zero));
+        assert(uabs(rF) < uabs(denom));
+        assert(rF == static_cast<S>(0) or sign(rF) == sign(denom));
+        return {.quot = qF, .rem = rF};
+}
+
+} // namespace xstd
+
+#endif // XSTD_CSTDLIB_FLOORED_DIV_HPP

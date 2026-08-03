@@ -6,12 +6,13 @@
 #ifndef XSTD_CONCEPTS_INTEGRAL_LIKE_HPP
 #define XSTD_CONCEPTS_INTEGRAL_LIKE_HPP
 
-#include <xstd/concepts/exposition_only.hpp>
+#include <xstd/concepts/exposition_only.hpp> // integer_class_type
 
 namespace xstd {
 
+// The open counterpart of std::integral, admitting integer-class types.
 template<class T>
-concept integral_like = exposition_only::is_integer_like<T>;
+concept integral_like = std::integral<T> or exposition_only::integer_class_type<T>;
 
 } // namespace xstd
 
