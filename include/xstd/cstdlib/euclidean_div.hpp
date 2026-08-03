@@ -14,17 +14,17 @@
 namespace xstd {
 
 // Euclidean division: the remainder is nonnegative.
-template<signed_integral_like T>
-[[nodiscard]] constexpr auto euclidean_div(T numer, T denom) noexcept
-        -> div_t<T>
+template<signed_integral_like S>
+[[nodiscard]] constexpr auto euclidean_div(S numer, S denom) noexcept
+        -> div_t<S>
 {
-        assert(denom != static_cast<T>(0));
+        assert(denom != static_cast<S>(0));
         auto const [qT, rT] = div(numer, denom);
-        auto const zero = static_cast<T>(0);
-        auto const one = static_cast<T>(1);
+        auto const zero = static_cast<S>(0);
+        auto const one = static_cast<S>(1);
         auto const adjust = rT < zero;
-        auto const qE = adjust ? (denom > zero ? static_cast<T>(qT - one) : static_cast<T>(qT + one)) : qT;
-        auto const rE = adjust ? (denom > zero ? static_cast<T>(rT + denom) : static_cast<T>(rT - denom)) : rT;
+        auto const qE = adjust ? (denom > zero ? static_cast<S>(qT - one) : static_cast<S>(qT + one)) : qT;
+        auto const rE = adjust ? (denom > zero ? static_cast<S>(rT + denom) : static_cast<S>(rT - denom)) : rT;
         assert(uabs(rE) < uabs(denom));
         assert(sign(rE) >= 0);
         return {.quot = qE, .rem = rE};

@@ -15,17 +15,17 @@
 namespace xstd {
 
 // Truncated division, as specified by [expr.mul].
-template<signed_integral_like T>
-[[nodiscard]] constexpr auto div(T numer, T denom) noexcept
-        -> div_t<T>
+template<signed_integral_like S>
+[[nodiscard]] constexpr auto div(S numer, S denom) noexcept
+        -> div_t<S>
 {
-        assert(denom != static_cast<T>(0));
-        assert(numer != std::numeric_limits<T>::min() or denom != static_cast<T>(-1));
-        auto const qT = static_cast<T>(numer / denom);
-        auto const rT = static_cast<T>(numer % denom);
-        assert(numer == static_cast<T>(static_cast<T>(denom * qT) + rT));
+        assert(denom != static_cast<S>(0));
+        assert(numer != std::numeric_limits<S>::min() or denom != static_cast<S>(-1));
+        auto const qT = static_cast<S>(numer / denom);
+        auto const rT = static_cast<S>(numer % denom);
+        assert(numer == static_cast<S>(static_cast<S>(denom * qT) + rT));
         assert(uabs(rT) < uabs(denom));
-        assert(sign(rT) == sign(numer) or rT == static_cast<T>(0));
+        assert(sign(rT) == sign(numer) or rT == static_cast<S>(0));
         return {.quot = qT, .rem = rT};
 }
 

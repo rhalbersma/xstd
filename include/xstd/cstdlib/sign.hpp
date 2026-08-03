@@ -11,11 +11,11 @@
 namespace xstd {
 
 // Returns -1, 0, or 1.
-template<signed_integral_like T>
-[[nodiscard]] constexpr auto sign(T x) noexcept
+template<signed_integral_like S>
+[[nodiscard]] constexpr auto sign(S x) noexcept
         -> int
 {
-        auto const zero = static_cast<T>(0);
+        auto const zero = static_cast<S>(0);
         return static_cast<int>(zero < x) - static_cast<int>(x < zero);
 }
 

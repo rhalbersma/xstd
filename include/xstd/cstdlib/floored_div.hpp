@@ -14,19 +14,19 @@
 namespace xstd {
 
 // Floored division: the remainder has the denominator's sign.
-template<signed_integral_like T>
-[[nodiscard]] constexpr auto floored_div(T numer, T denom) noexcept
-        -> div_t<T>
+template<signed_integral_like S>
+[[nodiscard]] constexpr auto floored_div(S numer, S denom) noexcept
+        -> div_t<S>
 {
-        assert(denom != static_cast<T>(0));
+        assert(denom != static_cast<S>(0));
         auto const [qT, rT] = div(numer, denom);
-        auto const zero = static_cast<T>(0);
-        auto const one = static_cast<T>(1);
+        auto const zero = static_cast<S>(0);
+        auto const one = static_cast<S>(1);
         auto const adjust = sign(rT) == -sign(denom);
-        auto const qF = static_cast<T>(qT - (adjust ? one : zero));
-        auto const rF = static_cast<T>(rT + (adjust ? denom : zero));
+        auto const qF = static_cast<S>(qT - (adjust ? one : zero));
+        auto const rF = static_cast<S>(rT + (adjust ? denom : zero));
         assert(uabs(rF) < uabs(denom));
-        assert(rF == static_cast<T>(0) or sign(rF) == sign(denom));
+        assert(rF == static_cast<S>(0) or sign(rF) == sign(denom));
         return {.quot = qF, .rem = rF};
 }
 

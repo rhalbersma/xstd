@@ -4,6 +4,8 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/cstdlib.hpp>         // abs, uabs, sign, div_t, div, euclidean_div, floored_div
+#include <xstd/format.hpp>          // formatter<div_t>
+#include <xstd/ostream.hpp>         // operator<<(ostream, div_t)
 #include <xstd/concepts.hpp>        // signed_integral_like
 #include <xstd/type_traits.hpp>     // make_unsigned_like_t
 #include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
@@ -248,7 +250,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(BoundaryDivisions, T, exact_width_types)
 // (constexpr std::format, plenary-approved for C++29), so the static_assert
 // half only exists once a standard library announces the feature. Checking
 // the formatted value at compile time is what pins xstd::div_t's own
-// conditional constexpr in <xstd/cstdlib.hpp> to something observable -
+// conditional constexpr in <xstd/format.hpp> to something observable -
 // without it, the macro there could quietly expand to nothing forever.
 #ifdef __cpp_lib_constexpr_format
 #define XSTD_CONSTEXPR_FORMAT_CHECK_EQUAL(a, b) XSTD_CONSTEXPR_CHECK_EQUAL((a), (b))
