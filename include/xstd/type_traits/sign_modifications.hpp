@@ -58,6 +58,16 @@ struct make_signed_like<uint128_t> : std::type_identity<int128_t> {};
 
 template<>
 struct make_unsigned_like<int128_t> : std::type_identity<uint128_t> {};
+
+// Clang-CL also exposes its built-in 128-bit types while the public aliases
+// name the Microsoft STL classes.
+#if defined(_MSVC_STL_VERSION) && defined(__SIZEOF_INT128__)
+template<>
+struct make_signed_like<unsigned __int128> : std::type_identity<__int128> {};
+
+template<>
+struct make_unsigned_like<__int128> : std::type_identity<unsigned __int128> {};
+#endif
 // clang-format on
 
 } // namespace xstd
