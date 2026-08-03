@@ -38,11 +38,13 @@ target_sources(
     BASE_DIRS include
     FILES
         include/xstd/concepts.hpp
+        include/xstd/concepts/exposition_only/integral-class.hpp
         include/xstd/cstdint.hpp
         include/xstd/cstdlib.hpp
-        include/xstd/exposition_only.hpp
         include/xstd/memory.hpp
         include/xstd/type_traits.hpp
+        include/xstd/type_traits/numeric.hpp
+        include/xstd/type_traits/sign_modifications.hpp
         include/xstd/utility.hpp
 )
 

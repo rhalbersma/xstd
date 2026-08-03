@@ -121,7 +121,7 @@ its own, open version, and builds it the way the standard builds its own
 answer - in two steps rather than one:
 
 - `xstd::exposition_only::integral_class_type` in
-  `<xstd/exposition_only.hpp>` is the standard's *integer-class type*
+  `<xstd/concepts/exposition_only/integral-class.hpp>` is the standard's *integer-class type*
   re-derived structurally: a concept that asks what a type *does* -
   `std::regular`, `std::three_way_comparable<I, std::strong_ordering>`, a specialized `std::numeric_limits`
   saying `is_integer`, explicit construction from `int`, and the six
@@ -637,7 +637,7 @@ then has one for each, which is what earns the second spelling its place under
 this file's rule that it has to enable a use the first cannot.
 
 `is_integral_like_v` is the one that cannot be *written* that way, and that is
-what `<xstd/exposition_only.hpp>` is for. Three constraints pin the shape:
+what `<xstd/concepts/exposition_only/integral-class.hpp>` is for. Three constraints pin the shape:
 
 - **Only a concept's conjunction short-circuits during satisfaction checking.**
   In a variable template's initializer, `A and B` still requires every operand
