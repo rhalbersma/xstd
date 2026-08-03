@@ -6,8 +6,8 @@
 #ifndef XSTD_TYPE_TRAITS_IS_INTEGRAL_LIKE_HPP
 #define XSTD_TYPE_TRAITS_IS_INTEGRAL_LIKE_HPP
 
-#include <xstd/concepts/integral_like.hpp>
-#include <type_traits>
+#include <xstd/concepts/integral_like.hpp> // integral_like
+#include <type_traits>                     // bool_constant
 
 namespace xstd {
 

@@ -6,7 +6,7 @@
 #ifndef XSTD_CONCEPTS_SPECIALIZATION_OF_HPP
 #define XSTD_CONCEPTS_SPECIALIZATION_OF_HPP
 
-#include <xstd/type_traits/is_specialization_of.hpp>
+#include <xstd/type_traits/is_specialization_of.hpp> // is_specialization_of_v
 
 namespace xstd {
 

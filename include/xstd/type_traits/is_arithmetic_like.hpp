@@ -6,8 +6,8 @@
 #ifndef XSTD_TYPE_TRAITS_IS_ARITHMETIC_LIKE_HPP
 #define XSTD_TYPE_TRAITS_IS_ARITHMETIC_LIKE_HPP
 
-#include <xstd/type_traits/is_integral_like.hpp>
-#include <type_traits>
+#include <xstd/type_traits/is_integral_like.hpp> // is_integral_like_v
+#include <type_traits>                           // bool_constant, is_floating_point_v
 
 namespace xstd {
 

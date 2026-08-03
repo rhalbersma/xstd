@@ -6,8 +6,8 @@
 #ifndef XSTD_TYPE_TRAITS_CONDITIONAL_DATA_MEMBER_HPP
 #define XSTD_TYPE_TRAITS_CONDITIONAL_DATA_MEMBER_HPP
 
-#include <compare>
-#include <type_traits>
+#include <compare>     // strong_ordering
+#include <type_traits> // conditional_t, is_same_v, remove_cvref_t
 
 namespace xstd {
 

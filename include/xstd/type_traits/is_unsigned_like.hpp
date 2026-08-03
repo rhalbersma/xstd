@@ -6,8 +6,8 @@
 #ifndef XSTD_TYPE_TRAITS_IS_UNSIGNED_LIKE_HPP
 #define XSTD_TYPE_TRAITS_IS_UNSIGNED_LIKE_HPP
 
-#include <xstd/type_traits/is_arithmetic_like.hpp>
-#include <type_traits>
+#include <xstd/type_traits/is_arithmetic_like.hpp> // is_arithmetic_like_v
+#include <type_traits>                             // bool_constant
 
 namespace xstd {
 
