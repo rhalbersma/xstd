@@ -17,7 +17,7 @@ xstd is a header-only C++23 library for small standard-library extensions that c
 
 | Header | Additions, in order of definition | Description | Reference |
 | :----- | :-------------------------------- | :---------- | :-------- |
-| `<xstd/concepts.hpp>` | `enumeration` <br> `specialization_of` <br> `integral_like` <br> `unsigned_integral_like` <br> `signed_integral_like` <br> `is_nothrow_integral_like` <br> `is_nothrow_signed_integral_like` | Is a type an enumeration type? <br> Constraint form of `is_specialization_of` <br> Constraint form of `is_integral_like` <br> Open form of `std::unsigned_integral` <br> Open form of `std::signed_integral` <br> Is every operation `integral_like` requires `noexcept`? <br> The same, for both halves of the signed/unsigned pair | none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> none <br> none |
+| `<xstd/concepts.hpp>` | `specialization_of` <br> `integral_like` <br> `unsigned_integral_like` <br> `signed_integral_like` <br> `is_nothrow_integral_like` <br> `is_nothrow_signed_integral_like` | Constraint form of `is_specialization_of` <br> Constraint form of `is_integral_like` <br> Open form of `std::unsigned_integral` <br> Open form of `std::signed_integral` <br> Is every operation `integral_like` requires `noexcept`? <br> The same, for both halves of the signed/unsigned pair | [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> none <br> none |
 | `<xstd/cstdlib.hpp>` | `sign` <br> `abs` <br> `uabs` <br> `div_t` <br> `div` <br> `euclidean_div` <br> `floored_div` | `constexpr`, any signed integer-like type <br> `constexpr`, any signed integer-like type <br> Total `\|x\|`, returning the unsigned counterpart <br> Defaulted equality comparison, `std::format` support where the element type has it <br> `constexpr`, any signed integer-like type <br> Euclidean division <br> Floored division | [Boost.Math](https://www.boost.org/doc/libs/1_80_0/libs/math/doc/html/math_toolkit/sign_functions.html) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Rust `unsigned_abs`](https://doc.rust-lang.org/std/primitive.i32.html#method.unsigned_abs) (no C++ equivalent) <br> [p2286r8](https://wg21.link/p2286r8), [p3391](https://wg21.link/p3391) (C++29, not yet implemented) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) |
 | `<xstd/exposition_only.hpp>` | `integral_class_type` <br> `is_integral_like` | Structural form of an integer-class type <br> Structural form of `is-integer-like`, over the above | [iterator.concept.winc] <br> [iterator.concept.winc] |
 | `<xstd/memory.hpp>` | `aligned_size` | Round a size up to a power-of-two alignment | none |
@@ -194,19 +194,6 @@ static_assert(sizeof(sprite<true>) > sizeof(sprite<false>));
 `[[no_unique_address]]` is a no-op on MSVC's ABI, which spells it `[[msvc::no_unique_address]]`. The type-level behavior is the same everywhere; the layout saving is not.
 
 ### Concepts
-
-`<concepts>` has `std::integral`, `std::signed_integral` and `std::floating_point`, but nothing for enums. `xstd::enumeration` fills that gap, so a template that wants an enum can say so in its template head instead of trailing a `requires std::is_enum_v<T>`:
-
-```cpp
-#include <xstd/concepts.hpp>
-
-enum class color : unsigned { red = 1 };
-
-template<xstd::enumeration Enum>
-constexpr auto is_red(Enum e) -> bool { return e == Enum::red; }
-
-static_assert(is_red(color::red));
-```
 
 `xstd::specialization_of` is the constraint spelling of `xstd::is_specialization_of`. It takes the type under test first, so partially applying it to a primary template gives a type-constraint:
 

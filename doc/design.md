@@ -494,22 +494,16 @@ rules. C++26 reflection may enable one.
 
 ### `<xstd/concepts.hpp>`, and when a trait also gets a concept spelling
 
-`<concepts>` names the built-in numeric categories - `integral`,
-`signed_integral`, `unsigned_integral`, `floating_point` - but stops there,
-so a template wanting an enum has no type-constraint to reach for and has to
-fall back on a requires-clause over `std::is_enum_v`. `xstd::enumeration` is
-that missing name, and it is what lets `xstd::to_underlying` put its
-constraint where it belongs:
+`xstd::to_underlying` constrains its enum parameter directly with the standard
+trait:
 
-    template<enumeration Enum, Enum N>
+    template<class Enum, Enum N>
+        requires std::is_enum_v<Enum>
     constexpr auto to_underlying(std::integral_constant<Enum, N>) noexcept;
 
-This is deliberately *not* a second way to spell the same check. A
-type-constraint and a requires-clause in the template head are both
-associated constraints, checked at the same point, so swapping one for the
-other leaves the CWG2369 ordering discussed above untouched - the return type
-stays deduced for its own separate reason. What changes is only that the
-restriction reads next to the parameter it restricts.
+The requires-clause in the template head is an associated constraint, so the
+CWG2369 ordering discussed above remains untouched: the return type stays
+deduced for its own separate reason.
 
 `xstd::specialization_of` is a different case: it is the constraint form of a
 trait that already exists, and it earns its place because the trait cannot
@@ -551,12 +545,10 @@ duplicates the trait's definition in a second place that can drift from it,
 which is the arrangement `is_integral_like_v` was just moved *out of*. Neither
 price buys a use `requires is_arithmetic_like_v<T>` cannot already serve.
 
-Both concepts above are named as the noun the type satisfies rather than as
-`is_enum` / `is_specialization_of`, following how every concept in
-`<concepts>` reads.
+`specialization_of` is named as the noun the type satisfies rather than as
+`is_specialization_of`, following how every concept in `<concepts>` reads.
 Beyond consistency, a concept sharing an unqualified name with the trait it
-wraps is ambiguous for anyone with using-directives for both namespaces,
-which for `enumeration` would have meant colliding with `std::is_enum`.
+wraps is ambiguous for anyone with using-directives for both namespaces.
 
 That same rule is what keeps `integral_like` / `signed_integral_like` /
 `unsigned_integral_like` from being spelled `xstd::integral` /

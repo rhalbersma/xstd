@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(ToUnderlyingTypeIsConstrained)
 {
         XSTD_CONSTEXPR_CHECK(has_to_underlying<e1_<e1{}>>);
 
-        // the enumeration constraint is checked before the return type is
+        // the enum constraint is checked before the return type is
         // formed, so a non-enum argument is a substitution failure rather
         // than an ill-formed underlying_type_t (CWG2369, see design.md)
         XSTD_CONSTEXPR_CHECK((not has_to_underlying<std::integral_constant<int, 0>>));

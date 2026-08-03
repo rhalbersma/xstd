@@ -202,7 +202,6 @@ jobs:
 
           int main()
           {
-                  static_assert(xstd::enumeration<color>);
                   static_assert(xstd::is_specialization_of_v<std::complex<double>, std::complex>);
                   static_assert(decltype(xstd::to_underlying(std::integral_constant<color, color::red>()))::value == 1);
                   static_assert(xstd::euclidean_div(-8, 3).rem == 1);
