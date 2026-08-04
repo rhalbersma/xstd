@@ -9,6 +9,7 @@
 #include <xstd/config/int128.hpp> // int128_t, uint128_t
 #include <algorithm>              // ranges::reverse
 #include <concepts>               // signed_integral
+#include <format>                 // format_error, formatter
 #include <string>                 // string, to_string
 
 namespace xstd::detail {
@@ -53,5 +54,55 @@ template<class T>
 }
 
 } // namespace xstd::detail
+
+template<>
+// NOLINTNEXTLINE(bugprone-std-namespace-modification): permitted by [namespace.std]/2
+struct std::formatter<xstd::uint128_t, char>
+{
+        constexpr auto parse(std::format_parse_context& ctx)
+                -> decltype(ctx.begin())
+        {
+                auto const it = ctx.begin();
+                if (it != ctx.end() and *it != '}') {
+                        throw std::format_error{"invalid format specifier for xstd::uint128_t"};
+                }
+                return it;
+        }
+
+        [[nodiscard]] auto format(xstd::uint128_t const value, std::format_context& ctx) const
+                -> decltype(ctx.out())
+        {
+                auto out = ctx.out();
+                for (auto const ch : xstd::detail::to_decimal(value)) {
+                        *out++ = ch;
+                }
+                return out;
+        }
+};
+
+template<>
+// NOLINTNEXTLINE(bugprone-std-namespace-modification): permitted by [namespace.std]/2
+struct std::formatter<xstd::int128_t, char>
+{
+        constexpr auto parse(std::format_parse_context& ctx)
+                -> decltype(ctx.begin())
+        {
+                auto const it = ctx.begin();
+                if (it != ctx.end() and *it != '}') {
+                        throw std::format_error{"invalid format specifier for xstd::int128_t"};
+                }
+                return it;
+        }
+
+        [[nodiscard]] auto format(xstd::int128_t const value, std::format_context& ctx) const
+                -> decltype(ctx.out())
+        {
+                auto out = ctx.out();
+                for (auto const ch : xstd::detail::to_decimal(value)) {
+                        *out++ = ch;
+                }
+                return out;
+        }
+};
 
 #endif // XSTD_FORMAT_INT128_HPP

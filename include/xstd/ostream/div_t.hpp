@@ -8,6 +8,7 @@
 
 #include <xstd/concepts/signed_integral_like.hpp> // signed_integral_like
 #include <xstd/cstdlib/div_t.hpp>                 // div_t
+#include <xstd/format/int128.hpp>                 // IWYU pragma: keep; formatter<int128_t>
 #include <xstd/format/div_t.hpp>                  // IWYU pragma: keep; formatter<div_t>
 #include <format>                                 // format
 #include <ostream>                                // ostream
