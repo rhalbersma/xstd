@@ -170,10 +170,9 @@ BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAgreeWithStd)
 // The fourth opened trait, and the one whose standard counterpart answers
 // from a closed list rather than from a property: std::is_integral_v is
 // extended with [iterator.concept.winc]'s integer-class types, opened
-// structurally in <xstd/concepts/exposition_only.hpp> and pinned in
-// src/exposition_only.cpp. The four cases below check the trait spelling
-// itself. Agreement with std::is_integral_v wherever it can answer is already
-// covered by the sweep above, which this trait joins.
+// structurally in <xstd/concepts/exposition_only.hpp>. The cases below check
+// the public trait spelling itself. Agreement with std::is_integral_v wherever
+// it can answer is already covered by the sweep above, which this trait joins.
 BOOST_AUTO_TEST_CASE(IsIntegralLike)
 {
         XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<int>);
