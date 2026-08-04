@@ -11,6 +11,7 @@
 // Prefer the Microsoft STL's integer classes; otherwise use the compiler's
 // 128-bit extension.
 #ifdef _MSVC_STL_VERSION
+
 #include <__msvc_int128.hpp>
 
 namespace xstd {
