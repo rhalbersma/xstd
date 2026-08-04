@@ -9,6 +9,7 @@
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_CHECK_EQUAL
 #include <cstdint>                  // exact-width integer types
 #include <format>                   // format
+#include <string_view>              // wstring_view
 #include <tuple>                    // tuple
 
 #ifdef __cpp_lib_constexpr_format
@@ -36,4 +37,9 @@ using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, st
 BOOST_AUTO_TEST_CASE_TEMPLATE(Formatter, T, exact_width_types)
 {
         XSTD_CONSTEXPR_FORMAT_CHECK_EQUAL(std::format("{}", xstd::div_t<T>{1, -2}), "(1, -2)");
+}
+
+BOOST_AUTO_TEST_CASE(WideFormatter)
+{
+        BOOST_CHECK(std::format(L"{}", xstd::div_t<int>{1, -2}) == std::wstring_view{L"(1, -2)"});
 }
