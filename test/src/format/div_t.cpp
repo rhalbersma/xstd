@@ -5,7 +5,7 @@
 
 #include <xstd/cstdint.hpp>         // int128_t
 #include <xstd/cstdlib/div_t.hpp>   // div_t
-#include <xstd/format/div_t.hpp>    // formatter<div_t>
+#include <xstd/format/div_t.hpp>    // IWYU pragma: keep; formatter<div_t>
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_CHECK_EQUAL
 #include <cstdint>                  // exact-width integer types
 #include <format>                   // format
