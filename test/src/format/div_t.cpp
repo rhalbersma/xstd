@@ -3,8 +3,9 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/format.hpp>          // formatter<div_t>
+#include <xstd/cstdint.hpp>         // int128_t
 #include <xstd/cstdlib/div_t.hpp>   // div_t
+#include <xstd/format/div_t.hpp>    // formatter<div_t>
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_CHECK_EQUAL
 #include <cstdint>                  // exact-width integer types
 #include <format>                   // format
@@ -14,7 +15,7 @@
 #include <xstd/test/constexpr.hpp> // XSTD_CONSTEXPR_CHECK_EQUAL
 #endif
 
-using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t>;
+using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t, xstd::int128_t>;
 
 // The formatting tests leave div_t's formatter and operator<< executed rather
 // than merely instantiated - Boost.Test's printing machinery instantiates them
@@ -25,10 +26,7 @@ using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, st
 // The formatting counterpart of XSTD_CONSTEXPR_CHECK_EQUAL, which cannot be
 // used directly here: std::format is not a constant expression before P3391
 // (constexpr std::format, plenary-approved for C++29), so the static_assert
-// half only exists once a standard library announces the feature. Checking
-// the formatted value at compile time is what pins xstd::div_t's own
-// conditional constexpr in <xstd/format.hpp> to something observable -
-// without it, the macro there could quietly expand to nothing forever.
+// half only exists once a standard library announces the feature.
 #ifdef __cpp_lib_constexpr_format
 #define XSTD_CONSTEXPR_FORMAT_CHECK_EQUAL(a, b) XSTD_CONSTEXPR_CHECK_EQUAL((a), (b))
 #else

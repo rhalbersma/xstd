@@ -6,22 +6,6 @@
 #ifndef XSTD_OSTREAM_HPP
 #define XSTD_OSTREAM_HPP
 
-#include <xstd/concepts/signed_integral_like.hpp> // signed_integral_like
-#include <xstd/cstdlib/div_t.hpp>                 // div_t
-#include <xstd/format.hpp>                        // IWYU pragma: keep; formatter<div_t>
-#include <format>                                 // format
-#include <ostream>                                // ostream
-
-namespace xstd {
-
-// Narrow stream support for test-framework diagnostics.
-template<signed_integral_like S>
-auto operator<<(std::ostream& ostr, div_t<S> const& d)
-        -> std::ostream&
-{
-        return ostr << std::format("{}", d);
-}
-
-} // namespace xstd
+#include <xstd/ostream/div_t.hpp> // IWYU pragma: export; operator<<(ostream, div_t)
 
 #endif // XSTD_OSTREAM_HPP

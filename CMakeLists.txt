@@ -53,8 +53,11 @@ target_sources(
         include/xstd/cstdlib/sign.hpp
         include/xstd/cstdlib/unsigned_abs.hpp
         include/xstd/format.hpp
+        include/xstd/format/div_t.hpp
+        include/xstd/format/int128.hpp
         include/xstd/memory.hpp
         include/xstd/ostream.hpp
+        include/xstd/ostream/div_t.hpp
         include/xstd/type_traits.hpp
         include/xstd/type_traits/conditional_data_member.hpp
         include/xstd/type_traits/empty_type.hpp
