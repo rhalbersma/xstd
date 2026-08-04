@@ -3,14 +3,15 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/ostream.hpp>         // operator<<(ostream, div_t)
+#include <xstd/cstdint.hpp>         // int128_t
 #include <xstd/cstdlib/div_t.hpp>   // div_t
+#include <xstd/ostream/div_t.hpp>   // IWYU pragma: keep; operator<<(ostream, div_t)
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_CHECK_EQUAL
 #include <cstdint>                  // exact-width integer types
 #include <sstream>                  // ostringstream
 #include <tuple>                    // tuple
 
-using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t>;
+using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t, xstd::int128_t>;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(StreamInsertion, T, exact_width_types)
 {
