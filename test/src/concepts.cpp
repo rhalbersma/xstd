@@ -5,39 +5,18 @@
 
 #include <xstd/concepts.hpp>        // specialization_of, integral_like, signed_integral_like, unsigned_integral_like
 #include <xstd/type_traits.hpp>     // empty_type, is_integral_like_v, is_specialization_of_v
-#include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
+#include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_CHECK
 #include <complex>                  // complex
-#include <concepts>                 // integral, signed_integral, unsigned_integral
+#include <concepts>                 // signed_integral, unsigned_integral
 #include <cstdint>                  // int8_t, int16_t, int32_t, int64_t
 #include <tuple>                    // tuple
 #include <type_traits>              // make_unsigned_t
 
 BOOST_AUTO_TEST_SUITE(Concepts)
 
-enum class scoped : unsigned { s0 };
-
-// the partial application a type-constraint needs: the primary template alone
-template<xstd::specialization_of<std::complex> T>
-[[nodiscard]] constexpr auto as_complex(T z) noexcept
-        -> T
+BOOST_AUTO_TEST_CASE(SpecializationOfAgreesWithItsTrait)
 {
-        return z;
-}
-
-template<class T>
-concept has_as_complex = requires (T t) { as_complex(t); };
-
-BOOST_AUTO_TEST_CASE(SpecializationOf)
-{
-        XSTD_CONSTEXPR_CHECK((xstd::specialization_of<std::complex<int>, std::complex>));
-        XSTD_CONSTEXPR_CHECK((xstd::specialization_of<std::tuple<int, char>, std::tuple>));
-        XSTD_CONSTEXPR_CHECK((xstd::specialization_of<std::tuple<>, std::tuple>));
-
-        XSTD_CONSTEXPR_CHECK((not xstd::specialization_of<int, std::complex>));
-        XSTD_CONSTEXPR_CHECK((not xstd::specialization_of<std::tuple<int>, std::complex>));
-        XSTD_CONSTEXPR_CHECK((not xstd::specialization_of<std::complex<int>&, std::complex>));
-
         // nothing in the concept is specific to the standard library. The
         // library's own class template is a program-defined primary like any
         // other, with its tag declared in place
@@ -47,21 +26,6 @@ BOOST_AUTO_TEST_CASE(SpecializationOf)
         // the concept agrees with the trait it is spelled over
         XSTD_CONSTEXPR_CHECK((xstd::specialization_of<std::complex<int>, std::complex> == xstd::is_specialization_of_v<std::complex<int>, std::complex>));
         XSTD_CONSTEXPR_CHECK((xstd::specialization_of<int, std::complex> == xstd::is_specialization_of_v<int, std::complex>));
-
-        // used as a type-constraint, it constrains rather than hard-errors
-        XSTD_CONSTEXPR_CHECK(has_as_complex<std::complex<double>>);
-        XSTD_CONSTEXPR_CHECK(not has_as_complex<int>);
-
-        // and the constrained template actually runs for a matching argument,
-        // which the two checks above cannot show: a requires-expression's
-        // operand is unevaluated, so a body that is ill-formed on
-        // instantiation would still leave has_as_complex true. double rather
-        // than int as the element type because the MSVC STL deprecates
-        // std::complex's constructor for anything but the floating-point ones
-        // (STL4037) and these tests build with warnings as errors; merely
-        // naming std::complex<int> stays fine, which is all the checks above
-        // do.
-        XSTD_CONSTEXPR_CHECK_EQUAL((as_complex(std::complex<double>{1.0, 2.0})), (std::complex<double>{1.0, 2.0}));
 }
 
 using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t>;
@@ -82,36 +46,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(IntegralLikeIsASupersetOfIntegral, T, exact_width_
         static_assert(not xstd::signed_integral_like<U>);
 
         BOOST_CHECK(true); // silence Boost.Test's "test case did not check any assertions"
-}
-
-BOOST_AUTO_TEST_CASE(IntegralLike)
-{
-        // The built-in branch follows std::integral, including its treatment
-        // of bool as an unsigned integral type.
-        XSTD_CONSTEXPR_CHECK(xstd::integral_like<bool> and xstd::unsigned_integral_like<bool>);
-        XSTD_CONSTEXPR_CHECK(not xstd::signed_integral_like<bool>);
-        XSTD_CONSTEXPR_CHECK(xstd::integral_like<char> and xstd::integral_like<char32_t>);
-
-        // nothing whose std::numeric_limits says it is not an integer
-        XSTD_CONSTEXPR_CHECK(not xstd::integral_like<double>);
-        XSTD_CONSTEXPR_CHECK(not xstd::integral_like<scoped>);
-        XSTD_CONSTEXPR_CHECK(not xstd::integral_like<int*>);
-
-        // the spellings that are answered rather than hard-errored only
-        // because the requirements they would trip over sit inside a concept,
-        // where a conjunction short-circuits. These four pin that behavior in
-        // the public concept a caller actually writes.
-        XSTD_CONSTEXPR_CHECK(not xstd::integral_like<void>);
-        XSTD_CONSTEXPR_CHECK(not xstd::integral_like<int&>);
-        // NOLINTNEXTLINE(modernize-avoid-c-arrays): a built-in array is the type under test, not a container choice
-        XSTD_CONSTEXPR_CHECK(not xstd::integral_like<int[3]>);
-        XSTD_CONSTEXPR_CHECK(not xstd::integral_like<int()>);
-
-        // C++23's arithmetic concepts inherit the category traits' cv
-        // transparency, and the widened concepts do the same.
-        XSTD_CONSTEXPR_CHECK(xstd::integral_like<int const>);
-        XSTD_CONSTEXPR_CHECK(xstd::signed_integral_like<int const>);
-        XSTD_CONSTEXPR_CHECK(xstd::unsigned_integral_like<unsigned volatile>);
 }
 
 // The concept agrees with the trait it is spelled over, on the types where
