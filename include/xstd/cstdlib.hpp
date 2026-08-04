@@ -12,7 +12,7 @@
 // Miscellaneous algorithms and math
 #include <xstd/cstdlib/sign.hpp>          // sign
 #include <xstd/cstdlib/abs.hpp>           // abs
-#include <xstd/cstdlib/uabs.hpp>          // uabs
+#include <xstd/cstdlib/unsigned_abs.hpp>  // unsigned_abs
 #include <xstd/cstdlib/div.hpp>           // div
 #include <xstd/cstdlib/euclidean_div.hpp> // euclidean_div
 #include <xstd/cstdlib/floored_div.hpp>   // floored_div

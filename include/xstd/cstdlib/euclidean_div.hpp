@@ -6,10 +6,10 @@
 #ifndef XSTD_CSTDLIB_EUCLIDEAN_DIV_HPP
 #define XSTD_CSTDLIB_EUCLIDEAN_DIV_HPP
 
-#include <xstd/cstdlib/div.hpp>  // div
-#include <xstd/cstdlib/sign.hpp> // sign
-#include <xstd/cstdlib/uabs.hpp> // uabs
-#include <cassert>               // assert
+#include <xstd/cstdlib/div.hpp>          // div
+#include <xstd/cstdlib/sign.hpp>         // sign
+#include <xstd/cstdlib/unsigned_abs.hpp> // unsigned_abs
+#include <cassert>                       // assert
 
 namespace xstd {
 
@@ -25,7 +25,7 @@ template<signed_integral_like S>
         auto const adjust = rT < zero;
         auto const qE = adjust ? (denom > zero ? static_cast<S>(qT - one) : static_cast<S>(qT + one)) : qT;
         auto const rE = adjust ? (denom > zero ? static_cast<S>(rT + denom) : static_cast<S>(rT - denom)) : rT;
-        assert(uabs(rE) < uabs(denom));
+        assert(unsigned_abs(rE) < unsigned_abs(denom));
         assert(sign(rE) >= 0);
         return {.quot = qE, .rem = rE};
 }

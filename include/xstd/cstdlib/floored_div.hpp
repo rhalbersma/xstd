@@ -6,10 +6,10 @@
 #ifndef XSTD_CSTDLIB_FLOORED_DIV_HPP
 #define XSTD_CSTDLIB_FLOORED_DIV_HPP
 
-#include <xstd/cstdlib/div.hpp>  // div
-#include <xstd/cstdlib/sign.hpp> // sign
-#include <xstd/cstdlib/uabs.hpp> // uabs
-#include <cassert>               // assert
+#include <xstd/cstdlib/div.hpp>          // div
+#include <xstd/cstdlib/sign.hpp>         // sign
+#include <xstd/cstdlib/unsigned_abs.hpp> // unsigned_abs
+#include <cassert>                       // assert
 
 namespace xstd {
 
@@ -25,7 +25,7 @@ template<signed_integral_like S>
         auto const adjust = sign(rT) == -sign(denom);
         auto const qF = static_cast<S>(qT - (adjust ? one : zero));
         auto const rF = static_cast<S>(rT + (adjust ? denom : zero));
-        assert(uabs(rF) < uabs(denom));
+        assert(unsigned_abs(rF) < unsigned_abs(denom));
         assert(rF == static_cast<S>(0) or sign(rF) == sign(denom));
         return {.quot = qF, .rem = rF};
 }

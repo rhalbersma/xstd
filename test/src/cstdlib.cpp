@@ -3,7 +3,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/cstdlib.hpp>         // abs, uabs, sign, div_t, div, euclidean_div, floored_div
+#include <xstd/cstdlib.hpp>         // abs, unsigned_abs, sign, div_t, div, euclidean_div, floored_div
 #include <xstd/format.hpp>          // formatter<div_t>
 #include <xstd/ostream.hpp>         // operator<<(ostream, div_t)
 #include <xstd/concepts.hpp>        // signed_integral_like
@@ -39,7 +39,7 @@ template<class T>
 concept has_abs = requires (T x) { xstd::abs(x); };
 
 template<class T>
-concept has_uabs = requires (T x) { xstd::uabs(x); };
+concept has_unsigned_abs = requires (T x) { xstd::unsigned_abs(x); };
 
 template<class T>
 concept has_sign = requires (T x) { xstd::sign(x); };
@@ -52,7 +52,7 @@ concept has_div = requires (T numer, U denom) { xstd::div(numer, denom); };
 BOOST_AUTO_TEST_CASE_TEMPLATE(Constraints, T, exact_width_types)
 {
         static_assert(std::same_as<decltype(xstd::abs(T{})), T>);
-        static_assert(std::same_as<decltype(xstd::uabs(T{})), std::make_unsigned_t<T>>);
+        static_assert(std::same_as<decltype(xstd::unsigned_abs(T{})), std::make_unsigned_t<T>>);
         static_assert(std::same_as<decltype(xstd::sign(T{})), int>);
         static_assert(std::same_as<decltype(xstd::div(T{1}, T{1})), xstd::div_t<T>>);
         static_assert(std::same_as<decltype(xstd::euclidean_div(T{1}, T{1})), xstd::div_t<T>>);
@@ -60,21 +60,21 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Constraints, T, exact_width_types)
 
         // The integer interface and every facility built on it are noexcept.
         static_assert(noexcept(xstd::abs(T{})));
-        static_assert(noexcept(xstd::uabs(T{})));
+        static_assert(noexcept(xstd::unsigned_abs(T{})));
         static_assert(noexcept(xstd::sign(T{})));
         static_assert(noexcept(xstd::div(T{1}, T{1})));
         static_assert(noexcept(xstd::euclidean_div(T{1}, T{1})));
         static_assert(noexcept(xstd::floored_div(T{1}, T{1})));
 
         static_assert(has_abs<T>);
-        static_assert(has_uabs<T>);
+        static_assert(has_unsigned_abs<T>);
         static_assert(has_sign<T>);
         static_assert(has_div<T, T>);
 
         // Unsigned arguments are outside the constraint, at every width.
         using U = std::make_unsigned_t<T>;
         static_assert(not has_abs<U>);
-        static_assert(not has_uabs<U>);
+        static_assert(not has_unsigned_abs<U>);
         static_assert(not has_sign<U>);
         static_assert(not has_div<U, U>);
 
@@ -87,7 +87,7 @@ BOOST_AUTO_TEST_CASE(NonSignedIntegralArgumentsAreRejected)
         static_assert(not has_abs<double>);
         static_assert(not has_sign<char*>);
 
-        // uabs is the only one of the three whose return type is computed by a
+        // unsigned_abs is the only one of the three whose return type is computed by a
         // trait, so it is the only one where rejecting a non-integral argument
         // depends on the trait never being instantiated. Clang before 21 does
         // not implement CWG2369 and substitutes the return type before checking
@@ -96,9 +96,9 @@ BOOST_AUTO_TEST_CASE(NonSignedIntegralArgumentsAreRejected)
         // substitution failure - these two stop compiling instead of being
         // false. The deduced return type in the header is what keeps them
         // compiling; see doc/design.md.
-        static_assert(not has_uabs<bool>);
-        static_assert(not has_uabs<double>);
-        static_assert(not has_uabs<char*>);
+        static_assert(not has_unsigned_abs<bool>);
+        static_assert(not has_unsigned_abs<double>);
+        static_assert(not has_unsigned_abs<char*>);
 
         // Both parameters deduce the same T, so a mixed-width call is a
         // deduction failure rather than a silent conversion of one operand.
@@ -121,22 +121,22 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Abs, T, exact_width_types)
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(static_cast<T>(limits::min() + 1)), limits::max());
 }
 
-// The div families exercise uabs transitively through their assert() guards;
+// The div families exercise unsigned_abs transitively through their assert() guards;
 // check the MIN-boundary wraparound directly and at compile time, since that
-// is both what distinguishes uabs from abs and the one case a widening-based
+// is both what distinguishes unsigned_abs from abs and the one case a widening-based
 // |x| could not have handled - least of all at the widest width, which has
 // nothing to widen to.
 BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedAbs, T, exact_width_types)
 {
         using U = std::make_unsigned_t<T>;
 
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::uabs(T{-2}), U{2});
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::uabs(T{0}), U{0});
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::uabs(T{+2}), U{2});
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::unsigned_abs(T{-2}), U{2});
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::unsigned_abs(T{0}), U{0});
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::unsigned_abs(T{+2}), U{2});
 
         using limits = std::numeric_limits<T>;
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::uabs(limits::min()), static_cast<U>(static_cast<U>(limits::max()) + U{1}));
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::uabs(limits::max()), static_cast<U>(limits::max()));
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::unsigned_abs(limits::min()), static_cast<U>(static_cast<U>(limits::max()) + U{1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::unsigned_abs(limits::max()), static_cast<U>(limits::max()));
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(Sign, T, exact_width_types)
@@ -220,7 +220,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(BoundaryDivisions, T, exact_width_types)
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::floored_div(min, T{+1}), (xstd::div_t<T>{min, 0}));
 
         // denom == MIN is in contract even though |MIN| is not representable
-        // in T: it is exactly why the postconditions are written with uabs
+        // in T: it is exactly why the postconditions are written with unsigned_abs
         // rather than abs.
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::div(T{+1}, min), (xstd::div_t<T>{0, +1}));
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::euclidean_div(T{+1}, min), (xstd::div_t<T>{0, +1}));
@@ -297,9 +297,9 @@ auto check_signed_integral_like()
         XSTD_CONSTEXPR_CHECK((xstd::abs(T{+2}) == T{2}));
         XSTD_CONSTEXPR_CHECK((xstd::abs(static_cast<T>(limits::min() + T{1})) == limits::max()));
 
-        XSTD_CONSTEXPR_CHECK((xstd::uabs(T{+2}) == U{2}));
-        XSTD_CONSTEXPR_CHECK((xstd::uabs(T{-2}) == U{2}));
-        XSTD_CONSTEXPR_CHECK((xstd::uabs(limits::min()) == static_cast<U>(static_cast<U>(limits::max()) + U{1})));
+        XSTD_CONSTEXPR_CHECK((xstd::unsigned_abs(T{+2}) == U{2}));
+        XSTD_CONSTEXPR_CHECK((xstd::unsigned_abs(T{-2}) == U{2}));
+        XSTD_CONSTEXPR_CHECK((xstd::unsigned_abs(limits::min()) == static_cast<U>(static_cast<U>(limits::max()) + U{1})));
 
         XSTD_CONSTEXPR_CHECK((xstd::sign(T{-2}) == -1));
         XSTD_CONSTEXPR_CHECK((xstd::sign(T{0}) == 0));
@@ -321,7 +321,7 @@ auto check_signed_integral_like()
         XSTD_CONSTEXPR_CHECK((xstd::floored_div(T{-8}, T{-3}) == xstd::div_t{T{+2}, T{-2}}));
 
         // denom == MIN, whose magnitude T cannot hold: in contract for all
-        // three, and the reason the postconditions are written with uabs
+        // three, and the reason the postconditions are written with unsigned_abs
         // rather than abs. The euclidean case is the one that would form -MIN
         // if the adjustment were spelled as a delta.
         XSTD_CONSTEXPR_CHECK((xstd::div(T{-1}, limits::min()) == xstd::div_t{T{0}, T{-1}}));
@@ -368,7 +368,7 @@ BOOST_AUTO_TEST_CASE(BuiltInWidths)
 BOOST_AUTO_TEST_CASE(Int128Aliases)
 {
         static_assert(xstd::signed_integral_like<xstd::int128_t>);
-        static_assert(std::same_as<decltype(xstd::uabs(xstd::int128_t{})), xstd::uint128_t>);
+        static_assert(std::same_as<decltype(xstd::unsigned_abs(xstd::int128_t{})), xstd::uint128_t>);
         static_assert(std::same_as<decltype(xstd::div(xstd::int128_t{1}, xstd::int128_t{1})), xstd::div_t<xstd::int128_t>>);
 
         check_signed_integral_like<xstd::int128_t>();
