@@ -13,6 +13,8 @@
 
 namespace xstd::detail {
 
+inline constexpr auto decimal_base = uint128_t{10};
+
 template<class T>
         requires std::signed_integral<T>
 [[nodiscard]] auto to_decimal(T value)
@@ -30,9 +32,9 @@ template<class T>
 
         auto result = std::string{};
         while (value != uint128_t{0}) {
-                auto const digit = static_cast<unsigned>(value % uint128_t{10});
+                auto const digit = static_cast<unsigned>(value % decimal_base);
                 result.push_back(static_cast<char>('0' + digit));
-                value /= uint128_t{10};
+                value /= decimal_base;
         }
         std::ranges::reverse(result);
         return result;
