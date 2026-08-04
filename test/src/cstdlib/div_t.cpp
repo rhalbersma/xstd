@@ -4,7 +4,6 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/cstdlib/div_t.hpp>   // div_t
-#include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
 #include <boost/test/unit_test.hpp> // Boost.Test
 #include <concepts>                 // same_as
 #include <cstdint>                  // int8_t

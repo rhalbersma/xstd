@@ -4,6 +4,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/type_traits/is_arithmetic_like.hpp> // is_arithmetic_like
+#include <xstd/type_traits/is_integral_like.hpp>   // is_integral_like_v
 #include <xstd/test/constexpr.hpp>                 // XSTD_CONSTEXPR_CHECK
 #include <boost/test/unit_test.hpp>                // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <limits>                                  // numeric_limits
