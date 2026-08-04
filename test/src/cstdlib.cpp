@@ -4,8 +4,9 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/cstdlib.hpp>         // abs, unsigned_abs, sign, div_t, div, euclidean_div, floored_div
-#include <xstd/format.hpp>          // formatter<div_t>
-#include <xstd/ostream.hpp>         // operator<<(ostream, div_t)
+#include <xstd/cstdint.hpp>         // int128_t, uint128_t
+#include <xstd/format.hpp>          // IWYU pragma: keep; formatter<div_t>
+#include <xstd/ostream.hpp>         // IWYU pragma: keep; operator<<(ostream, div_t)
 #include <xstd/concepts.hpp>        // signed_integral_like
 #include <xstd/type_traits.hpp>     // make_unsigned_like_t
 #include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL

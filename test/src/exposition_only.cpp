@@ -7,7 +7,6 @@
 #include <xstd/test/constexpr.hpp>           // XSTD_CONSTEXPR_CHECK
 #include <boost/test/unit_test.hpp>          // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_CHECK
 #include <complex>                           // complex
-#include <limits>                            // numeric_limits
 
 BOOST_AUTO_TEST_SUITE(ExpositionOnly)
 
