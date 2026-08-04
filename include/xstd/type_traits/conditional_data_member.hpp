@@ -6,12 +6,13 @@
 #ifndef XSTD_TYPE_TRAITS_CONDITIONAL_DATA_MEMBER_HPP
 #define XSTD_TYPE_TRAITS_CONDITIONAL_DATA_MEMBER_HPP
 
+#include <xstd/config.hpp>                 // XSTD_NO_UNIQUE_ADDRESS
 #include <xstd/type_traits/empty_type.hpp> // empty_type
 #include <type_traits>                     // conditional_t
 
 namespace xstd {
 
-// Tag keeps multiple absent [[no_unique_address]] members distinct.
+// Tag keeps multiple absent [[XSTD_NO_UNIQUE_ADDRESS]] data members distinct.
 template<bool Condition, class Type, class Tag>
 using conditional_data_member_t = std::conditional_t<Condition, Type, empty_type<Tag>>;
 

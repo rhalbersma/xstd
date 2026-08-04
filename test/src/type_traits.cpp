@@ -58,6 +58,14 @@ enum class color : unsigned { red = 1 };
 struct tag1;
 struct tag2;
 
+struct compressed_member
+{
+        [[XSTD_NO_UNIQUE_ADDRESS]] xstd::empty_type<tag1> empty;
+        int value;
+};
+
+static_assert(sizeof(compressed_member) == sizeof(int));
+
 BOOST_AUTO_TEST_CASE(EmptyType)
 {
         using empty1 = xstd::empty_type<tag1>;

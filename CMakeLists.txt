@@ -43,6 +43,7 @@ target_sources(
         include/xstd/concepts/signed_integral_like.hpp
         include/xstd/concepts/specialization_of.hpp
         include/xstd/concepts/unsigned_integral_like.hpp
+        include/xstd/config.hpp
         include/xstd/cstdint.hpp
         include/xstd/cstdlib.hpp
         include/xstd/cstdlib/abs.hpp
