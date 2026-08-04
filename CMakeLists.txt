@@ -84,6 +84,12 @@ install(
     EXPORT ${PROJECT_NAME}Targets
     FILE_SET HEADERS
 )
+# Implementation configuration headers are installed because public headers
+# include them, but are deliberately not part of the public HEADERS file set.
+install(
+    DIRECTORY include/xstd/config
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/xstd
+)
 install(
     EXPORT ${PROJECT_NAME}Targets
     NAMESPACE ${PROJECT_NAME}::

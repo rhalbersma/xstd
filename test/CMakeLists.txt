@@ -88,6 +88,8 @@ file(
     RELATIVE ${public_header_dir}
     ${public_header_dir}/xstd/*.hpp
 )
+# Configuration headers are implementation details included by public headers.
+list(FILTER public_headers EXCLUDE REGEX "^xstd/config/")
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/header_self_sufficiency)
 
 foreach(h ${public_headers})

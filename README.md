@@ -48,7 +48,7 @@ vendored checkout, use `add_subdirectory(external/xstd)`. Both provide the same
 | `<xstd/format.hpp>` | `formatter<div_t>` | `std::format` support where the element type has it | [p2286r8](https://wg21.link/p2286r8), [p3391](https://wg21.link/p3391) (C++29, not yet implemented) |
 | `<xstd/memory.hpp>` | `aligned_size` | Round a size up to a power-of-two alignment | none |
 | `<xstd/ostream.hpp>` | `operator<<(ostream, div_t)` | Narrow stream support for test-framework diagnostics | none |
-| `<xstd/type_traits.hpp>` | `empty_type` <br> `is_integral_like` <br> `is_arithmetic_like` <br> `is_signed_like` <br> `is_unsigned_like` <br> `is_specialization_of` <br> `make_signed_like` <br> `make_unsigned_like` <br> `conditional_data_member_t` | A tagged empty type <br> `std::is_integral`, opened to integer-class types <br> `std::is_arithmetic`, opened through the integral half <br> `std::is_signed`, opened the same way <br> `std::is_unsigned`, opened the same way <br> Is a type a class template specialization? <br> Open, user-specializable `std::make_signed` <br> Open, user-specializable `std::make_unsigned` <br> A conditionally present member | none <br> [iterator.concept.winc] (`is-integer-like`) <br> none <br> none <br> none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> none <br> none <br> none |
+| `<xstd/type_traits.hpp>` | `XSTD_NO_UNIQUE_ADDRESS` <br> `empty_type` <br> `is_integral_like` <br> `is_arithmetic_like` <br> `is_signed_like` <br> `is_unsigned_like` <br> `is_specialization_of` <br> `make_signed_like` <br> `make_unsigned_like` <br> `conditional_data_member_t` | Portable spelling of `no_unique_address` <br> A tagged empty type <br> `std::is_integral`, opened to integer-class types <br> `std::is_arithmetic`, opened through the integral half <br> `std::is_signed`, opened the same way <br> `std::is_unsigned`, opened the same way <br> Is a type a class template specialization? <br> Open, user-specializable `std::make_signed` <br> Open, user-specializable `std::make_unsigned` <br> A conditionally present member | none <br> none <br> [iterator.concept.winc] (`is-integer-like`) <br> none <br> none <br> none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> none <br> none <br> none |
 | `<xstd/utility.hpp>` | `to_underlying` | `std::integral_constant` overload | [p1682r1](https://wg21.link/p1682r1) (`std::to_underlying`) |
 
 ## Examples
@@ -75,6 +75,19 @@ integer-class types, including xstd's portable 128-bit aliases:
 
 static_assert(xstd::signed_integral_like<xstd::int128_t>);
 static_assert(xstd::unsigned_integral_like<xstd::uint128_t>);
+```
+
+Use `XSTD_NO_UNIQUE_ADDRESS` inside an attribute-specifier. It expands to
+`msvc::no_unique_address` with the MSVC-compatible frontend and to
+`no_unique_address` elsewhere:
+
+```cpp
+#include <xstd/type_traits.hpp>
+
+struct storage {
+    [[XSTD_NO_UNIQUE_ADDRESS]] allocator_type allocator;
+    value_type value;
+};
 ```
 
 `xstd::abs` has the same minimum-value precondition as signed built-in
