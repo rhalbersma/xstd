@@ -118,7 +118,7 @@ if(NOT DEFINED Boost_USE_STATIC_LIBS)
 endif()
 
 find_package(
-    Boost CONFIG REQUIRED COMPONENTS
+    Boost 1.70 CONFIG REQUIRED COMPONENTS
     unit_test_framework
 )
 
