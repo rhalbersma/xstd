@@ -7,7 +7,7 @@
 #define XSTD_TYPE_TRAITS_CONDITIONAL_DATA_MEMBER_HPP
 
 #include <xstd/config/no_unique_address.hpp> // IWYU pragma: export; XSTD_NO_UNIQUE_ADDRESS
-#include <xstd/type_traits/empty_type.hpp>   // empty_type
+#include <xstd/type_traits/empty_type.hpp>   // IWYU pragma: export; empty_type
 #include <type_traits>                       // conditional_t
 
 namespace xstd {
