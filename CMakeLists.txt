@@ -43,7 +43,6 @@ target_sources(
         include/xstd/concepts/signed_integral_like.hpp
         include/xstd/concepts/specialization_of.hpp
         include/xstd/concepts/unsigned_integral_like.hpp
-        include/xstd/config.hpp
         include/xstd/cstdint.hpp
         include/xstd/cstdlib.hpp
         include/xstd/cstdlib/abs.hpp
@@ -84,6 +83,12 @@ install(
     TARGETS ${PROJECT_NAME}
     EXPORT ${PROJECT_NAME}Targets
     FILE_SET HEADERS
+)
+# Implementation configuration headers are installed because public headers
+# include them, but are deliberately not part of the public HEADERS file set.
+install(
+    DIRECTORY include/xstd/config
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/xstd
 )
 install(
     EXPORT ${PROJECT_NAME}Targets

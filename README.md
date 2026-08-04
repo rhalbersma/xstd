@@ -43,7 +43,6 @@ vendored checkout, use `add_subdirectory(external/xstd)`. Both provide the same
 | Header | Additions | Description | Reference |
 | :----- | :-------- | :---------- | :-------- |
 | `<xstd/concepts.hpp>` | `integral_like` <br> `signed_integral_like` <br> `unsigned_integral_like` <br> `specialization_of` | Constraint form of `is_integral_like` <br> Open form of `std::signed_integral` <br> Open form of `std::unsigned_integral` <br> Constraint form of `is_specialization_of` | [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) |
-| `<xstd/config.hpp>` | `XSTD_NO_UNIQUE_ADDRESS` | Portable spelling of `[[no_unique_address]]`, including MSVC's ABI-compatible spelling | none |
 | `<xstd/cstdint.hpp>` | `int128_t` <br> `uint128_t` | Platform 128-bit signed integer <br> Platform 128-bit unsigned integer | none <br> none |
 | `<xstd/cstdlib.hpp>` | `div_t` <br> `sign` <br> `abs` <br> `unsigned_abs` <br> `div` <br> `euclidean_div` <br> `floored_div` | Defaulted equality comparison <br> `constexpr`, any signed integer-like type <br> `constexpr`, any signed integer-like type <br> Total `\|x\|`, returning the unsigned counterpart <br> `constexpr`, any signed integer-like type <br> Euclidean division <br> Floored division | none <br> [Boost.Math](https://www.boost.org/doc/libs/1_80_0/libs/math/doc/html/math_toolkit/sign_functions.html) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Rust `unsigned_abs`](https://doc.rust-lang.org/std/primitive.i32.html#method.unsigned_abs) (no C++ equivalent) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) |
 | `<xstd/format.hpp>` | `formatter<div_t>` | `std::format` support where the element type has it | [p2286r8](https://wg21.link/p2286r8), [p3391](https://wg21.link/p3391) (C++29, not yet implemented) |
@@ -83,7 +82,7 @@ Use `XSTD_NO_UNIQUE_ADDRESS` inside an attribute-specifier. It expands to
 `no_unique_address` elsewhere:
 
 ```cpp
-#include <xstd/config.hpp>
+#include <xstd/type_traits.hpp>
 
 struct storage {
     [[XSTD_NO_UNIQUE_ADDRESS]] allocator_type allocator;
