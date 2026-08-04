@@ -5,11 +5,14 @@
 
 #include <xstd/format.hpp>          // formatter<div_t>
 #include <xstd/cstdlib/div_t.hpp>   // div_t
-#include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK_EQUAL
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_CHECK_EQUAL
 #include <cstdint>                  // exact-width integer types
 #include <format>                   // format
 #include <tuple>                    // tuple
+
+#ifdef __cpp_lib_constexpr_format
+#include <xstd/test/constexpr.hpp> // XSTD_CONSTEXPR_CHECK_EQUAL
+#endif
 
 using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t>;
 
