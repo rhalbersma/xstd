@@ -99,9 +99,8 @@ BOOST_AUTO_TEST_CASE(IntegralLike)
 
         // the spellings that are answered rather than hard-errored only
         // because the requirements they would trip over sit inside a concept,
-        // where a conjunction short-circuits. src/exposition_only.cpp pins
-        // the ordering that makes that work; these four pin that the concept
-        // a caller actually writes inherits it.
+        // where a conjunction short-circuits. These four pin that behavior in
+        // the public concept a caller actually writes.
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<void>);
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<int&>);
         // NOLINTNEXTLINE(modernize-avoid-c-arrays): a built-in array is the type under test, not a container choice

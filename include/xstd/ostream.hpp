@@ -6,10 +6,11 @@
 #ifndef XSTD_OSTREAM_HPP
 #define XSTD_OSTREAM_HPP
 
-#include <xstd/cstdlib/div_t.hpp> // div_t
-#include <xstd/format.hpp>        // formatter<div_t>
-#include <format>                 // format
-#include <ostream>                // ostream
+#include <xstd/concepts/signed_integral_like.hpp> // signed_integral_like
+#include <xstd/cstdlib/div_t.hpp>                 // div_t
+#include <xstd/format.hpp>                        // IWYU pragma: keep; formatter<div_t>
+#include <format>                                 // format
+#include <ostream>                                // ostream
 
 namespace xstd {
 

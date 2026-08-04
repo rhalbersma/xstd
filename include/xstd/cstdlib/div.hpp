@@ -6,11 +6,12 @@
 #ifndef XSTD_CSTDLIB_DIV_HPP
 #define XSTD_CSTDLIB_DIV_HPP
 
-#include <xstd/cstdlib/div_t.hpp>        // div_t
-#include <xstd/cstdlib/sign.hpp>         // sign
-#include <xstd/cstdlib/unsigned_abs.hpp> // unsigned_abs
-#include <cassert>                       // assert
-#include <limits>                        // numeric_limits
+#include <xstd/concepts/signed_integral_like.hpp> // signed_integral_like
+#include <xstd/cstdlib/div_t.hpp>                 // div_t
+#include <xstd/cstdlib/sign.hpp>                  // sign
+#include <xstd/cstdlib/unsigned_abs.hpp>          // unsigned_abs
+#include <cassert>                                // assert
+#include <limits>                                 // numeric_limits
 
 namespace xstd {
 

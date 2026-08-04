@@ -60,3 +60,6 @@ Checks: >
   -performance-enum-size,
   -performance-unnecessary-value-param,
   -readability-magic-numbers
+CheckOptions:
+  # Boost.Test's public header expands macros through private implementation headers.
+  misc-include-cleaner.IgnoreHeaders: 'boost/.*'

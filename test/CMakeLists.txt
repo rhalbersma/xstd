@@ -101,7 +101,7 @@ foreach(h ${public_headers})
     # return-type (enabled, like the rest of modernize-*) flags "int main()".
     file(
         WRITE ${header_test_source}
-        "#include <${h}>\nauto main() -> int {}\n"
+        "#include <${h}> // IWYU pragma: keep\nauto main() -> int {}\n"
     )
 
     add_executable(header.${header_test_id} ${header_test_source})
