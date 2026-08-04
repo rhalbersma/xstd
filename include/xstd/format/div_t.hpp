@@ -7,7 +7,7 @@
 #define XSTD_FORMAT_DIV_T_HPP
 
 #include <xstd/cstdlib/div_t.hpp> // div_t
-#include <xstd/format/int128.hpp> // detail::to_decimal
+#include <xstd/format/int128.hpp> // IWYU pragma: keep; detail::to_decimal
 #include <format>                 // formatter
 #include <string>                 // basic_string, string
 #include <string_view>            // basic_string_view
