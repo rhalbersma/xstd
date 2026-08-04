@@ -47,7 +47,7 @@ covers every signed integer-like width without families such as `abs`, `labs`,
 promoted type, and a two-argument function requires both arguments to have the
 same type unless the caller explicitly selects one.
 
-`abs` has the usual signed-minimum precondition. `uabs` returns the unsigned
+`abs` has the usual signed-minimum precondition. `unsigned_abs` returns the unsigned
 counterpart and can represent that magnitude. `div`, `euclidean_div`, and
 `floored_div` require a nonzero denominator, and `MIN / -1` remains outside
 their contract. All integer operations are `constexpr` and `noexcept`.
@@ -68,6 +68,20 @@ Concept spellings are provided when the standard library has an analogous
 concept; otherwise the trait is the interface. Detailed constraints belong in
 the headers and tests rather than being duplicated here.
 
+### `to_underlying`
+
+The [original 2016 sketch](ideas.md#1-convenient-underlying-types-for-scoped-enums)
+motivated `to_underlying` with scoped enums used as named tuple and array
+indices. Rein Halbersma developed the idea and initial usage evidence with
+Walter E. Brown; JeanHeyd Meneide then authored
+[P1682R1](https://wg21.link/p1682r1) and carried `std::to_underlying` through
+WG21 for C++23. P1682's acknowledgements record those roles.
+
+The xstd overload complements that standard function rather than replacing it:
+given an enum value wrapped in `std::integral_constant`, it returns an
+`integral_constant` of the underlying type and preserves the value at the type
+level.
+
 ### Formatting
 
 `div_t` is tuple-like. `<xstd/format.hpp>` provides its formatter when the
@@ -80,14 +94,17 @@ the rest of xstd does not depend on `std::format`.
 
 The names are not consistent across programming languages. The table compares
 integer operations with xstd's three conventions. An entry names a matching
-quotient/remainder pair unless it says **remainder only**. It is a guide to
-recognizable spellings, not a promise about every language version or numeric
-type. Rows with similar sets of conventions are kept together.
+quotient/remainder pair unless it says **quotient only** or **remainder only**.
+It is a guide to recognizable spellings, not a promise about every language
+version or numeric type. Rows with similar sets of conventions are kept
+together. The language survey in [P3724R4](https://wg21.link/p3724r4) supplies
+additional points of comparison.
 
 | Language | Truncated integer division | Euclidean integer division | Floored integer division |
 | :------- | :------------------------- | :------------------------- | :----------------------- |
 | C (C99 and later) | `/`, `%` | — | — |
 | C++ (C++11 and later) | `/`, `%` | — | — |
+| Objective-C | `/`, `%` | — | — |
 | C# | `/`, `%` | — | — |
 | D | `/`, `%` | — | — |
 | F# | `/`, `%` | — | — |
@@ -98,6 +115,7 @@ type. Rows with similar sets of conventions are kept together.
 | Swift | `/`, `%` | — | — |
 | Erlang | `div`, `rem` | — | — |
 | OCaml | `/`, `mod` | — | — |
+| GLSL | `/` (**quotient only**) | — | — |
 | Rust | `/`, `%` | `div_euclid`, `rem_euclid` | — |
 | Dart | `~/`, `remainder` | `%` (**remainder only**) | — |
 | Java | `/`, `%` | — | `Math.floorDiv`, `Math.floorMod` |
@@ -113,9 +131,11 @@ type. Rows with similar sets of conventions are kept together.
 | Fortran | `/`, `MOD` | — | `MODULO` (**remainder only**) |
 | Ruby | `remainder` (**remainder only**) | — | `div`, `%`, `modulo`, `divmod` |
 | Python | — | — | `//`, `%`, `divmod` |
+| Lua | — | — | `//`, `%` |
 | R | — | — | `%/%`, `%%` |
 | Standard ML | — | — | `div`, `mod` |
 | Perl | — | — | `%` (**remainder only**) |
+| CSS | `rem()` (**remainder only**) | — | `mod()` (**remainder only**) |
 
 The paired operations all satisfy `numer == denom * quot + rem`, but choose a
 different remainder for negative inputs:

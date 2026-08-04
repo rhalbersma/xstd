@@ -51,7 +51,7 @@ target_sources(
         include/xstd/cstdlib/euclidean_div.hpp
         include/xstd/cstdlib/floored_div.hpp
         include/xstd/cstdlib/sign.hpp
-        include/xstd/cstdlib/uabs.hpp
+        include/xstd/cstdlib/unsigned_abs.hpp
         include/xstd/format.hpp
         include/xstd/memory.hpp
         include/xstd/ostream.hpp

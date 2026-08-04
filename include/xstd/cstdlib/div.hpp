@@ -6,11 +6,11 @@
 #ifndef XSTD_CSTDLIB_DIV_HPP
 #define XSTD_CSTDLIB_DIV_HPP
 
-#include <xstd/cstdlib/div_t.hpp> // div_t
-#include <xstd/cstdlib/sign.hpp>  // sign
-#include <xstd/cstdlib/uabs.hpp>  // uabs
-#include <cassert>                // assert
-#include <limits>                 // numeric_limits
+#include <xstd/cstdlib/div_t.hpp>        // div_t
+#include <xstd/cstdlib/sign.hpp>         // sign
+#include <xstd/cstdlib/unsigned_abs.hpp> // unsigned_abs
+#include <cassert>                       // assert
+#include <limits>                        // numeric_limits
 
 namespace xstd {
 
@@ -24,7 +24,7 @@ template<signed_integral_like S>
         auto const qT = static_cast<S>(numer / denom);
         auto const rT = static_cast<S>(numer % denom);
         assert(numer == static_cast<S>(static_cast<S>(denom * qT) + rT));
-        assert(uabs(rT) < uabs(denom));
+        assert(unsigned_abs(rT) < unsigned_abs(denom));
         assert(sign(rT) == sign(numer) or rT == static_cast<S>(0));
         return {.quot = qT, .rem = rT};
 }

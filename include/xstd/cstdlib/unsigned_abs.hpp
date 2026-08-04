@@ -3,17 +3,18 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_CSTDLIB_UABS_HPP
-#define XSTD_CSTDLIB_UABS_HPP
+#ifndef XSTD_CSTDLIB_UNSIGNED_ABS_HPP
+#define XSTD_CSTDLIB_UNSIGNED_ABS_HPP
 
 #include <xstd/concepts/signed_integral_like.hpp>  // signed_integral_like
 #include <xstd/type_traits/make_unsigned_like.hpp> // make_unsigned_like_t
 
 namespace xstd {
 
-// Total absolute value, returning the unsigned counterpart so MIN is valid.
+// Like Rust's unsigned_abs: total absolute value, returning the unsigned
+// counterpart so MIN is valid.
 template<signed_integral_like S>
-[[nodiscard]] constexpr auto uabs(S x) noexcept
+[[nodiscard]] constexpr auto unsigned_abs(S x) noexcept
 {
         using U = make_unsigned_like_t<S>;
         auto const zero = static_cast<U>(0);
@@ -23,4 +24,4 @@ template<signed_integral_like S>
 
 } // namespace xstd
 
-#endif // XSTD_CSTDLIB_UABS_HPP
+#endif // XSTD_CSTDLIB_UNSIGNED_ABS_HPP
