@@ -131,32 +131,7 @@ No single pair of integer operands can make all three results different. For a
 positive numerator and negative denominator, truncated and Euclidean division
 agree. For a negative numerator and positive denominator, Euclidean and
 floored division agree. When both are negative, truncated and floored division
-agree; when both are positive, all three agree. For example:
-
-```cpp
-#include <xstd/cstdlib.hpp>
-
-constexpr int numer = -8;
-constexpr int denom = -3;
-
-constexpr auto truncated = xstd::div(numer, denom);           // (2, -2)
-constexpr auto euclidean = xstd::euclidean_div(numer, denom); // (3,  1)
-constexpr auto floored = xstd::floored_div(numer, denom);     // (2, -2)
-
-constexpr auto common_invariants = [](auto result) {
-    return numer == denom * result.quot + result.rem
-        && xstd::uabs(result.rem) < xstd::uabs(denom);
-};
-
-static_assert(common_invariants(truncated));
-static_assert(common_invariants(euclidean));
-static_assert(common_invariants(floored));
-
-static_assert(xstd::sign(truncated.rem) == xstd::sign(numer));
-static_assert(euclidean.rem >= 0);
-static_assert(xstd::sign(floored.rem) == xstd::sign(denom));
-static_assert(truncated == floored); // unavoidable for this sign pattern
-```
+agree; when both are positive, all three agree.
 
 The terminology follows
 [Division and Modulus for Computer Scientists](https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/divmodnote-letter.pdf).
@@ -188,10 +163,10 @@ The CI matrix follows the channel model used by
 
 These channels are tested across the three main compiler families (GCC, Clang,
 and MSVC), the three main standard libraries (libstdc++, libc++, and the MSVC
-STL), and the three main desktop platforms (Linux, macOS, and Windows). MinGW,
-Clang with both standard libraries, Apple Clang, and Clang-CL fill out the
-relevant compiler/library/platform combinations. Development entries are
-required when an upstream project publishes a usable development toolchain;
+STL), and the three main desktop platforms (Linux, macOS, and Windows). MinGW
+with libstdc++, Clang with both standard libraries, Apple Clang, and Clang-CL
+fill out the relevant compiler/library/platform combinations. Development CI
+jobs are required when a usable development compiler is available;
 the README records the exact versions currently assigned to each channel.
 
 The library itself has no external dependency. Building its tests requires the
