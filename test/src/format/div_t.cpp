@@ -7,7 +7,7 @@
 #include <xstd/cstdlib/div_t.hpp>   // div_t
 #include <xstd/format/div_t.hpp>    // IWYU pragma: keep; formatter<div_t>
 #include <xstd/format/int128.hpp>   // IWYU pragma: keep; formatter<int128_t>
-#include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_CHECK_EQUAL
+#include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_CHECK, BOOST_CHECK_EQUAL
 #include <cstdint>                  // exact-width integer types
 #include <format>                   // format
 #include <string_view>              // wstring_view
@@ -18,6 +18,8 @@
 #endif
 
 using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t, xstd::int128_t>;
+
+#ifdef __cpp_lib_format_ranges
 
 // The formatting tests leave div_t's formatter and operator<< executed rather
 // than merely instantiated - Boost.Test's printing machinery instantiates them
@@ -44,3 +46,12 @@ BOOST_AUTO_TEST_CASE(WideFormatter)
 {
         BOOST_CHECK(std::format(L"{}", xstd::div_t<int>{1, -2}) == std::wstring_view{L"(1, -2)"});
 }
+
+#else
+
+BOOST_AUTO_TEST_CASE(TupleFormatterUnavailable)
+{
+        BOOST_CHECK(true);
+}
+
+#endif
