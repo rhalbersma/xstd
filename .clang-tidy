@@ -17,7 +17,6 @@ Checks: >
   performance-*,
   portability-*,
   readability-*,
-  -misc-include-cleaner,
   -misc-non-private-member-variables-in-classes,
   -readability-avoid-nested-conditional-operator,
   -readability-identifier-length,
@@ -27,11 +26,5 @@ WarningsAsErrors: '*'
 HeaderFilterRegex: 'include/xstd/.*'
 FormatStyle: none
 CheckOptions:
-  # The logical operators are spelled as the alternative tokens throughout,
-  # which reads with the declarative style of the constraints and assertions
-  # they appear in - and a "not" cannot be skimmed past the way a lone "!"
-  # can. Only the three logical ones: "!=" stays "!=", since "not_eq" and the
-  # bitwise spellings (bitand, compl, ...) are harder to read than what they
-  # replace, not easier. The check is inert until its operator list is set,
-  # so naming them here is what turns it on.
+  # Prefer alternative tokens for logical operators.
   readability-operators-representation.BinaryOperators: 'not;and;or'

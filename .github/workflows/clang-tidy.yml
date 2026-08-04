@@ -131,6 +131,25 @@ jobs:
             "$GITHUB_WORKSPACE/build/test/header_self_sufficiency/.*" \
             2>&1 | tee clang-tidy-report.txt
 
+      # Compiling a file that includes a header proves only transitive
+      # self-sufficiency: it cannot tell whether a standard-library name came
+      # from the header that owns it. Analyze each header as the primary input
+      # as well, so misc-include-cleaner can enforce direct includes and reject
+      # unused ones. Aggregate headers mark their component includes with
+      # IWYU export pragmas, so this workflow needs no brittle exclusion list.
+      - name: Check direct header dependencies
+        shell: bash
+        run: |
+          mapfile -d '' headers < <(
+            find include/xstd -type f -name '*.hpp' \
+              ! -path 'include/xstd/config/*' \
+              -print0
+          )
+          for header in "${headers[@]}"; do
+            clang-tidy-22 "$header" -- \
+              -x c++-header -std=c++23 -Iinclude
+          done 2>&1 | tee -a clang-tidy-report.txt
+
       # The Boost.Test sources, under test/.clang-tidy, which inherits the
       # root configuration and drops the three checks that only misfire on
       # fixtures. Analyzed second rather than in the same pass, so that a

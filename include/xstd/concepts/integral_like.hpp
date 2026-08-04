@@ -7,6 +7,7 @@
 #define XSTD_CONCEPTS_INTEGRAL_LIKE_HPP
 
 #include <xstd/concepts/exposition_only.hpp> // integer_class_type
+#include <concepts>                          // integral
 
 namespace xstd {
 

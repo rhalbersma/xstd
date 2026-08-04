@@ -6,10 +6,12 @@
 #ifndef XSTD_CSTDLIB_FLOORED_DIV_HPP
 #define XSTD_CSTDLIB_FLOORED_DIV_HPP
 
-#include <xstd/cstdlib/div.hpp>          // div
-#include <xstd/cstdlib/sign.hpp>         // sign
-#include <xstd/cstdlib/unsigned_abs.hpp> // unsigned_abs
-#include <cassert>                       // assert
+#include <xstd/concepts/signed_integral_like.hpp> // signed_integral_like
+#include <xstd/cstdlib/div.hpp>                   // div
+#include <xstd/cstdlib/div_t.hpp>                 // div_t
+#include <xstd/cstdlib/sign.hpp>                  // sign
+#include <xstd/cstdlib/unsigned_abs.hpp>          // unsigned_abs
+#include <cassert>                                // assert
 
 namespace xstd {
 
