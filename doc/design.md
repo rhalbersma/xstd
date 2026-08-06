@@ -129,14 +129,26 @@ outside it, and `<ostream>` in neither. Only code asking for nothing beyond
 
 ### Formatting
 
-`<xstd/format.hpp>` formats a `div_t` as `(quot, rem)`. It renders the two
-members through `xstd::to_chars` rather than delegating to the tuple formatter,
-because tuple formatting requires the element type to be formattable and an
-integer-class type need not be: the Microsoft STL's 128-bit classes have no
-formatter at all. Going through `to_chars` asks nothing beyond what
-`signed_integral_like` already guarantees, so `div_t` formats for every type it
-accepts. Fill, alignment and width still come from the inherited string
-formatter.
+`<xstd/format.hpp>` formats a `div_t` as `(quot, rem)`. `div_t` is tuple-like,
+so where the standard library can format a tuple of the element type the
+formatter delegates to `std::formatter<std::tuple<S const&, S const&>>` through
+`std::tie` - the standard's own rendering, with no intermediate string.
+
+That delegation is not always available, and the two ways it can be missing do
+not coincide. The element type may not be formattable, which is the Microsoft
+STL's 128-bit classes. Or tuple formatting itself may be missing: p2286 reached
+libstdc++ in GCC 15, so before that `std::formattable<std::tuple<int const&,
+int const&>>` is false even though `int` is perfectly formattable. Testing
+`formattable` on the *tuple* rather than on the element covers both with one
+predicate. Where it does not hold, the members are rendered through
+`xstd::to_chars` into the inherited string formatter, which asks nothing beyond
+what `signed_integral_like` already guarantees - so `div_t` formats for every
+type it accepts, on every implementation.
+
+Both spellings produce `(quot, rem)`, so which one runs is not observable in
+the output. It is observable in the spec grammar, since `parse()` is inherited:
+the tuple base accepts the tuple specs, the string base accepts precision, and
+fill, alignment and width are common to both.
 
 xstd specializes `std::formatter` only for `div_t`, which is program-defined.
 The 128-bit types are not xstd's to specialize for: they are built-ins or
