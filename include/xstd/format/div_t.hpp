@@ -6,19 +6,21 @@
 #ifndef XSTD_FORMAT_DIV_T_HPP
 #define XSTD_FORMAT_DIV_T_HPP
 
-#include <xstd/cstdlib/div_t.hpp> // div_t
-#include <xstd/format/int128.hpp> // detail::decimal_buffer_size, detail::to_decimal
-#include <format>                 // formatter
-#include <string>                 // basic_string
-#include <string_view>            // basic_string_view
+#include <xstd/charconv/to_chars.hpp> // to_chars, to_chars_max_size
+#include <xstd/cstdlib/div_t.hpp>     // div_t
+#include <array>                      // array
+#include <cassert>                    // assert
+#include <format>                     // formatter
+#include <string>                     // basic_string
+#include <string_view>                // basic_string_view
+#include <system_error>               // errc
 
-// This formatter renders the two members itself rather than delegating to the
-// tuple formatter. Tuple formatting (p2286) is a standard-library feature the
-// element type has to be formattable under, and an integer-class type need not
-// be: the Microsoft STL's own 128-bit classes have no formatter at all, and a
-// third-party one is only formattable if it ships one. detail::to_decimal asks
-// nothing of T beyond what signed_integral_like already guarantees, so div_t
-// formats for every type div_t accepts.
+// This formatter renders the two members through xstd::to_chars rather than
+// delegating to the tuple formatter. Tuple formatting (p2286) requires the
+// element type to be formattable, and an integer-class type need not be: the
+// Microsoft STL's own 128-bit classes have no formatter at all. xstd::to_chars
+// asks nothing of S beyond what signed_integral_like already guarantees, so
+// div_t formats for every type div_t accepts.
 //
 // Nothing here specializes std::formatter for a 128-bit type. Those are either
 // built-ins or standard-library types, so specializing for them is outside what
@@ -40,13 +42,9 @@
 // after its single use: it is a detail of this one member function rather than
 // part of xstd's interface, and macro replacement happens long before the
 // member is instantiated. Everything it reaches is already constexpr - both
-// detail::to_decimal and std::basic_string's transient allocation are.
-#ifdef __cpp_lib_constexpr_format
-#if __cpp_lib_constexpr_format >= 202511L
+// xstd::to_chars and std::basic_string's transient allocation are.
+#if defined(__cpp_lib_constexpr_format) && __cpp_lib_constexpr_format >= 202511L
 #define XSTD_CONSTEXPR_FORMAT constexpr
-#else
-#define XSTD_CONSTEXPR_FORMAT
-#endif
 #else
 #define XSTD_CONSTEXPR_FORMAT
 #endif
@@ -60,21 +58,24 @@ struct std::formatter<xstd::div_t<S>, CharT> : std::formatter<std::basic_string_
         [[nodiscard]] XSTD_CONSTEXPR_FORMAT auto format(xstd::div_t<S> const& d, auto& ctx) const
                 -> decltype(ctx.out())
         {
-                char quot[xstd::detail::decimal_buffer_size<S>];
-                char rem[xstd::detail::decimal_buffer_size<S>];
-
+                constexpr auto N = xstd::to_chars_max_size<S>;
                 auto widened = std::basic_string<CharT>{};
-                auto const append = [&widened](char const* first) {
-                        for (; *first != '\0'; ++first) {
-                                widened.push_back(static_cast<CharT>(*first));
+                auto buffer = std::array<char, N>{};
+
+                auto const append = [&](S const value) XSTD_CONSTEXPR_FORMAT {
+                        auto const result = xstd::to_chars(buffer.data(), buffer.data() + N, value);
+                        // The buffer is sized for base 2, so decimal always fits.
+                        assert(result.ec == std::errc{});
+                        for (auto const* p = buffer.data(); p != result.ptr; ++p) {
+                                widened.push_back(static_cast<CharT>(*p));
                         }
                 };
 
                 widened.push_back(static_cast<CharT>('('));
-                append(xstd::detail::to_decimal(quot, d.quot));
+                append(d.quot);
                 widened.push_back(static_cast<CharT>(','));
                 widened.push_back(static_cast<CharT>(' '));
-                append(xstd::detail::to_decimal(rem, d.rem));
+                append(d.rem);
                 widened.push_back(static_cast<CharT>(')'));
 
                 return std::formatter<std::basic_string_view<CharT>, CharT>::format(widened, ctx);

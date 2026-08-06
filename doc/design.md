@@ -92,15 +92,51 @@ given an enum value wrapped in `std::integral_constant`, it returns an
 `integral_constant` of the underlying type and preserves the value at the type
 level.
 
+### Character conversion
+
+`xstd::to_chars` widens `std::to_chars` to every integral-like type. Where the
+standard library already covers the type it *is* that call, so callers get the
+tuned implementation; where it does not, the digits are produced here to the
+same specification, including bases 2 through 36 and `value_too_large` on a
+short buffer. The tests check the two paths agree byte for byte at every base,
+because a divergence would surface only on the platforms taking the other
+branch.
+
+Two places the standard library does not cover are worth naming, because they
+are not the same place. Integer-class types are never covered: `to_chars` is
+specified over the built-in integer types. But the *built-in* 128-bit types are
+not covered either, in the dialect this library compiles in. libstdc++ generates
+its `to_chars` overload set per built-in width and gates the 128-bit pair on
+`__GLIBCXX_TYPE_INT_N_0`, which the compiler predefines only outside
+`__STRICT_ANSI__`; with `CMAKE_CXX_EXTENSIONS OFF` the overload is absent and
+the call is *ambiguous*, since the argument converts equally well to every
+narrower width. Detection therefore has to survive an ambiguity rather than a
+clean deduction failure, which it does: overload resolution failing is still
+failing in the immediate context, so the constraint is unsatisfied rather than
+ill-formed.
+
+`<format>` goes the other way, and for the same underlying reason. libstdc++
+adds a `formatter<__int128, CharT>` specialization *only* under
+`__STRICT_ANSI__` - where the type stops being integral and the generic path
+would miss it - and its integer formatter shadows `to_chars` with a shim onto
+the internal conversion template, because the public overload set is the part
+that is missing. So the three facilities disagree about the same type along
+different axes: `<format>` works only in the strict dialect, `<charconv>` only
+outside it, and `<ostream>` in neither. Only code asking for nothing beyond
+`%`, `/`, and comparison behaves the same everywhere.
+
+`bool` is integral-like, and `to_chars` is deleted for it, as in the standard.
+
 ### Formatting
 
 `<xstd/format.hpp>` formats a `div_t` as `(quot, rem)`. It renders the two
-members itself rather than delegating to the tuple formatter, because tuple
-formatting requires the element type to be formattable and an integer-class
-type need not be: the Microsoft STL's 128-bit classes have no formatter at all.
-Rendering them directly asks nothing beyond what `signed_integral_like` already
-guarantees, so `div_t` formats for every type it accepts. Fill, alignment and
-width still come from the inherited string formatter.
+members through `xstd::to_chars` rather than delegating to the tuple formatter,
+because tuple formatting requires the element type to be formattable and an
+integer-class type need not be: the Microsoft STL's 128-bit classes have no
+formatter at all. Going through `to_chars` asks nothing beyond what
+`signed_integral_like` already guarantees, so `div_t` formats for every type it
+accepts. Fill, alignment and width still come from the inherited string
+formatter.
 
 xstd specializes `std::formatter` only for `div_t`, which is program-defined.
 The 128-bit types are not xstd's to specialize for: they are built-ins or

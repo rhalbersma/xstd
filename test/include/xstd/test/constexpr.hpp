@@ -6,12 +6,14 @@
 #ifndef XSTD_TEST_CONSTEXPR_HPP
 #define XSTD_TEST_CONSTEXPR_HPP
 
+#include <xstd/charconv/to_chars.hpp>             // to_chars, to_chars_max_size
 #include <xstd/concepts/signed_integral_like.hpp> // signed_integral_like
 #include <xstd/cstdint.hpp>                       // int128, uint128
 #include <xstd/cstdlib/div_t.hpp>                 // div_t
-#include <xstd/format/int128.hpp>                 // detail::decimal_buffer_size, detail::to_decimal
 #include <boost/test/unit_test.hpp>               // BOOST_CHECK, BOOST_CHECK_EQUAL
+#include <array>                                  // array
 #include <ostream>                                // ostream
+#include <string_view>                            // string_view
 
 // Boost.Test prints a value only when an assertion fails, and it asks for that
 // printing through print_log_value rather than through operator<< directly.
@@ -28,8 +30,10 @@ struct print_log_value<xstd::int128>
         auto operator()(std::ostream& ostr, xstd::int128 const value) const
                 -> void
         {
-                char buffer[xstd::detail::decimal_buffer_size<xstd::int128>];
-                ostr << xstd::detail::to_decimal(buffer, value);
+                constexpr auto N = xstd::to_chars_max_size<xstd::int128>;
+                auto buffer = std::array<char, N>{};
+                auto const result = xstd::to_chars(buffer.data(), buffer.data() + N, value);
+                ostr << std::string_view{buffer.data(), result.ptr};
         }
 };
 
@@ -39,8 +43,10 @@ struct print_log_value<xstd::uint128>
         auto operator()(std::ostream& ostr, xstd::uint128 const value) const
                 -> void
         {
-                char buffer[xstd::detail::decimal_buffer_size<xstd::uint128>];
-                ostr << xstd::detail::to_decimal(buffer, value);
+                constexpr auto N = xstd::to_chars_max_size<xstd::uint128>;
+                auto buffer = std::array<char, N>{};
+                auto const result = xstd::to_chars(buffer.data(), buffer.data() + N, value);
+                ostr << std::string_view{buffer.data(), result.ptr};
         }
 };
 
@@ -53,10 +59,17 @@ struct print_log_value<xstd::div_t<S>>
         auto operator()(std::ostream& ostr, xstd::div_t<S> const& d) const
                 -> void
         {
-                char quot[xstd::detail::decimal_buffer_size<S>];
-                char rem[xstd::detail::decimal_buffer_size<S>];
-                ostr << '(' << xstd::detail::to_decimal(quot, d.quot)
-                     << ", " << xstd::detail::to_decimal(rem, d.rem) << ')';
+                // A buffer each: the two views are alive at the same time, so
+                // sharing one would leave the first dangling into storage the
+                // second call had already rewritten.
+                constexpr auto N = xstd::to_chars_max_size<S>;
+                auto quot = std::array<char, N>{};
+                auto rem = std::array<char, N>{};
+                auto const render = [](std::array<char, N>& buffer, S const value) {
+                        auto const result = xstd::to_chars(buffer.data(), buffer.data() + N, value);
+                        return std::string_view{buffer.data(), result.ptr};
+                };
+                ostr << '(' << render(quot, d.quot) << ", " << render(rem, d.rem) << ')';
         }
 };
 
