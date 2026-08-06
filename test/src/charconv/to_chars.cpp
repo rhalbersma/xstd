@@ -17,8 +17,20 @@
 
 BOOST_AUTO_TEST_SUITE(CharConvToChars)
 
+// A named concept rather than a bare requires-expression at the use: selecting
+// a deleted function makes the expression ill-formed, and an ill-formed
+// operand that is also non-dependent is a hard error rather than an
+// unsatisfied constraint. Keeping the type a template parameter is what turns
+// the deleted overload into the false answer the check is looking for.
+template<class T>
+concept has_xstd_to_chars = requires (char* p, T value) { xstd::to_chars(p, p, value, 10); };
+
 using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t, xstd::int128>;
 using unsigned_types = std::tuple<std::uint8_t, std::uint16_t, std::uint32_t, std::uint64_t, xstd::uint128>;
+
+// Named rather than spelled inline at the use: the preprocessor splits a
+// macro argument on the tuple's commas.
+using standard_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t>;
 
 template<class T>
 [[nodiscard]] auto rendered(T value, int base)
@@ -56,7 +68,8 @@ BOOST_AUTO_TEST_CASE(DelegatesWhereTheStandardLibraryCovers)
         // bool is integral-like, but the standard deletes its to_chars and so
         // does xstd, rather than letting it fall through to the digits path.
         static_assert(not xstd::detail::has_std_to_chars<bool>);
-        static_assert(not requires (char* p) { xstd::to_chars(p, p, true, 10); });
+        static_assert(not has_xstd_to_chars<bool>);
+        static_assert(has_xstd_to_chars<int>);
 
         // A type with no overload anywhere takes the digits path rather than
         // being a hard error - the ambiguous case has to survive too, which is
@@ -70,7 +83,7 @@ BOOST_AUTO_TEST_CASE(DelegatesWhereTheStandardLibraryCovers)
 // the digits path must be byte-identical to it, at every base. A divergence
 // would show up only on the platforms that take the other branch, which are
 // exactly the ones hardest to notice it on.
-BOOST_AUTO_TEST_CASE_TEMPLATE(DigitsPathMatchesTheStandard, T, std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t>)
+BOOST_AUTO_TEST_CASE_TEMPLATE(DigitsPathMatchesTheStandard, T, standard_width_types)
 {
         for (auto base = 2; base <= 36; ++base) {
                 for (auto const value : {T{0}, T{1}, T{-1}, T{7}, T{-7},

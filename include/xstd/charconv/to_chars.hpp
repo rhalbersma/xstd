@@ -77,7 +77,7 @@ template<integral_like T>
         auto const radix = static_cast<T>(base);
 
         auto count = std::size_t{0};
-        for (auto rest = value;; rest /= radix) {
+        for (auto rest = value;; rest = static_cast<T>(rest / radix)) {
                 ++count;
                 if (rest / radix == T{0}) {
                         break;
@@ -87,7 +87,7 @@ template<integral_like T>
         auto negative = false;
         if constexpr (is_signed_like_v<T>) {
                 negative = value < T{0};
-                count += negative ? 1 : 0;
+                count += negative ? std::size_t{1} : std::size_t{0};
         }
 
         if (static_cast<std::size_t>(last - first) < count) {
@@ -95,7 +95,7 @@ template<integral_like T>
         }
 
         auto* out = first + count;
-        for (auto rest = value;; rest /= radix) {
+        for (auto rest = value;; rest = static_cast<T>(rest / radix)) {
                 auto const digit = static_cast<int>(rest % radix);
                 *--out = to_chars_digits[static_cast<std::size_t>(negative ? -digit : digit)];
                 if (rest / radix == T{0}) {

@@ -48,6 +48,12 @@ set(cxx_compile_options_warnings
         -Wno-used-but-marked-unused         # triggered by Boost.Test
         -Wno-c2y-extensions                 # triggered by Boost.Test's use of __COUNTER__
         -Wno-lifetime-safety-lifetimebound-violation  # can't verify chained operator<< returns ostr
+        # xstd::to_chars takes and returns raw pointers because std::to_chars
+        # does: [charconv.to.chars] specifies the interface as a char* range,
+        # and matching it is the point. Every pointer step inside that contract
+        # draws this warning, as it would for the standard library's own
+        # implementation, so it says nothing specific to this code.
+        -Wno-unsafe-buffer-usage
     >
     $<$<CXX_COMPILER_ID:GNU>:
         -Wall
