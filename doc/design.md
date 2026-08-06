@@ -52,6 +52,16 @@ counterpart and can represent that magnitude. `div`, `euclidean_div`, and
 `floored_div` require a nonzero denominator, and `MIN / -1` remains outside
 their contract. All integer operations are `constexpr` and `noexcept`.
 
+The 128-bit aliases are spelled `int128` and `uint128`, without the `_t` that
+`<cstdint>`'s exact-width names carry. C reserves typedef names beginning with
+`int` or `uint` and ending in `_t` for future additions to `<stdint.h>`, and
+`int128_t` is exactly that pattern. The reservation does not reach into a
+user-defined namespace, so `xstd::int128_t` would have been legal; the point is
+that `<xstd/cstdint.hpp>` exists precisely because the standard header lacks the
+type, so the day it gains one is the day the two spellings collide for anyone
+who has both namespaces in scope. Boost.Int128 renamed the same way, for the
+same reason, during its review.
+
 ### Traits and concepts
 
 The type utilities intentionally remain narrow:

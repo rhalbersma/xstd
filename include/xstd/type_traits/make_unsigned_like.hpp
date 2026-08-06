@@ -6,7 +6,7 @@
 #ifndef XSTD_TYPE_TRAITS_MAKE_UNSIGNED_LIKE_HPP
 #define XSTD_TYPE_TRAITS_MAKE_UNSIGNED_LIKE_HPP
 
-#include <xstd/cstdint.hpp>                      // int128_t, uint128_t
+#include <xstd/cstdint.hpp>                      // int128, uint128
 #include <xstd/type_traits/is_integral_like.hpp> // is_integral_like_v
 #include <xstd/type_traits/is_unsigned_like.hpp> // is_unsigned_like_v
 #include <type_traits>                           // is_integral_v, is_same_v, make_unsigned, remove_cv_t, type_identity
@@ -36,7 +36,7 @@ using make_unsigned_like_t = make_unsigned_like<T>::type;
 
 // The public 128-bit aliases provide their cross-direction association.
 template<>
-struct make_unsigned_like<int128_t> : std::type_identity<uint128_t>
+struct make_unsigned_like<int128> : std::type_identity<uint128>
 {};
 
 } // namespace xstd

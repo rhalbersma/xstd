@@ -4,7 +4,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/cstdlib.hpp>         // complete arithmetic surface
-#include <xstd/cstdint.hpp>         // int128_t, uint128_t
+#include <xstd/cstdint.hpp>         // int128, uint128
 #include <xstd/concepts.hpp>        // signed_integral_like
 #include <xstd/type_traits.hpp>     // make_unsigned_like_t
 #include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
@@ -246,11 +246,11 @@ BOOST_AUTO_TEST_CASE(BuiltInWidths)
 // the portable public names.
 BOOST_AUTO_TEST_CASE(Int128Aliases)
 {
-        static_assert(xstd::signed_integral_like<xstd::int128_t>);
-        static_assert(std::same_as<decltype(xstd::unsigned_abs(xstd::int128_t{})), xstd::uint128_t>);
-        static_assert(std::same_as<decltype(xstd::div(xstd::int128_t{1}, xstd::int128_t{1})), xstd::div_t<xstd::int128_t>>);
+        static_assert(xstd::signed_integral_like<xstd::int128>);
+        static_assert(std::same_as<decltype(xstd::unsigned_abs(xstd::int128{})), xstd::uint128>);
+        static_assert(std::same_as<decltype(xstd::div(xstd::int128{1}, xstd::int128{1})), xstd::div_t<xstd::int128>>);
 
-        check_signed_integral_like<xstd::int128_t>();
+        check_signed_integral_like<xstd::int128>();
 }
 
 // clang-format off

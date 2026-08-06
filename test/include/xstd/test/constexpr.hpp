@@ -7,7 +7,7 @@
 #define XSTD_TEST_CONSTEXPR_HPP
 
 #include <xstd/concepts/signed_integral_like.hpp> // signed_integral_like
-#include <xstd/cstdint.hpp>                       // int128_t, uint128_t
+#include <xstd/cstdint.hpp>                       // int128, uint128
 #include <xstd/cstdlib/div_t.hpp>                 // div_t
 #include <xstd/format/int128.hpp>                 // detail::decimal_buffer_size, detail::to_decimal
 #include <boost/test/unit_test.hpp>               // BOOST_CHECK, BOOST_CHECK_EQUAL
@@ -23,23 +23,23 @@
 namespace boost::test_tools::tt_detail {
 
 template<>
-struct print_log_value<xstd::int128_t>
+struct print_log_value<xstd::int128>
 {
-        auto operator()(std::ostream& ostr, xstd::int128_t const value) const
+        auto operator()(std::ostream& ostr, xstd::int128 const value) const
                 -> void
         {
-                char buffer[xstd::detail::decimal_buffer_size<xstd::int128_t>];
+                char buffer[xstd::detail::decimal_buffer_size<xstd::int128>];
                 ostr << xstd::detail::to_decimal(buffer, value);
         }
 };
 
 template<>
-struct print_log_value<xstd::uint128_t>
+struct print_log_value<xstd::uint128>
 {
-        auto operator()(std::ostream& ostr, xstd::uint128_t const value) const
+        auto operator()(std::ostream& ostr, xstd::uint128 const value) const
                 -> void
         {
-                char buffer[xstd::detail::decimal_buffer_size<xstd::uint128_t>];
+                char buffer[xstd::detail::decimal_buffer_size<xstd::uint128>];
                 ostr << xstd::detail::to_decimal(buffer, value);
         }
 };

@@ -3,7 +3,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/cstdint.hpp>         // int128_t
+#include <xstd/cstdint.hpp>         // int128
 #include <xstd/cstdlib/div_t.hpp>   // div_t
 #include <xstd/format/div_t.hpp>    // IWYU pragma: keep; formatter<div_t>
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_CHECK, BOOST_CHECK_EQUAL
@@ -19,7 +19,7 @@
 
 BOOST_AUTO_TEST_SUITE(FormatDivT)
 
-using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t, xstd::int128_t>;
+using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t, xstd::int128>;
 
 // The formatting tests leave div_t's formatter executed rather than merely
 // instantiated - Boost.Test's printing machinery instantiates it for anything
@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Formatter, T, exact_width_types)
 // widest value has to come out right rather than merely compile.
 BOOST_AUTO_TEST_CASE(Boundaries)
 {
-        BOOST_CHECK_EQUAL(std::format("{}", xstd::div_t<xstd::int128_t>{std::numeric_limits<xstd::int128_t>::min(), 7}),
+        BOOST_CHECK_EQUAL(std::format("{}", xstd::div_t<xstd::int128>{std::numeric_limits<xstd::int128>::min(), 7}),
                           "(-170141183460469231731687303715884105728, 7)");
 }
 
