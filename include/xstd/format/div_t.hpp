@@ -107,7 +107,7 @@ struct std::formatter<xstd::div_t<S>, CharT> : xstd::detail::div_t_formatter_bas
                         auto widened = std::basic_string<CharT>{};
                         auto buffer = std::array<char, N>{};
 
-                        auto const append = [&](S const value) XSTD_CONSTEXPR_FORMAT {
+                        auto const append = [&](S const value) XSTD_CONSTEXPR_FORMAT -> void {
                                 auto const result = xstd::to_chars(buffer.data(), buffer.data() + N, value);
                                 // The buffer is sized for base 2, so decimal always fits.
                                 assert(result.ec == std::errc{});

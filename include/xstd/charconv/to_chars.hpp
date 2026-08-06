@@ -15,6 +15,7 @@
 #include <limits>                              // numeric_limits
 #include <string_view>                         // string_view
 #include <system_error>                        // errc
+#include <utility>                             // cmp_less
 
 namespace xstd {
 
@@ -90,8 +91,8 @@ template<integral_like T>
                 count += negative ? std::size_t{1} : std::size_t{0};
         }
 
-        if (static_cast<std::size_t>(last - first) < count) {
-                return {last, std::errc::value_too_large};
+        if (std::cmp_less(last - first, count)) {
+                return {.ptr = last, .ec = std::errc::value_too_large};
         }
 
         auto* out = first + count;
@@ -105,7 +106,7 @@ template<integral_like T>
         if (negative) {
                 *--out = '-';
         }
-        return {first + count, std::errc{}};
+        return {.ptr = first + count, .ec = std::errc{}};
 }
 
 } // namespace detail

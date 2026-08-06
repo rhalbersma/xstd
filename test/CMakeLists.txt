@@ -64,6 +64,16 @@ set(cxx_compile_options_warnings
         -Wsign-compare
         -Wsign-conversion
         -Wsign-promo
+        # A false positive inside libstdc++ itself, not in anything this
+        # project writes. Formatting a div_t through the tuple formatter
+        # instantiates std::__unicode::__field_width for wchar_t, and at -O3
+        # GCC 15's inliner reports _Grapheme_cluster_iterator_base::_M_c as
+        # maybe-uninitialized in <bits/unicode.h>. System-header suppression
+        # does not reach it because the diagnostic is raised after inlining.
+        # Scoped no further than the compiler that raises it: the finding is
+        # in a standard-library header, so no spelling on this side removes
+        # it, and the alternative is not formatting a div_t as a wide string.
+        -Wno-maybe-uninitialized
     >
     $<$<AND:$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>,$<NOT:$<BOOL:${xstd_is_clang_cl}>>>:
         -pedantic-errors
