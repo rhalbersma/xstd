@@ -6,50 +6,56 @@
 #ifndef XSTD_FORMAT_INT128_HPP
 #define XSTD_FORMAT_INT128_HPP
 
-#include <xstd/config/int128.hpp> // int128_t, uint128_t
-#include <algorithm>              // ranges::reverse
-#include <concepts>               // signed_integral
-#include <string>                 // string, to_string
+#include <xstd/concepts/integral_like.hpp> // integral_like
+#include <cstddef>                         // size_t
+#include <limits>                          // numeric_limits
 
 namespace xstd::detail {
 
-inline constexpr auto decimal_base = uint128_t{10};
+// Decimal digits, a sign, and a null terminator. digits10 is the number of
+// digits that always round-trip, so the value may need one more than that.
+template<integral_like T>
+inline constexpr auto decimal_buffer_size = static_cast<std::size_t>(std::numeric_limits<T>::digits10) + 3;
 
-template<class T>
-        requires std::signed_integral<T>
-[[nodiscard]] auto to_decimal(T value)
-        -> std::string
+// Fills the buffer backwards from its end and returns the first character
+// written, in the shape of <charconv>'s to_chars rather than a string-returning
+// function. Two consequences, both of which xstd needs:
+//
+// - No allocation, so this is usable in a constant expression. That is what
+//   lets std::formatter<div_t<S>>::format opt into P3391's constexpr
+//   std::format; a std::to_string-based version never could.
+// - One constrained template rather than a set of overloads on the concrete
+//   128-bit types. An integer-class type that converts implicitly to the
+//   built-in widths - Boost.Int128 is one - makes such overloads ambiguous,
+//   while a template constrained on integral_like is an exact match and never
+//   competes on conversions.
+//
+// The magnitude is never formed: negating the minimum value has no
+// representation, and an integer-class type need not offer a wider one to
+// borrow. Taking the remainder of the negative value and flipping the digit's
+// sign avoids the question entirely, without assuming anything about how T
+// represents itself.
+template<integral_like T>
+[[nodiscard]] constexpr auto to_decimal(char (&buffer)[decimal_buffer_size<T>], T value) noexcept
+        -> char*
 {
-        return std::to_string(static_cast<long long>(value));
-}
+        auto last = buffer + decimal_buffer_size<T>;
+        *--last = '\0';
 
-[[nodiscard]] inline auto to_decimal(uint128_t value)
-        -> std::string
-{
-        if (value == uint128_t{0}) {
-                return "0";
+        if (value == T{0}) {
+                *--last = '0';
+                return last;
         }
 
-        auto result = std::string{};
-        while (value != uint128_t{0}) {
-                auto const digit = static_cast<unsigned>(value % decimal_base);
-                result.push_back(static_cast<char>('0' + digit));
-                value /= decimal_base;
+        auto const negative = value < T{0};
+        for (auto rest = value; rest != T{0}; rest /= T{10}) {
+                auto const digit = static_cast<int>(rest % T{10});
+                *--last = static_cast<char>('0' + (negative ? -digit : digit));
         }
-        std::ranges::reverse(result);
-        return result;
-}
-
-[[nodiscard]] inline auto to_decimal(int128_t value)
-        -> std::string
-{
-        if (value >= int128_t{0}) {
-                return to_decimal(static_cast<uint128_t>(value));
+        if (negative) {
+                *--last = '-';
         }
-
-        auto result = std::string{"-"};
-        result += to_decimal(static_cast<uint128_t>(-(value + int128_t{1})) + uint128_t{1});
-        return result;
+        return last;
 }
 
 } // namespace xstd::detail

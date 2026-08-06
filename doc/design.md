@@ -84,11 +84,28 @@ level.
 
 ### Formatting
 
-`div_t` is tuple-like. `<xstd/format.hpp>` provides its formatter when the
-element type and standard library support tuple formatting. The separate
-`<xstd/ostream.hpp>` overload exists mainly for test diagnostics. Formatting is
-the only public area with an additional standard-library feature requirement;
-the rest of xstd does not depend on `std::format`.
+`<xstd/format.hpp>` formats a `div_t` as `(quot, rem)`. It renders the two
+members itself rather than delegating to the tuple formatter, because tuple
+formatting requires the element type to be formattable and an integer-class
+type need not be: the Microsoft STL's 128-bit classes have no formatter at all.
+Rendering them directly asks nothing beyond what `signed_integral_like` already
+guarantees, so `div_t` formats for every type it accepts. Fill, alignment and
+width still come from the inherited string formatter.
+
+xstd specializes `std::formatter` only for `div_t`, which is program-defined.
+The 128-bit types are not xstd's to specialize for: they are built-ins or
+standard-library types, which [namespace.std]/2 does not cover, and where the
+standard library already provides a formatter - libstdc++ does for `__int128`,
+precisely under `__STRICT_ANSI__` - a specialization would displace one that
+handles the whole spec grammar.
+
+There is no stream inserter. For the 128-bit types xstd could not provide one
+that is reachable: a built-in has no associated namespace for ADL to find, and
+a standard-library type's associated namespace is one no program may add to.
+Boost.Test, the only consumer that needed it, asks for printing through
+`print_log_value`, which the tests specialize directly. Formatting is the only
+public area with an additional standard-library requirement; nothing else in
+xstd depends on `<format>`.
 
 ## Integer division across languages
 
