@@ -65,7 +65,7 @@ struct print_log_value<xstd::div_t<S>>
                 constexpr auto N = xstd::to_chars_max_size<S>;
                 auto quot = std::array<char, N>{};
                 auto rem = std::array<char, N>{};
-                auto const render = [](std::array<char, N>& buffer, S const value) {
+                auto const render = [](std::array<char, N>& buffer, S const value) -> std::string_view {
                         auto const result = xstd::to_chars(buffer.data(), buffer.data() + N, value);
                         return std::string_view{buffer.data(), result.ptr};
                 };
