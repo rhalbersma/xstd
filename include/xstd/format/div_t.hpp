@@ -32,12 +32,12 @@
 // constexpr in format(): each one then names its own base outright, and each
 // format() is written against that base alone. Which one a div_t selects is
 // left to partial ordering, on the constraints - the tuple one requires
-// tuple_formattable and the other requires nothing, so the two are equally
-// specialized on their arguments and the more constrained one wins wherever it
-// matches at all. Spelling the second's constraint as the negation would work
-// too, but a negated atomic constraint does not subsume, so exclusivity and
-// exhaustiveness would become an invariant to maintain across two edits rather
-// than a property of the constraints.
+// std::formattable of the base it inherits and the other requires nothing, so
+// the two are equally specialized on their arguments and the more constrained
+// one wins wherever it matches at all. Spelling the second's constraint as the
+// negation would work too, but a negated atomic constraint does not subsume, so
+// exclusivity and exhaustiveness would become an invariant to maintain across
+// two edits rather than a property of the constraints.
 //
 // Nothing here specializes std::formatter for a 128-bit type. Those are either
 // built-ins or standard-library types, so specializing for them is outside what
@@ -65,22 +65,6 @@
 #else
 #define XSTD_CONSTEXPR_FORMAT
 #endif
-
-namespace xstd::detail {
-
-// The condition is formattable on the *tuple*, not on S. One predicate then
-// covers both of the ways the delegation can be unavailable, which are not the
-// same way and do not coincide:
-//
-// - S is not formattable. The Microsoft STL's 128-bit classes are the case
-//   that matters; nothing in that implementation formats them.
-// - Tuple formatting itself is missing. p2286 reached libstdc++ in GCC 15, so
-//   on an older one formattable<tuple<int const&, int const&>> is false even
-//   though int is perfectly formattable.
-template<class S, class CharT>
-concept tuple_formattable = std::formattable<std::tuple<S const&, S const&>, CharT>;
-
-} // namespace xstd::detail
 
 // The unconstrained specialization, which every div_t matches and which renders
 // the members itself. Inheriting the string formatter is what carries fill,
@@ -126,8 +110,21 @@ struct std::formatter<xstd::div_t<S>, CharT> : std::formatter<std::basic_string_
 // standard's own, it needs no intermediate string, and it keeps whatever
 // tuple-specific spec handling the implementation offers - the tuple specs n
 // and m, where the base above takes precision.
+//
+// The constraint is std::formattable of the base type itself, spelled out
+// rather than routed through a concept of xstd's own: the requirement is
+// exactly that the base below is usable. Note that it asks after the *tuple*,
+// not after S. One predicate then covers both of the ways this rendering can be
+// unavailable, which are not the same way and do not coincide:
+//
+// - S is not formattable. The Microsoft STL's 128-bit classes are the case
+//   that matters; nothing in that implementation formats them.
+// - Tuple formatting itself is missing. p2286 reached libstdc++ in GCC 15, so
+//   on an older one formattable<tuple<int const&, int const&>> is false even
+//   though int is perfectly formattable, and a condition on S alone would
+//   inherit a formatter that does not exist.
 template<class S, class CharT>
-        requires xstd::detail::tuple_formattable<S, CharT>
+        requires std::formattable<std::tuple<S const&, S const&>, CharT>
 // NOLINTNEXTLINE(bugprone-std-namespace-modification): permitted by [namespace.std]/2, see above
 struct std::formatter<xstd::div_t<S>, CharT> : std::formatter<std::tuple<S const&, S const&>, CharT>
 {

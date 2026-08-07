@@ -102,13 +102,21 @@ short buffer.
 
 The two are overloads on one name rather than one function branching on an `if
 constexpr`, and they are kept apart by subsumption rather than by hand: the
-delegating overload requires `has_std_to_chars` *on top of* `integral_like`,
-and a conjunction subsumes its left operand, so wherever both are viable the
-delegating one is more constrained and wins partial ordering. Spelling the
-other overload's constraint as the negation would work too, but a negated
-atomic constraint does not subsume, so exclusivity and exhaustiveness would
-then be an invariant someone has to maintain across two edits instead of a
-property of the constraints.
+delegating overload requires a `std::to_chars` call to be well-formed *on top
+of* `integral_like`, and a conjunction subsumes its left operand, so wherever
+both are viable the delegating one is more constrained and wins partial
+ordering. Spelling the other overload's constraint as the negation would work
+too, but a negated atomic constraint does not subsume, so exclusivity and
+exhaustiveness would then be an invariant someone has to maintain across two
+edits instead of a property of the constraints.
+
+The constraint is that call, written where it applies, rather than a named
+predicate of xstd's own standing in for it. There is no standard concept for
+"the standard library converts this type", so the requires-expression names
+`std::to_chars` directly; it stays an answer rather than an error because `T`
+is the overload's own template parameter, which keeps the expression dependent
+until the constraint is checked. Asking the same question about a *concrete*
+type, as the tests do, still needs a named concept, and the test defines one.
 
 Their order in the header is not editorial. gcov names only the first group of
 functions sharing a start line in a file, and gcovr keys its merge across
@@ -171,12 +179,14 @@ beyond what `signed_integral_like` already guarantees - so `div_t` formats for
 every type it accepts, on every implementation.
 
 The choice between them is left to partial ordering, on the same footing as
-`to_chars`'s two overloads: the tuple one requires `tuple_formattable` and the
-other requires nothing, so they are equally specialized on their arguments and
-the more constrained one wins wherever it matches at all. That is what replaces
-a `std::conditional_t` base and an `if constexpr` in `format()` - each
-specialization now names its own base outright and is written against that base
-alone.
+`to_chars`'s two overloads: the tuple one requires
+`std::formattable<std::tuple<S const&, S const&>, CharT>` - the base it
+inherits, spelled out where it applies rather than behind a predicate of xstd's
+own - and the other requires nothing, so they are equally specialized on their
+arguments and the more constrained one wins wherever it matches at all. That is
+what replaces a `std::conditional_t` base and an `if constexpr` in `format()` -
+each specialization now names its own base outright and is written against that
+base alone.
 
 Both spellings produce `(quot, rem)`, so which one runs is not observable in
 the output. It is observable in the spec grammar, since `parse()` is inherited:

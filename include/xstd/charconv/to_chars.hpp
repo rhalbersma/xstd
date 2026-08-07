@@ -41,41 +41,21 @@ inline constexpr auto to_chars_digits = std::string_view{"0123456789abcdefghijkl
 // decimal.
 inline constexpr auto decimal_base = 10;
 
-// Is the standard's to_chars usable for T? Two ways it can fail to be, and the
-// concept has to survive both:
-//
-// - No overload at all, for an integer-class type. A clean deduction failure.
-// - An *ambiguous* overload, which is what libstdc++ gives for __int128 in
-//   strict mode: the public overload set is a set of non-template functions
-//   generated per built-in width, and the 128-bit pair is gated on
-//   __GLIBCXX_TYPE_INT_N_0, which the compiler only predefines outside
-//   __STRICT_ANSI__. Without it the argument converts equally well to every
-//   width. Ambiguity is still overload resolution failing in the immediate
-//   context, so the requires-expression is false rather than ill-formed - as
-//   long as T stays dependent, which is why this is a named concept.
-//
-// std::to_chars(bool) is deleted, so bool lands here as false and is deleted
-// below rather than silently picking up the digits overload.
-template<class T>
-concept has_std_to_chars = requires (char* p, T value, int base) {
-        { std::to_chars(p, p, value, base) } -> std::same_as<std::to_chars_result>;
-};
-
 } // namespace detail
 
 // std::to_chars, widened to every integral-like type: two overloads on one
 // name, rather than one function branching on an if constexpr.
 //
 // Which one a call selects is decided by the constraints alone. This one is
-// constrained on nothing beyond integral_like, and the one below adds
-// has_std_to_chars; a conjunction subsumes its left operand, so wherever both
-// are viable the delegating one is more constrained and wins partial ordering.
-// Spelling this one's constraint as the negation would work too, but a negated
-// atomic constraint does not subsume, so exclusivity and exhaustiveness would
-// become an invariant to maintain across two edits rather than a property of
-// the constraints. As written there is no gap and no ambiguity: every
-// integral-like type matches this overload, and the ones the standard library
-// covers match both.
+// constrained on nothing beyond integral_like, and the one below adds a
+// requires-expression on top of it; a conjunction subsumes its left operand, so
+// wherever both are viable the delegating one is more constrained and wins
+// partial ordering. Spelling this one's constraint as the negation would work
+// too, but a negated atomic constraint does not subsume, so exclusivity and
+// exhaustiveness would become an invariant to maintain across two edits rather
+// than a property of the constraints. As written there is no gap and no
+// ambiguity: every integral-like type matches this overload, and the ones the
+// standard library covers match both.
 //
 // This one comes first for a reason outside the language. gcov's text output
 // names only the first group of functions sharing a start line in a file, and
@@ -159,8 +139,33 @@ template<integral_like T>
 // The more constrained of the two, selected wherever the standard library
 // covers T. It is that call and nothing more, so the tuned implementation and
 // its format-spec behavior are what a caller gets.
+//
+// The constraint is the call itself: there is no standard concept for "the
+// standard library formats this type", so the requires-expression names
+// std::to_chars directly rather than being wrapped in a helper concept. Two
+// ways it can be unsatisfied, and it has to survive both:
+//
+// - No overload at all, for an integer-class type. A clean deduction failure.
+// - An *ambiguous* overload, which is what libstdc++ gives for __int128 in
+//   strict mode: the public overload set is a set of non-template functions
+//   generated per built-in width, and the 128-bit pair is gated on
+//   __GLIBCXX_TYPE_INT_N_0, which the compiler only predefines outside
+//   __STRICT_ANSI__. Without it the argument converts equally well to every
+//   width. Ambiguity is still overload resolution failing in the immediate
+//   context, so the requirement is unsatisfied rather than ill-formed.
+//
+// Both of those are answers rather than errors only because T is this
+// template's own parameter, so the expression stays dependent until the
+// constraint is checked. The same requires-expression written at a concrete
+// type - as the tests want, to assert which path a type takes - has to be a
+// named concept there, for exactly that reason.
+//
+// std::to_chars(bool) is deleted, so bool is unsatisfied here and is deleted
+// below rather than silently picking up the digits overload.
 template<integral_like T>
-        requires detail::has_std_to_chars<T>
+        requires requires (char* p, T value, int base) {
+                { std::to_chars(p, p, value, base) } -> std::same_as<std::to_chars_result>;
+        }
 [[nodiscard]] constexpr auto to_chars(char* first, char* last, T value, int base = detail::decimal_base) noexcept
         -> std::to_chars_result
 {

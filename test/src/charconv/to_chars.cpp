@@ -3,11 +3,12 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/charconv/to_chars.hpp> // to_chars, to_chars_max_size, detail::has_std_to_chars
+#include <xstd/charconv/to_chars.hpp> // to_chars, to_chars_max_size
 #include <xstd/cstdint.hpp>           // int128, uint128
 #include <boost/test/unit_test.hpp>   // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_CHECK, BOOST_CHECK_EQUAL
 #include <array>                      // array
-#include <charconv>                   // to_chars
+#include <charconv>                   // to_chars, to_chars_result
+#include <concepts>                   // same_as
 #include <cstdint>                    // exact-width integer types
 #include <limits>                     // numeric_limits
 #include <string>                     // string
@@ -17,15 +18,24 @@
 
 BOOST_AUTO_TEST_SUITE(CharConvToChars)
 
-// A named concept rather than a bare requires-expression at the use: selecting
-// a deleted function makes the expression ill-formed, and an ill-formed
-// operand that is also non-dependent is a hard error rather than an
-// unsatisfied constraint. Keeping the type a template parameter is what turns
-// the deleted overload into the false answer the check is looking for.
+// Named concepts rather than bare requires-expressions at the uses below.
+// Selecting a deleted function makes an expression ill-formed, an ambiguous
+// call likewise, and an ill-formed operand that is also non-dependent is a hard
+// error rather than an unsatisfied constraint. Keeping the type a template
+// parameter is what turns both into the answer these checks are looking for.
 //
-// It answers a second question now that xstd::to_chars is two overloads: an
-// ambiguous call is also a call that does not compile, so this being true for
-// a type both overloads accept is what pins that the constrained one wins by
+// The header spells the second of these inline, as the constraint on its
+// delegating overload, and can: there T is that template's own parameter, so
+// the expression is dependent where it is written. Here the types are concrete,
+// which is the whole point of the checks, so here they have to be named.
+template<class T>
+concept has_std_to_chars = requires (char* p, T value, int base) {
+        { std::to_chars(p, p, value, base) } -> std::same_as<std::to_chars_result>;
+};
+
+// Answers a second question too, now that xstd::to_chars is two overloads: an
+// ambiguous call is also a call that does not compile, so this being true for a
+// type both overloads accept is what pins that the constrained one wins by
 // partial ordering rather than tying.
 template<class T>
 concept has_xstd_to_chars = requires (char* p, T value) { xstd::to_chars(p, p, value, 10); };
@@ -66,13 +76,13 @@ template<class T>
 // for the 128-bit types - only that both paths exist and agree.
 BOOST_AUTO_TEST_CASE(DelegatesWhereTheStandardLibraryCovers)
 {
-        static_assert(xstd::detail::has_std_to_chars<int>);
-        static_assert(xstd::detail::has_std_to_chars<long long>);
-        static_assert(xstd::detail::has_std_to_chars<unsigned>);
+        static_assert(has_std_to_chars<int>);
+        static_assert(has_std_to_chars<long long>);
+        static_assert(has_std_to_chars<unsigned>);
 
         // bool is integral-like, but the standard deletes its to_chars and so
         // does xstd, rather than letting it fall through to the digits path.
-        static_assert(not xstd::detail::has_std_to_chars<bool>);
+        static_assert(not has_std_to_chars<bool>);
         static_assert(not has_xstd_to_chars<bool>);
         static_assert(has_xstd_to_chars<int>);
 
@@ -81,7 +91,7 @@ BOOST_AUTO_TEST_CASE(DelegatesWhereTheStandardLibraryCovers)
         // what libstdc++ produces for __int128 in the strict dialect.
         struct not_an_integer
         {};
-        static_assert(not xstd::detail::has_std_to_chars<not_an_integer>);
+        static_assert(not has_std_to_chars<not_an_integer>);
 }
 
 // The load-bearing property: wherever the standard library covers a value, the
