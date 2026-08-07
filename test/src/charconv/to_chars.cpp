@@ -126,6 +126,16 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCase, T, xstd::test::exact_wid
         BOOST_CHECK(min.ec == std::errc{});
         auto const max = xstd::to_chars(buffer.data(), buffer.data() + buffer.size(), std::numeric_limits<T>::max(), 2);
         BOOST_CHECK(max.ec == std::errc{});
+
+        // And holds it exactly: one character less does not fit. Written per
+        // type rather than once at a chosen width for the reason the header's
+        // overload-ordering comment describes - gcov records a template's
+        // instantiations separately, so the short-buffer return is covered
+        // only in the instantiations a test actually reaches it in, and a
+        // type added to the list above brings its own.
+        auto const short_buffer = xstd::to_chars(buffer.data(), buffer.data() + buffer.size() - 1, std::numeric_limits<T>::min(), 2);
+        BOOST_CHECK(short_buffer.ec == std::errc::value_too_large);
+        BOOST_CHECK(short_buffer.ptr == buffer.data() + buffer.size() - 1);
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCaseUnsigned, T, xstd::test::exact_width_unsigned_types)
@@ -133,6 +143,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCaseUnsigned, T, xstd::test::e
         auto buffer = std::array<char, xstd::to_chars_max_size<T>>{};
         auto const max = xstd::to_chars(buffer.data(), buffer.data() + buffer.size(), std::numeric_limits<T>::max(), 2);
         BOOST_CHECK(max.ec == std::errc{});
+
+        auto const short_buffer = xstd::to_chars(buffer.data(), buffer.data() + buffer.size() - 1, std::numeric_limits<T>::max(), 2);
+        BOOST_CHECK(short_buffer.ec == std::errc::value_too_large);
+        BOOST_CHECK(short_buffer.ptr == buffer.data() + buffer.size() - 1);
 }
 
 BOOST_AUTO_TEST_CASE(Int128Boundaries)
