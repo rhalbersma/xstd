@@ -55,16 +55,45 @@ inline constexpr auto decimal_base = 10;
 //   long as T stays dependent, which is why this is a named concept.
 //
 // std::to_chars(bool) is deleted, so bool lands here as false and is deleted
-// below rather than silently picking up the fallback.
+// below rather than silently picking up the digits overload.
 template<class T>
 concept has_std_to_chars = requires (char* p, T value, int base) {
         { std::to_chars(p, p, value, base) } -> std::same_as<std::to_chars_result>;
 };
 
-// Same output as the standard's, for the types it does not cover. Digits are
-// counted first so the result can be written forwards into the caller's range,
-// which is the interface the standard specifies: no null terminator, and ptr
-// one past the last character written.
+} // namespace detail
+
+// std::to_chars, widened to every integral-like type: two overloads on one
+// name, rather than one function branching on an if constexpr.
+//
+// Which one a call selects is decided by the constraints alone. This one is
+// constrained on nothing beyond integral_like, and the one below adds
+// has_std_to_chars; a conjunction subsumes its left operand, so wherever both
+// are viable the delegating one is more constrained and wins partial ordering.
+// Spelling this one's constraint as the negation would work too, but a negated
+// atomic constraint does not subsume, so exclusivity and exhaustiveness would
+// become an invariant to maintain across two edits rather than a property of
+// the constraints. As written there is no gap and no ambiguity: every
+// integral-like type matches this overload, and the ones the standard library
+// covers match both.
+//
+// This one comes first for a reason outside the language. gcov's text output
+// names only the first group of functions sharing a start line in a file, and
+// gcovr keys its cross-translation-unit merge on those names: whatever is left
+// unnamed merges with nothing. The two bodies are not symmetric in what that
+// costs. This one contains a line no other translation unit can reach - the
+// short-buffer return, which only the charconv test provokes - so its records
+// have to merge with the copies emitted wherever else it is instantiated, such
+// as the div_t formatter on a standard library without p2286. Every line of the
+// delegating body runs in every instantiation that exists at all, so leaving
+// that one unnamed costs nothing. Ordered the other way, the file reads 98%
+// covered and the gate fails.
+//
+// Same output as the standard's, for the types it does not cover: integer-class
+// types everywhere, and the built-in 128-bit types in the strict dialect this
+// library compiles in. Digits are counted first so the result can be written
+// forwards into the caller's range, which is the interface the standard
+// specifies: no null terminator, and ptr one past the last character written.
 //
 // The magnitude is never formed. Negating the minimum value has no
 // representation, and an integer-class type need not offer a wider one to
@@ -72,9 +101,11 @@ concept has_std_to_chars = requires (char* p, T value, int base) {
 // flipped. That also means no make_unsigned_like is needed, which an
 // integer-class type is only required to have if its author supplied one.
 template<integral_like T>
-[[nodiscard]] constexpr auto to_chars_fallback(char* first, char* last, T value, int base) noexcept
+[[nodiscard]] constexpr auto to_chars(char* first, char* last, T value, int base = detail::decimal_base) noexcept
         -> std::to_chars_result
 {
+        assert(2 <= base and base <= 36);
+
         auto const radix = static_cast<T>(base);
 
         auto count = std::size_t{0};
@@ -112,7 +143,7 @@ template<integral_like T>
                                 digit = -digit;
                         }
                 }
-                *--out = to_chars_digits[static_cast<std::size_t>(digit)];
+                *--out = detail::to_chars_digits[static_cast<std::size_t>(digit)];
                 if (rest / radix == T{0}) {
                         break;
                 }
@@ -125,24 +156,16 @@ template<integral_like T>
         return {.ptr = first + count, .ec = std::errc{}};
 }
 
-} // namespace detail
-
-// std::to_chars, widened to every integral-like type. Where the standard
-// library already covers T this is that call and nothing more, so the tuned
-// implementation and its format-spec behavior are what a caller gets. Where it
-// does not - integer-class types everywhere, and the built-in 128-bit types in
-// the strict dialect this library compiles in - the digits are produced here to
-// the same specification.
+// The more constrained of the two, selected wherever the standard library
+// covers T. It is that call and nothing more, so the tuned implementation and
+// its format-spec behavior are what a caller gets.
 template<integral_like T>
+        requires detail::has_std_to_chars<T>
 [[nodiscard]] constexpr auto to_chars(char* first, char* last, T value, int base = detail::decimal_base) noexcept
         -> std::to_chars_result
 {
         assert(2 <= base and base <= 36);
-        if constexpr (detail::has_std_to_chars<T>) {
-                return std::to_chars(first, last, value, base);
-        } else {
-                return detail::to_chars_fallback(first, last, value, base);
-        }
+        return std::to_chars(first, last, value, base);
 }
 
 // Deleted for the same reason the standard deletes it: bool is integral-like,

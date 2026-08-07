@@ -98,9 +98,32 @@ level.
 standard library already covers the type it *is* that call, so callers get the
 tuned implementation; where it does not, the digits are produced here to the
 same specification, including bases 2 through 36 and `value_too_large` on a
-short buffer. The tests check the two paths agree byte for byte at every base,
-because a divergence would surface only on the platforms taking the other
-branch.
+short buffer.
+
+The two are overloads on one name rather than one function branching on an `if
+constexpr`, and they are kept apart by subsumption rather than by hand: the
+delegating overload requires `has_std_to_chars` *on top of* `integral_like`,
+and a conjunction subsumes its left operand, so wherever both are viable the
+delegating one is more constrained and wins partial ordering. Spelling the
+other overload's constraint as the negation would work too, but a negated
+atomic constraint does not subsume, so exclusivity and exhaustiveness would
+then be an invariant someone has to maintain across two edits instead of a
+property of the constraints.
+
+Their order in the header is not editorial. gcov names only the first group of
+functions sharing a start line in a file, and gcovr keys its merge across
+translation units on those names, so an unnamed group merges with nothing. The
+digits body contains a line no other translation unit can reach - the
+short-buffer return - so it has to be the named one; every line of the
+delegating body runs wherever it is instantiated at all, so leaving that group
+unnamed costs nothing. Ordered the other way the file measures 98% and the
+coverage gate fails.
+
+The tests check the two agree byte for byte at every base, because a divergence
+would surface only on the platforms taking the other overload. Since the
+overloads are selected by constraint, the digits one cannot be named for a type
+the standard library covers - so the comparison goes through a type it does
+not, and `xstd::int128` holds every value of a narrower type.
 
 Two places the standard library does not cover are worth naming, because they
 are not the same place. Integer-class types are never covered: `to_chars` is
