@@ -4,7 +4,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/cstdlib/div.hpp>     // div
-#include <xstd/cstdint.hpp>         // int128_t
+#include <xstd/cstdint.hpp>         // int128
 #include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
 #include <boost/test/unit_test.hpp> // Boost.Test
 #include <cstdint>                  // exact-width integer types
@@ -12,7 +12,7 @@
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
-using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t, xstd::int128_t>;
+using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t, xstd::int128>;
 
 // http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf
 

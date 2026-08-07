@@ -3,9 +3,10 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_OSTREAM_HPP
-#define XSTD_OSTREAM_HPP
+#ifndef XSTD_CHARCONV_HPP
+#define XSTD_CHARCONV_HPP
 
-#include <xstd/ostream/div_t.hpp> // IWYU pragma: export; operator<<(ostream, div_t)
+// Primitive numeric output conversion
+#include <xstd/charconv/to_chars.hpp> // IWYU pragma: export; to_chars, to_chars_max_size
 
-#endif // XSTD_OSTREAM_HPP
+#endif // XSTD_CHARCONV_HPP

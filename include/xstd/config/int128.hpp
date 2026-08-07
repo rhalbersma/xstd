@@ -14,8 +14,8 @@
 
 namespace xstd {
 
-using int128_t = std::_Signed128;
-using uint128_t = std::_Unsigned128;
+using int128 = std::_Signed128;
+using uint128 = std::_Unsigned128;
 
 } // namespace xstd
 
@@ -28,8 +28,8 @@ using uint128_t = std::_Unsigned128;
 
 namespace xstd {
 
-using int128_t = __int128;
-using uint128_t = unsigned __int128;
+using int128 = __int128;
+using uint128 = unsigned __int128;
 
 } // namespace xstd
 
@@ -39,7 +39,7 @@ using uint128_t = unsigned __int128;
 
 #else
 
-#error "xstd::int128_t requires GCC/Clang __int128 or the Microsoft STL 128-bit integer classes"
+#error "xstd::int128 requires GCC/Clang __int128 or the Microsoft STL 128-bit integer classes"
 
 #endif
 

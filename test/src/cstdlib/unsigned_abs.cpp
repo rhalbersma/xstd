@@ -3,7 +3,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/cstdint.hpp>              // int128_t
+#include <xstd/cstdint.hpp>              // int128
 #include <xstd/cstdlib/unsigned_abs.hpp> // unsigned_abs
 #include <xstd/test/constexpr.hpp>       // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
 #include <boost/test/unit_test.hpp>      // Boost.Test
@@ -14,7 +14,7 @@
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
-using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t, xstd::int128_t>;
+using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t, xstd::int128>;
 
 // The div families exercise unsigned_abs transitively through their assert() guards;
 // check the MIN-boundary wraparound directly and at compile time, since that

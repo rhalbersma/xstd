@@ -52,6 +52,16 @@ counterpart and can represent that magnitude. `div`, `euclidean_div`, and
 `floored_div` require a nonzero denominator, and `MIN / -1` remains outside
 their contract. All integer operations are `constexpr` and `noexcept`.
 
+The 128-bit aliases are spelled `int128` and `uint128`, without the `_t` that
+`<cstdint>`'s exact-width names carry. C reserves typedef names beginning with
+`int` or `uint` and ending in `_t` for future additions to `<stdint.h>`, and
+`int128_t` is exactly that pattern. The reservation does not reach into a
+user-defined namespace, so `xstd::int128_t` would have been legal; the point is
+that `<xstd/cstdint.hpp>` exists precisely because the standard header lacks the
+type, so the day it gains one is the day the two spellings collide for anyone
+who has both namespaces in scope. Boost.Int128 renamed the same way, for the
+same reason, during its review.
+
 ### Traits and concepts
 
 The type utilities intentionally remain narrow:
@@ -82,13 +92,78 @@ given an enum value wrapped in `std::integral_constant`, it returns an
 `integral_constant` of the underlying type and preserves the value at the type
 level.
 
+### Character conversion
+
+`xstd::to_chars` widens `std::to_chars` to every integral-like type. Where the
+standard library already covers the type it *is* that call, so callers get the
+tuned implementation; where it does not, the digits are produced here to the
+same specification, including bases 2 through 36 and `value_too_large` on a
+short buffer. The tests check the two paths agree byte for byte at every base,
+because a divergence would surface only on the platforms taking the other
+branch.
+
+Two places the standard library does not cover are worth naming, because they
+are not the same place. Integer-class types are never covered: `to_chars` is
+specified over the built-in integer types. But the *built-in* 128-bit types are
+not covered either, in the dialect this library compiles in. libstdc++ generates
+its `to_chars` overload set per built-in width and gates the 128-bit pair on
+`__GLIBCXX_TYPE_INT_N_0`, which the compiler predefines only outside
+`__STRICT_ANSI__`; with `CMAKE_CXX_EXTENSIONS OFF` the overload is absent and
+the call is *ambiguous*, since the argument converts equally well to every
+narrower width. Detection therefore has to survive an ambiguity rather than a
+clean deduction failure, which it does: overload resolution failing is still
+failing in the immediate context, so the constraint is unsatisfied rather than
+ill-formed.
+
+`<format>` goes the other way, and for the same underlying reason. libstdc++
+adds a `formatter<__int128, CharT>` specialization *only* under
+`__STRICT_ANSI__` - where the type stops being integral and the generic path
+would miss it - and its integer formatter shadows `to_chars` with a shim onto
+the internal conversion template, because the public overload set is the part
+that is missing. So the three facilities disagree about the same type along
+different axes: `<format>` works only in the strict dialect, `<charconv>` only
+outside it, and `<ostream>` in neither. Only code asking for nothing beyond
+`%`, `/`, and comparison behaves the same everywhere.
+
+`bool` is integral-like, and `to_chars` is deleted for it, as in the standard.
+
 ### Formatting
 
-`div_t` is tuple-like. `<xstd/format.hpp>` provides its formatter when the
-element type and standard library support tuple formatting. The separate
-`<xstd/ostream.hpp>` overload exists mainly for test diagnostics. Formatting is
-the only public area with an additional standard-library feature requirement;
-the rest of xstd does not depend on `std::format`.
+`<xstd/format.hpp>` formats a `div_t` as `(quot, rem)`. `div_t` is tuple-like,
+so where the standard library can format a tuple of the element type the
+formatter delegates to `std::formatter<std::tuple<S const&, S const&>>` through
+`std::tie` - the standard's own rendering, with no intermediate string.
+
+That delegation is not always available, and the two ways it can be missing do
+not coincide. The element type may not be formattable, which is the Microsoft
+STL's 128-bit classes. Or tuple formatting itself may be missing: p2286 reached
+libstdc++ in GCC 15, so before that `std::formattable<std::tuple<int const&,
+int const&>>` is false even though `int` is perfectly formattable. Testing
+`formattable` on the *tuple* rather than on the element covers both with one
+predicate. Where it does not hold, the members are rendered through
+`xstd::to_chars` into the inherited string formatter, which asks nothing beyond
+what `signed_integral_like` already guarantees - so `div_t` formats for every
+type it accepts, on every implementation.
+
+Both spellings produce `(quot, rem)`, so which one runs is not observable in
+the output. It is observable in the spec grammar, since `parse()` is inherited:
+the tuple base accepts the tuple specs, the string base accepts precision, and
+fill, alignment and width are common to both.
+
+xstd specializes `std::formatter` only for `div_t`, which is program-defined.
+The 128-bit types are not xstd's to specialize for: they are built-ins or
+standard-library types, which [namespace.std]/2 does not cover, and where the
+standard library already provides a formatter - libstdc++ does for `__int128`,
+precisely under `__STRICT_ANSI__` - a specialization would displace one that
+handles the whole spec grammar.
+
+There is no stream inserter. For the 128-bit types xstd could not provide one
+that is reachable: a built-in has no associated namespace for ADL to find, and
+a standard-library type's associated namespace is one no program may add to.
+Boost.Test, the only consumer that needed it, asks for printing through
+`print_log_value`, which the tests specialize directly. Formatting is the only
+public area with an additional standard-library requirement; nothing else in
+xstd depends on `<format>`.
 
 ## Integer division across languages
 

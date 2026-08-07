@@ -6,7 +6,6 @@
 #ifndef XSTD_FORMAT_HPP
 #define XSTD_FORMAT_HPP
 
-#include <xstd/format/int128.hpp> // IWYU pragma: export; detail::to_decimal
-#include <xstd/format/div_t.hpp>  // IWYU pragma: export; formatter<div_t>
+#include <xstd/format/div_t.hpp> // IWYU pragma: export; formatter<div_t>
 
 #endif // XSTD_FORMAT_HPP
