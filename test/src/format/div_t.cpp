@@ -3,23 +3,20 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/cstdint.hpp>         // int128
-#include <xstd/cstdlib/div_t.hpp>   // div_t
-#include <xstd/format/div_t.hpp>    // IWYU pragma: keep; formatter<div_t>
-#include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_CHECK, BOOST_CHECK_EQUAL
-#include <cstdint>                  // exact-width integer types
-#include <format>                   // format
-#include <limits>                   // numeric_limits
-#include <string_view>              // wstring_view
-#include <tuple>                    // tuple
+#include <xstd/cstdint.hpp>                // int128
+#include <xstd/cstdlib/div_t.hpp>          // div_t
+#include <xstd/format/div_t.hpp>           // IWYU pragma: keep; formatter<div_t>
+#include <xstd/test/exact_width_types.hpp> // exact_width_signed_types
+#include <boost/test/unit_test.hpp>        // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_CHECK, BOOST_CHECK_EQUAL
+#include <format>                          // format
+#include <limits>                          // numeric_limits
+#include <string_view>                     // wstring_view
 
 #ifdef __cpp_lib_constexpr_format
 #include <xstd/test/constexpr.hpp> // XSTD_CONSTEXPR_CHECK_EQUAL
 #endif
 
 BOOST_AUTO_TEST_SUITE(FormatDivT)
-
-using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t, xstd::int128>;
 
 // The formatting tests leave div_t's formatter executed rather than merely
 // instantiated - Boost.Test's printing machinery instantiates it for anything
@@ -44,7 +41,7 @@ using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, st
 #define XSTD_CONSTEXPR_FORMAT_CHECK_EQUAL(a, b) BOOST_CHECK_EQUAL((a), (b))
 #endif
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(Formatter, T, exact_width_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(Formatter, T, xstd::test::exact_width_signed_types)
 {
         XSTD_CONSTEXPR_FORMAT_CHECK_EQUAL(std::format("{}", xstd::div_t<T>{1, -2}), "(1, -2)");
 }

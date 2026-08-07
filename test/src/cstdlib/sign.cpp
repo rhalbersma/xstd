@@ -3,19 +3,15 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/cstdint.hpp>         // int128
-#include <xstd/cstdlib/sign.hpp>    // sign
-#include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
-#include <boost/test/unit_test.hpp> // Boost.Test
-#include <cstdint>                  // exact-width integer types
-#include <limits>                   // numeric_limits
-#include <tuple>                    // tuple
+#include <xstd/cstdlib/sign.hpp>           // sign
+#include <xstd/test/constexpr.hpp>         // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
+#include <xstd/test/exact_width_types.hpp> // exact_width_signed_types
+#include <boost/test/unit_test.hpp>        // Boost.Test
+#include <limits>                          // numeric_limits
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
-using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t, xstd::int128>;
-
-BOOST_AUTO_TEST_CASE_TEMPLATE(Sign, T, exact_width_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(Sign, T, xstd::test::exact_width_signed_types)
 {
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(T{-2}), -1);
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(T{-1}), -1);

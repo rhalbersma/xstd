@@ -70,6 +70,17 @@ type, so the day it gains one is the day the two spellings collide for anyone
 who has both namespaces in scope. Boost.Int128 renamed the same way, for the
 same reason, during its review.
 
+Those aliases cannot demonstrate the widening on their own. `xstd::int128`
+names whichever 128-bit type the platform provides, and the library supplies
+its own `make_signed_like` and `make_unsigned_like` specializations for it, so
+it reaches the arithmetic surface along a path no third party's type can take.
+The exact-width test lists therefore also carry Boost.Int128, which no header
+names and nothing in the library specializes for: it is admitted by the
+concepts on the strength of its own operations, and the two trait associations
+in `test/include/xstd/test/boost_int128.hpp` are the whole of what a user has
+to write. That dependency is optional - see
+[CONTRIBUTING.md](../CONTRIBUTING.md).
+
 ### Traits and concepts
 
 The type utilities intentionally remain narrow:
