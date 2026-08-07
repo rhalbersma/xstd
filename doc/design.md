@@ -152,10 +152,12 @@ outside it, and `<ostream>` in neither. Only code asking for nothing beyond
 
 ### Formatting
 
-`<xstd/format.hpp>` formats a `div_t` as `(quot, rem)`. `div_t` is tuple-like,
-so where the standard library can format a tuple of the element type the
-formatter delegates to `std::formatter<std::tuple<S const&, S const&>>` through
-`std::tie` - the standard's own rendering, with no intermediate string.
+`<xstd/format.hpp>` formats a `div_t` as `(quot, rem)`, through two partial
+specializations of `std::formatter` - one per way of producing that. `div_t` is
+tuple-like, so where the standard library can format a tuple of the element
+type the specialization to use is the one inheriting
+`std::formatter<std::tuple<S const&, S const&>>` and handing it `std::tie` -
+the standard's own rendering, with no intermediate string.
 
 That delegation is not always available, and the two ways it can be missing do
 not coincide. The element type may not be formattable, which is the Microsoft
@@ -163,10 +165,18 @@ STL's 128-bit classes. Or tuple formatting itself may be missing: p2286 reached
 libstdc++ in GCC 15, so before that `std::formattable<std::tuple<int const&,
 int const&>>` is false even though `int` is perfectly formattable. Testing
 `formattable` on the *tuple* rather than on the element covers both with one
-predicate. Where it does not hold, the members are rendered through
-`xstd::to_chars` into the inherited string formatter, which asks nothing beyond
-what `signed_integral_like` already guarantees - so `div_t` formats for every
-type it accepts, on every implementation.
+predicate. Where it does not hold, the other specialization renders the members
+through `xstd::to_chars` into an inherited string formatter, which asks nothing
+beyond what `signed_integral_like` already guarantees - so `div_t` formats for
+every type it accepts, on every implementation.
+
+The choice between them is left to partial ordering, on the same footing as
+`to_chars`'s two overloads: the tuple one requires `tuple_formattable` and the
+other requires nothing, so they are equally specialized on their arguments and
+the more constrained one wins wherever it matches at all. That is what replaces
+a `std::conditional_t` base and an `if constexpr` in `format()` - each
+specialization now names its own base outright and is written against that base
+alone.
 
 Both spellings produce `(quot, rem)`, so which one runs is not observable in
 the output. It is observable in the spec grammar, since `parse()` is inherited:
