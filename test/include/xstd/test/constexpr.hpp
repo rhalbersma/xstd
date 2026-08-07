@@ -6,14 +6,56 @@
 #ifndef XSTD_TEST_CONSTEXPR_HPP
 #define XSTD_TEST_CONSTEXPR_HPP
 
-#include <xstd/charconv/to_chars.hpp>             // to_chars, to_chars_max_size
+#include <xstd/concepts/integral_like.hpp>        // integral_like
 #include <xstd/concepts/signed_integral_like.hpp> // signed_integral_like
 #include <xstd/cstdint.hpp>                       // int128, uint128
 #include <xstd/cstdlib/div_t.hpp>                 // div_t
+#include <xstd/type_traits/is_signed_like.hpp>    // is_signed_like_v
 #include <boost/test/unit_test.hpp>               // BOOST_CHECK, BOOST_CHECK_EQUAL
-#include <array>                                  // array
 #include <ostream>                                // ostream
-#include <string_view>                            // string_view
+#include <string>                                 // string
+
+namespace xstd::test {
+
+// A digits loop of this header's own, rather than a call to xstd::to_chars.
+// Two reasons, and either alone would be enough:
+//
+// - This renders a value into a *failure* message. A diagnostic implemented
+//   with the code under test reports nothing trustworthy about the run where
+//   that code is what broke, and to_chars is itself one of the things these
+//   tests check.
+// - Boost.Test odr-uses print_log_value in every translation unit that
+//   compares such a value, so the printer's body - and everything it
+//   instantiates - is emitted into roughly twenty test binaries and called in
+//   none of them, since it only runs when an assertion fails. Those unexecuted
+//   copies are what a coverage gate counting each instantiation separately
+//   sees, and no test can reach them without failing on purpose.
+//
+// Correctness only has to be enough for a diagnostic: decimal, and no
+// pretense of the standard's interface. The magnitude is still never formed,
+// because negating the minimum value has no representation.
+template<integral_like T>
+[[nodiscard]] auto to_decimal(T const value)
+        -> std::string
+{
+        auto digits = std::string{};
+        for (auto rest = value;;) {
+                auto const digit = static_cast<int>(rest % T{10});
+                digits.insert(digits.begin(), static_cast<char>('0' + (digit < 0 ? -digit : digit)));
+                rest = static_cast<T>(rest / T{10});
+                if (rest == T{0}) {
+                        break;
+                }
+        }
+        if constexpr (is_signed_like_v<T>) {
+                if (value < T{0}) {
+                        digits.insert(digits.begin(), '-');
+                }
+        }
+        return digits;
+}
+
+} // namespace xstd::test
 
 // Boost.Test prints a value only when an assertion fails, and it asks for that
 // printing through print_log_value rather than through operator<< directly.
@@ -30,10 +72,7 @@ struct print_log_value<xstd::int128>
         auto operator()(std::ostream& ostr, xstd::int128 const value) const
                 -> void
         {
-                constexpr auto N = xstd::to_chars_max_size<xstd::int128>;
-                auto buffer = std::array<char, N>{};
-                auto const result = xstd::to_chars(buffer.data(), buffer.data() + N, value);
-                ostr << std::string_view{buffer.data(), result.ptr};
+                ostr << xstd::test::to_decimal(value);
         }
 };
 
@@ -43,10 +82,7 @@ struct print_log_value<xstd::uint128>
         auto operator()(std::ostream& ostr, xstd::uint128 const value) const
                 -> void
         {
-                constexpr auto N = xstd::to_chars_max_size<xstd::uint128>;
-                auto buffer = std::array<char, N>{};
-                auto const result = xstd::to_chars(buffer.data(), buffer.data() + N, value);
-                ostr << std::string_view{buffer.data(), result.ptr};
+                ostr << xstd::test::to_decimal(value);
         }
 };
 
@@ -59,17 +95,7 @@ struct print_log_value<xstd::div_t<S>>
         auto operator()(std::ostream& ostr, xstd::div_t<S> const& d) const
                 -> void
         {
-                // A buffer each: the two views are alive at the same time, so
-                // sharing one would leave the first dangling into storage the
-                // second call had already rewritten.
-                constexpr auto N = xstd::to_chars_max_size<S>;
-                auto quot = std::array<char, N>{};
-                auto rem = std::array<char, N>{};
-                auto const render = [](std::array<char, N>& buffer, S const value) -> std::string_view {
-                        auto const result = xstd::to_chars(buffer.data(), buffer.data() + N, value);
-                        return std::string_view{buffer.data(), result.ptr};
-                };
-                ostr << '(' << render(quot, d.quot) << ", " << render(rem, d.rem) << ')';
+                ostr << '(' << xstd::test::to_decimal(d.quot) << ", " << xstd::test::to_decimal(d.rem) << ')';
         }
 };
 
