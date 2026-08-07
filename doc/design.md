@@ -41,6 +41,14 @@ The related `_like` traits follow the same rule. Built-in integers work without
 customization; a user-defined signed/unsigned pair supplies the opposite
 `make_signed_like` and `make_unsigned_like` specializations.
 
+A template parameter is named for the concept constraining it: `I` under
+`integral_like`, `S` under `signed_integral_like`. The letters carry the
+constraint into the body, where `S{-1}` reads as something the type can hold
+and `I{-1}` would not. Where a parameter is deduced from a type that is already
+constrained - `S` from `div_t<S>` in the formatter - the constraint is spelled
+anyway: it can never be the reason a specialization fails to match, but the
+alternative reads as though `div_t` were open to any element type.
+
 The arithmetic functions use one constrained template per operation. This
 covers every signed integer-like width without families such as `abs`, `labs`,
 `llabs`, and `imaxabs`. A function returns the argument type rather than a
@@ -98,9 +106,44 @@ level.
 standard library already covers the type it *is* that call, so callers get the
 tuned implementation; where it does not, the digits are produced here to the
 same specification, including bases 2 through 36 and `value_too_large` on a
-short buffer. The tests check the two paths agree byte for byte at every base,
-because a divergence would surface only on the platforms taking the other
-branch.
+short buffer. The default base is written as the literal `10`, the way
+[charconv.to.chars] writes it, so that a caller comparing the two signatures
+finds nothing that differs; `readability-magic-numbers` does fire on it, and is
+suppressed one line at a time rather than by teaching the check to ignore `10`
+throughout the library.
+
+The two are overloads on one name rather than one function branching on an `if
+constexpr`, and they are kept apart by subsumption rather than by hand: the
+delegating overload requires a `std::to_chars` call to be well-formed *on top
+of* `integral_like`, and a conjunction subsumes its left operand, so wherever
+both are viable the delegating one is more constrained and wins partial
+ordering. Spelling the other overload's constraint as the negation would work
+too, but a negated atomic constraint does not subsume, so exclusivity and
+exhaustiveness would then be an invariant someone has to maintain across two
+edits instead of a property of the constraints.
+
+The constraint is that call, written where it applies, rather than a named
+predicate of xstd's own standing in for it. There is no standard concept for
+"the standard library converts this type", so the requires-expression names
+`std::to_chars` directly; it stays an answer rather than an error because `T`
+is the overload's own template parameter, which keeps the expression dependent
+until the constraint is checked. Asking the same question about a *concrete*
+type, as the tests do, still needs a named concept, and the test defines one.
+
+Their order in the header is not editorial. gcov names only the first group of
+functions sharing a start line in a file, and gcovr keys its merge across
+translation units on those names, so an unnamed group merges with nothing. The
+digits body contains a line no other translation unit can reach - the
+short-buffer return - so it has to be the named one; every line of the
+delegating body runs wherever it is instantiated at all, so leaving that group
+unnamed costs nothing. Ordered the other way the file measures 98% and the
+coverage gate fails.
+
+The tests check the two agree byte for byte at every base, because a divergence
+would surface only on the platforms taking the other overload. Since the
+overloads are selected by constraint, the digits one cannot be named for a type
+the standard library covers - so the comparison goes through a type it does
+not, and `xstd::int128` holds every value of a narrower type.
 
 Two places the standard library does not cover are worth naming, because they
 are not the same place. Integer-class types are never covered: `to_chars` is
@@ -129,10 +172,12 @@ outside it, and `<ostream>` in neither. Only code asking for nothing beyond
 
 ### Formatting
 
-`<xstd/format.hpp>` formats a `div_t` as `(quot, rem)`. `div_t` is tuple-like,
-so where the standard library can format a tuple of the element type the
-formatter delegates to `std::formatter<std::tuple<S const&, S const&>>` through
-`std::tie` - the standard's own rendering, with no intermediate string.
+`<xstd/format.hpp>` formats a `div_t` as `(quot, rem)`, through two partial
+specializations of `std::formatter` - one per way of producing that. `div_t` is
+tuple-like, so where the standard library can format a tuple of the element
+type the specialization to use is the one inheriting
+`std::formatter<std::tuple<S const&, S const&>>` and handing it `std::tie` -
+the standard's own rendering, with no intermediate string.
 
 That delegation is not always available, and the two ways it can be missing do
 not coincide. The element type may not be formattable, which is the Microsoft
@@ -140,10 +185,20 @@ STL's 128-bit classes. Or tuple formatting itself may be missing: p2286 reached
 libstdc++ in GCC 15, so before that `std::formattable<std::tuple<int const&,
 int const&>>` is false even though `int` is perfectly formattable. Testing
 `formattable` on the *tuple* rather than on the element covers both with one
-predicate. Where it does not hold, the members are rendered through
-`xstd::to_chars` into the inherited string formatter, which asks nothing beyond
-what `signed_integral_like` already guarantees - so `div_t` formats for every
-type it accepts, on every implementation.
+predicate. Where it does not hold, the other specialization renders the members
+through `xstd::to_chars` into an inherited string formatter, which asks nothing
+beyond what `signed_integral_like` already guarantees - so `div_t` formats for
+every type it accepts, on every implementation.
+
+The choice between them is left to partial ordering, on the same footing as
+`to_chars`'s two overloads: the tuple one requires
+`std::formattable<std::tuple<S const&, S const&>, CharT>` - the base it
+inherits, spelled out where it applies rather than behind a predicate of xstd's
+own - and the other requires nothing, so they are equally specialized on their
+arguments and the more constrained one wins wherever it matches at all. That is
+what replaces a `std::conditional_t` base and an `if constexpr` in `format()` -
+each specialization now names its own base outright and is written against that
+base alone.
 
 Both spellings produce `(quot, rem)`, so which one runs is not observable in
 the output. It is observable in the spec grammar, since `parse()` is inherited:

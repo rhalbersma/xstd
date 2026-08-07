@@ -25,9 +25,9 @@ using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, st
 // instantiated - Boost.Test's printing machinery instantiates it for anything
 // it might have to report, but only runs it when an assertion fails.
 //
-// Which of the formatter's two bases is in play is a property of the standard
-// library and of S, not of xstd: the tuple formatter where p2286 is
-// implemented and S is formattable, the string formatter over xstd::to_chars
+// Which of the formatter's two partial specializations is selected is a
+// property of the standard library and of S, not of xstd: the tuple one where
+// p2286 is implemented and S is formattable, the one over xstd::to_chars
 // otherwise. So none of the expectations below name a path. They are written
 // to hold either way, which is the actual guarantee - the rendering of a div_t
 // does not depend on how the implementation happens to reach it.

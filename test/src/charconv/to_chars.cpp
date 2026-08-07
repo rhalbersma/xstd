@@ -3,11 +3,12 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/charconv/to_chars.hpp> // to_chars, to_chars_max_size, detail::has_std_to_chars
+#include <xstd/charconv/to_chars.hpp> // to_chars, to_chars_max_size
 #include <xstd/cstdint.hpp>           // int128, uint128
 #include <boost/test/unit_test.hpp>   // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_CHECK, BOOST_CHECK_EQUAL
 #include <array>                      // array
-#include <charconv>                   // to_chars
+#include <charconv>                   // to_chars, to_chars_result
+#include <concepts>                   // same_as
 #include <cstdint>                    // exact-width integer types
 #include <limits>                     // numeric_limits
 #include <string>                     // string
@@ -17,11 +18,25 @@
 
 BOOST_AUTO_TEST_SUITE(CharConvToChars)
 
-// A named concept rather than a bare requires-expression at the use: selecting
-// a deleted function makes the expression ill-formed, and an ill-formed
-// operand that is also non-dependent is a hard error rather than an
-// unsatisfied constraint. Keeping the type a template parameter is what turns
-// the deleted overload into the false answer the check is looking for.
+// Named concepts rather than bare requires-expressions at the uses below.
+// Selecting a deleted function makes an expression ill-formed, an ambiguous
+// call likewise, and an ill-formed operand that is also non-dependent is a hard
+// error rather than an unsatisfied constraint. Keeping the type a template
+// parameter is what turns both into the answer these checks are looking for.
+//
+// The header spells the second of these inline, as the constraint on its
+// delegating overload, and can: there T is that template's own parameter, so
+// the expression is dependent where it is written. Here the types are concrete,
+// which is the whole point of the checks, so here they have to be named.
+template<class T>
+concept has_std_to_chars = requires (char* p, T value, int base) {
+        { std::to_chars(p, p, value, base) } -> std::same_as<std::to_chars_result>;
+};
+
+// Answers a second question too, now that xstd::to_chars is two overloads: an
+// ambiguous call is also a call that does not compile, so this being true for a
+// type both overloads accept is what pins that the constrained one wins by
+// partial ordering rather than tying.
 template<class T>
 concept has_xstd_to_chars = requires (char* p, T value) { xstd::to_chars(p, p, value, 10); };
 
@@ -61,13 +76,13 @@ template<class T>
 // for the 128-bit types - only that both paths exist and agree.
 BOOST_AUTO_TEST_CASE(DelegatesWhereTheStandardLibraryCovers)
 {
-        static_assert(xstd::detail::has_std_to_chars<int>);
-        static_assert(xstd::detail::has_std_to_chars<long long>);
-        static_assert(xstd::detail::has_std_to_chars<unsigned>);
+        static_assert(has_std_to_chars<int>);
+        static_assert(has_std_to_chars<long long>);
+        static_assert(has_std_to_chars<unsigned>);
 
         // bool is integral-like, but the standard deletes its to_chars and so
         // does xstd, rather than letting it fall through to the digits path.
-        static_assert(not xstd::detail::has_std_to_chars<bool>);
+        static_assert(not has_std_to_chars<bool>);
         static_assert(not has_xstd_to_chars<bool>);
         static_assert(has_xstd_to_chars<int>);
 
@@ -76,34 +91,31 @@ BOOST_AUTO_TEST_CASE(DelegatesWhereTheStandardLibraryCovers)
         // what libstdc++ produces for __int128 in the strict dialect.
         struct not_an_integer
         {};
-        static_assert(not xstd::detail::has_std_to_chars<not_an_integer>);
+        static_assert(not has_std_to_chars<not_an_integer>);
 }
 
-// The load-bearing property: wherever the standard library covers the type,
-// the digits path must be byte-identical to it, at every base. A divergence
-// would show up only on the platforms that take the other branch, which are
+// The load-bearing property: wherever the standard library covers a value, the
+// digits path must render it byte-identically, at every base. A divergence
+// would show up only on the platforms that take the other overload, which are
 // exactly the ones hardest to notice it on.
+//
+// The two overloads are selected by constraint, so the digits path cannot be
+// named for a type the standard library covers - the way in is a type it does
+// not. xstd::int128 is that type here, and every value of a narrower type is
+// one of its values too, so rendering the same value through both is the same
+// comparison the widths the standard covers would give. Which overload the
+// 128-bit alias takes is a property of the standard library and the dialect
+// rather than of xstd, so on an implementation that does cover it this
+// compares the standard against itself and still holds.
 BOOST_AUTO_TEST_CASE_TEMPLATE(DigitsPathMatchesTheStandard, T, standard_width_types)
 {
         for (auto base = 2; base <= 36; ++base) {
                 for (auto const value : {T{0}, T{1}, T{-1}, T{7}, T{-7},
                                          std::numeric_limits<T>::min(), std::numeric_limits<T>::max()}) {
-                        auto buffer = std::array<char, xstd::to_chars_max_size<T>>{};
-                        auto const result = xstd::detail::to_chars_fallback(buffer.data(), buffer.data() + buffer.size(), value, base);
-                        BOOST_CHECK(result.ec == std::errc{});
-                        BOOST_CHECK_EQUAL(std::string(buffer.data(), result.ptr),
+                        BOOST_CHECK_EQUAL(rendered(static_cast<xstd::int128>(value), base),
                                           rendered_by_std(value, base));
                 }
         }
-
-        // The short-buffer return, in this same instantiation. Exercising it
-        // for one type only would leave it unreached in every other, which the
-        // coverage gate counts separately.
-        auto buffer = std::array<char, xstd::to_chars_max_size<T>>{};
-        auto const truncated = xstd::detail::to_chars_fallback(
-                buffer.data(), buffer.data(), std::numeric_limits<T>::min(), 2);
-        BOOST_CHECK(truncated.ec == std::errc::value_too_large);
-        BOOST_CHECK(truncated.ptr == buffer.data());
 }
 
 // to_chars_max_size has to hold the worst case, which is min() in base 2. The
@@ -145,10 +157,10 @@ BOOST_AUTO_TEST_CASE(Int128Boundaries)
         auto const narrow = xstd::to_chars(decimal.data(), decimal.data() + decimal.size(), 42);
         BOOST_CHECK_EQUAL(std::string(decimal.data(), narrow.ptr), "42");
 
-        // uint128 reaches the digits path through xstd::to_chars above; this
-        // reaches its short-buffer return without instantiating anything new.
+        // The short-buffer return in the unsigned instantiation, which the
+        // coverage gate counts separately from the signed one below.
         auto buffer = std::array<char, xstd::to_chars_max_size<xstd::uint128>>{};
-        auto const truncated = xstd::detail::to_chars_fallback(
+        auto const truncated = xstd::to_chars(
                 buffer.data(), buffer.data(), std::numeric_limits<xstd::uint128>::max(), 2);
         BOOST_CHECK(truncated.ec == std::errc::value_too_large);
 }
@@ -184,8 +196,11 @@ BOOST_AUTO_TEST_CASE(ShortBuffer)
         BOOST_CHECK(result.ec == std::errc::value_too_large);
         BOOST_CHECK(result.ptr == buffer.data() + buffer.size());
 
+        // The same, in the signed digits instantiation: ptr is left at last
+        // rather than pointing into a partial answer.
         auto const wide = xstd::to_chars(buffer.data(), buffer.data() + buffer.size(), std::numeric_limits<xstd::int128>::min(), 10);
         BOOST_CHECK(wide.ec == std::errc::value_too_large);
+        BOOST_CHECK(wide.ptr == buffer.data() + buffer.size());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
