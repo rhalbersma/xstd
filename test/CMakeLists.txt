@@ -138,6 +138,52 @@ find_package(
     unit_test_framework
 )
 
+# Boost.Int128 is the one 128-bit type in the test suite that xstd knows
+# nothing about, which is what makes it worth testing against: see
+# test/include/xstd/test/boost_int128.hpp. It is not a hard dependency - the
+# tests fall back to the types xstd provides itself when it is absent.
+#
+# It ships with Boost 1.92, whose per-library package config this call finds
+# alongside a standalone or vcpkg install. Until that release, fetch the
+# upstream repository. Once 1.92 is the floor, the fetch below can go and this
+# can become a component of the find_package above.
+option(XSTD_TEST_FETCH_BOOST_INT128 "Fetch Boost.Int128 when no installed copy is found" ON)
+
+find_package(boost_int128 CONFIG QUIET)
+if(NOT TARGET Boost::int128 AND XSTD_TEST_FETCH_BOOST_INT128)
+    include(FetchContent)
+    FetchContent_Declare(
+        boost_int128
+        GIT_REPOSITORY https://github.com/cppalliance/int128.git
+        # A development commit rather than the latest release tag, which is
+        # v3.1.0: the types lost their _t suffix after it was cut, and the
+        # un-suffixed spelling is the one the documentation for the Boost
+        # release carries. Pinned rather than tracking a branch, since this is
+        # a library still being prepared for its first Boost release.
+        GIT_TAG f437657470186b79f1f314bc2c76a112bcc2529c
+        # Its own CMakeLists.txt builds its test suite whenever BUILD_TESTING
+        # is on, which is exactly when this project configures it. Naming a
+        # subdirectory that holds no CMakeLists.txt keeps the download and
+        # leaves its build system out of this one.
+        SOURCE_SUBDIR does-not-exist
+    )
+    FetchContent_MakeAvailable(boost_int128)
+
+    # SYSTEM because these headers are not written to the warning level this
+    # project holds its own code to: at -Weverything they report -Wpadded and
+    # -Wextra-semi-stmt, neither of which says anything about xstd. An
+    # installed copy arrives through an imported target, which CMake already
+    # treats as system.
+    add_library(Boost::int128 INTERFACE IMPORTED)
+    target_include_directories(Boost::int128 SYSTEM INTERFACE ${boost_int128_SOURCE_DIR}/include)
+endif()
+
+if(TARGET Boost::int128)
+    set(xstd_test_boost_int128 Boost::int128)
+else()
+    set(xstd_test_boost_int128)
+endif()
+
 set(current_source_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)
 file(
     GLOB_RECURSE targets
@@ -157,6 +203,7 @@ foreach(t ${targets})
         ${target_id} PRIVATE
         ${PROJECT_NAME}::${PROJECT_NAME}
         Boost::unit_test_framework
+        ${xstd_test_boost_int128}
         xstd_test_options
     )
 

@@ -3,18 +3,19 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/charconv/to_chars.hpp> // to_chars, to_chars_max_size
-#include <xstd/cstdint.hpp>           // int128, uint128
-#include <boost/test/unit_test.hpp>   // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_CHECK, BOOST_CHECK_EQUAL
-#include <array>                      // array
-#include <charconv>                   // to_chars, to_chars_result
-#include <concepts>                   // same_as
-#include <cstdint>                    // exact-width integer types
-#include <limits>                     // numeric_limits
-#include <string>                     // string
-#include <string_view>                // string_view
-#include <system_error>               // errc
-#include <tuple>                      // tuple
+#include <xstd/charconv/to_chars.hpp>      // to_chars, to_chars_max_size
+#include <xstd/cstdint.hpp>                // int128, uint128
+#include <xstd/test/exact_width_types.hpp> // exact_width_signed_types, exact_width_unsigned_types
+#include <boost/test/unit_test.hpp>        // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_CHECK, BOOST_CHECK_EQUAL
+#include <array>                           // array
+#include <charconv>                        // to_chars, to_chars_result
+#include <concepts>                        // same_as
+#include <cstdint>                         // exact-width integer types
+#include <limits>                          // numeric_limits
+#include <string>                          // string
+#include <string_view>                     // string_view
+#include <system_error>                    // errc
+#include <tuple>                           // tuple
 
 BOOST_AUTO_TEST_SUITE(CharConvToChars)
 
@@ -39,9 +40,6 @@ concept has_std_to_chars = requires (char* p, T value, int base) {
 // partial ordering rather than tying.
 template<class T>
 concept has_xstd_to_chars = requires (char* p, T value) { xstd::to_chars(p, p, value, 10); };
-
-using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t, xstd::int128>;
-using unsigned_types = std::tuple<std::uint8_t, std::uint16_t, std::uint32_t, std::uint64_t, xstd::uint128>;
 
 // Named rather than spelled inline at the use: the preprocessor splits a
 // macro argument on the tuple's commas.
@@ -121,20 +119,34 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(DigitsPathMatchesTheStandard, T, standard_width_ty
 // to_chars_max_size has to hold the worst case, which is min() in base 2. The
 // trap is that digits counts value bits only, so a signed type needs two more
 // characters than that, not one.
-BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCase, T, exact_width_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCase, T, xstd::test::exact_width_signed_types)
 {
         auto buffer = std::array<char, xstd::to_chars_max_size<T>>{};
         auto const min = xstd::to_chars(buffer.data(), buffer.data() + buffer.size(), std::numeric_limits<T>::min(), 2);
         BOOST_CHECK(min.ec == std::errc{});
         auto const max = xstd::to_chars(buffer.data(), buffer.data() + buffer.size(), std::numeric_limits<T>::max(), 2);
         BOOST_CHECK(max.ec == std::errc{});
+
+        // And holds it exactly: one character less does not fit. Written per
+        // type rather than once at a chosen width for the reason the header's
+        // overload-ordering comment describes - gcov records a template's
+        // instantiations separately, so the short-buffer return is covered
+        // only in the instantiations a test actually reaches it in, and a
+        // type added to the list above brings its own.
+        auto const short_buffer = xstd::to_chars(buffer.data(), buffer.data() + buffer.size() - 1, std::numeric_limits<T>::min(), 2);
+        BOOST_CHECK(short_buffer.ec == std::errc::value_too_large);
+        BOOST_CHECK(short_buffer.ptr == buffer.data() + buffer.size() - 1);
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCaseUnsigned, T, unsigned_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCaseUnsigned, T, xstd::test::exact_width_unsigned_types)
 {
         auto buffer = std::array<char, xstd::to_chars_max_size<T>>{};
         auto const max = xstd::to_chars(buffer.data(), buffer.data() + buffer.size(), std::numeric_limits<T>::max(), 2);
         BOOST_CHECK(max.ec == std::errc{});
+
+        auto const short_buffer = xstd::to_chars(buffer.data(), buffer.data() + buffer.size() - 1, std::numeric_limits<T>::max(), 2);
+        BOOST_CHECK(short_buffer.ec == std::errc::value_too_large);
+        BOOST_CHECK(short_buffer.ptr == buffer.data() + buffer.size() - 1);
 }
 
 BOOST_AUTO_TEST_CASE(Int128Boundaries)

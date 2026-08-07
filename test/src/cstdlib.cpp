@@ -3,23 +3,24 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/cstdlib.hpp>         // complete arithmetic surface
-#include <xstd/cstdint.hpp>         // int128, uint128
-#include <xstd/concepts.hpp>        // signed_integral_like
-#include <xstd/type_traits.hpp>     // make_unsigned_like_t
-#include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
-#include <boost/test/unit_test.hpp> // Boost.Test
-#include <algorithm>                // ranges::transform
-#include <array>                    // array
-#include <concepts>                 // integral, same_as, signed_integral
-#include <cstdint>                  // exact-width integer types, intmax_t
-#include <cstdlib>                  // div
-#include <iterator>                 // back_inserter
-#include <limits>                   // numeric_limits
-#include <tuple>                    // tuple
-#include <type_traits>              // make_unsigned_t
-#include <utility>                  // pair
-#include <vector>                   // vector
+#include <xstd/cstdlib.hpp>           // complete arithmetic surface
+#include <xstd/cstdint.hpp>           // int128, uint128
+#include <xstd/concepts.hpp>          // signed_integral_like
+#include <xstd/type_traits.hpp>       // make_unsigned_like_t
+#include <xstd/test/boost_int128.hpp> // XSTD_TEST_HAS_BOOST_INT128
+#include <xstd/test/constexpr.hpp>    // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
+#include <boost/test/unit_test.hpp>   // Boost.Test
+#include <algorithm>                  // ranges::transform
+#include <array>                      // array
+#include <concepts>                   // integral, same_as, signed_integral
+#include <cstdint>                    // exact-width integer types, intmax_t
+#include <cstdlib>                    // div
+#include <iterator>                   // back_inserter
+#include <limits>                     // numeric_limits
+#include <tuple>                      // tuple
+#include <type_traits>                // make_unsigned_t
+#include <utility>                    // pair
+#include <vector>                     // vector
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
@@ -252,6 +253,27 @@ BOOST_AUTO_TEST_CASE(Int128Aliases)
 
         check_signed_integral_like<xstd::int128>();
 }
+
+// The same battery over a 128-bit type the library does not know about, which
+// is what the case above cannot show: xstd::int128 names a type xstd ships the
+// trait associations for, so it reaches these facilities along a path no third
+// party's type can take. Boost.Int128 takes the other one - the concepts admit
+// it on its own operations, and the two specializations in the test header are
+// all it needs.
+#ifdef XSTD_TEST_HAS_BOOST_INT128
+
+BOOST_AUTO_TEST_CASE(ThirdPartyIntegerClassType)
+{
+        using T = xstd::test::boost_int128;
+
+        static_assert(xstd::signed_integral_like<T>);
+        static_assert(std::same_as<decltype(xstd::unsigned_abs(T{})), xstd::test::boost_uint128>);
+        static_assert(std::same_as<decltype(xstd::div(T{1}, T{1})), xstd::div_t<T>>);
+
+        check_signed_integral_like<T>();
+}
+
+#endif
 
 // clang-format off
 auto const input = std::array<std::pair<int, int>, 8>
