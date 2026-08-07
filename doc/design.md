@@ -106,7 +106,11 @@ level.
 standard library already covers the type it *is* that call, so callers get the
 tuned implementation; where it does not, the digits are produced here to the
 same specification, including bases 2 through 36 and `value_too_large` on a
-short buffer.
+short buffer. The default base is written as the literal `10`, the way
+[charconv.to.chars] writes it, so that a caller comparing the two signatures
+finds nothing that differs; `readability-magic-numbers` does fire on it, and is
+suppressed one line at a time rather than by teaching the check to ignore `10`
+throughout the library.
 
 The two are overloads on one name rather than one function branching on an `if
 constexpr`, and they are kept apart by subsumption rather than by hand: the

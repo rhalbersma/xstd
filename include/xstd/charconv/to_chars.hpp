@@ -36,15 +36,19 @@ namespace detail {
 // enabled, and indexing is all this is for.
 inline constexpr auto to_chars_digits = std::string_view{"0123456789abcdefghijklmnopqrstuvwxyz"};
 
-// Named because readability-magic-numbers is enabled for the headers, and
-// because a bare 10 in a signature reads as arbitrary until it is called
-// decimal.
-inline constexpr auto decimal_base = 10;
-
 } // namespace detail
 
 // std::to_chars, widened to every integral-like type: two overloads on one
 // name, rather than one function branching on an if constexpr.
+//
+// The default base is the literal 10, the way [charconv.to.chars] spells it,
+// rather than a named constant. A caller reads this signature against the
+// standard's, so the two should differ in nothing that is visible there.
+// readability-magic-numbers is enabled for the headers and does fire on a
+// default argument, so each of the three declarations carries a NOLINTNEXTLINE
+// for it - the narrowest suppression there is, one check on one line, rather
+// than adding 10 to the check's ignored values and losing it everywhere else in
+// the library.
 //
 // Which one a call selects is decided by the constraints alone. This one is
 // constrained on nothing beyond integral_like, and the one below adds a
@@ -81,7 +85,8 @@ inline constexpr auto decimal_base = 10;
 // flipped. That also means no make_unsigned_like is needed, which an
 // integer-class type is only required to have if its author supplied one.
 template<integral_like I>
-[[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = detail::decimal_base) noexcept
+// NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
+[[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10) noexcept
         -> std::to_chars_result
 {
         assert(2 <= base and base <= 36);
@@ -166,7 +171,8 @@ template<integral_like I>
         requires requires (char* p, I value, int base) {
                 { std::to_chars(p, p, value, base) } -> std::same_as<std::to_chars_result>;
         }
-[[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = detail::decimal_base) noexcept
+// NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
+[[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10) noexcept
         -> std::to_chars_result
 {
         assert(2 <= base and base <= 36);
@@ -176,7 +182,8 @@ template<integral_like I>
 // Deleted for the same reason the standard deletes it: bool is integral-like,
 // so an unconstrained call would silently render true as "1" rather than say
 // that the caller almost certainly meant something else.
-auto to_chars(char*, char*, bool, int = detail::decimal_base) -> std::to_chars_result = delete;
+// NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
+auto to_chars(char*, char*, bool, int = 10) -> std::to_chars_result = delete;
 
 } // namespace xstd
 
