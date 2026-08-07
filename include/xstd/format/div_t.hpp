@@ -6,15 +6,16 @@
 #ifndef XSTD_FORMAT_DIV_T_HPP
 #define XSTD_FORMAT_DIV_T_HPP
 
-#include <xstd/charconv/to_chars.hpp> // to_chars, to_chars_max_size
-#include <xstd/cstdlib/div_t.hpp>     // div_t
-#include <array>                      // array
-#include <cassert>                    // assert
-#include <format>                     // formatter
-#include <string>                     // basic_string
-#include <string_view>                // basic_string_view
-#include <system_error>               // errc
-#include <tuple>                      // tie, tuple
+#include <xstd/charconv/to_chars.hpp>             // to_chars, to_chars_max_size
+#include <xstd/concepts/signed_integral_like.hpp> // signed_integral_like
+#include <xstd/cstdlib/div_t.hpp>                 // div_t
+#include <array>                                  // array
+#include <cassert>                                // assert
+#include <format>                                 // formatter
+#include <string>                                 // basic_string
+#include <string_view>                            // basic_string_view
+#include <system_error>                           // errc
+#include <tuple>                                  // tie, tuple
 
 // A div_t is formatted as "(quot, rem)" by two partial specializations of
 // std::formatter, one per way of producing that: the tuple formatter where the
@@ -32,12 +33,13 @@
 // constexpr in format(): each one then names its own base outright, and each
 // format() is written against that base alone. Which one a div_t selects is
 // left to partial ordering, on the constraints - the tuple one requires
-// std::formattable of the base it inherits and the other requires nothing, so
-// the two are equally specialized on their arguments and the more constrained
-// one wins wherever it matches at all. Spelling the second's constraint as the
-// negation would work too, but a negated atomic constraint does not subsume, so
-// exclusivity and exhaustiveness would become an invariant to maintain across
-// two edits rather than a property of the constraints.
+// std::formattable of the base it inherits on top of what both require of S,
+// and a conjunction subsumes its left operand, so the two are equally
+// specialized on their arguments and the more constrained one wins wherever it
+// matches at all. Spelling the second's constraint as the negation would work
+// too, but a negated atomic constraint does not subsume, so exclusivity and
+// exhaustiveness would become an invariant to maintain across two edits rather
+// than a property of the constraints.
 //
 // Nothing here specializes std::formatter for a 128-bit type. Those are either
 // built-ins or standard-library types, so specializing for them is outside what
@@ -66,11 +68,18 @@
 #define XSTD_CONSTEXPR_FORMAT
 #endif
 
-// The unconstrained specialization, which every div_t matches and which renders
-// the members itself. Inheriting the string formatter is what carries fill,
-// alignment and width; the grammar it accepts is that base's, so precision is
-// part of it too.
-template<class S, class CharT>
+// The one every div_t matches, which renders the members itself. Inheriting the
+// string formatter is what carries fill, alignment and width; the grammar it
+// accepts is that base's, so precision is part of it too.
+//
+// S is spelled signed_integral_like here and below, though nothing turns on it:
+// S is deduced from div_t<S>, which is itself constrained, so a div_t whose
+// element type does not satisfy this cannot be named in the first place and the
+// constraint can never be the reason a specialization fails to match. It is
+// written out because the alternative reads as though div_t<S> were open to any
+// S, and because the bodies do rely on it - to_chars_max_size and to_chars ask
+// for integral_like, which is the half of this concept they need.
+template<xstd::signed_integral_like S, class CharT>
 // NOLINTNEXTLINE(bugprone-std-namespace-modification): permitted by [namespace.std]/2, see above
 struct std::formatter<xstd::div_t<S>, CharT> : std::formatter<std::basic_string_view<CharT>, CharT>
 {
@@ -123,7 +132,7 @@ struct std::formatter<xstd::div_t<S>, CharT> : std::formatter<std::basic_string_
 //   on an older one formattable<tuple<int const&, int const&>> is false even
 //   though int is perfectly formattable, and a condition on S alone would
 //   inherit a formatter that does not exist.
-template<class S, class CharT>
+template<xstd::signed_integral_like S, class CharT>
         requires std::formattable<std::tuple<S const&, S const&>, CharT>
 // NOLINTNEXTLINE(bugprone-std-namespace-modification): permitted by [namespace.std]/2, see above
 struct std::formatter<xstd::div_t<S>, CharT> : std::formatter<std::tuple<S const&, S const&>, CharT>

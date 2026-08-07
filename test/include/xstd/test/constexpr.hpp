@@ -34,21 +34,21 @@ namespace xstd::test {
 // Correctness only has to be enough for a diagnostic: decimal, and no
 // pretense of the standard's interface. The magnitude is still never formed,
 // because negating the minimum value has no representation.
-template<integral_like T>
-[[nodiscard]] auto to_decimal(T const value)
+template<integral_like I>
+[[nodiscard]] auto to_decimal(I const value)
         -> std::string
 {
         auto digits = std::string{};
         for (auto rest = value;;) {
-                auto const digit = static_cast<int>(rest % T{10});
+                auto const digit = static_cast<int>(rest % I{10});
                 digits.insert(digits.begin(), static_cast<char>('0' + (digit < 0 ? -digit : digit)));
-                rest = static_cast<T>(rest / T{10});
-                if (rest == T{0}) {
+                rest = static_cast<I>(rest / I{10});
+                if (rest == I{0}) {
                         break;
                 }
         }
-        if constexpr (is_signed_like_v<T>) {
-                if (value < T{0}) {
+        if constexpr (is_signed_like_v<I>) {
+                if (value < I{0}) {
                         digits.insert(digits.begin(), '-');
                 }
         }

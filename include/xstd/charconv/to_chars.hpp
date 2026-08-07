@@ -19,16 +19,16 @@
 
 namespace xstd {
 
-// The largest number of characters to_chars can write for T, at any base it
+// The largest number of characters to_chars can write for I, at any base it
 // accepts. Base 2 is the worst case. For an unsigned type that is exactly one
 // character per value bit; for a signed one it is two more, not one: digits
 // counts value bits only, so the magnitude of min() is 2^digits and takes
 // digits + 1 binary digits, and the sign takes another. At int8_t that is the
 // difference between fitting "-10000000" and not. No null terminator: to_chars
 // does not write one.
-template<integral_like T>
+template<integral_like I>
 inline constexpr auto to_chars_max_size =
-        static_cast<std::size_t>(std::numeric_limits<T>::digits) + (is_signed_like_v<T> ? 2 : 0);
+        static_cast<std::size_t>(std::numeric_limits<I>::digits) + (is_signed_like_v<I> ? 2 : 0);
 
 namespace detail {
 
@@ -80,18 +80,18 @@ inline constexpr auto decimal_base = 10;
 // borrow, so the remainder is taken on the negative value and the digit's sign
 // flipped. That also means no make_unsigned_like is needed, which an
 // integer-class type is only required to have if its author supplied one.
-template<integral_like T>
-[[nodiscard]] constexpr auto to_chars(char* first, char* last, T value, int base = detail::decimal_base) noexcept
+template<integral_like I>
+[[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = detail::decimal_base) noexcept
         -> std::to_chars_result
 {
         assert(2 <= base and base <= 36);
 
-        auto const radix = static_cast<T>(base);
+        auto const radix = static_cast<I>(base);
 
         auto count = std::size_t{0};
-        for (auto rest = value;; rest = static_cast<T>(rest / radix)) {
+        for (auto rest = value;; rest = static_cast<I>(rest / radix)) {
                 ++count;
-                if (rest / radix == T{0}) {
+                if (rest / radix == I{0}) {
                         break;
                 }
         }
@@ -100,8 +100,8 @@ template<integral_like T>
         // branch an unsigned instantiation discards, leaving the variable set
         // and never used there.
         [[maybe_unused]] auto negative = false;
-        if constexpr (is_signed_like_v<T>) {
-                negative = value < T{0};
+        if constexpr (is_signed_like_v<I>) {
+                negative = value < I{0};
                 count += negative ? std::size_t{1} : std::size_t{0};
         }
 
@@ -110,13 +110,13 @@ template<integral_like T>
         }
 
         auto* out = first + count;
-        for (auto rest = value;; rest = static_cast<T>(rest / radix)) {
+        for (auto rest = value;; rest = static_cast<I>(rest / radix)) {
                 auto digit = static_cast<int>(rest % radix);
                 // Both sign tests are under if constexpr rather than a plain
-                // if: an unsigned T can never be negative, so a runtime test
+                // if: an unsigned I can never be negative, so a runtime test
                 // would emit a line and a branch that its instantiation cannot
                 // reach - and the coverage gate counts both per instantiation.
-                if constexpr (is_signed_like_v<T>) {
+                if constexpr (is_signed_like_v<I>) {
                         // The remainder of a negative value is negative, and
                         // the sign is written once, below.
                         if (negative) {
@@ -124,11 +124,11 @@ template<integral_like T>
                         }
                 }
                 *--out = detail::to_chars_digits[static_cast<std::size_t>(digit)];
-                if (rest / radix == T{0}) {
+                if (rest / radix == I{0}) {
                         break;
                 }
         }
-        if constexpr (is_signed_like_v<T>) {
+        if constexpr (is_signed_like_v<I>) {
                 if (negative) {
                         *--out = '-';
                 }
@@ -137,11 +137,11 @@ template<integral_like T>
 }
 
 // The more constrained of the two, selected wherever the standard library
-// covers T. It is that call and nothing more, so the tuned implementation and
+// covers I. It is that call and nothing more, so the tuned implementation and
 // its format-spec behavior are what a caller gets.
 //
 // The constraint is the call itself: there is no standard concept for "the
-// standard library formats this type", so the requires-expression names
+// standard library converts this type", so the requires-expression names
 // std::to_chars directly rather than being wrapped in a helper concept. Two
 // ways it can be unsatisfied, and it has to survive both:
 //
@@ -154,7 +154,7 @@ template<integral_like T>
 //   width. Ambiguity is still overload resolution failing in the immediate
 //   context, so the requirement is unsatisfied rather than ill-formed.
 //
-// Both of those are answers rather than errors only because T is this
+// Both of those are answers rather than errors only because I is this
 // template's own parameter, so the expression stays dependent until the
 // constraint is checked. The same requires-expression written at a concrete
 // type - as the tests want, to assert which path a type takes - has to be a
@@ -162,11 +162,11 @@ template<integral_like T>
 //
 // std::to_chars(bool) is deleted, so bool is unsatisfied here and is deleted
 // below rather than silently picking up the digits overload.
-template<integral_like T>
-        requires requires (char* p, T value, int base) {
+template<integral_like I>
+        requires requires (char* p, I value, int base) {
                 { std::to_chars(p, p, value, base) } -> std::same_as<std::to_chars_result>;
         }
-[[nodiscard]] constexpr auto to_chars(char* first, char* last, T value, int base = detail::decimal_base) noexcept
+[[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = detail::decimal_base) noexcept
         -> std::to_chars_result
 {
         assert(2 <= base and base <= 36);

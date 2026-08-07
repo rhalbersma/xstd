@@ -41,6 +41,14 @@ The related `_like` traits follow the same rule. Built-in integers work without
 customization; a user-defined signed/unsigned pair supplies the opposite
 `make_signed_like` and `make_unsigned_like` specializations.
 
+A template parameter is named for the concept constraining it: `I` under
+`integral_like`, `S` under `signed_integral_like`. The letters carry the
+constraint into the body, where `S{-1}` reads as something the type can hold
+and `I{-1}` would not. Where a parameter is deduced from a type that is already
+constrained - `S` from `div_t<S>` in the formatter - the constraint is spelled
+anyway: it can never be the reason a specialization fails to match, but the
+alternative reads as though `div_t` were open to any element type.
+
 The arithmetic functions use one constrained template per operation. This
 covers every signed integer-like width without families such as `abs`, `labs`,
 `llabs`, and `imaxabs`. A function returns the argument type rather than a

@@ -68,14 +68,14 @@ BOOST_AUTO_TEST_CASE(IntegralLikeAgreesWithItsTrait)
 // requirements, or that gave either of the narrower concepts a flat trait of
 // its own to be spelled over, would make this call ambiguous rather than
 // picking the second overload.
-template<xstd::integral_like T>
-[[nodiscard]] constexpr auto which(T) noexcept -> int
+template<xstd::integral_like I>
+[[nodiscard]] constexpr auto which(I) noexcept -> int
 {
         return 1;
 }
 
-template<xstd::signed_integral_like T>
-[[nodiscard]] constexpr auto which(T) noexcept -> int
+template<xstd::signed_integral_like S>
+[[nodiscard]] constexpr auto which(S) noexcept -> int
 {
         return 2;
 }
