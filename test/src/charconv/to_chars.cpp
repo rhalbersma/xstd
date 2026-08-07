@@ -95,6 +95,15 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(DigitsPathMatchesTheStandard, T, standard_width_ty
                                           rendered_by_std(value, base));
                 }
         }
+
+        // The short-buffer return, in this same instantiation. Exercising it
+        // for one type only would leave it unreached in every other, which the
+        // coverage gate counts separately.
+        auto buffer = std::array<char, xstd::to_chars_max_size<T>>{};
+        auto const truncated = xstd::detail::to_chars_fallback(
+                buffer.data(), buffer.data(), std::numeric_limits<T>::min(), 2);
+        BOOST_CHECK(truncated.ec == std::errc::value_too_large);
+        BOOST_CHECK(truncated.ptr == buffer.data());
 }
 
 // to_chars_max_size has to hold the worst case, which is min() in base 2. The
@@ -126,6 +135,22 @@ BOOST_AUTO_TEST_CASE(Int128Boundaries)
         BOOST_CHECK_EQUAL(rendered(xstd::int128{0}, 10), "0");
         BOOST_CHECK_EQUAL(rendered(xstd::int128{-1}, 10), "-1");
         BOOST_CHECK_EQUAL(rendered(xstd::int128{35}, 36), "z");
+
+        // The default base, which every call above passes explicitly. Both
+        // sides of the delegation are exercised: int128 renders here, int
+        // renders in the standard library.
+        auto decimal = std::array<char, xstd::to_chars_max_size<xstd::int128>>{};
+        auto const wide = xstd::to_chars(decimal.data(), decimal.data() + decimal.size(), xstd::int128{-42});
+        BOOST_CHECK_EQUAL(std::string(decimal.data(), wide.ptr), "-42");
+        auto const narrow = xstd::to_chars(decimal.data(), decimal.data() + decimal.size(), 42);
+        BOOST_CHECK_EQUAL(std::string(decimal.data(), narrow.ptr), "42");
+
+        // uint128 reaches the digits path through xstd::to_chars above; this
+        // reaches its short-buffer return without instantiating anything new.
+        auto buffer = std::array<char, xstd::to_chars_max_size<xstd::uint128>>{};
+        auto const truncated = xstd::detail::to_chars_fallback(
+                buffer.data(), buffer.data(), std::numeric_limits<xstd::uint128>::max(), 2);
+        BOOST_CHECK(truncated.ec == std::errc::value_too_large);
 }
 
 // A constant expression, not merely a constexpr function called at runtime:

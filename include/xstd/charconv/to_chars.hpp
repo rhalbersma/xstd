@@ -103,8 +103,14 @@ template<integral_like T>
                         break;
                 }
         }
-        if (negative) {
-                *--out = '-';
+        // Under if constexpr rather than a plain if: an unsigned T can never
+        // be negative, so a runtime test would emit a line and a branch that
+        // its instantiation cannot reach - and the coverage gate counts both
+        // per instantiation.
+        if constexpr (is_signed_like_v<T>) {
+                if (negative) {
+                        *--out = '-';
+                }
         }
         return {.ptr = first + count, .ec = std::errc{}};
 }
