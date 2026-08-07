@@ -86,8 +86,6 @@ struct std::formatter<xstd::div_t<S>, CharT> : std::formatter<std::basic_string_
         [[nodiscard]] XSTD_CONSTEXPR_FORMAT auto format(xstd::div_t<S> const& d, auto& ctx) const
                 -> decltype(ctx.out())
         {
-                using base = std::formatter<std::basic_string_view<CharT>, CharT>;
-
                 constexpr auto N = xstd::to_chars_max_size<S>;
                 auto widened = std::basic_string<CharT>{};
                 auto buffer = std::array<char, N>{};
@@ -110,7 +108,7 @@ struct std::formatter<xstd::div_t<S>, CharT> : std::formatter<std::basic_string_
                 append(d.rem);
                 widened.push_back(static_cast<CharT>(')'));
 
-                return base::format(widened, ctx);
+                return std::formatter<std::basic_string_view<CharT>, CharT>::format(widened, ctx);
         }
 };
 
@@ -140,11 +138,9 @@ struct std::formatter<xstd::div_t<S>, CharT> : std::formatter<std::tuple<S const
         [[nodiscard]] XSTD_CONSTEXPR_FORMAT auto format(xstd::div_t<S> const& d, auto& ctx) const
                 -> decltype(ctx.out())
         {
-                using base = std::formatter<std::tuple<S const&, S const&>, CharT>;
-
                 // tie yields exactly tuple<S const&, S const&>, the base's own
                 // type, so nothing is copied on the way in.
-                return base::format(std::tie(d.quot, d.rem), ctx);
+                return std::formatter<std::tuple<S const&, S const&>, CharT>::format(std::tie(d.quot, d.rem), ctx);
         }
 };
 
