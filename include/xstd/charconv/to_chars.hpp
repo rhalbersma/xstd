@@ -85,7 +85,10 @@ template<integral_like T>
                 }
         }
 
-        auto negative = false;
+        // maybe_unused because every read of it below is in an if constexpr
+        // branch an unsigned instantiation discards, leaving the variable set
+        // and never used there.
+        [[maybe_unused]] auto negative = false;
         if constexpr (is_signed_like_v<T>) {
                 negative = value < T{0};
                 count += negative ? std::size_t{1} : std::size_t{0};
@@ -97,16 +100,23 @@ template<integral_like T>
 
         auto* out = first + count;
         for (auto rest = value;; rest = static_cast<T>(rest / radix)) {
-                auto const digit = static_cast<int>(rest % radix);
-                *--out = to_chars_digits[static_cast<std::size_t>(negative ? -digit : digit)];
+                auto digit = static_cast<int>(rest % radix);
+                // Both sign tests are under if constexpr rather than a plain
+                // if: an unsigned T can never be negative, so a runtime test
+                // would emit a line and a branch that its instantiation cannot
+                // reach - and the coverage gate counts both per instantiation.
+                if constexpr (is_signed_like_v<T>) {
+                        // The remainder of a negative value is negative, and
+                        // the sign is written once, below.
+                        if (negative) {
+                                digit = -digit;
+                        }
+                }
+                *--out = to_chars_digits[static_cast<std::size_t>(digit)];
                 if (rest / radix == T{0}) {
                         break;
                 }
         }
-        // Under if constexpr rather than a plain if: an unsigned T can never
-        // be negative, so a runtime test would emit a line and a branch that
-        // its instantiation cannot reach - and the coverage gate counts both
-        // per instantiation.
         if constexpr (is_signed_like_v<T>) {
                 if (negative) {
                         *--out = '-';
