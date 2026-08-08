@@ -43,46 +43,40 @@ concept integer_class_type =
                 { not a } -> std::same_as<bool>;
         } and
         requires (I a, I const b) {
-                { a += b } -> std::same_as<I&>;
-                { a -= b } -> std::same_as<I&>;
                 { a *= b } -> std::same_as<I&>;
                 { a /= b } -> std::same_as<I&>;
                 { a %= b } -> std::same_as<I&>;
+                { a += b } -> std::same_as<I&>;
+                { a -= b } -> std::same_as<I&>;
                 { a &= b } -> std::same_as<I&>;
-                { a |= b } -> std::same_as<I&>;
                 { a ^= b } -> std::same_as<I&>;
+                { a |= b } -> std::same_as<I&>;
         } and
         requires (I a, std::size_t const n) {
                 { a <<= n } -> std::same_as<I&>;
                 { a >>= n } -> std::same_as<I&>;
         } and
         requires (I const a, I const b) {
-                { static_cast<I>(a + b) } -> std::same_as<I>;
-                { static_cast<I>(a - b) } -> std::same_as<I>;
                 { static_cast<I>(a * b) } -> std::same_as<I>;
                 { static_cast<I>(a / b) } -> std::same_as<I>;
                 { static_cast<I>(a % b) } -> std::same_as<I>;
+                { static_cast<I>(a + b) } -> std::same_as<I>;
+                { static_cast<I>(a - b) } -> std::same_as<I>;
                 { static_cast<I>(a & b) } -> std::same_as<I>;
-                { static_cast<I>(a | b) } -> std::same_as<I>;
                 { static_cast<I>(a ^ b) } -> std::same_as<I>;
+                { static_cast<I>(a | b) } -> std::same_as<I>;
         } and
         requires (I const a, std::size_t const n) {
                 { static_cast<I>(a << n) } -> std::same_as<I>;
                 { static_cast<I>(a >> n) } -> std::same_as<I>;
         } and
-        requires (I const a, I const b) {
-                // /7.6 pins all seven, where regular and three_way_comparable
-                // below ask only boolean-testable results of the six.
-                { a == b } -> std::same_as<bool>;
-                { a != b } -> std::same_as<bool>;
-                { a < b } -> std::same_as<bool>;
-                { a > b } -> std::same_as<bool>;
-                { a <= b } -> std::same_as<bool>;
-                { a >= b } -> std::same_as<bool>;
-                { a <=> b } -> std::same_as<std::strong_ordering>;
+        // /8, contextually convertible to bool, which is also what gives a
+        // type the && and || that /7.6 asks of every binary operator.
+        requires (I const a) {
+                { static_cast<bool>(a) } -> std::same_as<bool>;
         } and
-        // Finally come regularity and ordering, value-initialization, and
-        // numeric_limits.
+        // /9's two concepts, which carry the comparisons: boolean-testable
+        // results rather than /7.6's bool, and as good as bool at every use.
         std::regular<I> and
         std::three_way_comparable<I, std::strong_ordering> and
         requires {

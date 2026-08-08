@@ -10,6 +10,7 @@
 #include <xstd/type_traits/make_signed_like.hpp>   // make_signed_like
 #include <xstd/type_traits/make_unsigned_like.hpp> // make_unsigned_like
 #include <compare>                                 // strong_ordering
+#include <concepts>                                // integral
 #include <cstddef>                                 // size_t
 #include <limits>                                  // numeric_limits
 #include <type_traits>                             // conditional_t, type_identity
@@ -52,6 +53,14 @@ class unannotated_type
         [[nodiscard]] constexpr auto value() const -> storage
         {
                 return m_value;
+        }
+
+        // /6, explicitly convertible to any integer-like type, which at J =
+        // bool is also /8's "as if by bool(E != I(0))".
+        template<std::integral J>
+        [[nodiscard]] explicit constexpr operator J() const
+        {
+                return static_cast<J>(m_value);
         }
 
         constexpr auto operator++() -> self&
