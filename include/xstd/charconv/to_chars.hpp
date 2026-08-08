@@ -90,7 +90,15 @@ template<integral_like I>
         // declaring an array, which this is not.
         static constexpr auto* digits = "0123456789abcdefghijklmnopqrstuvwxyz";
 
+        // static_cast rather than I{0}: [iterator.concept.winc]/6 is what makes
+        // a zero of an integer-class type available at all, and it grants a
+        // conversion - "expressions of integral type are both implicitly and
+        // explicitly convertible to any integer-class type", which does not
+        // exit via an exception. Braces are not a conversion but overload
+        // resolution over constructors, where an initializer_list constructor
+        // would win, and nothing in that subclause rules one out.
         auto const radix = static_cast<I>(base);
+        auto const zero = static_cast<I>(0);
 
         // One decision and the two things that follow from it: whether a sign
         // has to be written, and which way the digit table is read. Both are
@@ -98,25 +106,25 @@ template<integral_like I>
         // direction belongs to the value rather than to the instantiation - but
         // this is the only place either of them consults signedness.
         //
-        // An immediately-invoked lambda because value < I{0} on an unsigned type
-        // is -Wtype-limits, which this library builds with -Werror, and only the
-        // discarded branch of an if constexpr keeps that comparison from being
-        // instantiated at all. The return type is pinned rather than deduced
-        // because an integer-class type's relational operators need only be
-        // boolean-testable: a proxy deduced here would outlive the I{0} it came
-        // from, and would not agree with the other branch's pair either. The
-        // capture is a default rather than naming value, which Clang's
+        // The if constexpr is what makes the conditional inside affordable: it
+        // exists only in the signed instantiation, which reaches both of its
+        // sides, where one written at block scope would be a branch an unsigned
+        // instantiation could only ever take one side of, and the coverage gate
+        // counts branches per instantiation. The comparison itself needs no
+        // shielding - a tautological-comparison warning is suppressed when it
+        // arises from a template instantiation, on both compilers this builds
+        // with, so value < zero at an unsigned I is silent.
+        //
+        // The return type is pinned rather than deduced because an
+        // integer-class type's relational operators need only be
+        // boolean-testable, and a proxy would not agree with the other branch's
+        // pair. The capture is a default rather than naming value, which Clang's
         // -Wunused-lambda-capture - reached through -Weverything, and an error
         // here - would flag in the instantiation that discards the only branch
         // reading it.
-        //
-        // The conditional inside is safe where one at block scope would not be.
-        // It exists only in the signed instantiation, which reaches both of its
-        // sides; an unsigned one would leave it half covered, and the coverage
-        // gate counts branches per instantiation.
         auto const [negative, stride] = [&] -> std::pair<bool, std::ptrdiff_t> {
                 if constexpr (is_signed_like_v<I>) {
-                        auto const is_negative = value < I{0};
+                        auto const is_negative = value < zero;
                         return {is_negative, is_negative ? -1 : 1};
                 } else {
                         return {false, 1};
@@ -126,7 +134,7 @@ template<integral_like I>
         auto count = std::size_t{0};
         for (auto rest = value;; rest = static_cast<I>(rest / radix)) {
                 ++count;
-                if (rest / radix == I{0}) {
+                if (rest / radix == zero) {
                         break;
                 }
         }
@@ -152,7 +160,7 @@ template<integral_like I>
                 // has to assume the index reaches outside the literal.
                 assert(0 <= index and index < base);
                 *--out = digits[index];
-                if (rest / radix == I{0}) {
+                if (rest / radix == zero) {
                         break;
                 }
         }
