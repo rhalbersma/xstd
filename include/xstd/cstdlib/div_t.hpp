@@ -14,7 +14,7 @@ template<signed_integral_like S>
 struct div_t
 {
         S quot, rem;
-        [[nodiscard]] friend constexpr auto operator==(div_t const&, div_t const&) noexcept -> bool = default;
+        [[nodiscard]] friend constexpr auto operator==(div_t const&, div_t const&) -> bool = default;
 };
 
 // Explicit to keep -Wctad-maybe-unsupported quiet.

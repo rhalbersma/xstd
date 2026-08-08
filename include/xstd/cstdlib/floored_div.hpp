@@ -6,6 +6,7 @@
 #ifndef XSTD_CSTDLIB_FLOORED_DIV_HPP
 #define XSTD_CSTDLIB_FLOORED_DIV_HPP
 
+#include <xstd/concepts/exposition_only.hpp>      // nothrow_arithmetic
 #include <xstd/concepts/signed_integral_like.hpp> // signed_integral_like
 #include <xstd/cstdlib/div.hpp>                   // div
 #include <xstd/cstdlib/div_t.hpp>                 // IWYU pragma: export; div_t
@@ -17,7 +18,7 @@ namespace xstd {
 
 // Floored division: the remainder has the denominator's sign.
 template<signed_integral_like S>
-[[nodiscard]] constexpr auto floored_div(S numer, S denom) noexcept
+[[nodiscard]] constexpr auto floored_div(S numer, S denom) noexcept(exposition_only::nothrow_arithmetic<S>)
         -> div_t<S>
 {
         assert(denom != static_cast<S>(0));
