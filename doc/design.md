@@ -140,6 +140,23 @@ specifier is precisely the mangling N3207 was written against.
 `nothrow_arithmetic` is the stand-in, over-approximate in the harmless
 direction, for as long as there is no way to ask.
 
+A function that is `= default` needs no stand-in, and gets neither specifier
+here. Explicitly defaulted on its first declaration, it is implicitly
+`constexpr` if the implicit declaration would be, and its exception
+specification is computed from what it does - so `div_t`'s equality and
+`empty_type`'s default constructor and `<=>` write only `[[nodiscard]]`, the
+one of the three with no implicit form. `= default` is the `noexcept(auto)` the
+six functions cannot have.
+
+Neither is kept for symmetry, because the two fail differently on the day a
+restatement stops agreeing. A `constexpr` that cannot hold is refused where a
+constant expression needs it. A `noexcept` that cannot hold is not refused at
+all:
+[P1286R2](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1286r2.html)
+(C++20) removed the rule that made such a defaulted function deleted, so the
+declared specification simply wins, and an over-broad one buys a
+`std::terminate` in place of a diagnostic.
+
 The 128-bit aliases are spelled `int128` and `uint128`, without the `_t` that
 `<cstdint>`'s exact-width names carry. C reserves typedef names beginning with
 `int` or `uint` and ending in `_t` for future additions to `<stdint.h>`, and
