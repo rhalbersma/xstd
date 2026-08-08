@@ -26,27 +26,27 @@ concept nothrow_arithmetic =
                 { not a } noexcept;
         } and
         requires (T const a, T const b) {
-                { static_cast<T>(a + b) } noexcept;
-                { static_cast<T>(a - b) } noexcept;
                 { static_cast<T>(a * b) } noexcept;
                 { static_cast<T>(a / b) } noexcept;
                 { static_cast<T>(a % b) } noexcept;
+                { static_cast<T>(a + b) } noexcept;
+                { static_cast<T>(a - b) } noexcept;
                 { static_cast<T>(a & b) } noexcept;
-                { static_cast<T>(a | b) } noexcept;
                 { static_cast<T>(a ^ b) } noexcept;
+                { static_cast<T>(a | b) } noexcept;
         } and
         requires (T const a, std::size_t const n) {
                 { static_cast<T>(a << n) } noexcept;
                 { static_cast<T>(a >> n) } noexcept;
         } and
         requires (T const a, T const b) {
-                { a == b } noexcept;
-                { a != b } noexcept;
+                { a <=> b } noexcept;
                 { a < b } noexcept;
                 { a > b } noexcept;
                 { a <= b } noexcept;
                 { a >= b } noexcept;
-                { a <=> b } noexcept;
+                { a == b } noexcept;
+                { a != b } noexcept;
         };
 
 } // namespace xstd

@@ -43,28 +43,28 @@ concept integer_class_type =
                 { not a } -> std::same_as<bool>;
         } and
         requires (I a, I const b) {
-                { a += b } -> std::same_as<I&>;
-                { a -= b } -> std::same_as<I&>;
                 { a *= b } -> std::same_as<I&>;
                 { a /= b } -> std::same_as<I&>;
                 { a %= b } -> std::same_as<I&>;
+                { a += b } -> std::same_as<I&>;
+                { a -= b } -> std::same_as<I&>;
                 { a &= b } -> std::same_as<I&>;
-                { a |= b } -> std::same_as<I&>;
                 { a ^= b } -> std::same_as<I&>;
+                { a |= b } -> std::same_as<I&>;
         } and
         requires (I a, std::size_t const n) {
                 { a <<= n } -> std::same_as<I&>;
                 { a >>= n } -> std::same_as<I&>;
         } and
         requires (I const a, I const b) {
-                { static_cast<I>(a + b) } -> std::same_as<I>;
-                { static_cast<I>(a - b) } -> std::same_as<I>;
                 { static_cast<I>(a * b) } -> std::same_as<I>;
                 { static_cast<I>(a / b) } -> std::same_as<I>;
                 { static_cast<I>(a % b) } -> std::same_as<I>;
+                { static_cast<I>(a + b) } -> std::same_as<I>;
+                { static_cast<I>(a - b) } -> std::same_as<I>;
                 { static_cast<I>(a & b) } -> std::same_as<I>;
-                { static_cast<I>(a | b) } -> std::same_as<I>;
                 { static_cast<I>(a ^ b) } -> std::same_as<I>;
+                { static_cast<I>(a | b) } -> std::same_as<I>;
         } and
         requires (I const a, std::size_t const n) {
                 { static_cast<I>(a << n) } -> std::same_as<I>;
@@ -73,13 +73,13 @@ concept integer_class_type =
         requires (I const a, I const b) {
                 // /7.6 pins all seven, where regular and three_way_comparable
                 // below ask only boolean-testable results of the six.
-                { a == b } -> std::same_as<bool>;
-                { a != b } -> std::same_as<bool>;
+                { a <=> b } -> std::same_as<std::strong_ordering>;
                 { a < b } -> std::same_as<bool>;
                 { a > b } -> std::same_as<bool>;
                 { a <= b } -> std::same_as<bool>;
                 { a >= b } -> std::same_as<bool>;
-                { a <=> b } -> std::same_as<std::strong_ordering>;
+                { a == b } -> std::same_as<bool>;
+                { a != b } -> std::same_as<bool>;
         } and
         // Finally come regularity and ordering, value-initialization, and
         // numeric_limits.
