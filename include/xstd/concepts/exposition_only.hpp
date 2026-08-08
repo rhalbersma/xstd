@@ -16,8 +16,10 @@
 namespace xstd::exposition_only {
 
 // Structural form of the integer-class requirements in [iterator.concept.winc],
-// stated as the subclause states them, for an object of the type;
-// integer_class_type below is the spelling to use.
+// stated as the subclause states them, for an object of the type. I is that
+// object's type: T with the cv-qualification off, bound once in the template
+// header because /11 says "possibly cv-qualified" and none of the requirements
+// below survives a const one.
 //
 // None of these expressions is required to be noexcept, because the subclause
 // never says so: the word does not appear in it. The only thing it says about
@@ -29,8 +31,8 @@ namespace xstd::exposition_only {
 // one, does not use the word once in its header, though its two uint64_t halves
 // have no way to throw. What the annotations are worth is decided where it can
 // be acted on - see the public xstd::nothrow_arithmetic.
-template<class I>
-concept unqualified_integer_class_type =
+template<class T, class I = std::remove_cv_t<T>>
+concept integer_class_type =
         // Unstated by the subclause but entailed by /3, whose width clause no
         // integral type meets against itself; without it int and short get in.
         (not std::integral<I>) and
@@ -102,11 +104,6 @@ concept unqualified_integer_class_type =
         } and
         std::numeric_limits<I>::is_specialized and
         std::numeric_limits<I>::is_integer;
-
-// Cv-transparent, as /11's "possibly cv-qualified" and the category traits both
-// are; the requirements above cannot be asked of a type that is const.
-template<class I>
-concept integer_class_type = unqualified_integer_class_type<std::remove_cv_t<I>>;
 
 } // namespace xstd::exposition_only
 

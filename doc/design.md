@@ -47,8 +47,9 @@ branch only: [iterator.concept.winc] states its requirements for an object of
 the type, and asking them of a `const` type fails at `++a`, at `a += b`, and at
 `std::regular`. Nothing in the subclause wants a difference there - /11 speaks
 of "every (possibly cv-qualified) integer-class type" - so the qualification
-comes off once, in `exposition_only::integer_class_type`, and `int const` and
-`absl::uint128 const` are answered alike.
+comes off once, in a defaulted second template parameter of
+`exposition_only::integer_class_type` that binds the type its body is written
+over, and `int const` and `absl::uint128 const` are answered alike.
 
 Where the same subclause does constrain a result type, the concept asks for
 that type and not merely for something convertible to it. /7.3 says of the
