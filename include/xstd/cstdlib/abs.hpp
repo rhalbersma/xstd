@@ -6,7 +6,7 @@
 #ifndef XSTD_CSTDLIB_ABS_HPP
 #define XSTD_CSTDLIB_ABS_HPP
 
-#include <xstd/concepts/exposition_only.hpp>      // nothrow_arithmetic
+#include <xstd/concepts/nothrow_arithmetic.hpp>   // nothrow_arithmetic
 #include <xstd/concepts/signed_integral_like.hpp> // signed_integral_like
 #include <cassert>                                // assert
 #include <limits>                                 // numeric_limits
@@ -15,7 +15,7 @@ namespace xstd {
 
 // constexpr generalization of abs/labs/llabs/imaxabs.
 template<signed_integral_like S>
-[[nodiscard]] constexpr auto abs(S x) noexcept(exposition_only::nothrow_arithmetic<S>)
+[[nodiscard]] constexpr auto abs(S x) noexcept(nothrow_arithmetic<S>)
         -> S
 {
         auto const zero = static_cast<S>(0);

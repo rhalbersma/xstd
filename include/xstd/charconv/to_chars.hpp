@@ -115,10 +115,9 @@ template<integral_like I>
         // arises from a template instantiation, on both compilers this builds
         // with, so value < zero at an unsigned I is silent.
         //
-        // The return type is pinned rather than deduced because an
-        // integer-class type's relational operators need only be
-        // boolean-testable, and a proxy would not agree with the other branch's
-        // pair. The capture is a default rather than naming value, which Clang's
+        // The return type is pinned rather than deduced because both returns
+        // are braced-init-lists, which deduction has nothing to work from. The
+        // capture is a default rather than naming value, which Clang's
         // -Wunused-lambda-capture - reached through -Weverything, and an error
         // here - would flag in the instantiation that discards the only branch
         // reading it.

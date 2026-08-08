@@ -41,6 +41,26 @@ The related `_like` traits follow the same rule. Built-in integers work without
 customization; a user-defined signed/unsigned pair supplies the opposite
 `make_signed_like` and `make_unsigned_like` specializations.
 
+The widening is cv-transparent on both of its branches, as the standard
+category traits are on the one they have. That takes doing on the integer-class
+branch only: [iterator.concept.winc] states its requirements for an object of
+the type, and asking them of a `const` type fails at `++a`, at `a += b`, and at
+`std::regular`. Nothing in the subclause wants a difference there - /11 speaks
+of "every (possibly cv-qualified) integer-class type" - so the qualification
+comes off once, in `exposition_only::integer_class_type`, and `int const` and
+`absl::uint128 const` are answered alike.
+
+Where the same subclause does constrain a result type, the concept asks for
+that type and not merely for something convertible to it. /7.3 says of the
+unary operators that "if `@x` has type `bool`, so too does `@a`", a sentence
+that exists for `!` alone; /7.6 says the same of the binary operators whose
+result is neither `B(I)` nor `B(I2)`, which is how the six comparisons come to
+be `bool` and `<=>` to be `std::strong_ordering`. Relaxing those to
+`convertible_to<bool>` would admit types the subclause does not describe, so
+all seven are spelled out rather than left to `std::regular` and
+`std::three_way_comparable`, which between them ask no more than
+boolean-testable results of the six.
+
 A template parameter is named for the concept constraining it: `I` under
 `integral_like`, `S` under `signed_integral_like`. The letters carry the
 constraint into the body, where `S{-1}` reads as something the type can hold
@@ -82,7 +102,60 @@ refused. `xstd::to_chars` is unconditional in the other direction - it has no
 
 Which of the two an integer-class type gets is not something the library can
 observe about a type's behavior, only about its declarations, so the predicate
-is named for what it can actually see: `exposition_only::nothrow_arithmetic`.
+is named for what it can actually see: `nothrow_arithmetic`. It is public
+rather than exposition-only because it *is* the exception specification of
+those six functions, and a caller asking whether one of them throws over a type
+of their own is asking exactly this.
+
+Its operations are every requirement `integer_class_type` states over `const`
+operands, and no more. That boundary is not this library's invention:
+`absl::uint128` declares each of them `constexpr` and not one of its mutating
+operators - `++`, `--`, and the twelve compound assignments - so the `const`
+half is what an integer-class type in the field treats as its value surface. It
+is also the only half these functions can reach, each taking its argument by
+value and returning a value. Within that half the coverage is total rather than
+itemized: a list drawn from what the bodies happen to contain has to be revised
+whenever a body changes, and being over-cautious about an operation a function
+never performs costs nothing, where missing one it does perform is a wrong
+`noexcept(true)`.
+
+None of which would be here if the language could deduce it. `noexcept(auto)`
+asks the compiler to take the exception specification from the definition, and
+the argument for it is exactly the shape of the problem above: "use of
+noexcept-specifications as specified in the FCD is extremely cumbersome,
+forcing users to write their functions over again in a mangled form in the
+noexcept-specification"
+([N3207](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2010/n3207.htm),
+Jason Merrill, 2010). It was not adopted, and the idea is still a proposal
+([P3166R0](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p3166r0.html),
+2024); the baseline here is C++23, which has no such thing.
+
+Spelled `noexcept(auto)`, each function would track its own body exactly: no
+over-approximation, no list to revise, and no open question about whether
+`unsigned_abs` should also be asking after the unsigned counterpart it forms
+its result in - it does form a value there, so a deduced specification would
+say so. The manual form, `noexcept(noexcept(e))`, only reaches a function that
+is a single expression, which these are not; repeating their bodies in the
+specifier is precisely the mangling N3207 was written against.
+`nothrow_arithmetic` is the stand-in, over-approximate in the harmless
+direction, for as long as there is no way to ask.
+
+A function that is `= default` needs no stand-in, and gets neither specifier
+here. Explicitly defaulted on its first declaration, it is implicitly
+`constexpr` if the implicit declaration would be, and its exception
+specification is computed from what it does - so `div_t`'s equality and
+`empty_type`'s default constructor and `<=>` write only `[[nodiscard]]`, the
+one of the three with no implicit form. `= default` is the `noexcept(auto)` the
+six functions cannot have.
+
+Neither is kept for symmetry, because the two fail differently on the day a
+restatement stops agreeing. A `constexpr` that cannot hold is refused where a
+constant expression needs it. A `noexcept` that cannot hold is not refused at
+all:
+[P1286R2](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1286r2.html)
+(C++20) removed the rule that made such a defaulted function deleted, so the
+declared specification simply wins, and an over-broad one buys a
+`std::terminate` in place of a diagnostic.
 
 The 128-bit aliases are spelled `int128` and `uint128`, without the `_t` that
 `<cstdint>`'s exact-width names carry. C reserves typedef names beginning with
@@ -116,10 +189,16 @@ The type utilities intentionally remain narrow:
 - `empty_type` and `conditional_data_member_t` support optional
   `[[no_unique_address]]` storage.
 - `to_underlying` preserves an enum wrapped in `std::integral_constant`.
+- `nothrow_arithmetic` answers whether the integer functions' conditional
+  `noexcept` holds for a type.
 
 Concept spellings are provided when the standard library has an analogous
-concept; otherwise the trait is the interface. Detailed constraints belong in
-the headers and tests rather than being duplicated here.
+concept; otherwise the trait is the interface. `nothrow_arithmetic` is the one
+concept with no trait beside it, because it has no standard trait to mirror
+either - it is a constraint on a type's declarations rather than a category it
+belongs to, and it is spelled the way a caller writes it, inside a `noexcept`.
+Detailed constraints belong in the headers and tests rather than being
+duplicated here.
 
 ### `to_underlying`
 

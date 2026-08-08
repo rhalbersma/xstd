@@ -14,7 +14,9 @@ template<signed_integral_like S>
 struct div_t
 {
         S quot, rem;
-        [[nodiscard]] friend constexpr auto operator==(div_t const&, div_t const&) -> bool = default;
+        // constexpr and the exception specification are both implicit for a
+        // defaulted function; [[nodiscard]] is not. See doc/design.md.
+        [[nodiscard]] friend auto operator==(div_t const&, div_t const&) -> bool = default;
 };
 
 // Explicit to keep -Wctad-maybe-unsupported quiet.

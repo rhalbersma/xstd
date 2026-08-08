@@ -40,6 +40,7 @@ target_sources(
         include/xstd/concepts.hpp
         include/xstd/concepts/exposition_only.hpp
         include/xstd/concepts/integral_like.hpp
+        include/xstd/concepts/nothrow_arithmetic.hpp
         include/xstd/concepts/signed_integral_like.hpp
         include/xstd/concepts/specialization_of.hpp
         include/xstd/concepts/unsigned_integral_like.hpp

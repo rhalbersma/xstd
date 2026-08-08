@@ -14,17 +14,21 @@ namespace xstd {
 template<class Tag>
 struct empty_type
 {
-        [[nodiscard]] constexpr empty_type() noexcept = default;
+        // constexpr and the exception specification are both implicit for a
+        // defaulted function; [[nodiscard]] is not. See doc/design.md.
+        [[nodiscard]] empty_type() = default;
 
         // Lets an enclosing class construct this like any alternative member,
         // without allowing the catch-all to hijack copy or move construction.
+        // Written rather than defaulted, so it spells both specifiers itself.
         template<class... Args>
                 requires ((not std::is_same_v<std::remove_cvref_t<Args>, empty_type>) and ...)
         [[nodiscard]] constexpr explicit empty_type(Args&&...) noexcept
         {}
 
-        // Lets an enclosing class default comparisons over this member.
-        [[nodiscard]] friend constexpr auto operator<=>(empty_type, empty_type) noexcept -> std::strong_ordering = default;
+        // Lets an enclosing class default comparisons over this member; the ==
+        // that std::regular wants comes with a defaulted three-way comparison.
+        [[nodiscard]] friend auto operator<=>(empty_type, empty_type) -> std::strong_ordering = default;
 };
 
 } // namespace xstd

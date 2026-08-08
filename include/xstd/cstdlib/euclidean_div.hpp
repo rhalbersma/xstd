@@ -6,7 +6,7 @@
 #ifndef XSTD_CSTDLIB_EUCLIDEAN_DIV_HPP
 #define XSTD_CSTDLIB_EUCLIDEAN_DIV_HPP
 
-#include <xstd/concepts/exposition_only.hpp>      // nothrow_arithmetic
+#include <xstd/concepts/nothrow_arithmetic.hpp>   // nothrow_arithmetic
 #include <xstd/concepts/signed_integral_like.hpp> // signed_integral_like
 #include <xstd/cstdlib/div.hpp>                   // div
 #include <xstd/cstdlib/div_t.hpp>                 // IWYU pragma: export; div_t
@@ -18,7 +18,7 @@ namespace xstd {
 
 // Euclidean division: the remainder is nonnegative.
 template<signed_integral_like S>
-[[nodiscard]] constexpr auto euclidean_div(S numer, S denom) noexcept(exposition_only::nothrow_arithmetic<S>)
+[[nodiscard]] constexpr auto euclidean_div(S numer, S denom) noexcept(nothrow_arithmetic<S>)
         -> div_t<S>
 {
         assert(denom != static_cast<S>(0));
