@@ -11,8 +11,8 @@
 
 namespace xstd {
 
-// Whether an integral-like type can pass a noexcept on, over every
-// integer_class_type requirement on const operands. See doc/design.md.
+// Whether an integral-like type can pass a noexcept on, over every operation
+// [iterator.concept.winc] asks of const operands. See doc/design.md.
 template<class T>
 concept nothrow_arithmetic =
         integral_like<T> and
@@ -20,6 +20,7 @@ concept nothrow_arithmetic =
                 { static_cast<T>(0) } noexcept;
         } and
         requires (T const a) {
+                { static_cast<bool>(a) } noexcept;
                 { static_cast<T>(+a) } noexcept;
                 { static_cast<T>(-a) } noexcept;
                 { static_cast<T>(~a) } noexcept;

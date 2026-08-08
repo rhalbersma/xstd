@@ -70,19 +70,13 @@ concept integer_class_type =
                 { static_cast<I>(a << n) } -> std::same_as<I>;
                 { static_cast<I>(a >> n) } -> std::same_as<I>;
         } and
-        requires (I const a, I const b) {
-                // Not left to /9: /7.6's "any other type" clause has these to
-                // describe or nothing, and it asks more than boolean-testable.
-                { a <=> b } -> std::same_as<std::strong_ordering>;
-                { a < b } -> std::same_as<bool>;
-                { a > b } -> std::same_as<bool>;
-                { a <= b } -> std::same_as<bool>;
-                { a >= b } -> std::same_as<bool>;
-                { a == b } -> std::same_as<bool>;
-                { a != b } -> std::same_as<bool>;
+        // /8, contextually convertible to bool, which is also what gives a
+        // type the && and || that /7.6 asks of every binary operator.
+        requires (I const a) {
+                { static_cast<bool>(a) } -> std::same_as<bool>;
         } and
-        // Finally /9's two concepts - only regular of them still structural -
-        // and /10 and /11.
+        // /9's two concepts, which carry the comparisons: boolean-testable
+        // results rather than /7.6's bool, and as good as bool at every use.
         std::regular<I> and
         std::three_way_comparable<I, std::strong_ordering> and
         requires {

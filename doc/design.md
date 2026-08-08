@@ -51,16 +51,19 @@ comes off once, in a defaulted second template parameter of
 `exposition_only::integer_class_type` that binds the type its body is written
 over, and `int const` and `absl::uint128 const` are answered alike.
 
-Where the same subclause does constrain a result type, the concept asks for
-that type and not merely for something convertible to it. /7.3 says of the
-unary operators that "if `@x` has type `bool`, so too does `@a`", a sentence
-that exists for `!` alone; /7.6 says the same of the binary operators whose
-result is neither `B(I)` nor `B(I2)`, which is how the six comparisons come to
-be `bool` and `<=>` to be `std::strong_ordering`. Relaxing those to
-`convertible_to<bool>` would admit types the subclause does not describe, so
-all seven are spelled out rather than left to `std::regular` and
-`std::three_way_comparable`, which between them ask no more than
-boolean-testable results of the six.
+Where the same subclause constrains a result type the concept asks for that
+type, with one deliberate exception. /7.3 says of the unary operators that "if
+`@x` has type `bool`, so too does `@a`" - a sentence that exists for `!` alone -
+and that is spelled out. /7.6 says the same of the comparisons, and that is
+left to `std::regular` and `std::three_way_comparable`, which ask only that
+their results be boolean-testable. Nothing in this library or in a caller's can
+tell the difference: every use of a comparison is a contextual conversion, and
+boolean-testable is the bar the standard library itself sets everywhere else.
+
+The language draws the line in one place regardless. A rewritten `!=` requires
+its `operator==` to return exactly `bool` ([over.match.oper]), so a type whose
+equality returns a proxy has to write `!=` out; with it written, the concept
+admits the type.
 
 A template parameter is named for the concept constraining it: `I` under
 `integral_like`, `S` under `signed_integral_like`. The letters carry the
