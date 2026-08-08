@@ -8,6 +8,7 @@
 #include <concepts>                 // same_as
 #include <cstdint>                  // int8_t
 #include <tuple>                    // tuple
+#include <utility>                  // declval
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
@@ -21,6 +22,19 @@ BOOST_AUTO_TEST_CASE(DeducedDivT)
         static_assert(std::same_as<decltype(xstd::div_t{1, 2}), xstd::div_t<int>>);
         static_assert(std::same_as<decltype(xstd::div_t{1L, 2L}), xstd::div_t<long>>);
         static_assert(std::same_as<decltype(xstd::div_t{std::int8_t{1}, std::int8_t{2}}), xstd::div_t<std::int8_t>>);
+
+        BOOST_CHECK(true);
+}
+
+// The equality operator carries no exception specification, so that the one it
+// gets is computed rather than restated. What it computes is the element's,
+// which is the property worth pinning: a written specification would have to
+// be kept equal to this by hand, and P1286R2 removed the diagnostic that used
+// to catch it when it was not.
+BOOST_AUTO_TEST_CASE_TEMPLATE(EqualityTracksTheElementType, T, exact_width_types)
+{
+        static_assert(noexcept(std::declval<xstd::div_t<T> const&>() == std::declval<xstd::div_t<T> const&>()) ==
+                      noexcept(std::declval<T const&>() == std::declval<T const&>()));
 
         BOOST_CHECK(true);
 }
