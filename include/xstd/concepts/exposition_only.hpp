@@ -11,7 +11,6 @@
 #include <cstddef>     // size_t
 #include <limits>      // numeric_limits
 #include <type_traits> // remove_cv_t
-#include <utility>     // declval
 
 // Internal concepts used to define xstd's public numeric traits and concepts.
 namespace xstd::exposition_only {
@@ -30,8 +29,9 @@ namespace xstd::exposition_only {
 // which is a different and much smaller set: absl::uint128, to name the obvious
 // one, does not use the word once in its header, though its two uint64_t halves
 // have no way to throw. What the annotations are worth is decided where it can
-// be acted on - the arithmetic surface propagates them, see
-// exposition_only::nothrow_arithmetic.
+// be acted on - the arithmetic surface propagates them, see the public
+// xstd::nothrow_arithmetic, which is these same requirements over const
+// operands with the specifier asked of each.
 template<class I>
 concept unqualified_integer_class_type =
         // The subclause never says an integer-class type is not an integral
@@ -94,7 +94,7 @@ concept unqualified_integer_class_type =
                 { a |= b } -> std::same_as<I&>;
                 { a ^= b } -> std::same_as<I&>;
         } and
-        requires (I a, std::size_t n) {
+        requires (I a, std::size_t const n) {
                 { a <<= n } -> std::same_as<I&>;
                 { a >>= n } -> std::same_as<I&>;
         } and
@@ -108,7 +108,7 @@ concept unqualified_integer_class_type =
                 { static_cast<I>(a | b) } -> std::same_as<I>;
                 { static_cast<I>(a ^ b) } -> std::same_as<I>;
         } and
-        requires (I const a, std::size_t n) {
+        requires (I const a, std::size_t const n) {
                 { static_cast<I>(a << n) } -> std::same_as<I>;
                 { static_cast<I>(a >> n) } -> std::same_as<I>;
         } and
@@ -158,25 +158,6 @@ concept unqualified_integer_class_type =
 // the subclause asks for. Stripped once here rather than in each requirement.
 template<class I>
 concept integer_class_type = unqualified_integer_class_type<std::remove_cv_t<I>>;
-
-// Whether the arithmetic surface can pass a noexcept on. True for every
-// integral type, and for an integer-class type whose author wrote the
-// specifier; false for one that merely happens not to throw, which is not
-// something a declaration can be asked.
-//
-// One predicate for all six functions rather than one apiece: they draw on the
-// same handful of operations, and a function that reports noexcept(false) over
-// an operation it does not itself perform has only been too cautious. Being
-// wrong in the other direction is what matters, and this cannot be.
-template<class T>
-inline constexpr auto nothrow_arithmetic =
-        noexcept(static_cast<T>(0)) and
-        noexcept(static_cast<T>(-std::declval<T const&>())) and
-        noexcept(static_cast<T>(std::declval<T const&>() + std::declval<T const&>())) and
-        noexcept(static_cast<T>(std::declval<T const&>() - std::declval<T const&>())) and
-        noexcept(static_cast<T>(std::declval<T const&>() / std::declval<T const&>())) and
-        noexcept(static_cast<T>(std::declval<T const&>() % std::declval<T const&>())) and
-        noexcept(std::declval<T const&>() < std::declval<T const&>());
 
 } // namespace xstd::exposition_only
 

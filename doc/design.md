@@ -102,7 +102,22 @@ refused. `xstd::to_chars` is unconditional in the other direction - it has no
 
 Which of the two an integer-class type gets is not something the library can
 observe about a type's behavior, only about its declarations, so the predicate
-is named for what it can actually see: `exposition_only::nothrow_arithmetic`.
+is named for what it can actually see: `nothrow_arithmetic`. It is public
+rather than exposition-only because it *is* the exception specification of
+those six functions, and a caller asking whether one of them throws over a type
+of their own is asking exactly this.
+
+Its operations are every requirement `integer_class_type` states over `const`
+operands, and no more. That boundary is not this library's invention:
+`absl::uint128` declares each of them `constexpr` and not one of its mutating
+operators - `++`, `--`, and the twelve compound assignments - so the `const`
+half is what an integer-class type in the field treats as its value surface. It
+is also the only half these functions can reach, each taking its argument by
+value and returning a value. Within that half the coverage is total rather than
+itemized: a list drawn from what the bodies happen to contain has to be revised
+whenever a body changes, and being over-cautious about an operation a function
+never performs costs nothing, where missing one it does perform is a wrong
+`noexcept(true)`.
 
 The 128-bit aliases are spelled `int128` and `uint128`, without the `_t` that
 `<cstdint>`'s exact-width names carry. C reserves typedef names beginning with
@@ -136,10 +151,16 @@ The type utilities intentionally remain narrow:
 - `empty_type` and `conditional_data_member_t` support optional
   `[[no_unique_address]]` storage.
 - `to_underlying` preserves an enum wrapped in `std::integral_constant`.
+- `nothrow_arithmetic` answers whether the integer functions' conditional
+  `noexcept` holds for a type.
 
 Concept spellings are provided when the standard library has an analogous
-concept; otherwise the trait is the interface. Detailed constraints belong in
-the headers and tests rather than being duplicated here.
+concept; otherwise the trait is the interface. `nothrow_arithmetic` is the one
+concept with no trait beside it, because it has no standard trait to mirror
+either - it is a constraint on a type's declarations rather than a category it
+belongs to, and it is spelled the way a caller writes it, inside a `noexcept`.
+Detailed constraints belong in the headers and tests rather than being
+duplicated here.
 
 ### `to_underlying`
 
