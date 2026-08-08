@@ -144,7 +144,14 @@ template<integral_like I>
                 // The stride absorbs the remainder's sign; the value's own sign
                 // is written once, below.
                 auto const digit = static_cast<int>(rest % radix);
-                *--out = digits[stride * digit];
+                auto const index = stride * digit;
+                // A remainder is smaller than the base it came from, and the
+                // stride has just turned it positive, so this indexes the table
+                // and nothing else. Asserted because an integer-class type's
+                // operator% is opaque to the static analyzer, which without it
+                // has to assume the index reaches outside the literal.
+                assert(0 <= index and index < base);
+                *--out = digits[index];
                 if (rest / radix == I{0}) {
                         break;
                 }
