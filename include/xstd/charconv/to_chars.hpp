@@ -11,11 +11,10 @@
 #include <cassert>                             // assert
 #include <charconv>                            // to_chars, to_chars_result
 #include <concepts>                            // same_as
-#include <cstddef>                             // size_t
+#include <cstddef>                             // ptrdiff_t, size_t
 #include <limits>                              // numeric_limits
-#include <string_view>                         // string_view
 #include <system_error>                        // errc
-#include <utility>                             // cmp_less
+#include <utility>                             // cmp_less, pair
 
 namespace xstd {
 
@@ -29,14 +28,6 @@ namespace xstd {
 template<integral_like I>
 inline constexpr auto to_chars_max_size =
         static_cast<std::size_t>(std::numeric_limits<I>::digits) + (is_signed_like_v<I> ? 2 : 0);
-
-namespace detail {
-
-// A string_view rather than a char array: modernize-avoid-c-arrays is
-// enabled, and indexing is all this is for.
-inline constexpr auto to_chars_digits = std::string_view{"0123456789abcdefghijklmnopqrstuvwxyz"};
-
-} // namespace detail
 
 // std::to_chars, widened to every integral-like type: two overloads on one
 // name, rather than one function branching on an if constexpr.
@@ -81,9 +72,10 @@ inline constexpr auto to_chars_digits = std::string_view{"0123456789abcdefghijkl
 //
 // The magnitude is never formed. Negating the minimum value has no
 // representation, and an integer-class type need not offer a wider one to
-// borrow, so the remainder is taken on the negative value and the digit's sign
-// flipped. That also means no make_unsigned_like is needed, which an
-// integer-class type is only required to have if its author supplied one.
+// borrow, so the remainder is taken on the negative value and its sign is
+// absorbed by the direction the digit table is read in. That also means no
+// make_unsigned_like is needed, which an integer-class type is only required to
+// have if its author supplied one.
 template<integral_like I>
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
 [[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10) noexcept
@@ -91,24 +83,65 @@ template<integral_like I>
 {
         assert(2 <= base and base <= 36);
 
+        // A pointer to the literal rather than a string_view: the offset below
+        // is signed, and subscripting a view would mean converting it to the
+        // view's size_type first, which is a widening cast of narrow arithmetic
+        // and a diagnostic of its own. modernize-avoid-c-arrays is about
+        // declaring an array, which this is not.
+        static constexpr auto* digits = "0123456789abcdefghijklmnopqrstuvwxyz";
+
+        // static_cast rather than I{0}: [iterator.concept.winc]/6 is what makes
+        // a zero of an integer-class type available at all, and it grants a
+        // conversion - "expressions of integral type are both implicitly and
+        // explicitly convertible to any integer-class type", which does not
+        // exit via an exception. Braces are not a conversion but overload
+        // resolution over constructors, where an initializer_list constructor
+        // would win, and nothing in that subclause rules one out.
         auto const radix = static_cast<I>(base);
+        auto const zero = static_cast<I>(0);
+
+        // One decision and the two things that follow from it: whether a sign
+        // has to be written, and which way the digit table is read. Both are
+        // runtime values - a signed type converts positive values too, so the
+        // direction belongs to the value rather than to the instantiation - but
+        // this is the only place either of them consults signedness.
+        //
+        // The if constexpr is what makes the conditional inside affordable: it
+        // exists only in the signed instantiation, which reaches both of its
+        // sides, where one written at block scope would be a branch an unsigned
+        // instantiation could only ever take one side of, and the coverage gate
+        // counts branches per instantiation. The comparison itself needs no
+        // shielding - a tautological-comparison warning is suppressed when it
+        // arises from a template instantiation, on both compilers this builds
+        // with, so value < zero at an unsigned I is silent.
+        //
+        // The return type is pinned rather than deduced because an
+        // integer-class type's relational operators need only be
+        // boolean-testable, and a proxy would not agree with the other branch's
+        // pair. The capture is a default rather than naming value, which Clang's
+        // -Wunused-lambda-capture - reached through -Weverything, and an error
+        // here - would flag in the instantiation that discards the only branch
+        // reading it.
+        auto const [negative, stride] = [&] -> std::pair<bool, std::ptrdiff_t> {
+                if constexpr (is_signed_like_v<I>) {
+                        auto const is_negative = value < zero;
+                        return {is_negative, is_negative ? -1 : 1};
+                } else {
+                        return {false, 1};
+                }
+        }();
 
         auto count = std::size_t{0};
         for (auto rest = value;; rest = static_cast<I>(rest / radix)) {
                 ++count;
-                if (rest / radix == I{0}) {
+                if (rest / radix == zero) {
                         break;
                 }
         }
-
-        // maybe_unused because every read of it below is in an if constexpr
-        // branch an unsigned instantiation discards, leaving the variable set
-        // and never used there.
-        [[maybe_unused]] auto negative = false;
-        if constexpr (is_signed_like_v<I>) {
-                negative = value < I{0};
-                count += negative ? std::size_t{1} : std::size_t{0};
-        }
+        // Converted rather than selected with a conditional: this is at block
+        // scope, where a conditional is a branch gcov records per instantiation
+        // and an unsigned one has no way to reach the other side of.
+        count += static_cast<std::size_t>(negative);
 
         if (std::cmp_less(last - first, count)) {
                 return {.ptr = last, .ec = std::errc::value_too_large};
@@ -116,23 +149,24 @@ template<integral_like I>
 
         auto* out = first + count;
         for (auto rest = value;; rest = static_cast<I>(rest / radix)) {
-                auto digit = static_cast<int>(rest % radix);
-                // Both sign tests are under if constexpr rather than a plain
-                // if: an unsigned I can never be negative, so a runtime test
-                // would emit a line and a branch that its instantiation cannot
-                // reach - and the coverage gate counts both per instantiation.
-                if constexpr (is_signed_like_v<I>) {
-                        // The remainder of a negative value is negative, and
-                        // the sign is written once, below.
-                        if (negative) {
-                                digit = -digit;
-                        }
-                }
-                *--out = detail::to_chars_digits[static_cast<std::size_t>(digit)];
-                if (rest / radix == I{0}) {
+                // The stride absorbs the remainder's sign; the value's own sign
+                // is written once, below.
+                auto const digit = static_cast<int>(rest % radix);
+                auto const index = stride * digit;
+                // A remainder is smaller than the base it came from, and the
+                // stride has just turned it positive, so this indexes the table
+                // and nothing else. Asserted because an integer-class type's
+                // operator% is opaque to the static analyzer, which without it
+                // has to assume the index reaches outside the literal.
+                assert(0 <= index and index < base);
+                *--out = digits[index];
+                if (rest / radix == zero) {
                         break;
                 }
         }
+        // The one place the sign still has to be a test rather than an index or
+        // a conversion, and so the one that stays under an if constexpr for the
+        // reason given above.
         if constexpr (is_signed_like_v<I>) {
                 if (negative) {
                         *--out = '-';
