@@ -8,12 +8,9 @@
 #include <xstd/test/constexpr.hpp>                 // XSTD_CONSTEXPR_CHECK
 #include <boost/test/unit_test.hpp>                // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <limits>                                  // numeric_limits
-// A class type that says it is a number but not an integer - the shape a
-// future floating-point-class opening would cover. Only what its
-// std::numeric_limits reports matters, so it needs no members and no
-// operators: the specialization is the whole fixture. Both live out here
-// because an explicit specialization of a standard-library template has to be
-// at global scope, and BOOST_AUTO_TEST_SUITE opens a namespace.
+// A class type that says it is a number but not an integer, where only its
+// std::numeric_limits matters. At global scope, as a specialization must be.
+
 // clang-format off
 struct not_an_integer_class_type {};
 
@@ -24,13 +21,8 @@ struct std::numeric_limits<not_an_integer_class_type> : std::numeric_limits<doub
 
 BOOST_AUTO_TEST_SUITE(TypeTraits)
 
-// The half xstd has *not* opened. is_arithmetic_like_v is spelled the way the
-// standard spells is_arithmetic_v - an integral type, or a floating-point one
-// - with only the integral half replaced by an open one, so a class type that
-// behaves like a floating-point number is not arithmetic-like today. It is the
-// obvious next thing to open, and the shape of the trait is what leaves room
-// for it: a second exposition-only concept, a second disjunct, nothing else
-// moved.
+// The half xstd has not opened: only the integral disjunct of is_arithmetic_v
+// is widened, and opening the other would be a second exposition-only concept.
 BOOST_AUTO_TEST_CASE(ArithmeticLikeOpensTheIntegralHalfOnly)
 {
         XSTD_CONSTEXPR_CHECK(std::numeric_limits<not_an_integer_class_type>::is_specialized);

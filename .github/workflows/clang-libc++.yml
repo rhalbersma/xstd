@@ -47,13 +47,10 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # See the matching step in clang.yml for why the suite is named
-      # directly instead of letting llvm.sh derive it.
-      # The runner image writes APT::Acquire::Retries, but apt reads this
-      # setting from the Acquire group, so the image's value never takes
-      # effect. Set the key apt actually consults: without it a transient
-      # 5xx from a mirror or PPA fails the install on the first attempt,
-      # which is how one Launchpad brownout reddened three required legs.
+      # See clang.yml for why the suite is named directly, not left to llvm.sh.
+
+      # The runner image writes APT::Acquire::Retries, which apt does not read;
+      # this is the key it consults, so a transient 5xx retries.
       - name: Make apt retry transient download failures
         run: echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/99-retries > /dev/null
 
@@ -80,10 +77,8 @@ jobs:
             libc++-${{ matrix.version }}-dev libc++abi-${{ matrix.version }}-dev
           cmake --version
 
-      # x-gha, vcpkg's built-in GitHub Actions cache backend, was removed
-      # from vcpkg; actions/cache still works, so cache the directory vcpkg
-      # writes its binary packages to. The archives in it are named by
-      # vcpkg's ABI hash, so a stale entry is ignored rather than reused.
+      # vcpkg's own x-gha backend was removed, so cache its binary packages
+      # with actions/cache; the archives are named by ABI hash.
       - name: Restore vcpkg binary cache
         id: vcpkg-cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
@@ -93,8 +88,7 @@ jobs:
           restore-keys: ${{ env.VCPKG_CACHE_KEY }}
 
       # The overlay triplet rebuilds Boost.Test with the same Clang and
-      # libc++ version used for xstd, preventing mixed-standard-library
-      # linkage.
+      # libc++ as xstd, so the two do not mix standard libraries.
       - name: Install Boost.Test
         env:
           VCPKG_CLANG_VERSION: ${{ matrix.version }}
@@ -104,9 +98,8 @@ jobs:
             --triplet x64-linux-libcxx \
             --overlay-triplets "$GITHUB_WORKSPACE/.github/vcpkg/triplets"
 
-      # Save only when the archives changed, keyed on their contents: an
-      # unconditional save would add an entry per run, evicting this repo's
-      # other caches, or warn about a duplicate key on every cache hit.
+      # Keyed on the archives' contents: an unconditional save would add an
+      # entry per run and evict this repo's other caches.
       - name: Save vcpkg binary cache
         if: >-
           hashFiles('vcpkg-cache/**') != '' &&

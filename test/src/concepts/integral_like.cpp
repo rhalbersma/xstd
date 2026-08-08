@@ -27,10 +27,8 @@ BOOST_AUTO_TEST_CASE(IntegralLike)
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<scoped>);
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<int*>);
 
-        // the spellings that are answered rather than hard-errored only
-        // because the requirements they would trip over sit inside a concept,
-        // where a conjunction short-circuits. These four pin that behavior in
-        // the public concept a caller actually writes.
+        // answered rather than hard-errored because the requirements they
+        // would trip over sit inside a concept, which short-circuits
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<void>);
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<int&>);
         // NOLINTNEXTLINE(modernize-avoid-c-arrays): a built-in array is the type under test, not a container choice

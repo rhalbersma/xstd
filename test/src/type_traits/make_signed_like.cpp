@@ -11,9 +11,8 @@
 
 BOOST_AUTO_TEST_SUITE(TypeTraits)
 
-// A named concept rather than a bare requires-expression in the test body: a
-// requires-expression whose operand is invalid *and* non-dependent is a hard
-// error on GCC, so the type has to stay a template parameter.
+// A named concept rather than a bare requires-expression: an invalid operand
+// that is also non-dependent is a hard error on GCC.
 template<class T>
 concept has_make_signed_like = requires { typename xstd::make_signed_like_t<T>; };
 

@@ -17,23 +17,8 @@
 
 namespace xstd::test {
 
-// A digits loop of this header's own, rather than a call to xstd::to_chars.
-// Two reasons, and either alone would be enough:
-//
-// - This renders a value into a *failure* message. A diagnostic implemented
-//   with the code under test reports nothing trustworthy about the run where
-//   that code is what broke, and to_chars is itself one of the things these
-//   tests check.
-// - Boost.Test odr-uses print_log_value in every translation unit that
-//   compares such a value, so the printer's body - and everything it
-//   instantiates - is emitted into roughly twenty test binaries and called in
-//   none of them, since it only runs when an assertion fails. Those unexecuted
-//   copies are what a coverage gate counting each instantiation separately
-//   sees, and no test can reach them without failing on purpose.
-//
-// Correctness only has to be enough for a diagnostic: decimal, and no
-// pretense of the standard's interface. The magnitude is still never formed,
-// because negating the minimum value has no representation.
+// Its own digits loop rather than xstd::to_chars: a diagnostic written with the
+// code under test says nothing about the run that code broke.
 template<integral_like I>
 [[nodiscard]] auto to_decimal(I const value)
         -> std::string
@@ -57,13 +42,8 @@ template<integral_like I>
 
 } // namespace xstd::test
 
-// Boost.Test prints a value only when an assertion fails, and it asks for that
-// printing through print_log_value rather than through operator<< directly.
-// Specializing it is what lets xstd report 128-bit values and div_t without
-// providing stream inserters of its own - which for the 128-bit types it could
-// not do anyway. They are either built-ins, whose associated namespace set is
-// empty so an xstd::operator<< is unreachable by ADL, or standard-library
-// types, whose associated namespace is one no program may add to.
+// How Boost.Test asks for a value to be printed, and what lets xstd report
+// 128-bit values without stream inserters it has nowhere legal to put.
 namespace boost::test_tools::tt_detail {
 
 template<>
@@ -86,9 +66,8 @@ struct print_log_value<xstd::uint128>
         }
 };
 
-// Partially specialized rather than routed through std::format, so that a
-// failing BOOST_CHECK_EQUAL on a div_t prints for every element type div_t
-// accepts, not only those the standard library can format.
+// Specialized rather than routed through std::format, so a failing check on a
+// div_t prints for every element type div_t accepts.
 template<xstd::signed_integral_like S>
 struct print_log_value<xstd::div_t<S>>
 {
@@ -101,13 +80,8 @@ struct print_log_value<xstd::div_t<S>>
 
 } // namespace boost::test_tools::tt_detail
 
-// Boost.Test has no STATIC_REQUIRE-style construct, so a check that a
-// constexpr function is actually usable in a constant expression is easy to
-// forget: static_assert and BOOST_CHECK*, written separately, drift apart or
-// get left as runtime-only. These macros expand an expression written once
-// into both a static_assert (constexpr-evaluability) and the matching
-// runtime check (Boost.Test's usual pass/fail reporting), so there is a
-// single source of truth for the checked value.
+// Boost.Test has no STATIC_REQUIRE, so these expand one expression into both a
+// static_assert and the matching runtime check, which cannot then drift apart.
 #define XSTD_CONSTEXPR_CHECK(...) \
         static_assert(__VA_ARGS__); \
         BOOST_CHECK(__VA_ARGS__)

@@ -36,15 +36,8 @@ BOOST_AUTO_TEST_CASE(SpecializationOf)
         XSTD_CONSTEXPR_CHECK(has_as_complex<std::complex<double>>);
         XSTD_CONSTEXPR_CHECK(not has_as_complex<int>);
 
-        // and the constrained template actually runs for a matching argument,
-        // which the two checks above cannot show: a requires-expression's
-        // operand is unevaluated, so a body that is ill-formed on
-        // instantiation would still leave has_as_complex true. double rather
-        // than int as the element type because the MSVC STL deprecates
-        // std::complex's constructor for anything but the floating-point ones
-        // (STL4037) and these tests build with warnings as errors; merely
-        // naming std::complex<int> stays fine, which is all the checks above
-        // do.
+        // and it runs, which an unevaluated requires-expression cannot show.
+        // double rather than int: the MSVC STL deprecates the other constructors
         XSTD_CONSTEXPR_CHECK_EQUAL((as_complex(std::complex<double>{1.0, 2.0})), (std::complex<double>{1.0, 2.0}));
 }
 

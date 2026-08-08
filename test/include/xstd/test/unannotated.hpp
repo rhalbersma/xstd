@@ -14,20 +14,8 @@
 #include <limits>                                  // numeric_limits
 #include <type_traits>                             // conditional_t, type_identity
 
-// An integer-class type that carries no noexcept anywhere. That is what
-// [iterator.concept.winc] permits - the word does not occur in the subclause -
-// and what absl::uint128 actually does: not one occurrence in its header,
-// though it is two uint64_t halves with no way to throw.
-//
-// Boost.Int128 cannot stand in for this. It annotates everything, so a suite
-// that only ever sees Boost.Int128 cannot tell a concept that demands the
-// specifier from one that does not, and the two admit very different sets of
-// types. Nothing here is noexcept and nothing here throws: those are separate
-// questions, and only the first is one a declaration can be asked.
-//
-// Supplied as a signed/unsigned pair, because that is what a user has to supply
-// for a type of their own - the two trait specializations at the bottom are the
-// whole of it, exactly as for Boost.Int128.
+// An integer-class type carrying no noexcept anywhere, as absl::uint128 is and
+// Boost.Int128 is not. A pair, that being what a user supplies for their own.
 namespace xstd::test {
 
 template<bool Signed>
@@ -51,9 +39,8 @@ class unannotated_type
             : m_value(static_cast<storage>(value))
         {}
 
-        // [iterator.concept.winc]/6 grants conversions "between two integer-class
-        // types" as well as to and from integral ones, which is what lets
-        // unsigned_abs reach the counterpart named below.
+        // /6 grants conversions between two integer-class types, which is what
+        // lets unsigned_abs reach the counterpart named below.
         constexpr unannotated_type(unannotated_type<not Signed> other)
             : m_value(static_cast<storage>(other.value()))
         {}
@@ -211,8 +198,7 @@ using unannotated_unsigned = unannotated_type<false>;
 namespace xstd {
 
 // The one thing a library cannot work out for a type it does not know, and the
-// whole of what this type needs to reach the same facilities the built-in
-// widths do - just as for Boost.Int128.
+// whole of what this one needs - just as for Boost.Int128.
 template<>
 struct make_unsigned_like<test::unannotated> : std::type_identity<test::unannotated_unsigned>
 {};
@@ -225,14 +211,8 @@ struct make_signed_like<test::unannotated_unsigned> : std::type_identity<test::u
 
 namespace xstd::test {
 
-// [iterator.concept.winc]/11 wants each member to have the same value as the
-// corresponding member of the hypothetical extended integer type, so the ones
-// naming a value have to name it in this type rather than in the storage.
-// Shared by the two specializations below, which are full rather than one
-// partial specialization on the signedness: clang-tidy's
-// bugprone-std-namespace-modification exempts a specialization of a std
-// template for a program-defined type, but does not extend that to a partial
-// one.
+// /11 wants each member's value in this type rather than in the storage. Two
+// full specializations rather than one partial: clang-tidy exempts only those.
 template<class Self, class Storage>
 class unannotated_limits : public std::numeric_limits<Storage>
 {

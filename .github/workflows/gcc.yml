@@ -51,22 +51,16 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # The runner image writes APT::Acquire::Retries, but apt reads this
-      # setting from the Acquire group, so the image's value never takes
-      # effect. Set the key apt actually consults: without it a transient
-      # 5xx from a mirror or PPA fails the install on the first attempt,
-      # which is how one Launchpad brownout reddened three required legs.
+      # The runner image writes APT::Acquire::Retries, which apt does not read;
+      # this is the key it consults, so a transient 5xx retries.
       - name: Make apt retry transient download failures
         run: echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/99-retries > /dev/null
 
       - name: Install GCC ${{ matrix.version }} (stable)
         if: "!matrix.trunk"
         run: |
-          # add-apt-repository resolves a ppa: shorthand through Launchpad's
-          # web API via launchpadlib, before apt is involved at all, so the
-          # Acquire::Retries setting above does not cover it: that governs
-          # apt's own downloads. A truncated response here (IncompleteRead)
-          # fails the step outright, so retry the call itself.
+          # add-apt-repository resolves a ppa: through Launchpad's web API,
+          # which the Acquire::Retries above does not cover, so retry it here
           for i in 1 2 3; do
             if sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; then break; fi
             if [ "$i" -eq 3 ]; then exit 1; fi
@@ -75,10 +69,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ${{ matrix.cxx }}
 
-      # Installs Jonathan Wakely's binary snapshot of GCC trunk (see
-      # https://jwakely.github.io/pkg-gcc-latest/). Not an official GCC
-      # release, but this leg is required like any other: xstd tracks trunk
-      # deliberately and expects to adapt to it rather than ignore it.
+      # Jonathan Wakely's binary snapshot of GCC trunk
+      # (https://jwakely.github.io/pkg-gcc-latest/), required like any leg.
       - name: Install GCC trunk snapshot
         if: matrix.trunk
         run: |
@@ -106,10 +98,8 @@ jobs:
           ${{ matrix.cxx }} --version
           cmake --version
 
-      # x-gha, vcpkg's built-in GitHub Actions cache backend, was removed
-      # from vcpkg; actions/cache still works, so cache the directory vcpkg
-      # writes its binary packages to. The archives in it are named by
-      # vcpkg's ABI hash, so a stale entry is ignored rather than reused.
+      # vcpkg's own x-gha backend was removed, so cache its binary packages
+      # with actions/cache; the archives are named by ABI hash.
       - name: Restore vcpkg binary cache
         id: vcpkg-cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
@@ -118,14 +108,8 @@ jobs:
           key: ${{ env.VCPKG_CACHE_KEY }}
           restore-keys: ${{ env.VCPKG_CACHE_KEY }}
 
-      # vcpkg is used instead of the distro's boost package so xstd tracks
-      # recent Boost releases regardless of what the OS bundles. The overlay
-      # triplet builds Boost.Test with the GCC under test rather than with
-      # the runner image's default compiler: the trunk snapshot ships its
-      # own, newer libstdc++ (unlike apt-installed compilers, which all
-      # share the system one), and linking a Boost.Test built against the
-      # system libstdc++ breaks Boost.Test's runtime parameter registration
-      # ("Test setup error: Parameter catch_system_errors").
+      # vcpkg rather than the distro's boost, and an overlay triplet so
+      # Boost.Test gets the GCC under test and its own libstdc++.
       - name: Install Boost.Test
         env:
           VCPKG_GCC_VERSION: ${{ matrix.version }}
@@ -135,9 +119,8 @@ jobs:
             --triplet x64-linux-gcc \
             --overlay-triplets "$GITHUB_WORKSPACE/.github/vcpkg/triplets"
 
-      # Save only when the archives changed, keyed on their contents: an
-      # unconditional save would add an entry per run, evicting this repo's
-      # other caches, or warn about a duplicate key on every cache hit.
+      # Keyed on the archives' contents: an unconditional save would add an
+      # entry per run and evict this repo's other caches.
       - name: Save vcpkg binary cache
         if: >-
           hashFiles('vcpkg-cache/**') != '' &&
@@ -168,10 +151,8 @@ jobs:
       - name: Test
         run: ctest --test-dir build --output-on-failure
 
-      # Verify the install rules and that a downstream consumer can locate
-      # the installed package via find_package(xstd CONFIG). Once per
-      # matrix (on the latest stable leg) is enough: the install/consume
-      # path is compiler-independent.
+      # The install rules, and find_package(xstd CONFIG) downstream. Once per
+      # matrix is enough, the path being compiler-independent.
       - name: Install (package smoke test)
         if: matrix.version == 16
         run: cmake --install build --prefix "$GITHUB_WORKSPACE/xstd-prefix"

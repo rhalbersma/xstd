@@ -42,10 +42,8 @@ jobs:
           results_format: sarif
           publish_results: true
 
-      # Publishing results (above) pushes the score to the public dataset
-      # that api.securityscorecards.dev's README badge reads from. Uploading
-      # to code scanning (below) additionally surfaces the same findings in
-      # this repo's own Security tab.
+      # Publishing feeds the README badge's dataset; the upload below also
+      # surfaces the findings in this repo's Security tab.
       - name: Upload SARIF results as an artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:

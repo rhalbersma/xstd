@@ -51,10 +51,8 @@ jobs:
           clang++ --version
           cmake --version
 
-      # x-gha, vcpkg's built-in GitHub Actions cache backend, was removed
-      # from vcpkg; actions/cache still works, so cache the directory vcpkg
-      # writes its binary packages to. The archives in it are named by
-      # vcpkg's ABI hash, so a stale entry is ignored rather than reused.
+      # vcpkg's own x-gha backend was removed, so cache its binary packages
+      # with actions/cache; the archives are named by ABI hash.
       - name: Restore vcpkg binary cache
         id: vcpkg-cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
@@ -63,17 +61,15 @@ jobs:
           key: ${{ env.VCPKG_CACHE_KEY }}
           restore-keys: ${{ env.VCPKG_CACHE_KEY }}
 
-      # GitHub-hosted macOS runners are arm64 since macos-14; vcpkg's
-      # arm64-osx triplet builds Boost.Test with the selected Xcode, so its
-      # libc++ ABI always matches the compiler under test.
+      # arm64-osx builds Boost.Test with the selected Xcode, so its libc++
+      # ABI matches the compiler under test.
       - name: Install Boost.Test
         run: |
           mkdir -p "$VCPKG_DEFAULT_BINARY_CACHE"
           vcpkg install --triplet arm64-osx
 
-      # Save only when the archives changed, keyed on their contents: an
-      # unconditional save would add an entry per run, evicting this repo's
-      # other caches, or warn about a duplicate key on every cache hit.
+      # Keyed on the archives' contents: an unconditional save would add an
+      # entry per run and evict this repo's other caches.
       - name: Save vcpkg binary cache
         if: >-
           hashFiles('vcpkg-cache/**') != '' &&

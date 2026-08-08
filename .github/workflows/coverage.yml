@@ -18,13 +18,8 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  # The Codecov CLI only *queues* an upload: it exits successfully as soon
-  # as the report is handed over, and never learns whether Codecov managed
-  # to process it. A report dropped on Codecov's side therefore leaves main
-  # without coverage while every CI leg stays green, and the branch badge
-  # silently degrades to a grey "unknown" (this happened to 8bc5fee). The
-  # daily run re-uploads main's head so that state self-heals within a day
-  # instead of persisting until the next push.
+  # The Codecov CLI only queues an upload, so a report dropped on their side
+  # greys the badge with every leg green; the daily re-upload self-heals that.
   schedule:
     - cron: '30 3 * * *'
   workflow_dispatch:
@@ -41,11 +36,8 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # The runner image writes APT::Acquire::Retries, but apt reads this
-      # setting from the Acquire group, so the image's value never takes
-      # effect. Set the key apt actually consults: without it a transient
-      # 5xx from a mirror or PPA fails the install on the first attempt,
-      # which is how one Launchpad brownout reddened three required legs.
+      # The runner image writes APT::Acquire::Retries, which apt does not read;
+      # this is the key it consults, so a transient 5xx retries.
       - name: Make apt retry transient download failures
         run: echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/99-retries > /dev/null
 
@@ -71,10 +63,8 @@ jobs:
           gcovr --version
           cmake --version
 
-      # x-gha, vcpkg's built-in GitHub Actions cache backend, was removed
-      # from vcpkg; actions/cache still works, so cache the directory vcpkg
-      # writes its binary packages to. The archives in it are named by
-      # vcpkg's ABI hash, so a stale entry is ignored rather than reused.
+      # vcpkg's own x-gha backend was removed, so cache its binary packages
+      # with actions/cache; the archives are named by ABI hash.
       - name: Restore vcpkg binary cache
         id: vcpkg-cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
@@ -88,9 +78,8 @@ jobs:
           mkdir -p "$VCPKG_DEFAULT_BINARY_CACHE"
           vcpkg install --triplet x64-linux
 
-      # Save only when the archives changed, keyed on their contents: an
-      # unconditional save would add an entry per run, evicting this repo's
-      # other caches, or warn about a duplicate key on every cache hit.
+      # Keyed on the archives' contents: an unconditional save would add an
+      # entry per run and evict this repo's other caches.
       - name: Save vcpkg binary cache
         if: >-
           hashFiles('vcpkg-cache/**') != '' &&
@@ -117,33 +106,8 @@ jobs:
       - name: Test
         run: ctest --test-dir build --output-on-failure
 
-      # The library is small enough that full line coverage of include/ is a
-      # realistic bar; --fail-under-line turns any regression into a red job.
-      # assert(...) lines are excluded: they're contract checks that only
-      # fire on inputs the library documents as UB (e.g. INT_MIN / -1), so
-      # their failure path is intentionally unreachable in a correct,
-      # fully-tested program - chasing 100% including those would mean
-      # exercising undefined behavior on purpose.
-      # "= default;" lines are excluded too: gcov doesn't attribute a hit
-      # counter to compiler-synthesized special member function bodies, so
-      # a defaulted comparison reads as uncovered no matter how often it's
-      # actually exercised.
-      # --exclude-throw-branches drops the branch gcc/gcov synthesizes at
-      # every call that could propagate an exception (std::format,
-      # std::ostringstream, any STL container - virtually all of this
-      # library's formatter/operator<< code): one side of that edge only
-      # fires on e.g. bad_alloc, so it isn't a code path a test can
-      # meaningfully hit. Without it, that noise made up roughly half of all
-      # reported branches; --exclude-unreachable-branches is its usual
-      # companion, stripping branches gcov attaches to lines with no real
-      # branching source (e.g. a closing brace).
-      # --exclude-lines-by-pattern only drops a matching line from the line
-      # metric; gcov's function/branch records for that line are separate
-      # and untouched by it, so the memberwise comparison a defaulted
-      # operator== synthesizes still shows up as an uncovered branch unless
-      # --exclude-branches-by-pattern is given too - with its own, anchored
-      # match (a leading .* is required; unlike --exclude-lines-by-pattern,
-      # this one won't match mid-line).
+      # Full line coverage of include/, less assert(...) and "= default;", and
+      # less the branches gcov synthesizes that no test can take.
       - name: Generate coverage report
         run: >
           gcovr --root .
@@ -172,12 +136,8 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      # Without these, the Codecov CLI's own "gcov" plugin reruns raw gcov
-      # over every .gcno file it finds in build/ and blends that report in
-      # alongside coverage.xml - a second, unfiltered pass that knows
-      # nothing about the exclusions above, so excluded lines (assert(...),
-      # "= default;") count as uncovered again and drag the reported
-      # percentage below the gcovr-computed one.
+      # Without these the CLI's own gcov plugin blends an unfiltered second
+      # pass in alongside coverage.xml, undoing the exclusions above.
       - name: Upload to Codecov
         if: always()
         uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7
@@ -186,11 +146,8 @@ jobs:
           plugins: noop
           disable_search: true
           use_oidc: true
-          # Fail loudly on a rejected or failed upload rather than leaving a
-          # green job with no coverage behind it. This can't catch a report
-          # that is accepted and then dropped during processing - hence the
-          # daily schedule above - but it does cover everything up to the
-          # hand-off.
+          # Fail loudly on a rejected upload rather than leaving a green job
+          # with no coverage; a later drop is what the daily run is for.
           fail_ci_if_error: true
 
       - name: Upload coverage report

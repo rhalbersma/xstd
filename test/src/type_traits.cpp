@@ -13,11 +13,8 @@ BOOST_AUTO_TEST_SUITE(TypeTraits)
 
 enum class color : unsigned { red = 1 };
 
-// An incomplete class type is answered, not hard-errored: the traits being
-// widened cope with one, so these have to as well. It is the sizeof term in
-// xstd::exposition_only::integer_class_type that keeps them total - every
-// question after it, std::regular's std::destructible first, needs a complete
-// type to be well-formed rather than merely false.
+// An incomplete type is answered rather than hard-errored, which the sizeof
+// term in integer_class_type is what buys: everything after it needs complete.
 BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAnswerForIncompleteTypes)
 {
         XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<struct never_defined>);
@@ -26,12 +23,8 @@ BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAnswerForIncompleteTypes)
         XSTD_CONSTEXPR_CHECK(not xstd::is_unsigned_like_v<struct never_defined>);
 }
 
-// The four opened numeric traits. What makes them widenings rather than
-// replacements is that they agree with the standard's on every type the
-// standard's can answer for, so these are checked against std::is_arithmetic_v
-// / std::is_signed_v / std::is_unsigned_v / std::is_integral_v directly rather
-// than against hand-written expectations - a table of expected answers could
-// drift, an equality against the trait being widened cannot.
+// The four opened traits, checked against the standard's directly rather than
+// against expectations: a table can drift, an equality cannot.
 template<class T>
 auto check_agrees_with_std()
         -> void

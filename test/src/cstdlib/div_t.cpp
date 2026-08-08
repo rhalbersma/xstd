@@ -14,9 +14,8 @@ BOOST_AUTO_TEST_SUITE(CStdLib)
 
 using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t>;
 
-// Class template argument deduction: div_t{q, r} still spells the result of
-// a call to div at the argument's own width, the way the four separate
-// div_t/ldiv_t/lldiv_t/imaxdiv_t names used to.
+// div_t{q, r} spells the result of a call to div at the argument's own width,
+// the way div_t/ldiv_t/lldiv_t/imaxdiv_t used to.
 BOOST_AUTO_TEST_CASE(DeducedDivT)
 {
         static_assert(std::same_as<decltype(xstd::div_t{1, 2}), xstd::div_t<int>>);
