@@ -71,8 +71,8 @@ concept integer_class_type =
                 { static_cast<I>(a >> n) } -> std::same_as<I>;
         } and
         requires (I const a, I const b) {
-                // /7.6 pins all seven, which subsumes the three_way_comparable
-                // below outright; what regular adds is semiregular, not this.
+                // Not left to /9: /7.6's "any other type" clause has these to
+                // describe or nothing, and it asks more than boolean-testable.
                 { a <=> b } -> std::same_as<std::strong_ordering>;
                 { a < b } -> std::same_as<bool>;
                 { a > b } -> std::same_as<bool>;
