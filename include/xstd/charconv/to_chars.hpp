@@ -11,9 +11,8 @@
 #include <cassert>                             // assert
 #include <charconv>                            // to_chars, to_chars_result
 #include <concepts>                            // same_as
-#include <cstddef>                             // size_t
+#include <cstddef>                             // ptrdiff_t, size_t
 #include <limits>                              // numeric_limits
-#include <string_view>                         // string_view
 #include <system_error>                        // errc
 #include <utility>                             // cmp_less
 
@@ -74,9 +73,9 @@ inline constexpr auto to_chars_max_size =
 // The magnitude is never formed. Negating the minimum value has no
 // representation, and an integer-class type need not offer a wider one to
 // borrow, so the remainder is taken on the negative value and its sign is
-// absorbed by the digit table's bias. That also means no make_unsigned_like is
-// needed, which an integer-class type is only required to have if its author
-// supplied one.
+// absorbed by the direction the digit table is read in. That also means no
+// make_unsigned_like is needed, which an integer-class type is only required to
+// have if its author supplied one.
 template<integral_like I>
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
 [[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10) noexcept
@@ -84,26 +83,12 @@ template<integral_like I>
 {
         assert(2 <= base and base <= 36);
 
-        // A string_view rather than a char array: modernize-avoid-c-arrays is
-        // enabled, and indexing is all this is for. Biased rather than starting
-        // at '0', so that one lookup serves a remainder of either sign: a
-        // remainder is always in (-base, base) and base is at most 36, so it
-        // reaches from the middle by at most 35 in either direction - every
-        // position of this table and no other. That is what lets the digit loop
-        // carry no test on the sign at all, a runtime one being a branch an
-        // unsigned instantiation could never take, and the coverage gate counts
-        // branches per instantiation.
-        //
-        // A pointer to the middle rather than an index of it, because pointer
-        // arithmetic takes a signed offset: subscripting the view would mean
-        // converting a signed index to its size_type, which is either a
-        // widening cast of narrow arithmetic or an appeal to modular
-        // wraparound, and this is neither. The two assertions are the whole
-        // invariant - odd length, '0' dead centre.
-        static constexpr auto digits = std::string_view{"zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz"};
-        static constexpr auto* digit_zero = digits.data() + (digits.size() / 2);
-        static_assert((digits.size() % 2) == 1);
-        static_assert(*digit_zero == '0');
+        // A pointer to the literal rather than a string_view: the offset below
+        // is signed, and subscripting a view would mean converting it to the
+        // view's size_type first, which is a widening cast of narrow arithmetic
+        // and a diagnostic of its own. modernize-avoid-c-arrays is about
+        // declaring an array, which this is not.
+        static constexpr auto* digits = "0123456789abcdefghijklmnopqrstuvwxyz";
 
         auto const radix = static_cast<I>(base);
 
@@ -141,17 +126,25 @@ template<integral_like I>
         // to reach its other side.
         count += static_cast<std::size_t>(negative);
 
+        // Which way the digit table is read. The remainder of a negative value
+        // is negative, so its digit is the same distance from '0' in the other
+        // direction, and one table of the plain 36 digits serves both signs
+        // without the sign ever being tested: +1, or -1 once there is a sign.
+        // Arithmetic rather than a conditional for the reason just given, and
+        // a ptrdiff_t so the multiplication below happens in the type the
+        // subscript wants, rather than in int and widening into it.
+        auto const stride = std::ptrdiff_t{1} - (2 * static_cast<std::ptrdiff_t>(negative));
+
         if (std::cmp_less(last - first, count)) {
                 return {.ptr = last, .ec = std::errc::value_too_large};
         }
 
         auto* out = first + count;
         for (auto rest = value;; rest = static_cast<I>(rest / radix)) {
-                // The remainder of a negative value is negative, which the
-                // table's bias takes care of; the sign itself is written once,
-                // below.
+                // The stride absorbs the remainder's sign; the value's own sign
+                // is written once, below.
                 auto const digit = static_cast<int>(rest % radix);
-                *--out = digit_zero[digit];
+                *--out = digits[stride * digit];
                 if (rest / radix == I{0}) {
                         break;
                 }
