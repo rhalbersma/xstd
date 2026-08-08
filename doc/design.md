@@ -119,6 +119,27 @@ whenever a body changes, and being over-cautious about an operation a function
 never performs costs nothing, where missing one it does perform is a wrong
 `noexcept(true)`.
 
+None of which would be here if the language could deduce it. `noexcept(auto)`
+asks the compiler to take the exception specification from the definition, and
+the argument for it is exactly the shape of the problem above: "use of
+noexcept-specifications as specified in the FCD is extremely cumbersome,
+forcing users to write their functions over again in a mangled form in the
+noexcept-specification"
+([N3207](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2010/n3207.htm),
+Jason Merrill, 2010). It was not adopted, and the idea is still a proposal
+([P3166R0](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p3166r0.html),
+2024); the baseline here is C++23, which has no such thing.
+
+Spelled `noexcept(auto)`, each function would track its own body exactly: no
+over-approximation, no list to revise, and no open question about whether
+`unsigned_abs` should also be asking after the unsigned counterpart it forms
+its result in - it does form a value there, so a deduced specification would
+say so. The manual form, `noexcept(noexcept(e))`, only reaches a function that
+is a single expression, which these are not; repeating their bodies in the
+specifier is precisely the mangling N3207 was written against.
+`nothrow_arithmetic` is the stand-in, over-approximate in the harmless
+direction, for as long as there is no way to ask.
+
 The 128-bit aliases are spelled `int128` and `uint128`, without the `_t` that
 `<cstdint>`'s exact-width names carry. C reserves typedef names beginning with
 `int` or `uint` and ending in `_t` for future additions to `<stdint.h>`, and

@@ -39,6 +39,11 @@ namespace xstd {
 // is a wrong noexcept(true), and a list drawn from what the bodies happen to
 // contain today has to be revisited every time a body changes. This one does
 // not - `div` alone reaches *, +, -, /, %, == and != through its assertions.
+//
+// A stand-in, in other words, for noexcept(auto), which would take each
+// function's specification from its own definition and leave nothing here to
+// get wrong. That was N3207 in 2010, is P3166 today, and is in no standard
+// yet; see doc/design.md.
 template<class T>
 concept nothrow_arithmetic =
         integral_like<T> and
