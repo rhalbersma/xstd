@@ -14,9 +14,8 @@ BOOST_AUTO_TEST_SUITE(TypeTraits)
 
 enum class color : unsigned { red = 1 };
 
-// A named concept rather than a bare requires-expression in the test body: a
-// requires-expression whose operand is invalid *and* non-dependent is a hard
-// error on GCC, so the type has to stay a template parameter.
+// A named concept rather than a bare requires-expression: an invalid operand
+// that is also non-dependent is a hard error on GCC.
 template<class T>
 concept has_make_unsigned_like = requires { typename xstd::make_unsigned_like_t<T>; };
 
@@ -31,10 +30,8 @@ BOOST_AUTO_TEST_CASE(MakeUnsignedLike)
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<int>, std::make_unsigned_t<int>>));
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<unsigned>, unsigned>));
 
-        // and answers "no" where std::make_unsigned is a hard error instead:
-        // that is the whole point of an empty primary template. Each of these
-        // would stop the compile rather than evaluate to false if the trait
-        // inherited from std::make_unsigned unconditionally.
+        // and answers "no" where std::make_unsigned is a hard error, which is
+        // the whole point of an empty primary template
         XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<bool>);
         XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<double>);
         XSTD_CONSTEXPR_CHECK(not has_make_unsigned_like<int*>);

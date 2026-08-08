@@ -50,16 +50,8 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # The preview toolset's payload (~10 min of the ~15-20 min this leg
-      # otherwise takes) is re-downloaded from Microsoft's CDN on every run,
-      # because --nocache (below) tells the VS Installer to skip its local
-      # package-download cache entirely. That cache is keyed by package
-      # version, so it's safe to keep around across jobs as long as we know
-      # when to invalidate it: fetch just the channel manifest's ETag (a few
-      # KB, not the multi-hundred-MB payload) and use it as the cache key.
-      # Unchanged manifest -> cache hit -> setup.exe below finds the payload
-      # already on disk and mostly just registers it; changed manifest ->
-      # cache miss -> one full download, cached for the next run.
+      # --nocache below re-downloads the payload every run; the channel
+      # manifest's ETag invalidates on the same schedule, so it is the key.
       - name: Resolve preview channel manifest version
         if: matrix.preview_channel
         id: preview-channel
@@ -80,22 +72,8 @@ jobs:
           restore-keys: |
             vs-preview-packages-${{ runner.os }}-
 
-      # This leg is required like any other: the windows-2025 runner image
-      # ships VS 2026 Stable preinstalled, and the Preview MSVC toolset is
-      # an optional component
-      # on the Stable channel (see the "MSVC Build Tools Preview: How to Opt
-      # In" C++ team blog posts), so it can be added to the existing
-      # instance with the VS Installer's own "modify" command. Two hard-won
-      # gotchas live here:
-      #   1. setup.exe is a GUI-subsystem executable: PowerShell's call
-      #      operator (&) does NOT wait for it, silently leaving a stale
-      #      $LASTEXITCODE and letting the job kill the install as an orphan
-      #      process at teardown. Start-Process -Wait is required (GitHub's
-      #      own runner-images build scripts do the same, treating exit
-      #      codes 0 and 3010 as success).
-      #   2. CMake's "-T version=" only accepts numeric toolset versions,
-      #      not "Preview", so the installed preview version is discovered
-      #      afterwards and passed to Configure via $GITHUB_ENV.
+      # An optional component on the Stable channel, so "modify" adds it.
+      # setup.exe is GUI-subsystem, so & does not wait for it.
       - name: Install MSVC Preview toolset
         if: matrix.preview_channel
         shell: pwsh
@@ -161,10 +139,8 @@ jobs:
           & "$installPath\VC\Tools\MSVC\$toolset\bin\Hostx64\x64\cl.exe" /Bv
           cmake --version
 
-      # x-gha, vcpkg's built-in GitHub Actions cache backend, was removed
-      # from vcpkg; actions/cache still works, so cache the directory vcpkg
-      # writes its binary packages to. The archives in it are named by
-      # vcpkg's ABI hash, so a stale entry is ignored rather than reused.
+      # vcpkg's own x-gha backend was removed, so cache its binary packages
+      # with actions/cache; the archives are named by ABI hash.
       - name: Restore vcpkg binary cache
         id: vcpkg-cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
@@ -173,19 +149,16 @@ jobs:
           key: ${{ env.VCPKG_CACHE_KEY }}
           restore-keys: ${{ env.VCPKG_CACHE_KEY }}
 
-      # MSVC guarantees binary compatibility across toolset versions since
-      # VS 2015, so vcpkg's Boost (built with the default/stable toolset)
-      # links fine against code compiled with the preview toolset too - no
-      # need to rebuild Boost itself from source for the preview leg.
+      # MSVC has been binary compatible across toolsets since VS 2015, so the
+      # stable-built Boost links against the preview leg too.
       - name: Install Boost.Test
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path $env:VCPKG_DEFAULT_BINARY_CACHE | Out-Null
           vcpkg install --triplet x64-windows
 
-      # Save only when the archives changed, keyed on their contents: an
-      # unconditional save would add an entry per run, evicting this repo's
-      # other caches, or warn about a duplicate key on every cache hit.
+      # Keyed on the archives' contents: an unconditional save would add an
+      # entry per run and evict this repo's other caches.
       - name: Save vcpkg binary cache
         if: >-
           hashFiles('vcpkg-cache/**') != '' &&

@@ -17,9 +17,8 @@ BOOST_AUTO_TEST_SUITE(Concepts)
 
 BOOST_AUTO_TEST_CASE(SpecializationOfAgreesWithItsTrait)
 {
-        // nothing in the concept is specific to the standard library. The
-        // library's own class template is a program-defined primary like any
-        // other, with its tag declared in place
+        // nothing in the concept is specific to the standard library; a
+        // program-defined primary works, with its tag declared in place
         XSTD_CONSTEXPR_CHECK((xstd::specialization_of<xstd::empty_type<struct user_tag>, xstd::empty_type>));
         XSTD_CONSTEXPR_CHECK((not xstd::specialization_of<int, xstd::empty_type>));
 
@@ -30,10 +29,8 @@ BOOST_AUTO_TEST_CASE(SpecializationOfAgreesWithItsTrait)
 
 using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t>;
 
-// The property that makes this a widening of <concepts> rather than a
-// replacement for it: whatever std::integral accepts, integral_like accepts,
-// and with the same signedness. Checked per width rather than once, since the
-// signed and unsigned answers have to line up at each.
+// What makes this a widening rather than a replacement: whatever std::integral
+// accepts, integral_like accepts, with the same signedness, at every width.
 BOOST_AUTO_TEST_CASE_TEMPLATE(IntegralLikeIsASupersetOfIntegral, T, exact_width_types)
 {
         using U = std::make_unsigned_t<T>;
@@ -48,10 +45,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(IntegralLikeIsASupersetOfIntegral, T, exact_width_
         BOOST_CHECK(true); // silence Boost.Test's "test case did not check any assertions"
 }
 
-// The concept agrees with the trait it is spelled over, on the types where
-// that spelling is what keeps the question answerable at all: the trait's own
-// answers, and the reasons they are answers rather than compile errors, are
-// pinned in src/type_traits.cpp, where it is defined.
+// The concept agrees with the trait it is spelled over; why those are answers
+// rather than compile errors is pinned in src/type_traits.cpp.
 BOOST_AUTO_TEST_CASE(IntegralLikeAgreesWithItsTrait)
 {
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<int> == xstd::is_integral_like_v<int>);
@@ -61,13 +56,8 @@ BOOST_AUTO_TEST_CASE(IntegralLikeAgreesWithItsTrait)
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<int[3]> == xstd::is_integral_like_v<int[3]>);
 }
 
-// Overloading on integral_like and signed_integral_like has to partial-order
-// the way std::integral and std::signed_integral do. It only does so because
-// each of the narrower concepts is spelled "integral_like<T> and ...", so its
-// normal form contains integral_like's; a formulation that repeated the
-// requirements, or that gave either of the narrower concepts a flat trait of
-// its own to be spelled over, would make this call ambiguous rather than
-// picking the second overload.
+// Partial-orders the way std::integral and std::signed_integral do, and only
+// because each narrower concept is spelled "integral_like<T> and ...".
 template<xstd::integral_like I>
 [[nodiscard]] constexpr auto which(I) noexcept -> int
 {

@@ -18,23 +18,11 @@
 
 BOOST_AUTO_TEST_SUITE(FormatDivT)
 
-// The formatting tests leave div_t's formatter executed rather than merely
-// instantiated - Boost.Test's printing machinery instantiates it for anything
-// it might have to report, but only runs it when an assertion fails.
-//
-// Which of the formatter's two partial specializations is selected is a
-// property of the standard library and of S, not of xstd: the tuple one where
-// p2286 is implemented and S is formattable, the one over xstd::to_chars
-// otherwise. So none of the expectations below name a path. They are written
-// to hold either way, which is the actual guarantee - the rendering of a div_t
-// does not depend on how the implementation happens to reach it.
+// Which of the formatter's two specializations runs is a property of the
+// standard library and of S, so no expectation below names a path.
 
-// The formatting counterpart of XSTD_CONSTEXPR_CHECK_EQUAL, which cannot be
-// used directly here: std::format is not a constant expression before P3391
-// (constexpr std::format, plenary-approved for C++29), so the static_assert
-// half only exists once a standard library announces the feature. Should the
-// header's XSTD_CONSTEXPR_FORMAT ever silently expand to nothing while the
-// feature is announced, this is what catches it.
+// XSTD_CONSTEXPR_CHECK_EQUAL for formatting, whose static_assert half exists
+// only once a standard library announces P3391.
 #if defined(__cpp_lib_constexpr_format) && __cpp_lib_constexpr_format >= 202511L
 #define XSTD_CONSTEXPR_FORMAT_CHECK_EQUAL(a, b) XSTD_CONSTEXPR_CHECK_EQUAL((a), (b))
 #else
@@ -46,9 +34,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Formatter, T, xstd::test::exact_width_signed_types
         XSTD_CONSTEXPR_FORMAT_CHECK_EQUAL(std::format("{}", xstd::div_t<T>{1, -2}), "(1, -2)");
 }
 
-// On an implementation without a 128-bit formatter this is rendered by xstd
-// rather than by the standard library, so the widest value has to come out
-// right rather than merely compile.
+// Rendered by xstd where the standard library has no 128-bit formatter, so the
+// widest value has to come out right rather than merely compile.
 BOOST_AUTO_TEST_CASE(Boundaries)
 {
         BOOST_CHECK_EQUAL(std::format("{}", xstd::div_t<xstd::int128>{std::numeric_limits<xstd::int128>::min(), 7}),

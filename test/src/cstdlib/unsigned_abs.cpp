@@ -12,11 +12,8 @@
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
-// The div families exercise unsigned_abs transitively through their assert() guards;
-// check the MIN-boundary wraparound directly and at compile time, since that
-// is both what distinguishes unsigned_abs from abs and the one case a widening-based
-// |x| could not have handled - least of all at the widest width, which has
-// nothing to widen to.
+// The MIN-boundary wraparound directly and at compile time: what distinguishes
+// unsigned_abs from abs, and what a widening-based |x| could not have handled.
 BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedAbs, T, xstd::test::exact_width_signed_types)
 {
         using U = xstd::make_unsigned_like_t<T>;

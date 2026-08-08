@@ -18,9 +18,8 @@ struct empty_type
         // defaulted function; [[nodiscard]] is not. See doc/design.md.
         [[nodiscard]] empty_type() = default;
 
-        // Lets an enclosing class construct this like any alternative member,
-        // without allowing the catch-all to hijack copy or move construction.
-        // Written rather than defaulted, so it spells both specifiers itself.
+        // Constructible like any alternative member, without the catch-all
+        // hijacking copy or move. Written, so it spells both specifiers.
         template<class... Args>
                 requires ((not std::is_same_v<std::remove_cvref_t<Args>, empty_type>) and ...)
         [[nodiscard]] constexpr explicit empty_type(Args&&...) noexcept

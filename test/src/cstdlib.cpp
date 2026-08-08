@@ -25,15 +25,12 @@
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
-// The exact-width signed types, which is what one constrained template buys
-// over the <cstdlib>-style abs/labs/llabs/imaxabs naming: int8_t and int16_t
-// have no name in that scheme at all, and the two that do (int32_t, int64_t)
-// no longer need one. The portable 128-bit aliases get their own case below.
+// What one constrained template buys over abs/labs/llabs/imaxabs: int8_t and
+// int16_t have no name in that scheme, and the two that do no longer need one.
 using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t>;
 
-// Named concepts rather than bare requires-expressions in the test bodies:
-// a requires-expression whose operand is invalid *and* non-dependent is a
-// hard error on GCC, so the type has to stay a template parameter.
+// Named concepts rather than bare requires-expressions: an invalid operand
+// that is also non-dependent is a hard error on GCC.
 template<class T>
 concept has_abs = requires (T x) { xstd::abs(x); };
 
@@ -57,9 +54,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Constraints, T, exact_width_types)
         static_assert(std::same_as<decltype(xstd::euclidean_div(T{1}, T{1})), xstd::div_t<T>>);
         static_assert(std::same_as<decltype(xstd::floored_div(T{1}, T{1})), xstd::div_t<T>>);
 
-        // Every type on these lists annotates its operations, so the whole
-        // surface propagates a noexcept here. A type that does not is covered
-        // by UnannotatedIntegerClassType below.
+        // Every type on these lists annotates its operations; one that does
+        // not is covered by UnannotatedIntegerClassType below.
         static_assert(noexcept(xstd::abs(T{})));
         static_assert(noexcept(xstd::unsigned_abs(T{})));
         static_assert(noexcept(xstd::sign(T{})));
@@ -88,15 +84,8 @@ BOOST_AUTO_TEST_CASE(NonSignedIntegralArgumentsAreRejected)
         static_assert(not has_abs<double>);
         static_assert(not has_sign<char*>);
 
-        // unsigned_abs is the only one of the three whose return type is computed by a
-        // trait, so it is the only one where rejecting a non-integral argument
-        // depends on the trait never being instantiated. Clang before 21 does
-        // not implement CWG2369 and substitutes the return type before checking
-        // the constraint, so spelling std::make_unsigned_t<T> in the signature
-        // makes the double and char* cases a hard error rather than a
-        // substitution failure - these two stop compiling instead of being
-        // false. The deduced return type in the header is what keeps them
-        // compiling; see doc/design.md.
+        // Answers rather than hard errors only because the header deduces
+        // unsigned_abs's return type; Clang before 21 has no CWG2369.
         static_assert(not has_unsigned_abs<bool>);
         static_assert(not has_unsigned_abs<double>);
         static_assert(not has_unsigned_abs<char*>);
@@ -138,19 +127,14 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(BoundaryDivisions, T, exact_width_types)
         XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(min, T{+1}) == xstd::div_t<T>{min, 0}));
         XSTD_CONSTEXPR_CHECK((xstd::floored_div(min, T{+1}) == xstd::div_t<T>{min, 0}));
 
-        // denom == MIN is in contract even though |MIN| is not representable
-        // in T: it is exactly why the postconditions are written with unsigned_abs
-        // rather than abs.
+        // In contract though |MIN| is not representable, which is why the
+        // postconditions are written with unsigned_abs rather than abs.
         XSTD_CONSTEXPR_CHECK((xstd::div(T{+1}, min) == xstd::div_t<T>{0, +1}));
         XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(T{+1}, min) == xstd::div_t<T>{0, +1}));
         XSTD_CONSTEXPR_CHECK((xstd::floored_div(T{+1}, min) == xstd::div_t<T>{-1, static_cast<T>(min + 1)}));
 
-        // denom == MIN again, but with a negative remainder, which is what
-        // selects euclidean_div's negative adjustment. Computing that one as
-        // rem + I * denom would form -MIN and overflow; being a constant
-        // expression, this check catches that at compile time as well as
-        // under a sanitizer. Promotion hides it below int, so the wider
-        // instantiations of this case are the ones that matter.
+        // The same with a negative remainder, selecting euclidean_div's
+        // negative adjustment, which spelled as a delta would form -MIN.
         XSTD_CONSTEXPR_CHECK((xstd::div(T{-1}, min) == xstd::div_t<T>{0, -1}));
         XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(T{-1}, min) == xstd::div_t<T>{+1, max}));
         XSTD_CONSTEXPR_CHECK((xstd::floored_div(T{-1}, min) == xstd::div_t<T>{0, -1}));
@@ -164,22 +148,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(BoundaryDivisions, T, exact_width_types)
         XSTD_CONSTEXPR_CHECK((xstd::floored_div(min, max) == xstd::div_t<T>{-2, static_cast<T>(max - 1)}));
 }
 
-// The whole arithmetic surface at one type, exercising both arms of every
-// conditional rather than calling each function once: a single call per type
-// would leave euclidean_div's and floored_div's remainder adjustments
-// half-covered.
-//
-// Constrained to xstd::signed_integral_like rather than std::signed_integral,
-// so the same battery runs unchanged on a type the latter can never accept -
-// which is the point of the widening, and a stronger check than a separate
-// hand-written battery would be, since every expected value here was written
-// for the built-in widths first.
-//
-// Written with XSTD_CONSTEXPR_CHECK rather than XSTD_CONSTEXPR_CHECK_EQUAL
-// throughout: reporting a mismatched value needs a stream inserter, which an
-// integer-class type is under no obligation to have. The exact-width test
-// cases above keep the value-printing form, so a regression at a built-in
-// width still reports both operands.
+// The whole surface at one type, both arms of every conditional, on a type
+// std::signed_integral can never accept.
 template<xstd::signed_integral_like S>
 auto check_signed_integral_like()
         -> void
@@ -203,8 +173,7 @@ auto check_signed_integral_like()
         XSTD_CONSTEXPR_CHECK((xstd::div(S{-8}, S{+3}) == xstd::div_t{S{-2}, S{-2}}));
         XSTD_CONSTEXPR_CHECK((xstd::div(S{-8}, S{-3}) == xstd::div_t{S{+2}, S{-2}}));
 
-        // A nonnegative remainder, then a negative one against each sign of
-        // denom: all three arms of euclidean_div's adjustment, and both of
+        // All three arms of euclidean_div's adjustment and both of
         // floored_div's.
         XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(S{+8}, S{+3}) == xstd::div_t{S{+2}, S{+2}}));
         XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(S{-8}, S{+3}) == xstd::div_t{S{-3}, S{+1}}));
@@ -215,22 +184,14 @@ auto check_signed_integral_like()
         XSTD_CONSTEXPR_CHECK((xstd::floored_div(S{-8}, S{-3}) == xstd::div_t{S{+2}, S{-2}}));
 
         // denom == MIN, whose magnitude S cannot hold: in contract for all
-        // three, and the reason the postconditions are written with unsigned_abs
-        // rather than abs. The euclidean case is the one that would form -MIN
-        // if the adjustment were spelled as a delta.
+        // three, and what the unsigned_abs postconditions are written for.
         XSTD_CONSTEXPR_CHECK((xstd::div(S{-1}, limits::min()) == xstd::div_t{S{0}, S{-1}}));
         XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(S{-1}, limits::min()) == xstd::div_t{S{+1}, limits::max()}));
         XSTD_CONSTEXPR_CHECK((xstd::floored_div(S{-1}, limits::min()) == xstd::div_t{S{0}, S{-1}}));
 }
 
-// int8_t/../int64_t are aliases of the built-in types, but which alias maps
-// to which built-in one is platform-dependent: on LP64 int64_t is long and
-// long long is never instantiated above, on LLP64 it is the other way around.
-// This battery closes that gap for whichever built-in width the exact-width
-// list happens to miss. A plain function template rather than a second
-// BOOST_AUTO_TEST_CASE_TEMPLATE, since the two lists overlap on every
-// platform and duplicate registration of a test case name is an error.
-//
+// Which exact-width alias maps to which built-in is platform-dependent, so one
+// built-in width is never instantiated above; this closes that gap.
 template<std::signed_integral T>
 auto check_built_in_width()
         -> void
@@ -258,11 +219,7 @@ BOOST_AUTO_TEST_CASE(Int128Aliases)
 }
 
 // The same battery over a 128-bit type the library does not know about, which
-// is what the case above cannot show: xstd::int128 names a type xstd ships the
-// trait associations for, so it reaches these facilities along a path no third
-// party's type can take. Boost.Int128 takes the other one - the concepts admit
-// it on its own operations, and the two specializations in the test header are
-// all it needs.
+// xstd::int128 cannot show: it arrives along a path no third party's type has.
 #ifdef XSTD_TEST_HAS_BOOST_INT128
 
 BOOST_AUTO_TEST_CASE(ThirdPartyIntegerClassType)
@@ -305,13 +262,8 @@ BOOST_AUTO_TEST_CASE(StdDiv)
         BOOST_CHECK(std_res == std_div);
 }
 
-// The other half of the extension point, and the one Boost.Int128 cannot show:
-// an integer-class type carrying no noexcept at all. [iterator.concept.winc]
-// never asks for the specifier - the word does not occur in it - so a type
-// without it is as much an integer-class type as one with it, and absl::uint128
-// is the widely used example. Requiring it would have turned such a type away
-// at the concept; conditioning on it instead admits the type and reports what
-// it actually offers.
+// The other half of the extension point, which Boost.Int128 cannot show: an
+// integer-class type with no noexcept at all, as absl::uint128 is.
 BOOST_AUTO_TEST_CASE(UnannotatedIntegerClassType)
 {
         using T = xstd::test::unannotated;
@@ -326,16 +278,13 @@ BOOST_AUTO_TEST_CASE(UnannotatedIntegerClassType)
         static_assert(not noexcept(xstd::euclidean_div(T{1}, T{1})));
         static_assert(not noexcept(xstd::floored_div(T{1}, T{1})));
 
-        // A built-in still is. That is the half a plain removal would have lost:
-        // std::abs and std::div are noexcept as both implementations ship them.
+        // A built-in still is, which a plain removal would have lost.
         static_assert(noexcept(xstd::abs(1)));
         static_assert(noexcept(xstd::sign(1)));
         static_assert(noexcept(xstd::div(1, 1)));
 
-        // The same battery the other types get, rather than a few values of
-        // its own. gcov counts branches per instantiation, so a new element
-        // type brings a fresh copy of every arm inside these functions with it,
-        // and only the full battery reaches them all.
+        // The same battery the other types get: gcov counts branches per
+        // instantiation, so a new element type brings a fresh copy of each.
         check_signed_integral_like<T>();
 }
 

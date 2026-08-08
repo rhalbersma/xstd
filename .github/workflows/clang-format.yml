@@ -27,11 +27,8 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # The runner image writes APT::Acquire::Retries, but apt reads this
-      # setting from the Acquire group, so the image's value never takes
-      # effect. Set the key apt actually consults: without it a transient
-      # 5xx from a mirror or PPA fails the install on the first attempt,
-      # which is how one Launchpad brownout reddened three required legs.
+      # The runner image writes APT::Acquire::Retries, which apt does not read;
+      # this is the key it consults, so a transient 5xx retries.
       - name: Make apt retry transient download failures
         run: echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/99-retries > /dev/null
 
@@ -42,9 +39,8 @@ jobs:
           sudo ./llvm.sh 22
           sudo apt-get install -y clang-format-22
 
-      # --dry-run --Werror turns any reformatting diff into a build failure
-      # instead of silently rewriting files; the exact diff (if any) shows
-      # up inline in this job's log via clang-format's own output.
+      # --dry-run --Werror turns a reformatting diff into a failure rather
+      # than rewriting files; the diff shows up in this job's log.
       - name: Check formatting of all headers and sources
         run: |
           find include test -regex '.*\.\(hpp\|cpp\)' -print0 \

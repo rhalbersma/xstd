@@ -14,9 +14,8 @@ project(
 
 include(GNUInstallDirs)
 
-# Keep every target created by this project in the strictly conforming C++
-# dialect. This is set before any targets are created so it also covers future
-# non-test targets; consumers retain control over their own targets.
+# The strictly conforming dialect, for every target this project creates.
+# Set before any of them; consumers keep control over their own.
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(
@@ -25,8 +24,7 @@ add_library(
 add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 # No target_include_directories: the HEADERS file set below adds its base
-# directory to the build interface, and install(TARGETS ... FILE_SET) adds
-# the install destination to the install interface.
+# directory, and install(TARGETS ... FILE_SET) adds the install destination.
 target_compile_features(
     ${PROJECT_NAME} INTERFACE
     cxx_std_23
@@ -71,10 +69,8 @@ target_sources(
         include/xstd/utility.hpp
 )
 
-# Tests (and their Boost.Test dependency) only exist when xstd itself is
-# being developed. Consumers vendoring this directory via add_subdirectory
-# or FetchContent get just the header-only target, with no BUILD_TESTING
-# workaround required on their side.
+# Tests and their Boost.Test dependency only exist when xstd is being
+# developed; a consumer vendoring this directory gets the header-only target.
 if(PROJECT_IS_TOP_LEVEL)
     include(CTest)
     if(BUILD_TESTING)
@@ -99,8 +95,7 @@ install(
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
-# Package config + version files, so consumers can locate the installed
-# package with find_package(xstd CONFIG). ARCH_INDEPENDENT because a
+# So consumers can find_package(xstd CONFIG). ARCH_INDEPENDENT because a
 # header-only library has no architecture-specific binaries.
 include(CMakePackageConfigHelpers)
 configure_package_config_file(

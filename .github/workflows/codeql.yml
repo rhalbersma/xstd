@@ -36,11 +36,8 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # The runner image writes APT::Acquire::Retries, but apt reads this
-      # setting from the Acquire group, so the image's value never takes
-      # effect. Set the key apt actually consults: without it a transient
-      # 5xx from a mirror or PPA fails the install on the first attempt,
-      # which is how one Launchpad brownout reddened three required legs.
+      # The runner image writes APT::Acquire::Retries, which apt does not read;
+      # this is the key it consults, so a transient 5xx retries.
       - name: Make apt retry transient download failures
         run: echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/99-retries > /dev/null
 
@@ -50,10 +47,8 @@ jobs:
           languages: c-cpp
           queries: security-extended
 
-      # xstd/cstdlib.hpp's div_t formatter needs libstdc++'s <format> (and,
-      # more specifically, its std::formatter<tuple> support), which the
-      # runner image's default GCC 13 doesn't fully provide. Matches
-      # gcc.yml/sanitizers.yml's own fix for the same underlying problem.
+      # The div_t formatter needs libstdc++'s std::formatter<tuple>, which the
+      # image's default GCC 13 does not fully provide.
       - name: Install a <format>-capable GCC
         run: |
           # Retried for the reason given in gcc.yml: the ppa: shorthand goes
@@ -66,10 +61,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y g++-15
 
-      # x-gha, vcpkg's built-in GitHub Actions cache backend, was removed
-      # from vcpkg; actions/cache still works, so cache the directory vcpkg
-      # writes its binary packages to. The archives in it are named by
-      # vcpkg's ABI hash, so a stale entry is ignored rather than reused.
+      # vcpkg's own x-gha backend was removed, so cache its binary packages
+      # with actions/cache; the archives are named by ABI hash.
       - name: Restore vcpkg binary cache
         id: vcpkg-cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
@@ -83,9 +76,8 @@ jobs:
           mkdir -p "$VCPKG_DEFAULT_BINARY_CACHE"
           vcpkg install --triplet x64-linux
 
-      # Save only when the archives changed, keyed on their contents: an
-      # unconditional save would add an entry per run, evicting this repo's
-      # other caches, or warn about a duplicate key on every cache hit.
+      # Keyed on the archives' contents: an unconditional save would add an
+      # entry per run and evict this repo's other caches.
       - name: Save vcpkg binary cache
         if: >-
           hashFiles('vcpkg-cache/**') != '' &&
@@ -96,15 +88,8 @@ jobs:
           path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
           key: ${{ env.VCPKG_CACHE_KEY }}${{ hashFiles('vcpkg-cache/**') }}
 
-      # Debug rather than an unset build type: leaving it unset already
-      # leaves NDEBUG undefined, which is what matters here, but it does so
-      # by accident and is one preset change away from silently becoming
-      # Release. CMake's Release adds -DNDEBUG, which rewrites every
-      # assert(...) to ((void)0) before it reaches the AST - 14 of them
-      # across cstdlib.hpp and utility.hpp - and CodeQL's C/C++ extractor
-      # runs alongside the compiler front-end, so it gains nothing from the
-      # optimization level while losing all of that code. Matches
-      # sanitizers.yml/coverage.yml, and clang-tidy.yml for the same reason.
+      # Debug rather than unset, so NDEBUG stays undefined on purpose: -DNDEBUG
+      # rewrites every assert before the extractor, which runs front-end side.
       - name: Configure
         run: >
           cmake -S . -B build

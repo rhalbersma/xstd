@@ -45,14 +45,8 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # WinLibs (https://winlibs.com) publishes standalone, versioned
-      # GCC + MinGW-w64 + UCRT builds as dated GitHub releases rather than a
-      # rolling package feed, so pinning a stable major version - or finding
-      # whatever snapshot build happens to exist - means querying the
-      # releases API instead of hardcoding a release tag that goes stale the
-      # moment a new -rN respin ships. Mirrors the "resolve latest Boost
-      # version via the GitHub API" approach already used for the GCC/Clang
-      # trunk legs.
+      # WinLibs publishes dated releases rather than a package feed, so pinning
+      # a major version means querying the API; a tag goes stale on the respin.
       - name: Resolve WinLibs release
         id: winlibs
         shell: bash
@@ -69,9 +63,8 @@ jobs:
           if [ -z "$tag" ]; then
             echo "No matching WinLibs release found for '${{ matrix.label }}'" >&2
             echo "found=false" >> "$GITHUB_OUTPUT"
-            # A missing snapshot is expected from time to time (WinLibs only
-            # publishes one between stable release branches); a missing
-            # pinned stable major is a real problem and must fail the job.
+            # A missing snapshot is expected between release branches; a
+            # missing pinned stable major has to fail the job.
             [ "${{ matrix.snapshot }}" = "true" ] && exit 0 || exit 1
           fi
 
@@ -106,11 +99,8 @@ jobs:
           path: C:\winlibs
           key: winlibs-${{ steps.winlibs.outputs.tag }}
 
-      # Extracted into an isolated directory rather than straight to C:/:
-      # the windows-2022 runner already ships its own C:\mingw64 (Git for
-      # Windows' bundled toolchain), and 7-Zip's interactive overwrite
-      # prompt for the colliding files hangs indefinitely with no TTY to
-      # answer it, failing the step with "Break signaled" (exit 255).
+      # Into an isolated directory rather than C:/, which already has a
+      # mingw64: 7-Zip's overwrite prompt hangs with no TTY to answer it.
       - name: Install WinLibs toolchain
         if: steps.winlibs.outputs.found == 'true' && steps.cache-winlibs.outputs.cache-hit != 'true'
         shell: bash
@@ -120,12 +110,8 @@ jobs:
           mv C:/winlibs_extract/mingw64 C:/winlibs
           rm -rf C:/winlibs_extract
 
-      # -Encoding utf8 writes a UTF-8 BOM, which corrupts $GITHUB_PATH's
-      # parsing on Windows (the runner ends up not prepending the entry to
-      # PATH at all) - every test executable then fails at startup with
-      # 0xc0000135 (STATUS_DLL_NOT_FOUND) since WinLibs' own runtime DLLs
-      # (libstdc++-6.dll, libgcc_s_seh-1.dll, libwinpthread-1.dll) are never
-      # found. utf8NoBOM avoids this.
+      # -Encoding utf8 writes a BOM, which stops $GITHUB_PATH being parsed at
+      # all and leaves every executable unable to find the runtime DLLs.
       - name: Add WinLibs to PATH
         if: steps.winlibs.outputs.found == 'true'
         run: echo "C:\winlibs\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8NoBOM -Append
@@ -137,10 +123,8 @@ jobs:
           g++ --version
           cmake --version
 
-      # x-gha, vcpkg's built-in GitHub Actions cache backend, was removed
-      # from vcpkg; actions/cache still works, so cache the directory vcpkg
-      # writes its binary packages to. The archives in it are named by
-      # vcpkg's ABI hash, so a stale entry is ignored rather than reused.
+      # vcpkg's own x-gha backend was removed, so cache its binary packages
+      # with actions/cache; the archives are named by ABI hash.
       - name: Restore vcpkg binary cache
         id: vcpkg-cache
         if: steps.winlibs.outputs.found == 'true'
@@ -150,12 +134,8 @@ jobs:
           key: ${{ env.VCPKG_CACHE_KEY }}
           restore-keys: ${{ env.VCPKG_CACHE_KEY }}
 
-      # vcpkg's x64-mingw-dynamic community triplet builds against whatever
-      # gcc/g++ resolve to on PATH - which is now the pinned WinLibs
-      # toolchain added above - so Boost.Test ends up with the same libstdc++
-      # ABI as the xstd tests it links against. No prebuilt Boost exists for
-      # an arbitrary pinned MinGW version, so this is a from-source build,
-      # same as the GCC/Clang trunk legs.
+      # x64-mingw-dynamic builds against whatever gcc resolves to on PATH,
+      # now the pinned WinLibs toolchain, so the libstdc++ ABI matches.
       - name: Install Boost.Test
         if: steps.winlibs.outputs.found == 'true'
         shell: pwsh
@@ -163,9 +143,8 @@ jobs:
           New-Item -ItemType Directory -Force -Path $env:VCPKG_DEFAULT_BINARY_CACHE | Out-Null
           vcpkg install --triplet x64-mingw-dynamic
 
-      # Save only when the archives changed, keyed on their contents: an
-      # unconditional save would add an entry per run, evicting this repo's
-      # other caches, or warn about a duplicate key on every cache hit.
+      # Keyed on the archives' contents: an unconditional save would add an
+      # entry per run and evict this repo's other caches.
       - name: Save vcpkg binary cache
         if: >-
           steps.winlibs.outputs.found == 'true' &&
@@ -177,25 +156,14 @@ jobs:
           path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
           key: ${{ env.VCPKG_CACHE_KEY }}${{ hashFiles('vcpkg-cache/**') }}
 
-      # Ninja rather than "MinGW Makefiles": the latter needs
-      # mingw32-make.exe specifically, which WinLibs' archive doesn't
-      # bundle (CMAKE_MAKE_PROGRAM ends up unset). Ninja itself isn't
-      # preinstalled on windows-2022 either (dropped from the image in
-      # 20230918.1.0), hence the explicit choco install below.
+      # Ninja rather than "MinGW Makefiles", which wants a mingw32-make.exe
+      # WinLibs does not bundle; not preinstalled either, hence the choco.
       - name: Install Ninja
         if: steps.winlibs.outputs.found == 'true'
         run: choco install ninja -y
 
-      # CMAKE_BUILD_TYPE must be set explicitly: Ninja is a single-config
-      # generator, and vcpkg's toolchain file defaults an unset build type
-      # to Debug. That silently linked the debug Boost.Test import library,
-      # whose DLL lives under vcpkg_installed/.../debug/bin - but the
-      # vcpkg-generated "z-applocal" post-build step that copies runtime
-      # DLLs next to each test executable always points at the release
-      # bin/ dir, never debug/bin/, so the DLL never got deployed and every
-      # Boost-linked executable failed at startup with 0xc0000135
-      # (STATUS_DLL_NOT_FOUND) - even though the header-only executables,
-      # which don't need Boost, ran fine.
+      # Explicit: Ninja is single-config and vcpkg defaults to Debug, whose
+      # Boost.Test DLL the release-only z-applocal step never deploys.
       - name: Configure
         if: steps.winlibs.outputs.found == 'true'
         run: >

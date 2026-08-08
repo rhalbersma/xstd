@@ -62,22 +62,11 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # Select the apt.llvm.org suite directly rather than going through
-      # llvm.sh. That script maps a version to a suite from a hardcoded
-      # table which lags LLVM's annual rollover, so during the switchover it
-      # can neither be asked for the new development version nor find the
-      # previous one in the unversioned suite it resolves to. Naming the
-      # suite ourselves sidesteps the table entirely, and it mirrors how
-      # apt.llvm.org is actually laid out: a versioned suite per release,
-      # and an unversioned one that always means tip of trunk.
-      # Install versioned packages rather than the unversioned
-      # metapackages, which lag the rename the same way and would drag in a
-      # clang-N the development suite no longer carries.
-      # The runner image writes APT::Acquire::Retries, but apt reads this
-      # setting from the Acquire group, so the image's value never takes
-      # effect. Set the key apt actually consults: without it a transient
-      # 5xx from a mirror or PPA fails the install on the first attempt,
-      # which is how one Launchpad brownout reddened three required legs.
+      # The apt.llvm.org suite and versioned packages directly: llvm.sh's
+      # hardcoded table lags LLVM's annual rollover, and so do the metapackages.
+
+      # The runner image writes APT::Acquire::Retries, which apt does not read;
+      # this is the key it consults, so a transient 5xx retries.
       - name: Make apt retry transient download failures
         run: echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/99-retries > /dev/null
 
@@ -94,9 +83,8 @@ jobs:
             lld-${{ matrix.version }} \
             clangd-${{ matrix.version }}
 
-      # xstd/cstdlib.hpp's div_t formatter needs libstdc++'s <format> (and,
-      # more specifically, its std::formatter<tuple> support), so each
-      # Clang version is paired with the matching libstdc++ release.
+      # Each Clang paired with a matching libstdc++, the div_t formatter
+      # needing its std::formatter<tuple>.
       - name: Install libstdc++ ${{ matrix.gcc_version }}
         if: "!matrix.gcc_trunk"
         run: |
@@ -132,10 +120,8 @@ jobs:
           fi
           cmake --version
 
-      # x-gha, vcpkg's built-in GitHub Actions cache backend, was removed
-      # from vcpkg; actions/cache still works, so cache the directory vcpkg
-      # writes its binary packages to. The archives in it are named by
-      # vcpkg's ABI hash, so a stale entry is ignored rather than reused.
+      # vcpkg's own x-gha backend was removed, so cache its binary packages
+      # with actions/cache; the archives are named by ABI hash.
       - name: Restore vcpkg binary cache
         id: vcpkg-cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
@@ -144,14 +130,8 @@ jobs:
           key: ${{ env.VCPKG_CACHE_KEY }}
           restore-keys: ${{ env.VCPKG_CACHE_KEY }}
 
-      # vcpkg is used instead of the distro's boost package so xstd tracks
-      # recent Boost releases regardless of what the OS bundles. The overlay
-      # triplet builds Boost.Test with the same Clang and libstdc++ the
-      # tests use: the development leg pairs Clang with the GCC trunk
-      # snapshot, which ships its own, newer libstdc++, and linking a
-      # Boost.Test built against the system one breaks Boost.Test's runtime
-      # parameter registration ("Test setup error: Parameter
-      # catch_system_errors").
+      # vcpkg rather than the distro's boost, and an overlay triplet so
+      # Boost.Test gets the Clang and libstdc++ the tests use.
       - name: Install Boost.Test
         env:
           VCPKG_CLANG_VERSION: ${{ matrix.version }}
@@ -162,9 +142,8 @@ jobs:
             --triplet x64-linux-clang \
             --overlay-triplets "$GITHUB_WORKSPACE/.github/vcpkg/triplets"
 
-      # Save only when the archives changed, keyed on their contents: an
-      # unconditional save would add an entry per run, evicting this repo's
-      # other caches, or warn about a duplicate key on every cache hit.
+      # Keyed on the archives' contents: an unconditional save would add an
+      # entry per run and evict this repo's other caches.
       - name: Save vcpkg binary cache
         if: >-
           hashFiles('vcpkg-cache/**') != '' &&

@@ -13,12 +13,8 @@ BOOST_AUTO_TEST_SUITE(TypeTraits)
 
 enum class color : unsigned { red = 1 };
 
-// The fourth opened trait, and the one whose standard counterpart answers
-// from a closed list rather than from a property: std::is_integral_v is
-// extended with [iterator.concept.winc]'s integer-class types, opened
-// structurally in <xstd/concepts/exposition_only.hpp>. The cases below check
-// the public trait spelling itself. Agreement with std::is_integral_v wherever
-// it can answer is already covered by the sweep above, which this trait joins.
+// The one opened trait whose standard counterpart answers from a closed list
+// rather than a property; agreement with it is covered by the sweep above.
 BOOST_AUTO_TEST_CASE(IsIntegralLike)
 {
         XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<int>);
@@ -31,8 +27,7 @@ BOOST_AUTO_TEST_CASE(IsIntegralLike)
 }
 
 // Total where the requirements it reaches are ill-formed rather than merely
-// unsatisfied: they sit inside a concept, whose conjunction short-circuits, so
-// each of these is an answer and not a compile error.
+// unsatisfied, the conjunction inside the concept short-circuiting first.
 BOOST_AUTO_TEST_CASE(IsIntegralLikeIsTotal)
 {
         XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<void>);

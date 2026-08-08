@@ -11,11 +11,8 @@
 
 namespace xstd {
 
-// Whether an integral-like type can pass a noexcept on: the exception
-// specification of the six functions in <xstd/cstdlib.hpp>, hence public.
-//
-// Every integer_class_type requirement over const operands - absl::uint128's
-// constexpr half - rather than a list itemized from the bodies. See design.md.
+// Whether an integral-like type can pass a noexcept on, over every
+// integer_class_type requirement on const operands. See doc/design.md.
 template<class T>
 concept nothrow_arithmetic =
         integral_like<T> and

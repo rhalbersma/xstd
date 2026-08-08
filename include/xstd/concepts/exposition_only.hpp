@@ -15,22 +15,8 @@
 // Internal concepts used to define xstd's public numeric traits and concepts.
 namespace xstd::exposition_only {
 
-// Structural form of the integer-class requirements in [iterator.concept.winc],
-// stated as the subclause states them, for an object of the type. I is that
-// object's type: T with the cv-qualification off, bound once in the template
-// header because /11 says "possibly cv-qualified" and none of the requirements
-// below survives a const one.
-//
-// None of these expressions is required to be noexcept, because the subclause
-// never says so: the word does not appear in it. The only thing it says about
-// throwing is /6, that conversions "do not exit via an exception" - a statement
-// about what happens at run time, not about how the conversion is declared, and
-// so not something a requires-expression can check. Requiring the specifier
-// anyway would narrow this to integer-class types whose authors annotated them,
-// which is a different and much smaller set: absl::uint128, to name the obvious
-// one, does not use the word once in its header, though its two uint64_t halves
-// have no way to throw. What the annotations are worth is decided where it can
-// be acted on - see the public xstd::nothrow_arithmetic.
+// The integer-class requirements of [iterator.concept.winc], asked of I: T with
+// the cv-qualification off, per /11. Nothing here is required to be noexcept.
 template<class T, class I = std::remove_cv_t<T>>
 concept integer_class_type =
         // Unstated by the subclause but entailed by /3, whose width clause no

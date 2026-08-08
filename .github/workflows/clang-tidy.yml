@@ -31,11 +31,8 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      # The runner image writes APT::Acquire::Retries, but apt reads this
-      # setting from the Acquire group, so the image's value never takes
-      # effect. Set the key apt actually consults: without it a transient
-      # 5xx from a mirror or PPA fails the install on the first attempt,
-      # which is how one Launchpad brownout reddened three required legs.
+      # The runner image writes APT::Acquire::Retries, which apt does not read;
+      # this is the key it consults, so a transient 5xx retries.
       - name: Make apt retry transient download failures
         run: echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/99-retries > /dev/null
 
@@ -46,13 +43,8 @@ jobs:
           sudo ./llvm.sh 22
           sudo apt-get install -y clang-tidy-22
 
-      # xstd/cstdlib.hpp's div_t formatter needs libstdc++'s <format> (and,
-      # more specifically, its std::formatter<tuple> support), so this
-      # installs a known-good g++ purely for its libstdc++, regardless of
-      # what the runner image's default GCC ships. Clang doesn't bundle its
-      # own standard library for -stdlib=libstdc++; it auto-selects the
-      # newest GCC installation's headers/runtime it can find, so this is
-      # enough. Matches clang.yml's own fix for the same underlying problem.
+      # A known-good g++ purely for its libstdc++, the div_t formatter needing
+      # std::formatter<tuple>; Clang picks up the newest one it finds.
       - name: Install a <format>-capable libstdc++
         run: |
           # Retried for the reason given in gcc.yml: the ppa: shorthand goes
@@ -65,10 +57,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y g++-15
 
-      # x-gha, vcpkg's built-in GitHub Actions cache backend, was removed
-      # from vcpkg; actions/cache still works, so cache the directory vcpkg
-      # writes its binary packages to. The archives in it are named by
-      # vcpkg's ABI hash, so a stale entry is ignored rather than reused.
+      # vcpkg's own x-gha backend was removed, so cache its binary packages
+      # with actions/cache; the archives are named by ABI hash.
       - name: Restore vcpkg binary cache
         id: vcpkg-cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
@@ -84,9 +74,8 @@ jobs:
           mkdir -p "$VCPKG_DEFAULT_BINARY_CACHE"
           vcpkg install --triplet x64-linux
 
-      # Save only when the archives changed, keyed on their contents: an
-      # unconditional save would add an entry per run, evicting this repo's
-      # other caches, or warn about a duplicate key on every cache hit.
+      # Keyed on the archives' contents: an unconditional save would add an
+      # entry per run and evict this repo's other caches.
       - name: Save vcpkg binary cache
         if: >-
           hashFiles('vcpkg-cache/**') != '' &&
@@ -97,14 +86,8 @@ jobs:
           path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
           key: ${{ env.VCPKG_CACHE_KEY }}${{ hashFiles('vcpkg-cache/**') }}
 
-      # Debug rather than an unset build type: leaving it unset already
-      # leaves NDEBUG undefined, which is what matters here, but it does so
-      # by accident and is one preset change away from silently becoming
-      # Release. CMake's Release adds -DNDEBUG, which rewrites every
-      # assert(...) to ((void)0) before it reaches the AST - 14 of them
-      # across cstdlib.hpp and utility.hpp - which would disable
-      # bugprone-assert-side-effect outright and strip the assertions
-      # clang-analyzer-* uses to prune infeasible paths. Matches codeql.yml.
+      # Debug rather than unset, so NDEBUG stays undefined on purpose: -DNDEBUG
+      # rewrites every assert before the AST, which these checks read.
       - name: Configure
         run: >
           cmake -S . -B build
@@ -114,16 +97,8 @@ jobs:
           -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
           -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
 
-      # Analyze the public headers through the generated header
-      # self-sufficiency translation units. The check selection and
-      # per-check suppressions live in .clang-tidy; WarningsAsErrors there
-      # makes any finding fail this job.
-      #
-      # "shell: bash" rather than the default shell, in both this step and
-      # the next: the default is "bash -e {0}", with no -o pipefail, so the
-      # exit status of these pipelines would be tee's rather than
-      # clang-tidy's and no finding could ever redden the job. Naming the
-      # shell explicitly gets "bash --noprofile --norc -eo pipefail {0}".
+      # The public headers, through the generated self-sufficiency units.
+      # "shell: bash" for the -o pipefail, without which tee's status wins.
       - name: Run clang-tidy over the public headers
         shell: bash
         run: |
@@ -131,12 +106,8 @@ jobs:
             "$GITHUB_WORKSPACE/build/test/header_self_sufficiency/.*" \
             2>&1 | tee clang-tidy-report.txt
 
-      # Compiling a file that includes a header proves only transitive
-      # self-sufficiency: it cannot tell whether a standard-library name came
-      # from the header that owns it. Analyze each header as the primary input
-      # as well, so misc-include-cleaner can enforce direct includes and reject
-      # unused ones. Aggregate headers mark their component includes with
-      # IWYU export pragmas, so this workflow needs no brittle exclusion list.
+      # Each header as the primary input too, so misc-include-cleaner can tell
+      # a direct include from a transitive one. Aggregates carry IWYU pragmas.
       - name: Check direct header dependencies
         shell: bash
         run: |
@@ -150,11 +121,8 @@ jobs:
               -x c++-header -std=c++23 -Iinclude
           done 2>&1 | tee -a clang-tidy-report.txt
 
-      # The Boost.Test sources, under test/.clang-tidy, which inherits the
-      # root configuration and drops the three checks that only misfire on
-      # fixtures. Analyzed second rather than in the same pass, so that a
-      # finding names the tree whose rulebook it came from; a red headers
-      # step stops this one, which is the right order to fix them in anyway.
+      # The test sources, under test/.clang-tidy. A separate pass so a finding
+      # names the tree whose rulebook it came from.
       - name: Run clang-tidy over the test sources
         shell: bash
         run: |

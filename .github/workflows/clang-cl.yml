@@ -22,15 +22,8 @@ on:
 
 jobs:
   build:
-    # clang-cl: Clang's MSVC-compatible driver, using the MSVC STL and linker
-    # rather than libc++. Exercises Clang's diagnostics (this repo builds
-    # with -Weverything -Werror under Clang) against the same code MSVC
-    # builds, using whichever LLVM each Visual Studio version bundles (19.1.5
-    # for VS 2022, 20.1.8 for VS 2026). The VS 2026 Preview leg deliberately
-    # retests the stable clang-cl.exe against the preview MSVC STL: although
-    # the driver is shared by both VS channels, their standard-library
-    # headers and implementation libraries are distinct. Every row is
-    # required like every other leg.
+    # Clang's diagnostics against the MSVC STL, on whichever LLVM each Visual
+    # Studio bundles; the Preview row retests the stable driver against it.
     name: Clang-CL VS ${{ matrix.vs }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -87,9 +80,8 @@ jobs:
           restore-keys: |
             vs-preview-packages-${{ runner.os }}-
 
-      # The preview MSVC STL is an optional component on the stable VS 2026
-      # installation. Install it so this leg keeps the bundled clang-cl.exe
-      # but compiles and links against the preview headers and libraries.
+      # An optional component on the stable VS 2026 install, so this leg keeps
+      # the bundled clang-cl.exe against the preview headers and libraries.
       - name: Install MSVC Preview toolset
         if: matrix.preview_channel
         shell: pwsh
@@ -144,10 +136,8 @@ jobs:
           & "$installPath\VC\Tools\MSVC\$toolset\bin\Hostx64\x64\cl.exe" /Bv
           cmake --version
 
-      # x-gha, vcpkg's built-in GitHub Actions cache backend, was removed
-      # from vcpkg; actions/cache still works, so cache the directory vcpkg
-      # writes its binary packages to. The archives in it are named by
-      # vcpkg's ABI hash, so a stale entry is ignored rather than reused.
+      # vcpkg's own x-gha backend was removed, so cache its binary packages
+      # with actions/cache; the archives are named by ABI hash.
       - name: Restore vcpkg binary cache
         id: vcpkg-cache
         uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
@@ -162,9 +152,8 @@ jobs:
           New-Item -ItemType Directory -Force -Path $env:VCPKG_DEFAULT_BINARY_CACHE | Out-Null
           vcpkg install --triplet ${{ matrix.triplet }}
 
-      # Save only when the archives changed, keyed on their contents: an
-      # unconditional save would add an entry per run, evicting this repo's
-      # other caches, or warn about a duplicate key on every cache hit.
+      # Keyed on the archives' contents: an unconditional save would add an
+      # entry per run and evict this repo's other caches.
       - name: Save vcpkg binary cache
         if: >-
           hashFiles('vcpkg-cache/**') != '' &&

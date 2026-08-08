@@ -12,9 +12,8 @@
 #include <tuple>                      // tuple, tuple_cat
 #include <utility>                    // declval
 
-// The lists the exact-width test cases run over. Shared rather than repeated
-// per file: which types those cases cover is one decision, and a type added to
-// the suite should reach every case that a width can be plugged into.
+// The lists the exact-width cases run over, shared so that a type added to the
+// suite reaches every case a width can be plugged into.
 namespace xstd::test {
 
 // The widths xstd names itself, 8 through 128 bits.
@@ -30,9 +29,8 @@ using third_party_signed_types = std::tuple<>;
 using third_party_unsigned_types = std::tuple<>;
 #endif
 
-// Concatenated through declval rather than by splicing the conditional entry
-// into a braced list: the lists above stay readable as lists, and the one
-// conditional stays in the one place above.
+// Concatenated through declval so the lists above stay readable as lists and
+// the one conditional stays in one place.
 using exact_width_signed_types = decltype(std::tuple_cat(std::declval<xstd_signed_types>(), std::declval<third_party_signed_types>()));
 using exact_width_unsigned_types = decltype(std::tuple_cat(std::declval<xstd_unsigned_types>(), std::declval<third_party_unsigned_types>()));
 
