@@ -47,7 +47,7 @@ inline constexpr auto to_chars_digits = std::string_view{"zyxwvutsrqponmlkjihgfe
 // type rather than leaning on modular wraparound to bring a negative digit
 // back into range.
 inline constexpr auto to_chars_digits_zero = 35;
-static_assert(std::cmp_equal(to_chars_digits.size(), 2 * to_chars_digits_zero + 1));
+static_assert(std::cmp_equal(to_chars_digits.size(), (2 * to_chars_digits_zero) + 1));
 
 } // namespace detail
 
