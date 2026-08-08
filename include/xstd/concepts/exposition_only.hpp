@@ -6,16 +6,20 @@
 #ifndef XSTD_CONCEPTS_EXPOSITION_ONLY_HPP
 #define XSTD_CONCEPTS_EXPOSITION_ONLY_HPP
 
-#include <compare>  // strong_ordering
-#include <concepts> // constructible_from, integral, regular, same_as, three_way_comparable
-#include <cstddef>  // size_t
-#include <limits>   // numeric_limits
-#include <utility>  // declval
+#include <compare>     // strong_ordering
+#include <concepts>    // constructible_from, integral, regular, same_as, three_way_comparable
+#include <cstddef>     // size_t
+#include <limits>      // numeric_limits
+#include <type_traits> // remove_cv_t
+#include <utility>     // declval
 
 // Internal concepts used to define xstd's public numeric traits and concepts.
 namespace xstd::exposition_only {
 
-// Structural form of the integer-class requirements in [iterator.concept.winc].
+// Structural form of the integer-class requirements in [iterator.concept.winc],
+// stated as the subclause states them: for an object of the type, and so for a
+// type carrying no cv-qualification. integer_class_type below is the spelling
+// to use.
 //
 // None of these expressions is required to be noexcept, because the subclause
 // never says so: the word does not appear in it. The only thing it says about
@@ -29,7 +33,7 @@ namespace xstd::exposition_only {
 // be acted on - the arithmetic surface propagates them, see
 // exposition_only::nothrow_arithmetic.
 template<class I>
-concept integer_class_type =
+concept unqualified_integer_class_type =
         (not std::integral<I>) and
         requires { sizeof(I); } and
         // [iterator.concept.winc] first specifies conversions between integral
@@ -47,6 +51,15 @@ concept integer_class_type =
                 { static_cast<I>(+a) } -> std::same_as<I>;
                 { static_cast<I>(-a) } -> std::same_as<I>;
                 { static_cast<I>(~a) } -> std::same_as<I>;
+                // bool exactly, not merely convertible to it. /7.3 ranges over
+                // unary-operator, which is `* & + - ! ~`, excludes `&` by name
+                // and leaves `*` with nothing an integer can apply it to - so
+                // these four are its whole scope - and then pins the result in
+                // one sentence: "if @x has type bool, so too does @a; if @x has
+                // type B(I), then @a has type I". The first half of that
+                // sentence is there for `!` alone, the one operator of the four
+                // whose result on an integer is not the integer type again.
+                // convertible_to<bool> would leave it with nothing to say.
                 { not a } -> std::same_as<bool>;
         } and
         requires (I a, I const b) {
@@ -78,6 +91,20 @@ concept integer_class_type =
                 { static_cast<I>(a >> n) } -> std::same_as<I>;
         } and
         requires (I const a, I const b) {
+                // Pinned for the same reason, by the last clause of /7.6:
+                // `a @ b` has whatever type `x @ y` has once that type is
+                // neither B(I) nor B(I2), which for these two is bool and
+                // strong_ordering.
+                //
+                // The regularity and ordering below do not make the first line
+                // redundant: std::equality_comparable asks only that `a == b`
+                // be boolean-testable, and that weaker requirement is all the
+                // four relational operators are held to here, since no line
+                // spells them out. The second line is a restatement -
+                // three_way_comparable<I, strong_ordering> already forces this
+                // exact type through compares-as - kept because transcribing
+                // the subclause is what this concept is for, and /7.6 is where
+                // the subclause says it.
                 { a == b } -> std::same_as<bool>;
                 { a <=> b } -> std::same_as<std::strong_ordering>;
         } and
@@ -90,6 +117,19 @@ concept integer_class_type =
         } and
         std::numeric_limits<I>::is_specialized and
         std::numeric_limits<I>::is_integer;
+
+// The same requirements, asked of a type that may be cv-qualified.
+//
+// /11 speaks of "every (possibly cv-qualified) integer-class type", and the
+// standard's own category traits answer the same for int as for int const, so
+// the widening has to as well. It cannot do that by asking the requirements
+// above of a qualified type directly: they are stated for an object that can be
+// assigned and incremented, and `++a`, `a += b` and std::regular all fail on a
+// const one. Without this, integral_like admitted `int const` and turned away
+// `absl::uint128 const` - a difference between the two branches that nothing in
+// the subclause asks for. Stripped once here rather than in each requirement.
+template<class I>
+concept integer_class_type = unqualified_integer_class_type<std::remove_cv_t<I>>;
 
 // Whether the arithmetic surface can pass a noexcept on. True for every
 // integral type, and for an integer-class type whose author wrote the

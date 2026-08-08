@@ -41,6 +41,26 @@ The related `_like` traits follow the same rule. Built-in integers work without
 customization; a user-defined signed/unsigned pair supplies the opposite
 `make_signed_like` and `make_unsigned_like` specializations.
 
+The widening is cv-transparent on both of its branches, as the standard
+category traits are on the one they have. That takes doing on the integer-class
+branch only: [iterator.concept.winc] states its requirements for an object of
+the type, and asking them of a `const` type fails at `++a`, at `a += b`, and at
+`std::regular`. Nothing in the subclause wants a difference there - /11 speaks
+of "every (possibly cv-qualified) integer-class type" - so the qualification
+comes off once, in `exposition_only::integer_class_type`, and `int const` and
+`absl::uint128 const` are answered alike.
+
+Where the same subclause does constrain a result type, the concept asks for
+that type and not merely for something convertible to it. /7.3 says of the
+unary operators that "if `@x` has type `bool`, so too does `@a`", a sentence
+that exists for `!` alone; /7.6 says the same of the binary operators whose
+result is neither `B(I)` nor `B(I2)`, which is how `==` and `<=>` come to be
+`bool` and `std::strong_ordering`. Relaxing those to `convertible_to<bool>`
+would admit types the subclause does not describe. The relational operators are
+the one place the concept is looser, holding them to nothing more than
+`std::three_way_comparable`'s boolean-testable results; `xstd::to_chars` is
+written to survive that.
+
 A template parameter is named for the concept constraining it: `I` under
 `integral_like`, `S` under `signed_integral_like`. The letters carry the
 constraint into the body, where `S{-1}` reads as something the type can hold

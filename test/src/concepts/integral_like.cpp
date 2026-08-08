@@ -3,9 +3,12 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/concepts/integral_like.hpp> // integral_like
-#include <xstd/test/constexpr.hpp>         // XSTD_CONSTEXPR_CHECK
-#include <boost/test/unit_test.hpp>        // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
+#include <xstd/concepts/integral_like.hpp>          // integral_like
+#include <xstd/concepts/signed_integral_like.hpp>   // signed_integral_like
+#include <xstd/concepts/unsigned_integral_like.hpp> // unsigned_integral_like
+#include <xstd/test/constexpr.hpp>                  // XSTD_CONSTEXPR_CHECK
+#include <xstd/test/unannotated.hpp>                // unannotated, unannotated_unsigned
+#include <boost/test/unit_test.hpp>                 // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 
 BOOST_AUTO_TEST_SUITE(Concepts)
 
@@ -36,6 +39,31 @@ BOOST_AUTO_TEST_CASE(IntegralLike)
         // C++23's arithmetic concepts inherit the category traits' cv
         // transparency, and the widened concepts do the same.
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<int const>);
+}
+
+// On both branches, not just the built-in one. The integer-class branch is
+// where it takes doing: [iterator.concept.winc] states its requirements for an
+// object that can be assigned and incremented, so asking them of a const type
+// fails at ++a, at a += b, and at std::regular. Nothing in the subclause wants
+// that difference - /11 speaks of "every (possibly cv-qualified) integer-class
+// type" - so exposition_only::integer_class_type strips the qualification
+// before asking, and the two branches answer alike.
+BOOST_AUTO_TEST_CASE(IntegralLikeIsCvTransparentOnBothBranches)
+{
+        using T = xstd::test::unannotated;
+
+        XSTD_CONSTEXPR_CHECK(xstd::integral_like<int const> and xstd::integral_like<T const>);
+        XSTD_CONSTEXPR_CHECK(xstd::integral_like<int volatile> and xstd::integral_like<T volatile>);
+        XSTD_CONSTEXPR_CHECK(xstd::integral_like<int const volatile> and xstd::integral_like<T const volatile>);
+
+        // The signedness travels with it, on the same terms.
+        XSTD_CONSTEXPR_CHECK(xstd::signed_integral_like<T const>);
+        XSTD_CONSTEXPR_CHECK(xstd::unsigned_integral_like<xstd::test::unannotated_unsigned const>);
+
+        // Adding a qualifier admits nothing that the unqualified type would
+        // not have been admitted on its own.
+        XSTD_CONSTEXPR_CHECK(not xstd::integral_like<double const>);
+        XSTD_CONSTEXPR_CHECK(not xstd::integral_like<scoped const>);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
