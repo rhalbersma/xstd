@@ -6,13 +6,14 @@
 #ifndef XSTD_CSTDLIB_SIGN_HPP
 #define XSTD_CSTDLIB_SIGN_HPP
 
+#include <xstd/concepts/exposition_only.hpp>      // nothrow_arithmetic
 #include <xstd/concepts/signed_integral_like.hpp> // signed_integral_like
 
 namespace xstd {
 
 // Returns -1, 0, or 1.
 template<signed_integral_like S>
-[[nodiscard]] constexpr auto sign(S x) noexcept
+[[nodiscard]] constexpr auto sign(S x) noexcept(exposition_only::nothrow_arithmetic<S>)
         -> int
 {
         auto const zero = static_cast<S>(0);

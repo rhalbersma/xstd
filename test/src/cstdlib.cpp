@@ -8,6 +8,7 @@
 #include <xstd/concepts.hpp>          // signed_integral_like
 #include <xstd/type_traits.hpp>       // make_unsigned_like_t
 #include <xstd/test/boost_int128.hpp> // XSTD_TEST_HAS_BOOST_INT128
+#include <xstd/test/unannotated.hpp>  // unannotated
 #include <xstd/test/constexpr.hpp>    // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
 #include <boost/test/unit_test.hpp>   // Boost.Test
 #include <algorithm>                  // ranges::transform
@@ -56,7 +57,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Constraints, T, exact_width_types)
         static_assert(std::same_as<decltype(xstd::euclidean_div(T{1}, T{1})), xstd::div_t<T>>);
         static_assert(std::same_as<decltype(xstd::floored_div(T{1}, T{1})), xstd::div_t<T>>);
 
-        // The integer interface and every facility built on it are noexcept.
+        // Every type on these lists annotates its operations, so the whole
+        // surface propagates a noexcept here. A type that does not is covered
+        // by UnannotatedIntegerClassType below.
         static_assert(noexcept(xstd::abs(T{})));
         static_assert(noexcept(xstd::unsigned_abs(T{})));
         static_assert(noexcept(xstd::sign(T{})));
@@ -300,6 +303,40 @@ BOOST_AUTO_TEST_CASE(StdDiv)
         });
 
         BOOST_CHECK(std_res == std_div);
+}
+
+// The other half of the extension point, and the one Boost.Int128 cannot show:
+// an integer-class type carrying no noexcept at all. [iterator.concept.winc]
+// never asks for the specifier - the word does not occur in it - so a type
+// without it is as much an integer-class type as one with it, and absl::uint128
+// is the widely used example. Requiring it would have turned such a type away
+// at the concept; conditioning on it instead admits the type and reports what
+// it actually offers.
+BOOST_AUTO_TEST_CASE(UnannotatedIntegerClassType)
+{
+        using T = xstd::test::unannotated;
+
+        static_assert(xstd::integral_like<T>);
+        static_assert(xstd::signed_integral_like<T>);
+
+        // Nothing about it is noexcept, so nothing built on it pretends to be.
+        static_assert(not noexcept(xstd::abs(T{1})));
+        static_assert(not noexcept(xstd::sign(T{1})));
+        static_assert(not noexcept(xstd::div(T{1}, T{1})));
+        static_assert(not noexcept(xstd::euclidean_div(T{1}, T{1})));
+        static_assert(not noexcept(xstd::floored_div(T{1}, T{1})));
+
+        // A built-in still is. That is the half a plain removal would have lost:
+        // std::abs and std::div are noexcept as both implementations ship them.
+        static_assert(noexcept(xstd::abs(1)));
+        static_assert(noexcept(xstd::sign(1)));
+        static_assert(noexcept(xstd::div(1, 1)));
+
+        // The same battery the other types get, rather than a few values of
+        // its own. gcov counts branches per instantiation, so a new element
+        // type brings a fresh copy of every arm inside these functions with it,
+        // and only the full battery reaches them all.
+        check_signed_integral_like<T>();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

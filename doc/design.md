@@ -58,7 +58,31 @@ same type unless the caller explicitly selects one.
 `abs` has the usual signed-minimum precondition. `unsigned_abs` returns the unsigned
 counterpart and can represent that magnitude. `div`, `euclidean_div`, and
 `floored_div` require a nonzero denominator, and `MIN / -1` remains outside
-their contract. All integer operations are `constexpr` and `noexcept`.
+their contract. All integer operations are `constexpr`. Their `noexcept` is
+conditional, on whether the element type's own operations carry the specifier.
+
+That condition exists because [iterator.concept.winc] does not ask for
+`noexcept` anywhere - the word does not occur in the subclause. The only thing
+it says about throwing is that conversions "do not exit via an exception", a
+statement about run time rather than about how a conversion is declared, and so
+not one a requires-expression can check. An earlier version of the concept
+required the specifier on every operation, which quietly narrowed the extension
+point to integer-class types whose authors had written it. `absl::uint128` is
+the type that shows what that cost: two `uint64_t` halves with no way to throw,
+and not one occurrence of `noexcept` in its header. It was turned away at the
+concept.
+
+Dropping the requirement outright would have gone too far the other way, since
+`std::abs` and `std::div` *are* `noexcept` as both major implementations ship
+them, and xstd should not be weaker than the standard for a built-in type.
+Conditioning keeps both: a built-in or an annotated integer-class type gets the
+specifier, an unannotated one gets an honest `noexcept(false)`, and neither is
+refused. `xstd::to_chars` is unconditional in the other direction - it has no
+`noexcept` at all, because `std::to_chars` has none either.
+
+Which of the two an integer-class type gets is not something the library can
+observe about a type's behavior, only about its declarations, so the predicate
+is named for what it can actually see: `exposition_only::nothrow_arithmetic`.
 
 The 128-bit aliases are spelled `int128` and `uint128`, without the `_t` that
 `<cstdint>`'s exact-width names carry. C reserves typedef names beginning with

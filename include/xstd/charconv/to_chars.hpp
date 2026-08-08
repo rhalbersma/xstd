@@ -78,7 +78,7 @@ inline constexpr auto to_chars_max_size =
 // have if its author supplied one.
 template<integral_like I>
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
-[[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10) noexcept
+[[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10)
         -> std::to_chars_result
 {
         assert(2 <= base and base <= 36);
@@ -206,7 +206,7 @@ template<integral_like I>
                 { std::to_chars(p, p, value, base) } -> std::same_as<std::to_chars_result>;
         }
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
-[[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10) noexcept
+[[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10)
         -> std::to_chars_result
 {
         assert(2 <= base and base <= 36);
