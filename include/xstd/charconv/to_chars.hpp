@@ -15,7 +15,7 @@
 #include <limits>                              // numeric_limits
 #include <string_view>                         // string_view
 #include <system_error>                        // errc
-#include <utility>                             // cmp_equal, cmp_less
+#include <utility>                             // cmp_less
 
 namespace xstd {
 
@@ -37,17 +37,20 @@ namespace detail {
 //
 // Biased rather than starting at '0', so that one lookup serves a remainder of
 // either sign. A remainder is always in (-base, base) and base is at most 36,
-// so the index is to_chars_digits_zero + [-35, 35]: every position of this
-// table and no other. That is what lets the digit loop below carry no test on
-// the sign at all - a runtime one would be a branch an unsigned instantiation
-// could never take, and the coverage gate counts branches per instantiation.
+// so it reaches from to_chars_digits_zero below by at most 35 in either
+// direction: every position of this table and no other. That is what lets the
+// digit loop carry no test on the sign at all - a runtime one would be a branch
+// an unsigned instantiation could never take, and the coverage gate counts
+// branches per instantiation.
 inline constexpr auto to_chars_digits = std::string_view{"zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz"};
 
-// Where '0' sits in it. An int, so that the index arithmetic stays in a signed
-// type rather than leaning on modular wraparound to bring a negative digit
-// back into range.
-inline constexpr auto to_chars_digits_zero = 35;
-static_assert(std::cmp_equal(to_chars_digits.size(), (2 * to_chars_digits_zero) + 1));
+// Where '0' sits in it, and a pointer there. A remainder indexes that pointer
+// directly, negative ones included: subscripting the view instead would mean
+// converting a signed index to its size_type, which is either a widening cast
+// of narrow arithmetic or an appeal to modular wraparound, and this is neither.
+inline constexpr auto to_chars_digits_offset = std::size_t{35};
+inline constexpr auto* to_chars_digits_zero = to_chars_digits.data() + to_chars_digits_offset;
+static_assert(to_chars_digits.size() == (2 * to_chars_digits_offset) + 1);
 
 } // namespace detail
 
@@ -151,7 +154,7 @@ template<integral_like I>
                 // table's bias takes care of; the sign itself is written once,
                 // below.
                 auto const digit = static_cast<int>(rest % radix);
-                *--out = detail::to_chars_digits[static_cast<std::size_t>(detail::to_chars_digits_zero + digit)];
+                *--out = detail::to_chars_digits_zero[digit];
                 if (rest / radix == I{0}) {
                         break;
                 }
