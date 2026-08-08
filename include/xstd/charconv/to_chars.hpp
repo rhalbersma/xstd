@@ -30,30 +30,6 @@ template<integral_like I>
 inline constexpr auto to_chars_max_size =
         static_cast<std::size_t>(std::numeric_limits<I>::digits) + (is_signed_like_v<I> ? 2 : 0);
 
-namespace detail {
-
-// A string_view rather than a char array: modernize-avoid-c-arrays is
-// enabled, and indexing is all this is for.
-//
-// Biased rather than starting at '0', so that one lookup serves a remainder of
-// either sign. A remainder is always in (-base, base) and base is at most 36,
-// so it reaches from to_chars_digits_zero below by at most 35 in either
-// direction: every position of this table and no other. That is what lets the
-// digit loop carry no test on the sign at all - a runtime one would be a branch
-// an unsigned instantiation could never take, and the coverage gate counts
-// branches per instantiation.
-inline constexpr auto to_chars_digits = std::string_view{"zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz"};
-
-// Where '0' sits in it, and a pointer there. A remainder indexes that pointer
-// directly, negative ones included: subscripting the view instead would mean
-// converting a signed index to its size_type, which is either a widening cast
-// of narrow arithmetic or an appeal to modular wraparound, and this is neither.
-inline constexpr auto to_chars_digits_offset = std::size_t{35};
-inline constexpr auto* to_chars_digits_zero = to_chars_digits.data() + to_chars_digits_offset;
-static_assert(to_chars_digits.size() == (2 * to_chars_digits_offset) + 1);
-
-} // namespace detail
-
 // std::to_chars, widened to every integral-like type: two overloads on one
 // name, rather than one function branching on an if constexpr.
 //
@@ -108,6 +84,27 @@ template<integral_like I>
 {
         assert(2 <= base and base <= 36);
 
+        // A string_view rather than a char array: modernize-avoid-c-arrays is
+        // enabled, and indexing is all this is for. Biased rather than starting
+        // at '0', so that one lookup serves a remainder of either sign: a
+        // remainder is always in (-base, base) and base is at most 36, so it
+        // reaches from the middle by at most 35 in either direction - every
+        // position of this table and no other. That is what lets the digit loop
+        // carry no test on the sign at all, a runtime one being a branch an
+        // unsigned instantiation could never take, and the coverage gate counts
+        // branches per instantiation.
+        //
+        // A pointer to the middle rather than an index of it, because pointer
+        // arithmetic takes a signed offset: subscripting the view would mean
+        // converting a signed index to its size_type, which is either a
+        // widening cast of narrow arithmetic or an appeal to modular
+        // wraparound, and this is neither. The two assertions are the whole
+        // invariant - odd length, '0' dead centre.
+        static constexpr auto digits = std::string_view{"zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz"};
+        static constexpr auto* digit_zero = digits.data() + (digits.size() / 2);
+        static_assert((digits.size() % 2) == 1);
+        static_assert(*digit_zero == '0');
+
         auto const radix = static_cast<I>(base);
 
         // Not written inline below: value < I{0} on an unsigned type is
@@ -154,7 +151,7 @@ template<integral_like I>
                 // table's bias takes care of; the sign itself is written once,
                 // below.
                 auto const digit = static_cast<int>(rest % radix);
-                *--out = detail::to_chars_digits_zero[digit];
+                *--out = digit_zero[digit];
                 if (rest / radix == I{0}) {
                         break;
                 }
