@@ -54,12 +54,12 @@ Where the same subclause does constrain a result type, the concept asks for
 that type and not merely for something convertible to it. /7.3 says of the
 unary operators that "if `@x` has type `bool`, so too does `@a`", a sentence
 that exists for `!` alone; /7.6 says the same of the binary operators whose
-result is neither `B(I)` nor `B(I2)`, which is how `==` and `<=>` come to be
-`bool` and `std::strong_ordering`. Relaxing those to `convertible_to<bool>`
-would admit types the subclause does not describe. The relational operators are
-the one place the concept is looser, holding them to nothing more than
-`std::three_way_comparable`'s boolean-testable results; `xstd::to_chars` is
-written to survive that.
+result is neither `B(I)` nor `B(I2)`, which is how the six comparisons come to
+be `bool` and `<=>` to be `std::strong_ordering`. Relaxing those to
+`convertible_to<bool>` would admit types the subclause does not describe, so
+all seven are spelled out rather than left to `std::regular` and
+`std::three_way_comparable`, which between them ask no more than
+boolean-testable results of the six.
 
 A template parameter is named for the concept constraining it: `I` under
 `integral_like`, `S` under `signed_integral_like`. The letters carry the

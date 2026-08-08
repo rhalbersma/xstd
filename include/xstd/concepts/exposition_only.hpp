@@ -115,19 +115,25 @@ concept unqualified_integer_class_type =
         requires (I const a, I const b) {
                 // Pinned for the same reason, by the last clause of /7.6:
                 // `a @ b` has whatever type `x @ y` has once that type is
-                // neither B(I) nor B(I2), which for these two is bool and
-                // strong_ordering.
+                // neither B(I) nor B(I2), which for the six comparisons is bool
+                // and for <=> is strong_ordering.
                 //
-                // The regularity and ordering below do not make the first line
-                // redundant: std::equality_comparable asks only that `a == b`
-                // be boolean-testable, and that weaker requirement is all the
-                // four relational operators are held to here, since no line
-                // spells them out. The second line is a restatement -
-                // three_way_comparable<I, strong_ordering> already forces this
-                // exact type through compares-as - kept because transcribing
-                // the subclause is what this concept is for, and /7.6 is where
-                // the subclause says it.
+                // All seven are spelled out because the regularity and ordering
+                // below stop short of six of them. std::equality_comparable
+                // asks that `a == b` and `a != b` be boolean-testable, and the
+                // four relational operators reach this concept only through
+                // std::three_way_comparable, which asks no more of them either.
+                // Boolean-testable is weaker than /7.6: it admits a proxy the
+                // subclause does not describe. Only the <=> line is a
+                // restatement - three_way_comparable<I, strong_ordering>
+                // already forces that exact type through compares-as - and it
+                // is kept because /7.6 is where the subclause says so.
                 { a == b } -> std::same_as<bool>;
+                { a != b } -> std::same_as<bool>;
+                { a < b } -> std::same_as<bool>;
+                { a > b } -> std::same_as<bool>;
+                { a <= b } -> std::same_as<bool>;
+                { a >= b } -> std::same_as<bool>;
                 { a <=> b } -> std::same_as<std::strong_ordering>;
         } and
         // Finally come regularity and ordering, value-initialization, and
