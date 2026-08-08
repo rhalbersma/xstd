@@ -114,7 +114,14 @@ template<integral_like I>
         // because an integer-class type's relational operators need only be
         // boolean-testable, and a proxy deduced here would outlive the I{0} it
         // was formed from.
-        auto const negative = [value] -> bool {
+        //
+        // The capture is a default rather than naming value, which is what an
+        // immediately-invoked lambda would otherwise want here: an unsigned
+        // instantiation discards the only branch that reads it, and Clang's
+        // -Wunused-lambda-capture - reached through -Weverything, and an error
+        // in this build - fires on an explicitly named capture that a given
+        // instantiation does not use. It says nothing about a default one.
+        auto const negative = [&] -> bool {
                 if constexpr (is_signed_like_v<I>) {
                         return value < I{0};
                 } else {
