@@ -34,6 +34,28 @@ namespace xstd::exposition_only {
 // exposition_only::nothrow_arithmetic.
 template<class I>
 concept unqualified_integer_class_type =
+        // The subclause never says an integer-class type is not an integral
+        // one, but /3 leaves no room for it: the width of an integer-class type
+        // "is greater than that of every integral type of the same signedness",
+        // and no integral type manages that against itself. A structural check
+        // cannot derive the width clause - "every integral type" reaches the
+        // extended ones, so any bound written here would be the platform's
+        // rather than the standard's - so the consequence is spelled instead.
+        //
+        // It earns the line. Drop it and int, short, char and long satisfy
+        // every requirement below, and this concept answers true for four types
+        // /3 rules out. (bool does not, ++a on it having gone in C++17; bool
+        // reaches integral_like through std::integral, not through here.)
+        //
+        // What it does not turn away is note 1's case, "an integer-class type
+        // is not necessarily a class type". __int128 is not a class type, and
+        // with CMAKE_CXX_EXTENSIONS OFF - so -std=c++23, not -std=gnu++23 -
+        // libstdc++ does not answer std::integral for it either, which is
+        // exactly how xstd::int128 is admitted there: right here, on its own
+        // operations. Under -std=gnu++23, or under libc++ at either dialect,
+        // the same type answers std::integral and takes the other branch of
+        // integral_like. That the disjunction gives one answer across all
+        // three is the point of having two branches.
         (not std::integral<I>) and
         requires { sizeof(I); } and
         // [iterator.concept.winc] first specifies conversions between integral

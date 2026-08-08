@@ -3,6 +3,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
+#include <xstd/concepts/exposition_only.hpp>        // integer_class_type
 #include <xstd/concepts/integral_like.hpp>          // integral_like
 #include <xstd/concepts/signed_integral_like.hpp>   // signed_integral_like
 #include <xstd/concepts/unsigned_integral_like.hpp> // unsigned_integral_like
@@ -39,6 +40,24 @@ BOOST_AUTO_TEST_CASE(IntegralLike)
         // C++23's arithmetic concepts inherit the category traits' cv
         // transparency, and the widened concepts do the same.
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<int const>);
+}
+
+// The two branches of integral_like are disjoint, which [iterator.concept.winc]
+// does not state and /3 leaves no room to doubt: an integer-class type's width
+// exceeds that of every integral type of the same signedness, and no integral
+// type exceeds itself. Asserted on the internal concept because that is where
+// it is observable - integral_like answers true for these either way, so a
+// public spelling could not tell the exclusion from its absence.
+BOOST_AUTO_TEST_CASE(NoIntegralTypeIsAnIntegerClassType)
+{
+        XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integer_class_type<int>);
+        XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integer_class_type<short>);
+        XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integer_class_type<char>);
+        XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integer_class_type<unsigned long long>);
+
+        // Each of them is integral_like all the same, by the other branch.
+        XSTD_CONSTEXPR_CHECK(xstd::integral_like<int> and xstd::integral_like<short>);
+        XSTD_CONSTEXPR_CHECK(xstd::integral_like<char> and xstd::integral_like<unsigned long long>);
 }
 
 // On both branches, not just the built-in one. The integer-class branch is
