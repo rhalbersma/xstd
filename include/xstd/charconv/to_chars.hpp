@@ -14,7 +14,7 @@
 #include <cstddef>                             // ptrdiff_t, size_t
 #include <limits>                              // numeric_limits
 #include <system_error>                        // errc
-#include <utility>                             // cmp_less
+#include <utility>                             // cmp_less, pair
 
 namespace xstd {
 
@@ -92,25 +92,34 @@ template<integral_like I>
 
         auto const radix = static_cast<I>(base);
 
-        // Not written inline below: value < I{0} on an unsigned type is
-        // -Wtype-limits, which this library builds with -Werror, and only the
+        // One decision and the two things that follow from it: whether a sign
+        // has to be written, and which way the digit table is read. Both are
+        // runtime values - a signed type converts positive values too, so the
+        // direction belongs to the value rather than to the instantiation - but
+        // this is the only place either of them consults signedness.
+        //
+        // An immediately-invoked lambda because value < I{0} on an unsigned type
+        // is -Wtype-limits, which this library builds with -Werror, and only the
         // discarded branch of an if constexpr keeps that comparison from being
         // instantiated at all. The return type is pinned rather than deduced
         // because an integer-class type's relational operators need only be
-        // boolean-testable, and a proxy deduced here would outlive the I{0} it
-        // was formed from.
-        //
-        // The capture is a default rather than naming value, which is what an
-        // immediately-invoked lambda would otherwise want here: an unsigned
-        // instantiation discards the only branch that reads it, and Clang's
+        // boolean-testable: a proxy deduced here would outlive the I{0} it came
+        // from, and would not agree with the other branch's pair either. The
+        // capture is a default rather than naming value, which Clang's
         // -Wunused-lambda-capture - reached through -Weverything, and an error
-        // in this build - fires on an explicitly named capture that a given
-        // instantiation does not use. It says nothing about a default one.
-        auto const negative = [&] -> bool {
+        // here - would flag in the instantiation that discards the only branch
+        // reading it.
+        //
+        // The conditional inside is safe where one at block scope would not be.
+        // It exists only in the signed instantiation, which reaches both of its
+        // sides; an unsigned one would leave it half covered, and the coverage
+        // gate counts branches per instantiation.
+        auto const [negative, stride] = [&] -> std::pair<bool, std::ptrdiff_t> {
                 if constexpr (is_signed_like_v<I>) {
-                        return value < I{0};
+                        auto const is_negative = value < I{0};
+                        return {is_negative, is_negative ? -1 : 1};
                 } else {
-                        return false;
+                        return {false, 1};
                 }
         }();
 
@@ -121,19 +130,10 @@ template<integral_like I>
                         break;
                 }
         }
-        // Converted rather than selected with a conditional: a conditional is a
-        // branch gcov records per instantiation, and an unsigned one has no way
-        // to reach its other side.
+        // Converted rather than selected with a conditional: this is at block
+        // scope, where a conditional is a branch gcov records per instantiation
+        // and an unsigned one has no way to reach the other side of.
         count += static_cast<std::size_t>(negative);
-
-        // Which way the digit table is read. The remainder of a negative value
-        // is negative, so its digit is the same distance from '0' in the other
-        // direction, and one table of the plain 36 digits serves both signs
-        // without the sign ever being tested: +1, or -1 once there is a sign.
-        // Arithmetic rather than a conditional for the reason just given, and
-        // a ptrdiff_t so the multiplication below happens in the type the
-        // subscript wants, rather than in int and widening into it.
-        auto const stride = std::ptrdiff_t{1} - (2 * static_cast<std::ptrdiff_t>(negative));
 
         if (std::cmp_less(last - first, count)) {
                 return {.ptr = last, .ec = std::errc::value_too_large};
