@@ -15,7 +15,7 @@
 #include <limits>                              // numeric_limits
 #include <string_view>                         // string_view
 #include <system_error>                        // errc
-#include <utility>                             // cmp_less
+#include <utility>                             // cmp_equal, cmp_less
 
 namespace xstd {
 
@@ -34,7 +34,20 @@ namespace detail {
 
 // A string_view rather than a char array: modernize-avoid-c-arrays is
 // enabled, and indexing is all this is for.
-inline constexpr auto to_chars_digits = std::string_view{"0123456789abcdefghijklmnopqrstuvwxyz"};
+//
+// Biased rather than starting at '0', so that one lookup serves a remainder of
+// either sign. A remainder is always in (-base, base) and base is at most 36,
+// so the index is to_chars_digits_zero + [-35, 35]: every position of this
+// table and no other. That is what lets the digit loop below carry no test on
+// the sign at all - a runtime one would be a branch an unsigned instantiation
+// could never take, and the coverage gate counts branches per instantiation.
+inline constexpr auto to_chars_digits = std::string_view{"zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz"};
+
+// Where '0' sits in it. An int, so that the index arithmetic stays in a signed
+// type rather than leaning on modular wraparound to bring a negative digit
+// back into range.
+inline constexpr auto to_chars_digits_zero = 35;
+static_assert(std::cmp_equal(to_chars_digits.size(), 2 * to_chars_digits_zero + 1));
 
 } // namespace detail
 
@@ -81,9 +94,10 @@ inline constexpr auto to_chars_digits = std::string_view{"0123456789abcdefghijkl
 //
 // The magnitude is never formed. Negating the minimum value has no
 // representation, and an integer-class type need not offer a wider one to
-// borrow, so the remainder is taken on the negative value and the digit's sign
-// flipped. That also means no make_unsigned_like is needed, which an
-// integer-class type is only required to have if its author supplied one.
+// borrow, so the remainder is taken on the negative value and its sign is
+// absorbed by the digit table's bias. That also means no make_unsigned_like is
+// needed, which an integer-class type is only required to have if its author
+// supplied one.
 template<integral_like I>
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
 [[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10) noexcept
@@ -93,6 +107,21 @@ template<integral_like I>
 
         auto const radix = static_cast<I>(base);
 
+        // Not written inline below: value < I{0} on an unsigned type is
+        // -Wtype-limits, which this library builds with -Werror, and only the
+        // discarded branch of an if constexpr keeps that comparison from being
+        // instantiated at all. The return type is pinned rather than deduced
+        // because an integer-class type's relational operators need only be
+        // boolean-testable, and a proxy deduced here would outlive the I{0} it
+        // was formed from.
+        auto const negative = [value] -> bool {
+                if constexpr (is_signed_like_v<I>) {
+                        return value < I{0};
+                } else {
+                        return false;
+                }
+        }();
+
         auto count = std::size_t{0};
         for (auto rest = value;; rest = static_cast<I>(rest / radix)) {
                 ++count;
@@ -100,15 +129,10 @@ template<integral_like I>
                         break;
                 }
         }
-
-        // maybe_unused because every read of it below is in an if constexpr
-        // branch an unsigned instantiation discards, leaving the variable set
-        // and never used there.
-        [[maybe_unused]] auto negative = false;
-        if constexpr (is_signed_like_v<I>) {
-                negative = value < I{0};
-                count += negative ? std::size_t{1} : std::size_t{0};
-        }
+        // Converted rather than selected with a conditional: a conditional is a
+        // branch gcov records per instantiation, and an unsigned one has no way
+        // to reach its other side.
+        count += static_cast<std::size_t>(negative);
 
         if (std::cmp_less(last - first, count)) {
                 return {.ptr = last, .ec = std::errc::value_too_large};
@@ -116,23 +140,18 @@ template<integral_like I>
 
         auto* out = first + count;
         for (auto rest = value;; rest = static_cast<I>(rest / radix)) {
-                auto digit = static_cast<int>(rest % radix);
-                // Both sign tests are under if constexpr rather than a plain
-                // if: an unsigned I can never be negative, so a runtime test
-                // would emit a line and a branch that its instantiation cannot
-                // reach - and the coverage gate counts both per instantiation.
-                if constexpr (is_signed_like_v<I>) {
-                        // The remainder of a negative value is negative, and
-                        // the sign is written once, below.
-                        if (negative) {
-                                digit = -digit;
-                        }
-                }
-                *--out = detail::to_chars_digits[static_cast<std::size_t>(digit)];
+                // The remainder of a negative value is negative, which the
+                // table's bias takes care of; the sign itself is written once,
+                // below.
+                auto const digit = static_cast<int>(rest % radix);
+                *--out = detail::to_chars_digits[static_cast<std::size_t>(detail::to_chars_digits_zero + digit)];
                 if (rest / radix == I{0}) {
                         break;
                 }
         }
+        // The one place the sign still has to be a test rather than an index or
+        // a conversion, and so the one that stays under an if constexpr for the
+        // reason given above.
         if constexpr (is_signed_like_v<I>) {
                 if (negative) {
                         *--out = '-';
