@@ -332,11 +332,11 @@ BOOST_AUTO_TEST_CASE(UnannotatedIntegerClassType)
         static_assert(noexcept(xstd::sign(1)));
         static_assert(noexcept(xstd::div(1, 1)));
 
-        // And the arithmetic itself works, constant evaluation included.
-        XSTD_CONSTEXPR_CHECK(xstd::abs(T{-7}) == T{7});
-        XSTD_CONSTEXPR_CHECK(xstd::sign(T{-7}) == -1);
-        XSTD_CONSTEXPR_CHECK(xstd::div(T{7}, T{2}).quot == T{3});
-        XSTD_CONSTEXPR_CHECK(xstd::euclidean_div(T{-7}, T{2}).rem == T{1});
+        // The same battery the other types get, rather than a few values of
+        // its own. gcov counts branches per instantiation, so a new element
+        // type brings a fresh copy of every arm inside these functions with it,
+        // and only the full battery reaches them all.
+        check_signed_integral_like<T>();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

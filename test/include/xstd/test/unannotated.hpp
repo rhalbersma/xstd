@@ -223,29 +223,44 @@ struct make_signed_like<test::unannotated_unsigned> : std::type_identity<test::u
 
 } // namespace xstd
 
+namespace xstd::test {
+
 // [iterator.concept.winc]/11 wants each member to have the same value as the
 // corresponding member of the hypothetical extended integer type, so the ones
-// that name a value have to name it in this type rather than in the storage.
-template<bool Signed>
-class std::numeric_limits<xstd::test::unannotated_type<Signed>>
-    : public std::numeric_limits<std::conditional_t<Signed, xstd::int128, xstd::uint128>>
+// naming a value have to name it in this type rather than in the storage.
+// Shared by the two specializations below, which are full rather than one
+// partial specialization on the signedness: clang-tidy's
+// bugprone-std-namespace-modification exempts a specialization of a std
+// template for a program-defined type, but does not extend that to a partial
+// one.
+template<class Self, class Storage>
+class unannotated_limits : public std::numeric_limits<Storage>
 {
-        using self = xstd::test::unannotated_type<Signed>;
-        using storage = std::conditional_t<Signed, xstd::int128, xstd::uint128>;
-
       public:
-        [[nodiscard]] static constexpr auto min() -> self
+        [[nodiscard]] static constexpr auto min() -> Self
         {
-                return self::from(std::numeric_limits<storage>::min());
+                return Self::from(std::numeric_limits<Storage>::min());
         }
-        [[nodiscard]] static constexpr auto max() -> self
+        [[nodiscard]] static constexpr auto max() -> Self
         {
-                return self::from(std::numeric_limits<storage>::max());
+                return Self::from(std::numeric_limits<Storage>::max());
         }
-        [[nodiscard]] static constexpr auto lowest() -> self
+        [[nodiscard]] static constexpr auto lowest() -> Self
         {
-                return self::from(std::numeric_limits<storage>::lowest());
+                return Self::from(std::numeric_limits<Storage>::lowest());
         }
 };
+
+} // namespace xstd::test
+
+template<>
+class std::numeric_limits<xstd::test::unannotated>
+    : public xstd::test::unannotated_limits<xstd::test::unannotated, xstd::int128>
+{};
+
+template<>
+class std::numeric_limits<xstd::test::unannotated_unsigned>
+    : public xstd::test::unannotated_limits<xstd::test::unannotated_unsigned, xstd::uint128>
+{};
 
 #endif // XSTD_TEST_UNANNOTATED_HPP
