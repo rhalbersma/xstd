@@ -71,8 +71,8 @@ concept integer_class_type =
                 { static_cast<I>(a >> n) } -> std::same_as<I>;
         } and
         requires (I const a, I const b) {
-                // /7.6 pins all seven, where regular and three_way_comparable
-                // below ask only boolean-testable results of the six.
+                // /7.6 pins all seven, which subsumes the three_way_comparable
+                // below outright; what regular adds is semiregular, not this.
                 { a <=> b } -> std::same_as<std::strong_ordering>;
                 { a < b } -> std::same_as<bool>;
                 { a > b } -> std::same_as<bool>;
@@ -81,8 +81,8 @@ concept integer_class_type =
                 { a == b } -> std::same_as<bool>;
                 { a != b } -> std::same_as<bool>;
         } and
-        // Finally come regularity and ordering, value-initialization, and
-        // numeric_limits.
+        // Finally /9's two concepts - only regular of them still structural -
+        // and /10 and /11.
         std::regular<I> and
         std::three_way_comparable<I, std::strong_ordering> and
         requires {
