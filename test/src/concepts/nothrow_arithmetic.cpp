@@ -17,27 +17,21 @@ BOOST_AUTO_TEST_SUITE(Concepts)
 
 BOOST_AUTO_TEST_CASE(NothrowArithmetic)
 {
-        // Every built-in width, and the 128-bit type the library names, come
-        // with the specifier - on GCC and Clang because __int128's operators
-        // are built in, on MSVC because std::_Signed128 writes it.
+        // The built-in widths and the 128-bit type the library names all
+        // carry the specifier.
         XSTD_CONSTEXPR_CHECK(xstd::nothrow_arithmetic<int>);
         XSTD_CONSTEXPR_CHECK(xstd::nothrow_arithmetic<bool> and xstd::nothrow_arithmetic<char32_t>);
         XSTD_CONSTEXPR_CHECK(xstd::nothrow_arithmetic<xstd::int128> and xstd::nothrow_arithmetic<xstd::uint128>);
 
-        // An integer-class type whose author wrote no specifier is admitted by
-        // integral_like and refused here. That is the whole point of the two
-        // being separate concepts: [iterator.concept.winc] asks for none of
-        // this, so requiring it of the type would narrow the extension point,
-        // where requiring it of the exception specification narrows nothing.
+        // An unannotated integer-class type is admitted by integral_like and
+        // refused here, which is why the two are separate concepts.
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<xstd::test::unannotated>);
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_arithmetic<xstd::test::unannotated>);
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_arithmetic<xstd::test::unannotated_unsigned>);
 }
 
-// Total on the spellings that would be ill-formed if the requirements were
-// reached, for the same reason integral_like is: they sit inside a concept,
-// whose conjunction short-circuits on integral_like before any operator is
-// named. A caller can ask this of any type and get an answer.
+// Total, the conjunction short-circuiting on integral_like before any operator
+// is named, so a caller can ask this of any type and get an answer.
 BOOST_AUTO_TEST_CASE(NothrowArithmeticIsTotal)
 {
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_arithmetic<void>);
@@ -47,15 +41,13 @@ BOOST_AUTO_TEST_CASE(NothrowArithmeticIsTotal)
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_arithmetic<int()>);
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_arithmetic<std::complex<double>>);
 
-        // Floating point is turned away by integral_like rather than by any
-        // operator, which is what keeps ~, % and the bitwise requirements from
-        // ever being asked of a type that has none of them.
+        // Turned away by integral_like rather than by ~ or %, which a
+        // floating-point type does not have.
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_arithmetic<double>);
 }
 
-// The concept is the exception specification, not a description of one: the
-// six functions are declared noexcept(nothrow_arithmetic<S>), so these two
-// have to agree for every element type, and a type that flips one flips both.
+// The concept is the exception specification rather than a description of one,
+// so the two have to agree for every element type.
 BOOST_AUTO_TEST_CASE(NothrowArithmeticIsTheExceptionSpecification)
 {
         XSTD_CONSTEXPR_CHECK(noexcept(xstd::abs(1)) == xstd::nothrow_arithmetic<int>);

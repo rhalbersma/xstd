@@ -56,17 +56,14 @@ BOOST_AUTO_TEST_CASE(EmptyTypeIsNoThrow)
         XSTD_CONSTEXPR_CHECK(std::is_nothrow_move_constructible_v<empty>);
         XSTD_CONSTEXPR_CHECK(std::is_nothrow_move_assignable_v<empty>);
 
-        // The comparisons too, which nothing above reaches. Neither the
-        // defaulted <=> nor the == it brings with it carries a specification:
-        // both are computed, and over no members this is what they compute to.
+        // The comparisons too, which nothing above reaches and which carry no
+        // specification of their own.
         XSTD_CONSTEXPR_CHECK(noexcept(empty{} <=> empty{}));
         XSTD_CONSTEXPR_CHECK(noexcept(empty{} == empty{}));
 }
 
-// Defaulted on its first declaration is implicitly constexpr, so the type
-// reaches constant evaluation without the specifier being written. Spelled as
-// static_assert rather than through the constexpr checker, because what is
-// being pinned is that these expressions are constant expressions at all.
+// Defaulted on its first declaration is implicitly constexpr. static_assert
+// rather than the checker: that these are constant expressions is the point.
 BOOST_AUTO_TEST_CASE(EmptyTypeIsUsableInConstantExpressions)
 {
         using empty = xstd::empty_type<struct tag>;

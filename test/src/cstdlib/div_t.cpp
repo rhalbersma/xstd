@@ -26,11 +26,8 @@ BOOST_AUTO_TEST_CASE(DeducedDivT)
         BOOST_CHECK(true);
 }
 
-// The equality operator carries no exception specification, so that the one it
-// gets is computed rather than restated. What it computes is the element's,
-// which is the property worth pinning: a written specification would have to
-// be kept equal to this by hand, and P1286R2 removed the diagnostic that used
-// to catch it when it was not.
+// The computed exception specification is the element's, which is what a
+// written one would have to be kept equal to by hand.
 BOOST_AUTO_TEST_CASE_TEMPLATE(EqualityTracksTheElementType, T, exact_width_types)
 {
         static_assert(noexcept(std::declval<xstd::div_t<T> const&>() == std::declval<xstd::div_t<T> const&>()) ==

@@ -42,12 +42,8 @@ BOOST_AUTO_TEST_CASE(IntegralLike)
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<int const>);
 }
 
-// The two branches of integral_like are disjoint, which [iterator.concept.winc]
-// does not state and /3 leaves no room to doubt: an integer-class type's width
-// exceeds that of every integral type of the same signedness, and no integral
-// type exceeds itself. Asserted on the internal concept because that is where
-// it is observable - integral_like answers true for these either way, so a
-// public spelling could not tell the exclusion from its absence.
+// Disjoint branches, per /3's width clause. Asserted on the internal concept
+// because integral_like answers true for these either way.
 BOOST_AUTO_TEST_CASE(NoIntegralTypeIsAnIntegerClassType)
 {
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integer_class_type<int>);
@@ -55,18 +51,13 @@ BOOST_AUTO_TEST_CASE(NoIntegralTypeIsAnIntegerClassType)
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integer_class_type<char>);
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integer_class_type<unsigned long long>);
 
-        // Each of them is integral_like all the same, by the other branch.
+        // Each is integral_like all the same, by the other branch.
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<int> and xstd::integral_like<short>);
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<char> and xstd::integral_like<unsigned long long>);
 }
 
-// On both branches, not just the built-in one. The integer-class branch is
-// where it takes doing: [iterator.concept.winc] states its requirements for an
-// object that can be assigned and incremented, so asking them of a const type
-// fails at ++a, at a += b, and at std::regular. Nothing in the subclause wants
-// that difference - /11 speaks of "every (possibly cv-qualified) integer-class
-// type" - so exposition_only::integer_class_type strips the qualification
-// before asking, and the two branches answer alike.
+// On both branches. The integer-class one takes doing: its requirements are
+// stated for an object that can be assigned, so a const type fails ++a.
 BOOST_AUTO_TEST_CASE(IntegralLikeIsCvTransparentOnBothBranches)
 {
         using T = xstd::test::unannotated;
@@ -79,8 +70,7 @@ BOOST_AUTO_TEST_CASE(IntegralLikeIsCvTransparentOnBothBranches)
         XSTD_CONSTEXPR_CHECK(xstd::signed_integral_like<T const>);
         XSTD_CONSTEXPR_CHECK(xstd::unsigned_integral_like<xstd::test::unannotated_unsigned const>);
 
-        // Adding a qualifier admits nothing that the unqualified type would
-        // not have been admitted on its own.
+        // A qualifier admits nothing the unqualified type would not have been.
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<double const>);
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<scoped const>);
 }
