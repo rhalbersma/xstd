@@ -16,46 +16,58 @@
 // than it, as an expression-template arithmetic type does. /7.6 pins those
 // results to I, so this is not an integer-class type, and the concept is only
 // able to say so while its binary rows name the operator's own result type. A
-// static_cast<I> around each of them yields I whether or not the operator did,
-// and takes this type in.
+// static_cast<I> around each of them is of type I whether or not the operator
+// was, and takes this type in.
+//
+// A class template over its storage, as unannotated_type is over its
+// signedness, and for one reason beyond the symmetry: clang's intra-TU
+// lifetime analysis does not enter a template, and every member here that
+// hands back *this would otherwise want a [[clang::lifetimebound]] of its own
+// under the -Weverything the test build runs with.
 namespace xstd::test {
 
+template<class Storage>
 class proxy_result_type;
 
-class proxy_result
+// What the binary operators return: convertible to the type, and not it.
+template<class Storage>
+class proxy_value
 {
-        using storage = uint128;
-
-        storage m_value;
+        Storage m_value;
 
       public:
-        constexpr explicit proxy_result(storage value)
+        constexpr explicit proxy_value(Storage value)
             : m_value(value)
         {}
 
-        [[nodiscard]] constexpr operator proxy_result_type() const;
+        [[nodiscard]] constexpr operator proxy_result_type<Storage>() const
+        {
+                return proxy_result_type<Storage>::from(m_value);
+        }
 };
 
+template<class Storage>
 class proxy_result_type
 {
-        using storage = uint128;
         using self = proxy_result_type;
+        using proxy = proxy_value<Storage>;
 
-        storage m_value{};
+        Storage m_value{};
 
       public:
         proxy_result_type() = default;
 
         constexpr proxy_result_type(int value)
-            : m_value(static_cast<storage>(value))
+            : m_value(static_cast<Storage>(value))
         {}
 
-        [[nodiscard]] static constexpr auto from(storage value) -> self
+        [[nodiscard]] static constexpr auto from(Storage value) -> self
         {
                 auto result = self();
                 result.m_value = value;
                 return result;
         }
+
         [[nodiscard]] explicit constexpr operator bool() const
         {
                 return static_cast<bool>(m_value);
@@ -90,15 +102,15 @@ class proxy_result_type
         }
         constexpr auto operator-() const -> self
         {
-                return from(-m_value);
+                return from(static_cast<Storage>(-m_value));
         }
         constexpr auto operator~() const -> self
         {
-                return from(~m_value);
+                return from(static_cast<Storage>(~m_value));
         }
         constexpr auto operator!() const -> bool
         {
-                return not static_cast<bool>(m_value);
+                return not m_value;
         }
 
         constexpr auto operator*=(self rhs) -> self&
@@ -152,77 +164,74 @@ class proxy_result_type
                 return *this;
         }
 
-        // The one departure. Everything above is the type the subclause asks
-        // for; these ten return the proxy.
-        friend constexpr auto operator*(self lhs, self rhs) -> proxy_result
+        // The one departure. Everything above is what the subclause asks for;
+        // these ten return the proxy rather than the type.
+        friend constexpr auto operator*(self lhs, self rhs) -> proxy
         {
-                return proxy_result(lhs.m_value * rhs.m_value);
+                return proxy(static_cast<Storage>(lhs.m_value * rhs.m_value));
         }
-        friend constexpr auto operator/(self lhs, self rhs) -> proxy_result
+        friend constexpr auto operator/(self lhs, self rhs) -> proxy
         {
-                return proxy_result(lhs.m_value / rhs.m_value);
+                return proxy(static_cast<Storage>(lhs.m_value / rhs.m_value));
         }
-        friend constexpr auto operator%(self lhs, self rhs) -> proxy_result
+        friend constexpr auto operator%(self lhs, self rhs) -> proxy
         {
-                return proxy_result(lhs.m_value % rhs.m_value);
+                return proxy(static_cast<Storage>(lhs.m_value % rhs.m_value));
         }
-        friend constexpr auto operator+(self lhs, self rhs) -> proxy_result
+        friend constexpr auto operator+(self lhs, self rhs) -> proxy
         {
-                return proxy_result(lhs.m_value + rhs.m_value);
+                return proxy(static_cast<Storage>(lhs.m_value + rhs.m_value));
         }
-        friend constexpr auto operator-(self lhs, self rhs) -> proxy_result
+        friend constexpr auto operator-(self lhs, self rhs) -> proxy
         {
-                return proxy_result(lhs.m_value - rhs.m_value);
+                return proxy(static_cast<Storage>(lhs.m_value - rhs.m_value));
         }
-        friend constexpr auto operator&(self lhs, self rhs) -> proxy_result
+        friend constexpr auto operator&(self lhs, self rhs) -> proxy
         {
-                return proxy_result(lhs.m_value & rhs.m_value);
+                return proxy(static_cast<Storage>(lhs.m_value & rhs.m_value));
         }
-        friend constexpr auto operator^(self lhs, self rhs) -> proxy_result
+        friend constexpr auto operator^(self lhs, self rhs) -> proxy
         {
-                return proxy_result(lhs.m_value ^ rhs.m_value);
+                return proxy(static_cast<Storage>(lhs.m_value ^ rhs.m_value));
         }
-        friend constexpr auto operator|(self lhs, self rhs) -> proxy_result
+        friend constexpr auto operator|(self lhs, self rhs) -> proxy
         {
-                return proxy_result(lhs.m_value | rhs.m_value);
+                return proxy(static_cast<Storage>(lhs.m_value | rhs.m_value));
         }
-        friend constexpr auto operator<<(self lhs, std::size_t n) -> proxy_result
+        friend constexpr auto operator<<(self lhs, std::size_t n) -> proxy
         {
-                return proxy_result(lhs.m_value << n);
+                return proxy(static_cast<Storage>(lhs.m_value << n));
         }
-        friend constexpr auto operator>>(self lhs, std::size_t n) -> proxy_result
+        friend constexpr auto operator>>(self lhs, std::size_t n) -> proxy
         {
-                return proxy_result(lhs.m_value >> n);
+                return proxy(static_cast<Storage>(lhs.m_value >> n));
         }
 
         friend constexpr auto operator==(self, self) -> bool = default;
         friend constexpr auto operator<=>(self, self) -> std::strong_ordering = default;
 };
 
-constexpr proxy_result::operator proxy_result_type() const
-{
-        return proxy_result_type::from(m_value);
-}
+using proxy_result = proxy_result_type<uint128>;
 
 } // namespace xstd::test
 
-// /11's members, in the type rather than in the storage, as for the other
+// /11's members in the type rather than in the storage, as for the other
 // fixtures. Only is_specialized and is_integer are asked of it here.
 template<>
-class std::numeric_limits<xstd::test::proxy_result_type> : public std::numeric_limits<xstd::uint128>
+class std::numeric_limits<xstd::test::proxy_result> : public std::numeric_limits<xstd::uint128>
 {
       public:
-        [[nodiscard]] static constexpr auto min() -> xstd::test::proxy_result_type
+        [[nodiscard]] static constexpr auto min() -> xstd::test::proxy_result
         {
-                return xstd::test::proxy_result_type::from(std::numeric_limits<xstd::uint128>::min());
+                return xstd::test::proxy_result::from(std::numeric_limits<xstd::uint128>::min());
         }
-        [[nodiscard]] static constexpr auto max() -> xstd::test::proxy_result_type
+        [[nodiscard]] static constexpr auto max() -> xstd::test::proxy_result
         {
-                return xstd::test::proxy_result_type::from(std::numeric_limits<xstd::uint128>::max());
+                return xstd::test::proxy_result::from(std::numeric_limits<xstd::uint128>::max());
         }
-        [[nodiscard]] static constexpr auto lowest() -> xstd::test::proxy_result_type
+        [[nodiscard]] static constexpr auto lowest() -> xstd::test::proxy_result
         {
-                return xstd::test::proxy_result_type::from(std::numeric_limits<xstd::uint128>::lowest());
+                return xstd::test::proxy_result::from(std::numeric_limits<xstd::uint128>::lowest());
         }
 };
 

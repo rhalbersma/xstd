@@ -8,7 +8,7 @@
 #include <xstd/concepts/signed_integral_like.hpp>   // signed_integral_like
 #include <xstd/concepts/unsigned_integral_like.hpp> // unsigned_integral_like
 #include <xstd/test/constexpr.hpp>                  // XSTD_CONSTEXPR_CHECK
-#include <xstd/test/proxy_result.hpp>               // proxy_result_type
+#include <xstd/test/proxy_result.hpp>               // proxy_result
 #include <xstd/test/unannotated.hpp>                // unannotated, unannotated_unsigned
 #include <boost/test/unit_test.hpp>                 // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <concepts>                                 // convertible_to, same_as
@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_CASE(NoIntegralTypeIsAnIntegerClassType)
 // rows alone that turn it away.
 BOOST_AUTO_TEST_CASE(OperatorResultsAreTheTypeItself)
 {
-        using T = xstd::test::proxy_result_type;
+        using T = xstd::test::proxy_result;
 
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integer_class_type<T>);
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<T>);
