@@ -7,6 +7,7 @@
 #include <xstd/cstdint.hpp>           // int128, uint128
 #include <xstd/concepts.hpp>          // signed_integral_like
 #include <xstd/type_traits.hpp>       // make_unsigned_like_t
+#include <xstd/test/absl_int128.hpp>  // XSTD_TEST_HAS_ABSL_INT128
 #include <xstd/test/boost_int128.hpp> // XSTD_TEST_HAS_BOOST_INT128
 #include <xstd/test/unannotated.hpp>  // unannotated
 #include <xstd/test/constexpr.hpp>    // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
@@ -262,8 +263,47 @@ BOOST_AUTO_TEST_CASE(StdDiv)
         BOOST_CHECK(std_res == std_div);
 }
 
-// The other half of the extension point, which Boost.Int128 cannot show: an
-// integer-class type with no noexcept at all, as absl::uint128 is.
+// The same two halves at once, in the field rather than in a fixture: a
+// 128-bit type no header here names, which also declares no noexcept anywhere.
+#ifdef XSTD_TEST_HAS_ABSL_INT128
+
+BOOST_AUTO_TEST_CASE(UnannotatedThirdPartyIntegerClassType)
+{
+        using T = xstd::test::absl_int128;
+
+        static_assert(xstd::signed_integral_like<T>);
+        static_assert(std::same_as<decltype(xstd::unsigned_abs(T{})), xstd::test::absl_uint128>);
+        static_assert(std::same_as<decltype(xstd::div(T{1}, T{1})), xstd::div_t<T>>);
+
+        // What the fixture below is written to stand in for, from the type
+        // itself: not one noexcept in its header, and the six functions say so.
+        static_assert(not noexcept(xstd::abs(T{1})));
+        static_assert(not noexcept(xstd::unsigned_abs(T{1})));
+        static_assert(not noexcept(xstd::sign(T{1})));
+        static_assert(not noexcept(xstd::div(T{1}, T{1})));
+        static_assert(not noexcept(xstd::euclidean_div(T{1}, T{1})));
+        static_assert(not noexcept(xstd::floored_div(T{1}, T{1})));
+
+#ifdef ABSL_HAVE_INTRINSIC_INT128
+        check_signed_integral_like<T>();
+#else
+        // Without a 128-bit intrinsic to lower them to, its operator/ and
+        // operator% are out-of-line in int128.cc and not constexpr, so the
+        // battery above cannot be constant-evaluated there. The values still
+        // have to come out, which is what is left to check.
+        BOOST_CHECK(xstd::abs(T{-2}) == T{2});
+        BOOST_CHECK(xstd::unsigned_abs(T{-2}) == xstd::test::absl_uint128{2});
+        BOOST_CHECK(xstd::sign(T{-2}) == -1);
+        BOOST_CHECK((xstd::div(T{-8}, T{+3}) == xstd::div_t{T{-2}, T{-2}}));
+        BOOST_CHECK((xstd::euclidean_div(T{-8}, T{+3}) == xstd::div_t{T{-3}, T{+1}}));
+        BOOST_CHECK((xstd::floored_div(T{-8}, T{+3}) == xstd::div_t{T{-3}, T{+1}}));
+#endif
+}
+
+#endif
+
+// The same half again, at a type whose every operation is under this suite's
+// control: a fixture stays available where the dependency above is not.
 BOOST_AUTO_TEST_CASE(UnannotatedIntegerClassType)
 {
         using T = xstd::test::unannotated;

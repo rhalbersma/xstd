@@ -151,6 +151,47 @@ else()
     set(xstd_test_boost_int128)
 endif()
 
+# The other half of the same extension point, and not a hard dependency
+# either: absl::int128 declares no noexcept anywhere, which is the case the
+# integer functions' conditional exception specification exists for.
+option(XSTD_TEST_FETCH_ABSL_INT128 "Fetch Abseil when no installed copy is found" ON)
+
+find_package(absl CONFIG QUIET)
+if(NOT TARGET absl::int128 AND XSTD_TEST_FETCH_ABSL_INT128)
+    include(FetchContent)
+    FetchContent_Declare(
+        absl_int128
+        GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git
+        # A release tag, the spelling of these two types being settled.
+        GIT_TAG 20260526.0
+        # Abseil's CMakeLists.txt configures the whole library and its tests;
+        # naming a subdirectory without one keeps the download and drops that,
+        # leaving the one translation unit these two types need.
+        SOURCE_SUBDIR does-not-exist
+    )
+    FetchContent_MakeAvailable(absl_int128)
+
+    # int128.cc is where operator/ and operator% live on a platform with no
+    # 128-bit intrinsic to lower them to; the rest of the type is header-only.
+    add_library(xstd_test_absl_int128_lib STATIC ${absl_int128_SOURCE_DIR}/absl/numeric/int128.cc)
+
+    # Built to the same standard as the tests, not to the compiler's default:
+    # absl::strong_ordering is std::strong_ordering only where the library
+    # sees C++20's <compare>, and the two spellings must not meet at a link.
+    target_compile_features(xstd_test_absl_int128_lib PUBLIC cxx_std_23)
+
+    # SYSTEM for the reason Boost::int128's includes are.
+    target_include_directories(xstd_test_absl_int128_lib SYSTEM PUBLIC ${absl_int128_SOURCE_DIR})
+
+    add_library(absl::int128 ALIAS xstd_test_absl_int128_lib)
+endif()
+
+if(TARGET absl::int128)
+    set(xstd_test_absl_int128 absl::int128)
+else()
+    set(xstd_test_absl_int128)
+endif()
+
 set(current_source_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)
 file(
     GLOB_RECURSE targets
@@ -171,6 +212,7 @@ foreach(t ${targets})
         ${PROJECT_NAME}::${PROJECT_NAME}
         Boost::unit_test_framework
         ${xstd_test_boost_int128}
+        ${xstd_test_absl_int128}
         xstd_test_options
     )
 
