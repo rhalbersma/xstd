@@ -197,10 +197,19 @@ opposite sides of `nothrow_integral_operators` and of the six conditional
 exception specifications. They differ once more, in a direction nothing else
 in the suite reaches: `absl::int128`'s `operator/` and `operator%` are
 `constexpr` only where a 128-bit intrinsic backs them, and out-of-line in
-`int128.cc` where none does. The constant-evaluated battery therefore runs for
-it on the platforms that have one, and the values are checked at run time on
-the platforms that do not - the only place in these tests where what is
-asserted depends on the target rather than on the type.
+`int128.cc` where none does. That is the one place in these tests where what
+is asserted depends on the target rather than on the type, and it shows up
+twice. The whole-surface battery in `test/src/cstdlib.cpp` runs over the type
+on every platform, constant-evaluated where the intrinsic is there and checked
+at run time where it is not. Its place in the exact-width lists is conditional
+instead: those cases constant-evaluate everything they check, so Abseil joins
+the lists under `ABSL_HAVE_INTRINSIC_INT128` and they run over Boost.Int128
+alone elsewhere. Little is lost by that. Only `div`, `euclidean_div` and
+`floored_div` object at all - the other five list-driven cases compile over
+Abseil either way, and they follow the same condition only so that a type
+list is one list rather than one per case - and those three are exactly what
+the battery covers. The alternative was a second list and a runtime twin of
+every list-driven case, for coverage two toolchains already have.
 
 ### Traits and concepts
 
