@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_CONCEPTS_NOTHROW_ARITHMETIC_HPP
-#define XSTD_CONCEPTS_NOTHROW_ARITHMETIC_HPP
+#ifndef XSTD_CONCEPTS_NOTHROW_INTEGRAL_OPERATORS_HPP
+#define XSTD_CONCEPTS_NOTHROW_INTEGRAL_OPERATORS_HPP
 
 #include <xstd/concepts/integral_like.hpp> // integral_like
 #include <cstddef>                         // size_t
@@ -14,7 +14,7 @@ namespace xstd {
 // Whether an integral-like type can pass a noexcept on, over every operation
 // [iterator.concept.winc] asks of const operands. See doc/design.md.
 template<class T>
-concept nothrow_arithmetic =
+concept nothrow_integral_operators =
         integral_like<T> and
         // The two conversions, which are the thing asked about here rather
         // than a wrapper around it: [iterator.concept.winc]/6 and /8 make both
@@ -67,4 +67,4 @@ concept nothrow_arithmetic =
 
 } // namespace xstd
 
-#endif // XSTD_CONCEPTS_NOTHROW_ARITHMETIC_HPP
+#endif // XSTD_CONCEPTS_NOTHROW_INTEGRAL_OPERATORS_HPP

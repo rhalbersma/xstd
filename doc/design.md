@@ -106,10 +106,15 @@ refused. `xstd::to_chars` is unconditional in the other direction - it has no
 
 Which of the two an integer-class type gets is not something the library can
 observe about a type's behavior, only about its declarations, so the predicate
-is named for what it can actually see: `nothrow_arithmetic`. It is public
-rather than exposition-only because it *is* the exception specification of
-those six functions, and a caller asking whether one of them throws over a type
-of their own is asking exactly this.
+is named for what it can actually see: `nothrow_integral_operators`. Both of
+the last two words are load-bearing. "Integral" rather than "arithmetic",
+because `is_arithmetic_like` is the integral-like half *or* floating point,
+and this predicate opens with `integral_like<T>` and answers false for every
+floating-point type - the wider word would promise a domain it does not have.
+"Operators", because what it ranges over is a type's operators rather than the
+category the type belongs to. It is public rather than exposition-only because
+it *is* the exception specification of those six functions, and a caller asking
+whether one of them throws over a type of their own is asking exactly this.
 
 Its operations are every requirement `integer_class_type` states over `const`
 operands, and no more. That boundary is not this library's invention:
@@ -141,8 +146,8 @@ its result in - it does form a value there, so a deduced specification would
 say so. The manual form, `noexcept(noexcept(e))`, only reaches a function that
 is a single expression, which these are not; repeating their bodies in the
 specifier is precisely the mangling N3207 was written against.
-`nothrow_arithmetic` is the stand-in, over-approximate in the harmless
-direction, for as long as there is no way to ask.
+`nothrow_integral_operators` is the stand-in, over-approximate in the
+harmless direction, for as long as there is no way to ask.
 
 A function that is `= default` needs no stand-in, and gets neither specifier
 here. Explicitly defaulted on its first declaration, it is implicitly
@@ -193,14 +198,15 @@ The type utilities intentionally remain narrow:
 - `empty_type` and `conditional_data_member_t` support optional
   `[[no_unique_address]]` storage.
 - `to_underlying` preserves an enum wrapped in `std::integral_constant`.
-- `nothrow_arithmetic` answers whether the integer functions' conditional
-  `noexcept` holds for a type.
+- `nothrow_integral_operators` answers whether the integer functions'
+  conditional `noexcept` holds for a type.
 
 Concept spellings are provided when the standard library has an analogous
-concept; otherwise the trait is the interface. `nothrow_arithmetic` is the one
-concept with no trait beside it, because it has no standard trait to mirror
-either - it is a constraint on a type's declarations rather than a category it
-belongs to, and it is spelled the way a caller writes it, inside a `noexcept`.
+concept; otherwise the trait is the interface. `nothrow_integral_operators`
+is the one concept with no trait beside it, because it has no standard trait to
+mirror either - it is a constraint on a type's declarations rather than a
+category it belongs to, and it is spelled the way a caller writes it, inside a
+`noexcept`.
 Detailed constraints belong in the headers and tests rather than being
 duplicated here.
 
