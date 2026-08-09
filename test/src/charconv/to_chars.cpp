@@ -5,17 +5,15 @@
 
 #include <xstd/charconv/to_chars.hpp>      // to_chars, to_chars_max_size
 #include <xstd/cstdint.hpp>                // int128, uint128
-#include <xstd/test/exact_width_types.hpp> // exact_width_signed_types, exact_width_unsigned_types
+#include <xstd/test/exact_width_types.hpp> // std_signed_types, exact_width_signed_types, exact_width_unsigned_types
 #include <boost/test/unit_test.hpp>        // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_CHECK, BOOST_CHECK_EQUAL
 #include <array>                           // array
 #include <charconv>                        // to_chars, to_chars_result
 #include <concepts>                        // same_as
-#include <cstdint>                         // exact-width integer types
 #include <limits>                          // numeric_limits
 #include <string>                          // string
 #include <string_view>                     // string_view
 #include <system_error>                    // errc
-#include <tuple>                           // tuple
 
 BOOST_AUTO_TEST_SUITE(CharConvToChars)
 
@@ -30,10 +28,6 @@ concept has_std_to_chars = requires (char* p, T value, int base) {
 // tying, an ambiguous call being one that does not compile either.
 template<class T>
 concept has_xstd_to_chars = requires (char* p, T value) { xstd::to_chars(p, p, value, 10); };
-
-// Named rather than spelled inline at the use: the preprocessor splits a
-// macro argument on the tuple's commas.
-using standard_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t>;
 
 template<class T>
 [[nodiscard]] auto rendered(T value, int base)
@@ -79,8 +73,9 @@ BOOST_AUTO_TEST_CASE(DelegatesWhereTheStandardLibraryCovers)
 }
 
 // The load-bearing property: the digits path renders byte-identically to the
-// standard's, at every base. Through int128, the only way to name that path.
-BOOST_AUTO_TEST_CASE_TEMPLATE(DigitsPathMatchesTheStandard, T, standard_width_types)
+// standard's, at every base. Through int128, the only way to name that path,
+// and over the standard's widths alone, the only ones std::to_chars covers.
+BOOST_AUTO_TEST_CASE_TEMPLATE(DigitsPathMatchesTheStandard, T, xstd::test::std_signed_types)
 {
         for (auto base = 2; base <= 36; ++base) {
                 for (auto const value : {T{0}, T{1}, T{-1}, T{7}, T{-7},
