@@ -94,7 +94,10 @@ required the specifier on every operation, which quietly narrowed the extension
 point to integer-class types whose authors had written it. `absl::uint128` is
 the type that shows what that cost: two `uint64_t` halves with no way to throw,
 and not one occurrence of `noexcept` in its header. It was turned away at the
-concept.
+concept. It is in the suite now rather than only cited, an optional dependency
+beside Boost.Int128 - see [CONTRIBUTING.md](../CONTRIBUTING.md) - and it is the
+one type there that exercises both halves of the extension point at once: no
+header here names it, and nothing about it is annotated.
 
 Dropping the requirement outright would have gone too far the other way, since
 `std::abs` and `std::div` *are* `noexcept` as both major implementations ship
@@ -184,8 +187,20 @@ The exact-width test lists therefore also carry Boost.Int128, which no header
 names and nothing in the library specializes for: it is admitted by the
 concepts on the strength of its own operations, and the two trait associations
 in `test/include/xstd/test/boost_int128.hpp` are the whole of what a user has
-to write. That dependency is optional - see
+to write. `absl::int128` arrives the same way, through the two associations in
+`test/include/xstd/test/absl_int128.hpp`. Both dependencies are optional - see
 [CONTRIBUTING.md](../CONTRIBUTING.md).
+
+The two are not interchangeable, which is why both are here. Boost.Int128
+annotates its operations and Abseil annotates none of them, so they land on
+opposite sides of `nothrow_integral_operators` and of the six conditional
+exception specifications. They differ once more, in a direction nothing else
+in the suite reaches: `absl::int128`'s `operator/` and `operator%` are
+`constexpr` only where a 128-bit intrinsic backs them, and out-of-line in
+`int128.cc` where none does. The constant-evaluated battery therefore runs for
+it on the platforms that have one, and the values are checked at run time on
+the platforms that do not - the only place in these tests where what is
+asserted depends on the target rather than on the type.
 
 ### Traits and concepts
 
