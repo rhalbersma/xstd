@@ -5,12 +5,11 @@
 
 #include <xstd/cstdlib.hpp>                // complete arithmetic surface
 #include <xstd/cstdint.hpp>                // int128, uint128
-#include <xstd/concepts.hpp>               // signed_integral_like
+#include <xstd/concepts.hpp>               // integral_like, signed_integral_like
 #include <xstd/type_traits.hpp>            // make_unsigned_like_t
 #include <xstd/test/absl_int128.hpp>       // XSTD_TEST_HAS_ABSL_INT128
 #include <xstd/test/boost_int128.hpp>      // XSTD_TEST_HAS_BOOST_INT128
 #include <xstd/test/exact_width_types.hpp> // std_signed_types
-#include <xstd/test/unannotated.hpp>       // unannotated
 #include <xstd/test/constexpr.hpp>         // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
 #include <boost/test/unit_test.hpp>        // Boost.Test
 #include <algorithm>                       // ranges::transform
@@ -55,7 +54,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Constraints, T, xstd::test::std_signed_types)
         static_assert(std::same_as<decltype(xstd::floored_div(T{1}, T{1})), xstd::div_t<T>>);
 
         // Every type on these lists annotates its operations; one that does
-        // not is covered by UnannotatedIntegerClassType below.
+        // not is covered by UnannotatedThirdPartyIntegerClassType below.
         static_assert(noexcept(xstd::abs(T{})));
         static_assert(noexcept(xstd::unsigned_abs(T{})));
         static_assert(noexcept(xstd::sign(T{})));
@@ -235,6 +234,50 @@ BOOST_AUTO_TEST_CASE(ThirdPartyIntegerClassType)
 
 #endif
 
+// The other arm of the conditional exception specification, from a third
+// party's type as well: absl::int128 declares not one noexcept in its header,
+// so neither do the six functions when called with it.
+#ifdef XSTD_TEST_HAS_ABSL_INT128
+
+BOOST_AUTO_TEST_CASE(UnannotatedThirdPartyIntegerClassType)
+{
+        using T = xstd::test::absl_int128;
+
+        static_assert(xstd::integral_like<T>);
+        static_assert(xstd::signed_integral_like<T>);
+        static_assert(std::same_as<decltype(xstd::unsigned_abs(T{})), xstd::test::absl_uint128>);
+        static_assert(std::same_as<decltype(xstd::div(T{1}, T{1})), xstd::div_t<T>>);
+
+        static_assert(not noexcept(xstd::abs(T{1})));
+        static_assert(not noexcept(xstd::unsigned_abs(T{1})));
+        static_assert(not noexcept(xstd::sign(T{1})));
+        static_assert(not noexcept(xstd::div(T{1}, T{1})));
+        static_assert(not noexcept(xstd::euclidean_div(T{1}, T{1})));
+        static_assert(not noexcept(xstd::floored_div(T{1}, T{1})));
+
+        // A built-in still is, which an unconditional removal would have lost.
+        static_assert(noexcept(xstd::abs(1)));
+        static_assert(noexcept(xstd::sign(1)));
+        static_assert(noexcept(xstd::div(1, 1)));
+
+#ifdef ABSL_HAVE_INTRINSIC_INT128
+        check_signed_integral_like<T>();
+#else
+        // Without a 128-bit intrinsic to lower them to, its operator/ and
+        // operator% are out-of-line in int128.cc and not constexpr, so the
+        // battery above cannot be constant-evaluated there. The values still
+        // have to come out, which is what is left to check.
+        BOOST_CHECK(xstd::abs(T{-2}) == T{2});
+        BOOST_CHECK(xstd::unsigned_abs(T{-2}) == xstd::test::absl_uint128{2});
+        BOOST_CHECK(xstd::sign(T{-2}) == -1);
+        BOOST_CHECK((xstd::div(T{-8}, T{+3}) == xstd::div_t{T{-2}, T{-2}}));
+        BOOST_CHECK((xstd::euclidean_div(T{-8}, T{+3}) == xstd::div_t{T{-3}, T{+1}}));
+        BOOST_CHECK((xstd::floored_div(T{-8}, T{+3}) == xstd::div_t{T{-3}, T{+1}}));
+#endif
+}
+
+#endif
+
 // clang-format off
 auto const input = std::array<std::pair<int, int>, 8>
 {{
@@ -260,71 +303,6 @@ BOOST_AUTO_TEST_CASE(StdDiv)
         });
 
         BOOST_CHECK(std_res == std_div);
-}
-
-// The same two halves at once, in the field rather than in a fixture: a
-// 128-bit type no header here names, which also declares no noexcept anywhere.
-#ifdef XSTD_TEST_HAS_ABSL_INT128
-
-BOOST_AUTO_TEST_CASE(UnannotatedThirdPartyIntegerClassType)
-{
-        using T = xstd::test::absl_int128;
-
-        static_assert(xstd::signed_integral_like<T>);
-        static_assert(std::same_as<decltype(xstd::unsigned_abs(T{})), xstd::test::absl_uint128>);
-        static_assert(std::same_as<decltype(xstd::div(T{1}, T{1})), xstd::div_t<T>>);
-
-        // What the fixture below is written to stand in for, from the type
-        // itself: not one noexcept in its header, and the six functions say so.
-        static_assert(not noexcept(xstd::abs(T{1})));
-        static_assert(not noexcept(xstd::unsigned_abs(T{1})));
-        static_assert(not noexcept(xstd::sign(T{1})));
-        static_assert(not noexcept(xstd::div(T{1}, T{1})));
-        static_assert(not noexcept(xstd::euclidean_div(T{1}, T{1})));
-        static_assert(not noexcept(xstd::floored_div(T{1}, T{1})));
-
-#ifdef ABSL_HAVE_INTRINSIC_INT128
-        check_signed_integral_like<T>();
-#else
-        // Without a 128-bit intrinsic to lower them to, its operator/ and
-        // operator% are out-of-line in int128.cc and not constexpr, so the
-        // battery above cannot be constant-evaluated there. The values still
-        // have to come out, which is what is left to check.
-        BOOST_CHECK(xstd::abs(T{-2}) == T{2});
-        BOOST_CHECK(xstd::unsigned_abs(T{-2}) == xstd::test::absl_uint128{2});
-        BOOST_CHECK(xstd::sign(T{-2}) == -1);
-        BOOST_CHECK((xstd::div(T{-8}, T{+3}) == xstd::div_t{T{-2}, T{-2}}));
-        BOOST_CHECK((xstd::euclidean_div(T{-8}, T{+3}) == xstd::div_t{T{-3}, T{+1}}));
-        BOOST_CHECK((xstd::floored_div(T{-8}, T{+3}) == xstd::div_t{T{-3}, T{+1}}));
-#endif
-}
-
-#endif
-
-// The same half again, at a type whose every operation is under this suite's
-// control: a fixture stays available where the dependency above is not.
-BOOST_AUTO_TEST_CASE(UnannotatedIntegerClassType)
-{
-        using T = xstd::test::unannotated;
-
-        static_assert(xstd::integral_like<T>);
-        static_assert(xstd::signed_integral_like<T>);
-
-        // Nothing about it is noexcept, so nothing built on it pretends to be.
-        static_assert(not noexcept(xstd::abs(T{1})));
-        static_assert(not noexcept(xstd::sign(T{1})));
-        static_assert(not noexcept(xstd::div(T{1}, T{1})));
-        static_assert(not noexcept(xstd::euclidean_div(T{1}, T{1})));
-        static_assert(not noexcept(xstd::floored_div(T{1}, T{1})));
-
-        // A built-in still is, which a plain removal would have lost.
-        static_assert(noexcept(xstd::abs(1)));
-        static_assert(noexcept(xstd::sign(1)));
-        static_assert(noexcept(xstd::div(1, 1)));
-
-        // The same battery the other types get: gcov counts branches per
-        // instantiation, so a new element type brings a fresh copy of each.
-        check_signed_integral_like<T>();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -19,8 +19,8 @@
 // static_cast<I> around each of them is of type I whether or not the operator
 // was, and takes this type in.
 //
-// A class template over its storage, as unannotated_type is over its
-// signedness, and for one reason beyond the symmetry: clang's intra-TU
+// A class template over its storage rather than a plain class, for a reason
+// beyond the room that leaves for a second width: clang's intra-TU
 // lifetime analysis does not enter a template, and every member here that
 // hands back *this would otherwise want a [[clang::lifetimebound]] of its own
 // under the -Weverything the test build runs with.
