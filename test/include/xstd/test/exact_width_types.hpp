@@ -6,6 +6,7 @@
 #ifndef XSTD_TEST_EXACT_WIDTH_TYPES_HPP
 #define XSTD_TEST_EXACT_WIDTH_TYPES_HPP
 
+#include <xstd/test/absl_int128.hpp>  // XSTD_TEST_HAS_ABSL_INT128
 #include <xstd/test/boost_int128.hpp> // XSTD_TEST_HAS_BOOST_INT128
 #include <xstd/cstdint.hpp>           // int128, uint128
 #include <cstdint>                    // exact-width integer types
@@ -22,17 +23,33 @@ using xstd_unsigned_types = std::tuple<std::uint8_t, std::uint16_t, std::uint32_
 
 // And a 128-bit type from outside the library, when the build has one.
 #ifdef XSTD_TEST_HAS_BOOST_INT128
-using third_party_signed_types = std::tuple<boost_int128>;
-using third_party_unsigned_types = std::tuple<boost_uint128>;
+using boost_signed_types = std::tuple<boost_int128>;
+using boost_unsigned_types = std::tuple<boost_uint128>;
 #else
-using third_party_signed_types = std::tuple<>;
-using third_party_unsigned_types = std::tuple<>;
+using boost_signed_types = std::tuple<>;
+using boost_unsigned_types = std::tuple<>;
+#endif
+
+// A second, on the further condition that a 128-bit intrinsic backs its
+// operator/ and operator%. Without one those two are out-of-line in int128.cc
+// and not constexpr, and every case reached from here constant-evaluates what
+// it checks. The type is not dropped on such a build, only its place in these
+// lists: CStdLib/UnannotatedThirdPartyIntegerClassType checks the same values
+// at run time there, and covers the three functions that object.
+#if defined(XSTD_TEST_HAS_ABSL_INT128) and defined(ABSL_HAVE_INTRINSIC_INT128)
+using absl_signed_types = std::tuple<absl_int128>;
+using absl_unsigned_types = std::tuple<absl_uint128>;
+#else
+using absl_signed_types = std::tuple<>;
+using absl_unsigned_types = std::tuple<>;
 #endif
 
 // Concatenated through declval so the lists above stay readable as lists and
-// the one conditional stays in one place.
-using exact_width_signed_types = decltype(std::tuple_cat(std::declval<xstd_signed_types>(), std::declval<third_party_signed_types>()));
-using exact_width_unsigned_types = decltype(std::tuple_cat(std::declval<xstd_unsigned_types>(), std::declval<third_party_unsigned_types>()));
+// each conditional stays where its own dependency is.
+using exact_width_signed_types = decltype(std::tuple_cat(
+        std::declval<xstd_signed_types>(), std::declval<boost_signed_types>(), std::declval<absl_signed_types>()));
+using exact_width_unsigned_types = decltype(std::tuple_cat(
+        std::declval<xstd_unsigned_types>(), std::declval<boost_unsigned_types>(), std::declval<absl_unsigned_types>()));
 
 } // namespace xstd::test
 

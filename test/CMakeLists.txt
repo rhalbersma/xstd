@@ -41,6 +41,12 @@ set(cxx_compile_options_warnings
         -Wno-used-but-marked-unused         # triggered by Boost.Test
         -Wno-c2y-extensions                 # triggered by Boost.Test's use of __COUNTER__
         -Wno-lifetime-safety-lifetimebound-violation  # can't verify chained operator<< returns ostr
+        # Reads any reference to a container as a reference into it, so a
+        # function that grows one twice - the div_t formatter's loop over
+        # to_chars output - is a use after invalidation to it. Reached only
+        # when an element type has no std::formatter of its own, which is why
+        # absl::int128 is the first to draw it. Clang 23 and 24-SVN both.
+        -Wno-lifetime-safety-invalidation
         # xstd::to_chars takes a char* range because std::to_chars does, so
         # every pointer step inside that contract draws this.
         -Wno-unsafe-buffer-usage
