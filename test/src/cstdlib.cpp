@@ -99,21 +99,21 @@ BOOST_AUTO_TEST_CASE(NonSignedIntegralArgumentsAreRejected)
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(ExactDivisions, T, xstd::test::std_signed_types)
 {
-        XSTD_CONSTEXPR_CHECK((xstd::div(T{+6}, T{+3}) == xstd::div_t<T>{+2, 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(T{+6}, T{+3}) == xstd::div_t<T>{+2, 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(T{+6}, T{+3}) == xstd::div_t<T>{+2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{+6}, T{+3})), (xstd::div_t<T>{+2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(T{+6}, T{+3})), (xstd::div_t<T>{+2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(T{+6}, T{+3})), (xstd::div_t<T>{+2, 0}));
 
-        XSTD_CONSTEXPR_CHECK((xstd::div(T{+6}, T{-3}) == xstd::div_t<T>{-2, 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(T{+6}, T{-3}) == xstd::div_t<T>{-2, 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(T{+6}, T{-3}) == xstd::div_t<T>{-2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{+6}, T{-3})), (xstd::div_t<T>{-2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(T{+6}, T{-3})), (xstd::div_t<T>{-2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(T{+6}, T{-3})), (xstd::div_t<T>{-2, 0}));
 
-        XSTD_CONSTEXPR_CHECK((xstd::div(T{-6}, T{+3}) == xstd::div_t<T>{-2, 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(T{-6}, T{+3}) == xstd::div_t<T>{-2, 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(T{-6}, T{+3}) == xstd::div_t<T>{-2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{-6}, T{+3})), (xstd::div_t<T>{-2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(T{-6}, T{+3})), (xstd::div_t<T>{-2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(T{-6}, T{+3})), (xstd::div_t<T>{-2, 0}));
 
-        XSTD_CONSTEXPR_CHECK((xstd::div(T{-6}, T{-3}) == xstd::div_t<T>{+2, 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(T{-6}, T{-3}) == xstd::div_t<T>{+2, 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(T{-6}, T{-3}) == xstd::div_t<T>{+2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{-6}, T{-3})), (xstd::div_t<T>{+2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(T{-6}, T{-3})), (xstd::div_t<T>{+2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(T{-6}, T{-3})), (xstd::div_t<T>{+2, 0}));
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(BoundaryDivisions, T, xstd::test::std_signed_types)
@@ -122,29 +122,29 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(BoundaryDivisions, T, xstd::test::std_signed_types
         constexpr auto min = limits::min();
         constexpr auto max = limits::max();
 
-        XSTD_CONSTEXPR_CHECK((xstd::div(min, T{+1}) == xstd::div_t<T>{min, 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(min, T{+1}) == xstd::div_t<T>{min, 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(min, T{+1}) == xstd::div_t<T>{min, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(min, T{+1})), (xstd::div_t<T>{min, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(min, T{+1})), (xstd::div_t<T>{min, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(min, T{+1})), (xstd::div_t<T>{min, 0}));
 
         // In contract though |MIN| is not representable, which is why the
         // postconditions are written with unsigned_abs rather than abs.
-        XSTD_CONSTEXPR_CHECK((xstd::div(T{+1}, min) == xstd::div_t<T>{0, +1}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(T{+1}, min) == xstd::div_t<T>{0, +1}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(T{+1}, min) == xstd::div_t<T>{-1, static_cast<T>(min + 1)}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{+1}, min)), (xstd::div_t<T>{0, +1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(T{+1}, min)), (xstd::div_t<T>{0, +1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(T{+1}, min)), (xstd::div_t<T>{-1, static_cast<T>(min + 1)}));
 
         // The same with a negative remainder, selecting euclidean_div's
         // negative adjustment, which spelled as a delta would form -MIN.
-        XSTD_CONSTEXPR_CHECK((xstd::div(T{-1}, min) == xstd::div_t<T>{0, -1}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(T{-1}, min) == xstd::div_t<T>{+1, max}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(T{-1}, min) == xstd::div_t<T>{0, -1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{-1}, min)), (xstd::div_t<T>{0, -1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(T{-1}, min)), (xstd::div_t<T>{+1, max}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(T{-1}, min)), (xstd::div_t<T>{0, -1}));
 
-        XSTD_CONSTEXPR_CHECK((xstd::div(max, T{-1}) == xstd::div_t<T>{static_cast<T>(-max), 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(max, T{-1}) == xstd::div_t<T>{static_cast<T>(-max), 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(max, T{-1}) == xstd::div_t<T>{static_cast<T>(-max), 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(max, T{-1})), (xstd::div_t<T>{static_cast<T>(-max), 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(max, T{-1})), (xstd::div_t<T>{static_cast<T>(-max), 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(max, T{-1})), (xstd::div_t<T>{static_cast<T>(-max), 0}));
 
-        XSTD_CONSTEXPR_CHECK((xstd::div(min, max) == xstd::div_t<T>{-1, -1}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(min, max) == xstd::div_t<T>{-2, static_cast<T>(max - 1)}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(min, max) == xstd::div_t<T>{-2, static_cast<T>(max - 1)}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(min, max)), (xstd::div_t<T>{-1, -1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(min, max)), (xstd::div_t<T>{-2, static_cast<T>(max - 1)}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(min, max)), (xstd::div_t<T>{-2, static_cast<T>(max - 1)}));
 }
 
 // The whole surface at one type, both arms of every conditional, on a type
@@ -156,37 +156,37 @@ auto check_signed_integral_like()
         using U = xstd::make_unsigned_like_t<S>;
         using limits = std::numeric_limits<S>;
 
-        XSTD_CONSTEXPR_CHECK((xstd::abs(S{-2}) == S{2}));
-        XSTD_CONSTEXPR_CHECK((xstd::abs(S{+2}) == S{2}));
-        XSTD_CONSTEXPR_CHECK((xstd::abs(static_cast<S>(limits::min() + S{1})) == limits::max()));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::abs(S{-2})), (S{2}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::abs(S{+2})), (S{2}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::abs(static_cast<S>(limits::min() + S{1}))), (limits::max()));
 
-        XSTD_CONSTEXPR_CHECK((xstd::unsigned_abs(S{+2}) == U{2}));
-        XSTD_CONSTEXPR_CHECK((xstd::unsigned_abs(S{-2}) == U{2}));
-        XSTD_CONSTEXPR_CHECK((xstd::unsigned_abs(limits::min()) == static_cast<U>(static_cast<U>(limits::max()) + U{1})));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::unsigned_abs(S{+2})), (U{2}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::unsigned_abs(S{-2})), (U{2}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::unsigned_abs(limits::min())), (static_cast<U>(static_cast<U>(limits::max()) + U{1})));
 
-        XSTD_CONSTEXPR_CHECK((xstd::sign(S{-2}) == -1));
-        XSTD_CONSTEXPR_CHECK((xstd::sign(S{0}) == 0));
-        XSTD_CONSTEXPR_CHECK((xstd::sign(S{+2}) == +1));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::sign(S{-2})), (-1));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::sign(S{0})), (0));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::sign(S{+2})), (+1));
 
-        XSTD_CONSTEXPR_CHECK((xstd::div(S{+8}, S{+3}) == xstd::div_t{S{+2}, S{+2}}));
-        XSTD_CONSTEXPR_CHECK((xstd::div(S{-8}, S{+3}) == xstd::div_t{S{-2}, S{-2}}));
-        XSTD_CONSTEXPR_CHECK((xstd::div(S{-8}, S{-3}) == xstd::div_t{S{+2}, S{-2}}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(S{+8}, S{+3})), (xstd::div_t{S{+2}, S{+2}}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(S{-8}, S{+3})), (xstd::div_t{S{-2}, S{-2}}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(S{-8}, S{-3})), (xstd::div_t{S{+2}, S{-2}}));
 
         // All three arms of euclidean_div's adjustment and both of
         // floored_div's.
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(S{+8}, S{+3}) == xstd::div_t{S{+2}, S{+2}}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(S{-8}, S{+3}) == xstd::div_t{S{-3}, S{+1}}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(S{-8}, S{-3}) == xstd::div_t{S{+3}, S{+1}}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(S{+8}, S{+3})), (xstd::div_t{S{+2}, S{+2}}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(S{-8}, S{+3})), (xstd::div_t{S{-3}, S{+1}}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(S{-8}, S{-3})), (xstd::div_t{S{+3}, S{+1}}));
 
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(S{+8}, S{+3}) == xstd::div_t{S{+2}, S{+2}}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(S{-8}, S{+3}) == xstd::div_t{S{-3}, S{+1}}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(S{-8}, S{-3}) == xstd::div_t{S{+2}, S{-2}}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(S{+8}, S{+3})), (xstd::div_t{S{+2}, S{+2}}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(S{-8}, S{+3})), (xstd::div_t{S{-3}, S{+1}}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(S{-8}, S{-3})), (xstd::div_t{S{+2}, S{-2}}));
 
         // denom == MIN, whose magnitude S cannot hold: in contract for all
         // three, and what the unsigned_abs postconditions are written for.
-        XSTD_CONSTEXPR_CHECK((xstd::div(S{-1}, limits::min()) == xstd::div_t{S{0}, S{-1}}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(S{-1}, limits::min()) == xstd::div_t{S{+1}, limits::max()}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(S{-1}, limits::min()) == xstd::div_t{S{0}, S{-1}}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(S{-1}, limits::min())), (xstd::div_t{S{0}, S{-1}}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(S{-1}, limits::min())), (xstd::div_t{S{+1}, limits::max()}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(S{-1}, limits::min())), (xstd::div_t{S{0}, S{-1}}));
 }
 
 // Which exact-width alias maps to which built-in is platform-dependent, so one
