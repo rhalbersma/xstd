@@ -41,22 +41,29 @@ struct std::formatter<xstd::div_t<S>, CharT> : std::formatter<std::basic_string_
                 auto widened = std::basic_string<CharT>{};
                 auto buffer = std::array<char, N>{};
 
-                auto const append = [&](S const value) XSTD_CONSTEXPR_FORMAT -> void {
+                // The string is a parameter rather than a capture, so that
+                // nothing holds a reference to it across the push_back calls
+                // below. Clang's -Wlifetime-safety-invalidation reads a
+                // captured container as borrowed for the lifetime of the
+                // lambda, and push_back as ending that borrow - true of a
+                // reference to an element, which this is not, but the analysis
+                // cannot tell the two apart.
+                auto const append = [&buffer](std::basic_string<CharT>& out, S const value) XSTD_CONSTEXPR_FORMAT -> void {
                         auto const result = xstd::to_chars(buffer.data(), buffer.data() + N, value);
                         // The buffer is sized for base 2, so decimal always fits.
                         assert(result.ec == std::errc{});
                         for (auto const* p = buffer.data(); p != result.ptr; ++p) {
-                                widened.push_back(static_cast<CharT>(*p));
+                                out.push_back(static_cast<CharT>(*p));
                         }
                 };
 
                 // Spelled to match what the tuple formatter produces, so the
                 // two specializations render a div_t identically.
                 widened.push_back(static_cast<CharT>('('));
-                append(d.quot);
+                append(widened, d.quot);
                 widened.push_back(static_cast<CharT>(','));
                 widened.push_back(static_cast<CharT>(' '));
-                append(d.rem);
+                append(widened, d.rem);
                 widened.push_back(static_cast<CharT>(')'));
 
                 return std::formatter<std::basic_string_view<CharT>, CharT>::format(widened, ctx);
