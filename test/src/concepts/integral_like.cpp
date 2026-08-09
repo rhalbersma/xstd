@@ -8,8 +8,10 @@
 #include <xstd/concepts/signed_integral_like.hpp>   // signed_integral_like
 #include <xstd/concepts/unsigned_integral_like.hpp> // unsigned_integral_like
 #include <xstd/test/constexpr.hpp>                  // XSTD_CONSTEXPR_CHECK
+#include <xstd/test/proxy_result.hpp>               // proxy_result
 #include <xstd/test/unannotated.hpp>                // unannotated, unannotated_unsigned
 #include <boost/test/unit_test.hpp>                 // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
+#include <concepts>                                 // convertible_to, same_as
 
 BOOST_AUTO_TEST_SUITE(Concepts)
 
@@ -52,6 +54,26 @@ BOOST_AUTO_TEST_CASE(NoIntegralTypeIsAnIntegerClassType)
         // Each is integral_like all the same, by the other branch.
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<int> and xstd::integral_like<short>);
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<char> and xstd::integral_like<unsigned long long>);
+}
+
+// /7.3 and /7.6 give the value-producing operators a result type, and the
+// concept asks for it rather than for something a static_cast<I> could reach.
+// The fixture is an integer-class type in every other respect, so it is these
+// rows alone that turn it away.
+BOOST_AUTO_TEST_CASE(OperatorResultsAreTheTypeItself)
+{
+        using T = xstd::test::proxy_result;
+
+        XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integer_class_type<T>);
+        XSTD_CONSTEXPR_CHECK(not xstd::integral_like<T>);
+
+        // Everything the binary operators return does convert to it, which is
+        // all a static_cast<I> in those rows would have established.
+        XSTD_CONSTEXPR_CHECK((std::convertible_to<decltype(T() + T()), T>));
+        XSTD_CONSTEXPR_CHECK((not std::same_as<decltype(T() + T()), T>));
+
+        // The unannotated fixture differs from it in nothing else and passes.
+        XSTD_CONSTEXPR_CHECK(xstd::exposition_only::integer_class_type<xstd::test::unannotated_unsigned>);
 }
 
 // On both branches. The integer-class one takes doing: its requirements are

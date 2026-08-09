@@ -13,6 +13,6 @@
 #include <xstd/concepts/specialization_of.hpp>      // IWYU pragma: export; specialization_of
 
 // Exception specification of the integer functions
-#include <xstd/concepts/nothrow_arithmetic.hpp> // IWYU pragma: export; nothrow_arithmetic
+#include <xstd/concepts/nothrow_integral_operators.hpp> // IWYU pragma: export; nothrow_integral_operators
 
 #endif // XSTD_CONCEPTS_HPP
