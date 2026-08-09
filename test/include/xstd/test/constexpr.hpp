@@ -6,38 +6,43 @@
 #ifndef XSTD_TEST_CONSTEXPR_HPP
 #define XSTD_TEST_CONSTEXPR_HPP
 
+#include <xstd/charconv/to_chars.hpp>             // to_chars, to_chars_max_size
 #include <xstd/concepts/integral_like.hpp>        // integral_like
 #include <xstd/concepts/signed_integral_like.hpp> // signed_integral_like
 #include <xstd/cstdint.hpp>                       // int128, uint128
 #include <xstd/cstdlib/div_t.hpp>                 // div_t
-#include <xstd/type_traits/is_signed_like.hpp>    // is_signed_like_v
 #include <boost/test/unit_test.hpp>               // BOOST_CHECK, BOOST_CHECK_EQUAL
+#include <array>                                  // array
+#include <cassert>                                // assert
 #include <ostream>                                // ostream
-#include <string>                                 // string
+#include <string_view>                            // string_view
+#include <system_error>                           // errc
 
 namespace xstd::test {
 
-// Its own digits loop rather than xstd::to_chars: a diagnostic written with the
-// code under test says nothing about the run that code broke.
+// xstd::to_chars, the one thing that renders a 128-bit value everywhere the
+// suite builds. The standard has nothing that does: neither spelling of
+// xstd::int128 has an ostream inserter, and while std::to_chars and
+// std::format both take __int128 on some standard libraries - libstdc++ added
+// the strict-mode to_chars overloads after GCC 13, where the call is still
+// ambiguous - neither takes the Microsoft STL's _Signed128, which declares no
+// more than its shifts.
+//
+// Which makes this the code under test only where the standard covers
+// nothing: elsewhere xstd::to_chars is a call to std::to_chars, by its own
+// constrained overload. Sound even there, because to_chars is not on trial in
+// the suites this printer serves, and the suite where it is on trial compares
+// strings against literals and asks for no printer at all - so a fault in it
+// is caught by its own checks rather than by garbling someone else's.
 template<integral_like I>
-[[nodiscard]] auto to_decimal(I const value)
-        -> std::string
+auto print_integral_like(std::ostream& ostr, I const value)
+        -> void
 {
-        auto digits = std::string{};
-        for (auto rest = value;;) {
-                auto const digit = static_cast<int>(rest % I{10});
-                digits.insert(digits.begin(), static_cast<char>('0' + (digit < 0 ? -digit : digit)));
-                rest = static_cast<I>(rest / I{10});
-                if (rest == I{0}) {
-                        break;
-                }
-        }
-        if constexpr (is_signed_like_v<I>) {
-                if (value < I{0}) {
-                        digits.insert(digits.begin(), '-');
-                }
-        }
-        return digits;
+        auto buffer = std::array<char, to_chars_max_size<I>>{};
+        auto const result = to_chars(buffer.data(), buffer.data() + buffer.size(), value);
+        // The buffer is sized for base 2, so decimal always fits.
+        assert(result.ec == std::errc{});
+        ostr << std::string_view(buffer.data(), result.ptr);
 }
 
 } // namespace xstd::test
@@ -52,7 +57,7 @@ struct print_log_value<xstd::int128>
         auto operator()(std::ostream& ostr, xstd::int128 const value) const
                 -> void
         {
-                ostr << xstd::test::to_decimal(value);
+                xstd::test::print_integral_like(ostr, value);
         }
 };
 
@@ -62,7 +67,7 @@ struct print_log_value<xstd::uint128>
         auto operator()(std::ostream& ostr, xstd::uint128 const value) const
                 -> void
         {
-                ostr << xstd::test::to_decimal(value);
+                xstd::test::print_integral_like(ostr, value);
         }
 };
 
@@ -74,7 +79,11 @@ struct print_log_value<xstd::div_t<S>>
         auto operator()(std::ostream& ostr, xstd::div_t<S> const& d) const
                 -> void
         {
-                ostr << '(' << xstd::test::to_decimal(d.quot) << ", " << xstd::test::to_decimal(d.rem) << ')';
+                ostr << '(';
+                xstd::test::print_integral_like(ostr, d.quot);
+                ostr << ", ";
+                xstd::test::print_integral_like(ostr, d.rem);
+                ostr << ')';
         }
 };
 

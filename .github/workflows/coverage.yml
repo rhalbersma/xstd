@@ -108,10 +108,19 @@ jobs:
 
       # Full line coverage of include/, less assert(...) and "= default;", and
       # less the branches gcov synthesizes that no test can take.
+      #
+      # --merge-lines because the question this gate asks is whether a line of
+      # a template is ever run, not whether every emitted copy of it is. Without
+      # it gcov's records stay per instantiation and per translation unit, so a
+      # header line reads as uncovered in a unit that instantiates it and takes
+      # another route - which the same line, run in the unit next door, does not
+      # redeem. That is not a gap in the tests, and closing it means re-running
+      # identical code once per caller.
       - name: Generate coverage report
         run: >
           gcovr --root .
           --gcov-executable gcov-15
+          --merge-lines
           --exclude 'test/.*'
           --exclude 'build/.*'
           --exclude-lines-by-pattern '^\s*assert\('

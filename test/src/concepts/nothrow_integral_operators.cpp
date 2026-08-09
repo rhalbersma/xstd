@@ -8,8 +8,8 @@
 #include <xstd/cstdint.hpp>                             // int128, uint128
 #include <xstd/cstdlib/abs.hpp>                         // abs
 #include <xstd/cstdlib/div.hpp>                         // div
+#include <xstd/test/absl_int128.hpp>                    // XSTD_TEST_HAS_ABSL_INT128, absl_int128, absl_uint128
 #include <xstd/test/constexpr.hpp>                      // XSTD_CONSTEXPR_CHECK
-#include <xstd/test/unannotated.hpp>                    // unannotated
 #include <boost/test/unit_test.hpp>                     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <complex>                                      // complex
 
@@ -25,9 +25,11 @@ BOOST_AUTO_TEST_CASE(NothrowIntegralOperators)
 
         // An unannotated integer-class type is admitted by integral_like and
         // refused here, which is why the two are separate concepts.
-        XSTD_CONSTEXPR_CHECK(xstd::integral_like<xstd::test::unannotated>);
-        XSTD_CONSTEXPR_CHECK(not xstd::nothrow_integral_operators<xstd::test::unannotated>);
-        XSTD_CONSTEXPR_CHECK(not xstd::nothrow_integral_operators<xstd::test::unannotated_unsigned>);
+#ifdef XSTD_TEST_HAS_ABSL_INT128
+        XSTD_CONSTEXPR_CHECK(xstd::integral_like<xstd::test::absl_int128>);
+        XSTD_CONSTEXPR_CHECK(not xstd::nothrow_integral_operators<xstd::test::absl_int128>);
+        XSTD_CONSTEXPR_CHECK(not xstd::nothrow_integral_operators<xstd::test::absl_uint128>);
+#endif
 }
 
 // Total, the conjunction short-circuiting on integral_like before any operator
@@ -53,9 +55,11 @@ BOOST_AUTO_TEST_CASE(NothrowIntegralOperatorsIsTheExceptionSpecification)
         XSTD_CONSTEXPR_CHECK(noexcept(xstd::abs(1)) == xstd::nothrow_integral_operators<int>);
         XSTD_CONSTEXPR_CHECK(noexcept(xstd::div(1, 1)) == xstd::nothrow_integral_operators<int>);
 
-        using T = xstd::test::unannotated;
+#ifdef XSTD_TEST_HAS_ABSL_INT128
+        using T = xstd::test::absl_int128;
         XSTD_CONSTEXPR_CHECK(noexcept(xstd::abs(T{1})) == xstd::nothrow_integral_operators<T>);
         XSTD_CONSTEXPR_CHECK(noexcept(xstd::div(T{1}, T{1})) == xstd::nothrow_integral_operators<T>);
+#endif
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -7,9 +7,9 @@
 #include <xstd/concepts/integral_like.hpp>          // integral_like
 #include <xstd/concepts/signed_integral_like.hpp>   // signed_integral_like
 #include <xstd/concepts/unsigned_integral_like.hpp> // unsigned_integral_like
+#include <xstd/test/absl_int128.hpp>                // XSTD_TEST_HAS_ABSL_INT128, absl_int128, absl_uint128
 #include <xstd/test/constexpr.hpp>                  // XSTD_CONSTEXPR_CHECK
 #include <xstd/test/proxy_result.hpp>               // proxy_result
-#include <xstd/test/unannotated.hpp>                // unannotated, unannotated_unsigned
 #include <boost/test/unit_test.hpp>                 // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <concepts>                                 // convertible_to, same_as
 
@@ -72,23 +72,32 @@ BOOST_AUTO_TEST_CASE(OperatorResultsAreTheTypeItself)
         XSTD_CONSTEXPR_CHECK((std::convertible_to<decltype(T() + T()), T>));
         XSTD_CONSTEXPR_CHECK((not std::same_as<decltype(T() + T()), T>));
 
-        // The unannotated fixture differs from it in nothing else and passes.
-        XSTD_CONSTEXPR_CHECK(xstd::exposition_only::integer_class_type<xstd::test::unannotated_unsigned>);
+        // absl::uint128 differs from it in nothing else and passes.
+#ifdef XSTD_TEST_HAS_ABSL_INT128
+        XSTD_CONSTEXPR_CHECK(xstd::exposition_only::integer_class_type<xstd::test::absl_uint128>);
+#endif
 }
 
 // On both branches. The integer-class one takes doing: its requirements are
-// stated for an object that can be assigned, so a const type fails ++a.
+// stated for an object that can be assigned, so a const type fails ++a. It
+// also takes a type on that branch, which is what the optional dependency is.
 BOOST_AUTO_TEST_CASE(IntegralLikeIsCvTransparentOnBothBranches)
 {
-        using T = xstd::test::unannotated;
+        XSTD_CONSTEXPR_CHECK(xstd::integral_like<int const>);
+        XSTD_CONSTEXPR_CHECK(xstd::integral_like<int volatile>);
+        XSTD_CONSTEXPR_CHECK(xstd::integral_like<int const volatile>);
 
-        XSTD_CONSTEXPR_CHECK(xstd::integral_like<int const> and xstd::integral_like<T const>);
-        XSTD_CONSTEXPR_CHECK(xstd::integral_like<int volatile> and xstd::integral_like<T volatile>);
-        XSTD_CONSTEXPR_CHECK(xstd::integral_like<int const volatile> and xstd::integral_like<T const volatile>);
+#ifdef XSTD_TEST_HAS_ABSL_INT128
+        using T = xstd::test::absl_int128;
+
+        XSTD_CONSTEXPR_CHECK(xstd::integral_like<T const>);
+        XSTD_CONSTEXPR_CHECK(xstd::integral_like<T volatile>);
+        XSTD_CONSTEXPR_CHECK(xstd::integral_like<T const volatile>);
 
         // The signedness travels with it, on the same terms.
         XSTD_CONSTEXPR_CHECK(xstd::signed_integral_like<T const>);
-        XSTD_CONSTEXPR_CHECK(xstd::unsigned_integral_like<xstd::test::unannotated_unsigned const>);
+        XSTD_CONSTEXPR_CHECK(xstd::unsigned_integral_like<xstd::test::absl_uint128 const>);
+#endif
 
         // A qualifier admits nothing the unqualified type would not have been.
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<double const>);

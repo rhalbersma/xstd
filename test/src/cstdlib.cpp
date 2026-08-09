@@ -5,12 +5,11 @@
 
 #include <xstd/cstdlib.hpp>                // complete arithmetic surface
 #include <xstd/cstdint.hpp>                // int128, uint128
-#include <xstd/concepts.hpp>               // signed_integral_like
+#include <xstd/concepts.hpp>               // integral_like, signed_integral_like
 #include <xstd/type_traits.hpp>            // make_unsigned_like_t
 #include <xstd/test/absl_int128.hpp>       // XSTD_TEST_HAS_ABSL_INT128
 #include <xstd/test/boost_int128.hpp>      // XSTD_TEST_HAS_BOOST_INT128
 #include <xstd/test/exact_width_types.hpp> // std_signed_types
-#include <xstd/test/unannotated.hpp>       // unannotated
 #include <xstd/test/constexpr.hpp>         // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
 #include <boost/test/unit_test.hpp>        // Boost.Test
 #include <algorithm>                       // ranges::transform
@@ -55,7 +54,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Constraints, T, xstd::test::std_signed_types)
         static_assert(std::same_as<decltype(xstd::floored_div(T{1}, T{1})), xstd::div_t<T>>);
 
         // Every type on these lists annotates its operations; one that does
-        // not is covered by UnannotatedIntegerClassType below.
+        // not is covered by UnannotatedThirdPartyIntegerClassType below.
         static_assert(noexcept(xstd::abs(T{})));
         static_assert(noexcept(xstd::unsigned_abs(T{})));
         static_assert(noexcept(xstd::sign(T{})));
@@ -100,21 +99,21 @@ BOOST_AUTO_TEST_CASE(NonSignedIntegralArgumentsAreRejected)
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(ExactDivisions, T, xstd::test::std_signed_types)
 {
-        XSTD_CONSTEXPR_CHECK((xstd::div(T{+6}, T{+3}) == xstd::div_t<T>{+2, 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(T{+6}, T{+3}) == xstd::div_t<T>{+2, 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(T{+6}, T{+3}) == xstd::div_t<T>{+2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{+6}, T{+3})), (xstd::div_t<T>{+2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(T{+6}, T{+3})), (xstd::div_t<T>{+2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(T{+6}, T{+3})), (xstd::div_t<T>{+2, 0}));
 
-        XSTD_CONSTEXPR_CHECK((xstd::div(T{+6}, T{-3}) == xstd::div_t<T>{-2, 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(T{+6}, T{-3}) == xstd::div_t<T>{-2, 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(T{+6}, T{-3}) == xstd::div_t<T>{-2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{+6}, T{-3})), (xstd::div_t<T>{-2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(T{+6}, T{-3})), (xstd::div_t<T>{-2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(T{+6}, T{-3})), (xstd::div_t<T>{-2, 0}));
 
-        XSTD_CONSTEXPR_CHECK((xstd::div(T{-6}, T{+3}) == xstd::div_t<T>{-2, 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(T{-6}, T{+3}) == xstd::div_t<T>{-2, 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(T{-6}, T{+3}) == xstd::div_t<T>{-2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{-6}, T{+3})), (xstd::div_t<T>{-2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(T{-6}, T{+3})), (xstd::div_t<T>{-2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(T{-6}, T{+3})), (xstd::div_t<T>{-2, 0}));
 
-        XSTD_CONSTEXPR_CHECK((xstd::div(T{-6}, T{-3}) == xstd::div_t<T>{+2, 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(T{-6}, T{-3}) == xstd::div_t<T>{+2, 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(T{-6}, T{-3}) == xstd::div_t<T>{+2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{-6}, T{-3})), (xstd::div_t<T>{+2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(T{-6}, T{-3})), (xstd::div_t<T>{+2, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(T{-6}, T{-3})), (xstd::div_t<T>{+2, 0}));
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(BoundaryDivisions, T, xstd::test::std_signed_types)
@@ -123,29 +122,29 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(BoundaryDivisions, T, xstd::test::std_signed_types
         constexpr auto min = limits::min();
         constexpr auto max = limits::max();
 
-        XSTD_CONSTEXPR_CHECK((xstd::div(min, T{+1}) == xstd::div_t<T>{min, 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(min, T{+1}) == xstd::div_t<T>{min, 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(min, T{+1}) == xstd::div_t<T>{min, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(min, T{+1})), (xstd::div_t<T>{min, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(min, T{+1})), (xstd::div_t<T>{min, 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(min, T{+1})), (xstd::div_t<T>{min, 0}));
 
         // In contract though |MIN| is not representable, which is why the
         // postconditions are written with unsigned_abs rather than abs.
-        XSTD_CONSTEXPR_CHECK((xstd::div(T{+1}, min) == xstd::div_t<T>{0, +1}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(T{+1}, min) == xstd::div_t<T>{0, +1}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(T{+1}, min) == xstd::div_t<T>{-1, static_cast<T>(min + 1)}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{+1}, min)), (xstd::div_t<T>{0, +1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(T{+1}, min)), (xstd::div_t<T>{0, +1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(T{+1}, min)), (xstd::div_t<T>{-1, static_cast<T>(min + 1)}));
 
         // The same with a negative remainder, selecting euclidean_div's
         // negative adjustment, which spelled as a delta would form -MIN.
-        XSTD_CONSTEXPR_CHECK((xstd::div(T{-1}, min) == xstd::div_t<T>{0, -1}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(T{-1}, min) == xstd::div_t<T>{+1, max}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(T{-1}, min) == xstd::div_t<T>{0, -1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{-1}, min)), (xstd::div_t<T>{0, -1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(T{-1}, min)), (xstd::div_t<T>{+1, max}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(T{-1}, min)), (xstd::div_t<T>{0, -1}));
 
-        XSTD_CONSTEXPR_CHECK((xstd::div(max, T{-1}) == xstd::div_t<T>{static_cast<T>(-max), 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(max, T{-1}) == xstd::div_t<T>{static_cast<T>(-max), 0}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(max, T{-1}) == xstd::div_t<T>{static_cast<T>(-max), 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(max, T{-1})), (xstd::div_t<T>{static_cast<T>(-max), 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(max, T{-1})), (xstd::div_t<T>{static_cast<T>(-max), 0}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(max, T{-1})), (xstd::div_t<T>{static_cast<T>(-max), 0}));
 
-        XSTD_CONSTEXPR_CHECK((xstd::div(min, max) == xstd::div_t<T>{-1, -1}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(min, max) == xstd::div_t<T>{-2, static_cast<T>(max - 1)}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(min, max) == xstd::div_t<T>{-2, static_cast<T>(max - 1)}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(min, max)), (xstd::div_t<T>{-1, -1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(min, max)), (xstd::div_t<T>{-2, static_cast<T>(max - 1)}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(min, max)), (xstd::div_t<T>{-2, static_cast<T>(max - 1)}));
 }
 
 // The whole surface at one type, both arms of every conditional, on a type
@@ -157,37 +156,37 @@ auto check_signed_integral_like()
         using U = xstd::make_unsigned_like_t<S>;
         using limits = std::numeric_limits<S>;
 
-        XSTD_CONSTEXPR_CHECK((xstd::abs(S{-2}) == S{2}));
-        XSTD_CONSTEXPR_CHECK((xstd::abs(S{+2}) == S{2}));
-        XSTD_CONSTEXPR_CHECK((xstd::abs(static_cast<S>(limits::min() + S{1})) == limits::max()));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::abs(S{-2})), (S{2}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::abs(S{+2})), (S{2}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::abs(static_cast<S>(limits::min() + S{1}))), (limits::max()));
 
-        XSTD_CONSTEXPR_CHECK((xstd::unsigned_abs(S{+2}) == U{2}));
-        XSTD_CONSTEXPR_CHECK((xstd::unsigned_abs(S{-2}) == U{2}));
-        XSTD_CONSTEXPR_CHECK((xstd::unsigned_abs(limits::min()) == static_cast<U>(static_cast<U>(limits::max()) + U{1})));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::unsigned_abs(S{+2})), (U{2}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::unsigned_abs(S{-2})), (U{2}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::unsigned_abs(limits::min())), (static_cast<U>(static_cast<U>(limits::max()) + U{1})));
 
-        XSTD_CONSTEXPR_CHECK((xstd::sign(S{-2}) == -1));
-        XSTD_CONSTEXPR_CHECK((xstd::sign(S{0}) == 0));
-        XSTD_CONSTEXPR_CHECK((xstd::sign(S{+2}) == +1));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::sign(S{-2})), (-1));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::sign(S{0})), (0));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::sign(S{+2})), (+1));
 
-        XSTD_CONSTEXPR_CHECK((xstd::div(S{+8}, S{+3}) == xstd::div_t{S{+2}, S{+2}}));
-        XSTD_CONSTEXPR_CHECK((xstd::div(S{-8}, S{+3}) == xstd::div_t{S{-2}, S{-2}}));
-        XSTD_CONSTEXPR_CHECK((xstd::div(S{-8}, S{-3}) == xstd::div_t{S{+2}, S{-2}}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(S{+8}, S{+3})), (xstd::div_t{S{+2}, S{+2}}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(S{-8}, S{+3})), (xstd::div_t{S{-2}, S{-2}}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(S{-8}, S{-3})), (xstd::div_t{S{+2}, S{-2}}));
 
         // All three arms of euclidean_div's adjustment and both of
         // floored_div's.
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(S{+8}, S{+3}) == xstd::div_t{S{+2}, S{+2}}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(S{-8}, S{+3}) == xstd::div_t{S{-3}, S{+1}}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(S{-8}, S{-3}) == xstd::div_t{S{+3}, S{+1}}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(S{+8}, S{+3})), (xstd::div_t{S{+2}, S{+2}}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(S{-8}, S{+3})), (xstd::div_t{S{-3}, S{+1}}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(S{-8}, S{-3})), (xstd::div_t{S{+3}, S{+1}}));
 
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(S{+8}, S{+3}) == xstd::div_t{S{+2}, S{+2}}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(S{-8}, S{+3}) == xstd::div_t{S{-3}, S{+1}}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(S{-8}, S{-3}) == xstd::div_t{S{+2}, S{-2}}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(S{+8}, S{+3})), (xstd::div_t{S{+2}, S{+2}}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(S{-8}, S{+3})), (xstd::div_t{S{-3}, S{+1}}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(S{-8}, S{-3})), (xstd::div_t{S{+2}, S{-2}}));
 
         // denom == MIN, whose magnitude S cannot hold: in contract for all
         // three, and what the unsigned_abs postconditions are written for.
-        XSTD_CONSTEXPR_CHECK((xstd::div(S{-1}, limits::min()) == xstd::div_t{S{0}, S{-1}}));
-        XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(S{-1}, limits::min()) == xstd::div_t{S{+1}, limits::max()}));
-        XSTD_CONSTEXPR_CHECK((xstd::floored_div(S{-1}, limits::min()) == xstd::div_t{S{0}, S{-1}}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(S{-1}, limits::min())), (xstd::div_t{S{0}, S{-1}}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::euclidean_div(S{-1}, limits::min())), (xstd::div_t{S{+1}, limits::max()}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(S{-1}, limits::min())), (xstd::div_t{S{0}, S{-1}}));
 }
 
 // Which exact-width alias maps to which built-in is platform-dependent, so one
@@ -235,6 +234,50 @@ BOOST_AUTO_TEST_CASE(ThirdPartyIntegerClassType)
 
 #endif
 
+// The other arm of the conditional exception specification, from a third
+// party's type as well: absl::int128 declares not one noexcept in its header,
+// so neither do the six functions when called with it.
+#ifdef XSTD_TEST_HAS_ABSL_INT128
+
+BOOST_AUTO_TEST_CASE(UnannotatedThirdPartyIntegerClassType)
+{
+        using T = xstd::test::absl_int128;
+
+        static_assert(xstd::integral_like<T>);
+        static_assert(xstd::signed_integral_like<T>);
+        static_assert(std::same_as<decltype(xstd::unsigned_abs(T{})), xstd::test::absl_uint128>);
+        static_assert(std::same_as<decltype(xstd::div(T{1}, T{1})), xstd::div_t<T>>);
+
+        static_assert(not noexcept(xstd::abs(T{1})));
+        static_assert(not noexcept(xstd::unsigned_abs(T{1})));
+        static_assert(not noexcept(xstd::sign(T{1})));
+        static_assert(not noexcept(xstd::div(T{1}, T{1})));
+        static_assert(not noexcept(xstd::euclidean_div(T{1}, T{1})));
+        static_assert(not noexcept(xstd::floored_div(T{1}, T{1})));
+
+        // A built-in still is, which an unconditional removal would have lost.
+        static_assert(noexcept(xstd::abs(1)));
+        static_assert(noexcept(xstd::sign(1)));
+        static_assert(noexcept(xstd::div(1, 1)));
+
+#ifdef ABSL_HAVE_INTRINSIC_INT128
+        check_signed_integral_like<T>();
+#else
+        // Without a 128-bit intrinsic to lower them to, its operator/ and
+        // operator% are out-of-line in int128.cc and not constexpr, so the
+        // battery above cannot be constant-evaluated there. The values still
+        // have to come out, which is what is left to check.
+        BOOST_CHECK(xstd::abs(T{-2}) == T{2});
+        BOOST_CHECK(xstd::unsigned_abs(T{-2}) == xstd::test::absl_uint128{2});
+        BOOST_CHECK(xstd::sign(T{-2}) == -1);
+        BOOST_CHECK((xstd::div(T{-8}, T{+3}) == xstd::div_t{T{-2}, T{-2}}));
+        BOOST_CHECK((xstd::euclidean_div(T{-8}, T{+3}) == xstd::div_t{T{-3}, T{+1}}));
+        BOOST_CHECK((xstd::floored_div(T{-8}, T{+3}) == xstd::div_t{T{-3}, T{+1}}));
+#endif
+}
+
+#endif
+
 // clang-format off
 auto const input = std::array<std::pair<int, int>, 8>
 {{
@@ -260,71 +303,6 @@ BOOST_AUTO_TEST_CASE(StdDiv)
         });
 
         BOOST_CHECK(std_res == std_div);
-}
-
-// The same two halves at once, in the field rather than in a fixture: a
-// 128-bit type no header here names, which also declares no noexcept anywhere.
-#ifdef XSTD_TEST_HAS_ABSL_INT128
-
-BOOST_AUTO_TEST_CASE(UnannotatedThirdPartyIntegerClassType)
-{
-        using T = xstd::test::absl_int128;
-
-        static_assert(xstd::signed_integral_like<T>);
-        static_assert(std::same_as<decltype(xstd::unsigned_abs(T{})), xstd::test::absl_uint128>);
-        static_assert(std::same_as<decltype(xstd::div(T{1}, T{1})), xstd::div_t<T>>);
-
-        // What the fixture below is written to stand in for, from the type
-        // itself: not one noexcept in its header, and the six functions say so.
-        static_assert(not noexcept(xstd::abs(T{1})));
-        static_assert(not noexcept(xstd::unsigned_abs(T{1})));
-        static_assert(not noexcept(xstd::sign(T{1})));
-        static_assert(not noexcept(xstd::div(T{1}, T{1})));
-        static_assert(not noexcept(xstd::euclidean_div(T{1}, T{1})));
-        static_assert(not noexcept(xstd::floored_div(T{1}, T{1})));
-
-#ifdef ABSL_HAVE_INTRINSIC_INT128
-        check_signed_integral_like<T>();
-#else
-        // Without a 128-bit intrinsic to lower them to, its operator/ and
-        // operator% are out-of-line in int128.cc and not constexpr, so the
-        // battery above cannot be constant-evaluated there. The values still
-        // have to come out, which is what is left to check.
-        BOOST_CHECK(xstd::abs(T{-2}) == T{2});
-        BOOST_CHECK(xstd::unsigned_abs(T{-2}) == xstd::test::absl_uint128{2});
-        BOOST_CHECK(xstd::sign(T{-2}) == -1);
-        BOOST_CHECK((xstd::div(T{-8}, T{+3}) == xstd::div_t{T{-2}, T{-2}}));
-        BOOST_CHECK((xstd::euclidean_div(T{-8}, T{+3}) == xstd::div_t{T{-3}, T{+1}}));
-        BOOST_CHECK((xstd::floored_div(T{-8}, T{+3}) == xstd::div_t{T{-3}, T{+1}}));
-#endif
-}
-
-#endif
-
-// The same half again, at a type whose every operation is under this suite's
-// control: a fixture stays available where the dependency above is not.
-BOOST_AUTO_TEST_CASE(UnannotatedIntegerClassType)
-{
-        using T = xstd::test::unannotated;
-
-        static_assert(xstd::integral_like<T>);
-        static_assert(xstd::signed_integral_like<T>);
-
-        // Nothing about it is noexcept, so nothing built on it pretends to be.
-        static_assert(not noexcept(xstd::abs(T{1})));
-        static_assert(not noexcept(xstd::sign(T{1})));
-        static_assert(not noexcept(xstd::div(T{1}, T{1})));
-        static_assert(not noexcept(xstd::euclidean_div(T{1}, T{1})));
-        static_assert(not noexcept(xstd::floored_div(T{1}, T{1})));
-
-        // A built-in still is, which a plain removal would have lost.
-        static_assert(noexcept(xstd::abs(1)));
-        static_assert(noexcept(xstd::sign(1)));
-        static_assert(noexcept(xstd::div(1, 1)));
-
-        // The same battery the other types get: gcov counts branches per
-        // instantiation, so a new element type brings a fresh copy of each.
-        check_signed_integral_like<T>();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

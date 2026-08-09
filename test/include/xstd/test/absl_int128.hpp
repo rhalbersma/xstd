@@ -6,10 +6,9 @@
 #ifndef XSTD_TEST_ABSL_INT128_HPP
 #define XSTD_TEST_ABSL_INT128_HPP
 
-// The type xstd::test::unannotated_type was written to imitate: an
-// integer-class type xstd has never heard of, carrying no noexcept anywhere.
-// Here as itself, so the conditional exception specification is answered
-// against a type in the field rather than against a fixture alone.
+// An integer-class type xstd has never heard of which carries no noexcept
+// anywhere, so the conditional exception specification is answered against a
+// type in the field rather than against a fixture written to imitate one.
 #if __has_include(<absl/numeric/int128.h>)
 
 #define XSTD_TEST_HAS_ABSL_INT128

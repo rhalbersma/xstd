@@ -10,6 +10,7 @@
 #include <array>                           // array
 #include <charconv>                        // to_chars, to_chars_result
 #include <concepts>                        // same_as
+#include <cstddef>                         // size_t
 #include <limits>                          // numeric_limits
 #include <string>                          // string
 #include <string_view>                     // string_view
@@ -112,6 +113,46 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCaseUnsigned, T, xstd::test::e
         auto const short_buffer = xstd::to_chars(buffer.data(), buffer.data() + buffer.size() - 1, std::numeric_limits<T>::max(), 2);
         BOOST_CHECK(short_buffer.ec == std::errc::value_too_large);
         BOOST_CHECK(short_buffer.ptr == buffer.data() + buffer.size() - 1);
+}
+
+// Ground truth this file computes rather than borrows. DigitsPathMatchesTheStandard
+// above can only check the widths std::to_chars covers, which leaves the two the
+// suite most depends on - xstd::int128 in either of its spellings, and a third
+// party's - checked against nothing but themselves. Base 16 closes that: it puts
+// a boundary of any exact width into a shape a string is built to directly, max()
+// a 7 and then f's, min() an 8 and then zeros, an unsigned max() f's the whole
+// way. Nothing here counts in the type under test, so a fault in to_chars cannot
+// also produce the value it is compared against - which is what lets the printer
+// in test/constexpr.hpp render a failing check with this same function.
+BOOST_AUTO_TEST_CASE_TEMPLATE(HexBoundariesMatchGroundTruth, T, xstd::test::exact_width_signed_types)
+{
+        // digits counts value bits, one short of the width, so the boundaries
+        // run to that many hex characters past the leading one.
+        constexpr auto rest = static_cast<std::size_t>(std::numeric_limits<T>::digits - 3) / 4;
+
+        BOOST_CHECK_EQUAL(rendered(std::numeric_limits<T>::max(), 16), "7" + std::string(rest, 'f'));
+        BOOST_CHECK_EQUAL(rendered(std::numeric_limits<T>::min(), 16), "-8" + std::string(rest, '0'));
+
+        // And either side of zero, where the sign and the one-digit case meet.
+        BOOST_CHECK_EQUAL(rendered(T{-2}, 16), "-2");
+        BOOST_CHECK_EQUAL(rendered(T{-1}, 16), "-1");
+        BOOST_CHECK_EQUAL(rendered(T{0}, 16), "0");
+        BOOST_CHECK_EQUAL(rendered(T{+1}, 16), "1");
+        BOOST_CHECK_EQUAL(rendered(T{+2}, 16), "2");
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(HexBoundariesMatchGroundTruthUnsigned, T, xstd::test::exact_width_unsigned_types)
+{
+        // No sign bit here, so digits is the width and the answer is f's all
+        // the way rather than a leading digit and then f's.
+        constexpr auto width = static_cast<std::size_t>(std::numeric_limits<T>::digits) / 4;
+
+        BOOST_CHECK_EQUAL(rendered(std::numeric_limits<T>::max(), 16), std::string(width, 'f'));
+        BOOST_CHECK_EQUAL(rendered(std::numeric_limits<T>::min(), 16), "0");
+
+        BOOST_CHECK_EQUAL(rendered(T{0}, 16), "0");
+        BOOST_CHECK_EQUAL(rendered(T{1}, 16), "1");
+        BOOST_CHECK_EQUAL(rendered(T{2}, 16), "2");
 }
 
 BOOST_AUTO_TEST_CASE(Int128Boundaries)

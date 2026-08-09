@@ -14,14 +14,14 @@ BOOST_AUTO_TEST_SUITE(CStdLib)
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(TruncatedDiv, T, xstd::test::exact_width_signed_types)
 {
-        XSTD_CONSTEXPR_CHECK((xstd::div(T{+8}, T{+3}) == xstd::div_t<T>{+2, +2}));
-        XSTD_CONSTEXPR_CHECK((xstd::div(T{+8}, T{-3}) == xstd::div_t<T>{-2, +2}));
-        XSTD_CONSTEXPR_CHECK((xstd::div(T{-8}, T{+3}) == xstd::div_t<T>{-2, -2}));
-        XSTD_CONSTEXPR_CHECK((xstd::div(T{-8}, T{-3}) == xstd::div_t<T>{+2, -2}));
-        XSTD_CONSTEXPR_CHECK((xstd::div(T{+1}, T{+2}) == xstd::div_t<T>{0, +1}));
-        XSTD_CONSTEXPR_CHECK((xstd::div(T{+1}, T{-2}) == xstd::div_t<T>{0, +1}));
-        XSTD_CONSTEXPR_CHECK((xstd::div(T{-1}, T{+2}) == xstd::div_t<T>{0, -1}));
-        XSTD_CONSTEXPR_CHECK((xstd::div(T{-1}, T{-2}) == xstd::div_t<T>{0, -1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{+8}, T{+3})), (xstd::div_t<T>{+2, +2}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{+8}, T{-3})), (xstd::div_t<T>{-2, +2}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{-8}, T{+3})), (xstd::div_t<T>{-2, -2}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{-8}, T{-3})), (xstd::div_t<T>{+2, -2}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{+1}, T{+2})), (xstd::div_t<T>{0, +1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{+1}, T{-2})), (xstd::div_t<T>{0, +1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{-1}, T{+2})), (xstd::div_t<T>{0, -1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{-1}, T{-2})), (xstd::div_t<T>{0, -1}));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
