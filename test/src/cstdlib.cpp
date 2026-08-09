@@ -3,32 +3,28 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/cstdlib.hpp>           // complete arithmetic surface
-#include <xstd/cstdint.hpp>           // int128, uint128
-#include <xstd/concepts.hpp>          // signed_integral_like
-#include <xstd/type_traits.hpp>       // make_unsigned_like_t
-#include <xstd/test/absl_int128.hpp>  // XSTD_TEST_HAS_ABSL_INT128
-#include <xstd/test/boost_int128.hpp> // XSTD_TEST_HAS_BOOST_INT128
-#include <xstd/test/unannotated.hpp>  // unannotated
-#include <xstd/test/constexpr.hpp>    // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
-#include <boost/test/unit_test.hpp>   // Boost.Test
-#include <algorithm>                  // ranges::transform
-#include <array>                      // array
-#include <concepts>                   // integral, same_as, signed_integral
-#include <cstdint>                    // exact-width integer types, intmax_t
-#include <cstdlib>                    // div
-#include <iterator>                   // back_inserter
-#include <limits>                     // numeric_limits
-#include <tuple>                      // tuple
-#include <type_traits>                // make_unsigned_t
-#include <utility>                    // pair
-#include <vector>                     // vector
+#include <xstd/cstdlib.hpp>                // complete arithmetic surface
+#include <xstd/cstdint.hpp>                // int128, uint128
+#include <xstd/concepts.hpp>               // signed_integral_like
+#include <xstd/type_traits.hpp>            // make_unsigned_like_t
+#include <xstd/test/absl_int128.hpp>       // XSTD_TEST_HAS_ABSL_INT128
+#include <xstd/test/boost_int128.hpp>      // XSTD_TEST_HAS_BOOST_INT128
+#include <xstd/test/exact_width_types.hpp> // std_signed_types
+#include <xstd/test/unannotated.hpp>       // unannotated
+#include <xstd/test/constexpr.hpp>         // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
+#include <boost/test/unit_test.hpp>        // Boost.Test
+#include <algorithm>                       // ranges::transform
+#include <array>                           // array
+#include <concepts>                        // integral, same_as, signed_integral
+#include <cstdint>                         // exact-width integer types, intmax_t
+#include <cstdlib>                         // div
+#include <iterator>                        // back_inserter
+#include <limits>                          // numeric_limits
+#include <type_traits>                     // make_unsigned_t
+#include <utility>                         // pair
+#include <vector>                          // vector
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
-
-// What one constrained template buys over abs/labs/llabs/imaxabs: int8_t and
-// int16_t have no name in that scheme, and the two that do no longer need one.
-using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t>;
 
 // Named concepts rather than bare requires-expressions: an invalid operand
 // that is also non-dependent is a hard error on GCC.
@@ -45,8 +41,11 @@ template<class T, class U>
 concept has_div = requires (T numer, U denom) { xstd::div(numer, denom); };
 
 // The constraint itself: signed integral in, nothing else, and the argument
-// type comes back out rather than the promoted type.
-BOOST_AUTO_TEST_CASE_TEMPLATE(Constraints, T, exact_width_types)
+// type comes back out rather than the promoted type. The standard's widths
+// alone, std::make_unsigned_t below naming no other, and what one constrained
+// template buys over abs/labs/llabs/imaxabs: int8_t and int16_t have no name
+// in that scheme, and the two that do no longer need one.
+BOOST_AUTO_TEST_CASE_TEMPLATE(Constraints, T, xstd::test::std_signed_types)
 {
         static_assert(std::same_as<decltype(xstd::abs(T{})), T>);
         static_assert(std::same_as<decltype(xstd::unsigned_abs(T{})), std::make_unsigned_t<T>>);
@@ -99,7 +98,7 @@ BOOST_AUTO_TEST_CASE(NonSignedIntegralArgumentsAreRejected)
         BOOST_CHECK(true);
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(ExactDivisions, T, exact_width_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(ExactDivisions, T, xstd::test::std_signed_types)
 {
         XSTD_CONSTEXPR_CHECK((xstd::div(T{+6}, T{+3}) == xstd::div_t<T>{+2, 0}));
         XSTD_CONSTEXPR_CHECK((xstd::euclidean_div(T{+6}, T{+3}) == xstd::div_t<T>{+2, 0}));
@@ -118,7 +117,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(ExactDivisions, T, exact_width_types)
         XSTD_CONSTEXPR_CHECK((xstd::floored_div(T{-6}, T{-3}) == xstd::div_t<T>{+2, 0}));
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(BoundaryDivisions, T, exact_width_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(BoundaryDivisions, T, xstd::test::std_signed_types)
 {
         using limits = std::numeric_limits<T>;
         constexpr auto min = limits::min();

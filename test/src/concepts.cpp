@@ -3,15 +3,14 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/concepts.hpp>        // specialization_of, integral_like, signed_integral_like, unsigned_integral_like
-#include <xstd/type_traits.hpp>     // empty_type, is_integral_like_v, is_specialization_of_v
-#include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK
-#include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_CHECK
-#include <complex>                  // complex
-#include <concepts>                 // signed_integral, unsigned_integral
-#include <cstdint>                  // int8_t, int16_t, int32_t, int64_t
-#include <tuple>                    // tuple
-#include <type_traits>              // make_unsigned_t
+#include <xstd/concepts.hpp>               // specialization_of, integral_like, signed_integral_like, unsigned_integral_like
+#include <xstd/type_traits.hpp>            // empty_type, is_integral_like_v, is_specialization_of_v
+#include <xstd/test/constexpr.hpp>         // XSTD_CONSTEXPR_CHECK
+#include <xstd/test/exact_width_types.hpp> // std_signed_types
+#include <boost/test/unit_test.hpp>        // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_CHECK
+#include <complex>                         // complex
+#include <concepts>                        // signed_integral, unsigned_integral
+#include <type_traits>                     // make_unsigned_t
 
 BOOST_AUTO_TEST_SUITE(Concepts)
 
@@ -27,11 +26,10 @@ BOOST_AUTO_TEST_CASE(SpecializationOfAgreesWithItsTrait)
         XSTD_CONSTEXPR_CHECK((xstd::specialization_of<int, std::complex> == xstd::is_specialization_of_v<int, std::complex>));
 }
 
-using exact_width_types = std::tuple<std::int8_t, std::int16_t, std::int32_t, std::int64_t>;
-
 // What makes this a widening rather than a replacement: whatever std::integral
 // accepts, integral_like accepts, with the same signedness, at every width.
-BOOST_AUTO_TEST_CASE_TEMPLATE(IntegralLikeIsASupersetOfIntegral, T, exact_width_types)
+// The standard's widths alone, those being the ones std::integral accepts.
+BOOST_AUTO_TEST_CASE_TEMPLATE(IntegralLikeIsASupersetOfIntegral, T, xstd::test::std_signed_types)
 {
         using U = std::make_unsigned_t<T>;
 
