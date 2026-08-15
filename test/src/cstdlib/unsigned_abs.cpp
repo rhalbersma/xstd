@@ -13,8 +13,7 @@
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
-// The MIN-boundary wraparound directly and at compile time: what distinguishes
-// unsigned_abs from abs, and what a widening-based |x| could not have handled.
+// The MIN-boundary wraparound, at compile time: what distinguishes unsigned_abs from abs.
 BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedAbs, T, xstd::test::exact_width_signed_types)
 {
         using U = xstd::make_unsigned_like_t<T>;
@@ -28,8 +27,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedAbs, T, xstd::test::exact_width_signed_typ
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::unsigned_abs(limits::max()), static_cast<U>(limits::max()));
 }
 
-// The identity over an unsigned type, and its own unsigned counterpart, so
-// the boundary that distinguishes it from abs is not a boundary here.
+// The identity, and its own counterpart, so that boundary is not a boundary here.
 BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedAbsUnsigned, T, xstd::test::exact_width_unsigned_types)
 {
         static_assert(std::same_as<xstd::make_unsigned_like_t<T>, T>);

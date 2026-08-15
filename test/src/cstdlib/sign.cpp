@@ -24,8 +24,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Sign, T, xstd::test::exact_width_signed_types)
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(limits::max()), +1);
 }
 
-// Two of the three values, -1 being unreachable: an unsigned type has nothing
-// below zero for the second comparison to find.
+// Two of the three values, -1 being unreachable: nothing lies below zero.
 BOOST_AUTO_TEST_CASE_TEMPLATE(SignUnsigned, T, xstd::test::exact_width_unsigned_types)
 {
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(T{0}), 0);

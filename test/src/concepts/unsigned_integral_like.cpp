@@ -13,8 +13,7 @@ BOOST_AUTO_TEST_CASE(UnsignedIntegralLike)
 {
         XSTD_CONSTEXPR_CHECK(xstd::unsigned_integral_like<unsigned>);
         XSTD_CONSTEXPR_CHECK(not xstd::unsigned_integral_like<int>);
-        // The built-in branch follows std::integral, including its treatment
-        // of bool as an unsigned integral type.
+        // The built-in branch follows std::integral, bool included.
         XSTD_CONSTEXPR_CHECK(xstd::unsigned_integral_like<bool>);
         XSTD_CONSTEXPR_CHECK(xstd::unsigned_integral_like<unsigned volatile>);
 }

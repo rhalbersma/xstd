@@ -10,8 +10,7 @@
 
 BOOST_AUTO_TEST_SUITE(TypeTraits)
 
-// An incomplete class type is answered, not hard-errored: the traits being
-// widened cope with one, so these have to as well.
+// An incomplete class type is answered, not hard-errored, as the widened traits are.
 BOOST_AUTO_TEST_CASE(AnswersForIncompleteTypes)
 {
         XSTD_CONSTEXPR_CHECK(not xstd::is_signed_like_v<struct never_defined>);

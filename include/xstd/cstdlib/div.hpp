@@ -23,9 +23,7 @@ template<integral_like I>
         -> div_t<I>
 {
         assert(denom != static_cast<I>(0));
-        // MIN / -1 is the one unrepresentable quotient, and only a signed type
-        // has a MIN to reach it with: over an unsigned one static_cast<I>(-1)
-        // is max() and min() is 0, so the same line would refuse div(0, max).
+        // Only a signed type has a MIN to reach it with; unsigned, this refuses div(0, max).
         if constexpr (is_signed_like_v<I>) {
                 assert(numer != std::numeric_limits<I>::min() or denom != static_cast<I>(-1));
         }
@@ -37,8 +35,7 @@ template<integral_like I>
         return {.quot = qT, .rem = rT};
 }
 
-// Deleted for unsigned_abs's reason, which this reaches through its own
-// postconditions.
+// Deleted for unsigned_abs's reason, reached here through the postconditions above.
 auto div(bool, bool) -> div_t<bool> = delete;
 
 } // namespace xstd

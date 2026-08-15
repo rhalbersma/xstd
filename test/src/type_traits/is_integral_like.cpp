@@ -13,8 +13,7 @@ BOOST_AUTO_TEST_SUITE(TypeTraits)
 
 enum class color : unsigned { red = 1 };
 
-// The one opened trait whose standard counterpart answers from a closed list
-// rather than a property; agreement with it is covered by the sweep above.
+// The one opened trait whose standard counterpart answers from a list, not a property.
 BOOST_AUTO_TEST_CASE(IsIntegralLike)
 {
         XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<int>);
@@ -26,8 +25,7 @@ BOOST_AUTO_TEST_CASE(IsIntegralLike)
         XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<std::complex<double>>);
 }
 
-// Total where the requirements it reaches are ill-formed rather than merely
-// unsatisfied, the conjunction inside the concept short-circuiting first.
+// Total even where the requirements it reaches are ill-formed, the concept short-circuiting.
 BOOST_AUTO_TEST_CASE(IsIntegralLikeIsTotal)
 {
         XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<void>);
@@ -44,8 +42,7 @@ BOOST_AUTO_TEST_CASE(IsIntegralLikeIncludesCvQualifiedTypes)
         XSTD_CONSTEXPR_CHECK(std::is_integral_v<int volatile> and xstd::is_integral_like_v<int volatile>);
 }
 
-// The bool_constant form, which is what std::conjunction and tag dispatch want
-// and a concept cannot be.
+// The bool_constant form, which std::conjunction and tag dispatch want.
 BOOST_AUTO_TEST_CASE(IsIntegralLikeBoolConstant)
 {
         XSTD_CONSTEXPR_CHECK(xstd::is_integral_like<int>::value);

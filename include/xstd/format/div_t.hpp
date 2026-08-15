@@ -17,19 +17,16 @@
 #include <system_error>                    // errc
 #include <tuple>                           // tie, tuple
 
-// A div_t renders as "(quot, rem)": by the tuple formatter where the standard
-// library can, and by xstd::to_chars where it cannot.
+// A div_t renders as "(quot, rem)": by the tuple formatter, or by xstd::to_chars.
 
-// The base's format() is not constexpr before P3391 (C++29), and marking these
-// constexpr anyway would be ill-formed with no diagnostic required.
+// The base's format() is not constexpr before P3391 (C++29); claiming it anyway is IFNDR.
 #if defined(__cpp_lib_constexpr_format) && __cpp_lib_constexpr_format >= 202511L
 #define XSTD_CONSTEXPR_FORMAT constexpr
 #else
 #define XSTD_CONSTEXPR_FORMAT
 #endif
 
-// The one every div_t matches, rendering the members itself; the string base
-// carries fill, alignment and width, and its grammar is what parse() accepts.
+// The one every div_t matches; the string base carries fill, alignment and width.
 template<xstd::integral_like I, class CharT>
 // NOLINTNEXTLINE(bugprone-std-namespace-modification): permitted by [namespace.std]/2, see above
 struct std::formatter<xstd::div_t<I>, CharT> : std::formatter<std::basic_string_view<CharT>, CharT>
@@ -50,8 +47,7 @@ struct std::formatter<xstd::div_t<I>, CharT> : std::formatter<std::basic_string_
                         }
                 };
 
-                // Spelled to match what the tuple formatter produces, so the
-                // two specializations render a div_t identically.
+                // Spelled to match the tuple formatter, so the two render identically.
                 widened.push_back(static_cast<CharT>('('));
                 append(d.quot);
                 widened.push_back(static_cast<CharT>(','));
@@ -63,8 +59,7 @@ struct std::formatter<xstd::div_t<I>, CharT> : std::formatter<std::basic_string_
         }
 };
 
-// The more constrained one: the standard's own rendering. The constraint asks
-// after the tuple rather than after S, which covers both ways it can be absent.
+// The more constrained one: asked after the tuple, which covers both ways it can be absent.
 template<xstd::integral_like I, class CharT>
         requires std::formattable<std::tuple<I const&, I const&>, CharT>
 // NOLINTNEXTLINE(bugprone-std-namespace-modification): permitted by [namespace.std]/2, see above
@@ -73,8 +68,7 @@ struct std::formatter<xstd::div_t<I>, CharT> : std::formatter<std::tuple<I const
         [[nodiscard]] XSTD_CONSTEXPR_FORMAT auto format(xstd::div_t<I> const& d, auto& ctx) const
                 -> decltype(ctx.out())
         {
-                // tie yields exactly tuple<S const&, S const&>, the base's own
-                // type, so nothing is copied on the way in.
+                // tie yields the base's own type, so nothing is copied on the way in.
                 return std::formatter<std::tuple<I const&, I const&>, CharT>::format(std::tie(d.quot, d.rem), ctx);
         }
 };

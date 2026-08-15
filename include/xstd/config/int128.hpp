@@ -6,8 +6,7 @@
 #ifndef XSTD_CONFIG_INT128_HPP
 #define XSTD_CONFIG_INT128_HPP
 
-// Prefer the Microsoft STL's integer classes; otherwise use the compiler's
-// 128-bit extension.
+// Prefer the Microsoft STL's integer classes, else the compiler's 128-bit extension.
 #ifdef _MSC_VER
 
 #include <__msvc_int128.hpp>

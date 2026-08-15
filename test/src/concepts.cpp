@@ -16,8 +16,7 @@ BOOST_AUTO_TEST_SUITE(Concepts)
 
 BOOST_AUTO_TEST_CASE(SpecializationOfAgreesWithItsTrait)
 {
-        // nothing in the concept is specific to the standard library; a
-        // program-defined primary works, with its tag declared in place
+        // nothing in the concept is specific to the standard library
         XSTD_CONSTEXPR_CHECK((xstd::specialization_of<xstd::empty_type<struct user_tag>, xstd::empty_type>));
         XSTD_CONSTEXPR_CHECK((not xstd::specialization_of<int, xstd::empty_type>));
 
@@ -26,9 +25,7 @@ BOOST_AUTO_TEST_CASE(SpecializationOfAgreesWithItsTrait)
         XSTD_CONSTEXPR_CHECK((xstd::specialization_of<int, std::complex> == xstd::is_specialization_of_v<int, std::complex>));
 }
 
-// What makes this a widening rather than a replacement: whatever std::integral
-// accepts, integral_like accepts, with the same signedness, at every width.
-// The standard's widths alone, those being the ones std::integral accepts.
+// A widening, not a replacement: whatever std::integral accepts, this accepts.
 BOOST_AUTO_TEST_CASE_TEMPLATE(IntegralLikeIsASupersetOfIntegral, T, xstd::test::std_signed_types)
 {
         using U = std::make_unsigned_t<T>;
@@ -43,8 +40,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(IntegralLikeIsASupersetOfIntegral, T, xstd::test::
         BOOST_CHECK(true); // silence Boost.Test's "test case did not check any assertions"
 }
 
-// The concept agrees with the trait it is spelled over; why those are answers
-// rather than compile errors is pinned in src/type_traits.cpp.
+// The concept agrees with the trait it is spelled over.
 BOOST_AUTO_TEST_CASE(IntegralLikeAgreesWithItsTrait)
 {
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<int> == xstd::is_integral_like_v<int>);
@@ -54,8 +50,7 @@ BOOST_AUTO_TEST_CASE(IntegralLikeAgreesWithItsTrait)
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<int[3]> == xstd::is_integral_like_v<int[3]>);
 }
 
-// Partial-orders the way std::integral and std::signed_integral do, and only
-// because each narrower concept is spelled "integral_like<T> and ...".
+// Partial-orders as the standard's do, because each narrower one keeps integral_like atomic.
 template<xstd::integral_like I>
 [[nodiscard]] constexpr auto which(I) noexcept -> int
 {

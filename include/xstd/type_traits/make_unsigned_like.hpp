@@ -13,8 +13,7 @@
 
 namespace xstd {
 
-// Unsigned counterparts for integral-like types. The empty primary makes an
-// unsupported association a substitution failure.
+// Unsigned counterparts; the empty primary makes an unsupported association a failure.
 template<class T>
 struct make_unsigned_like
 {};
@@ -24,8 +23,7 @@ template<class T>
 struct make_unsigned_like<T> : std::make_unsigned<T>
 {};
 
-// An unsigned integer-class type is its own unsigned counterpart; a signed one
-// needs a user specialization naming its unsigned partner.
+// Such a type is its own counterpart; a signed one needs a user specialization.
 template<class T>
         requires (not std::is_integral_v<T>) and is_integral_like_v<T> and is_unsigned_like_v<T>
 struct make_unsigned_like<T> : std::type_identity<T>

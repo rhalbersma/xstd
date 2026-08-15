@@ -6,8 +6,7 @@
 #ifndef XSTD_TEST_BOOST_INT128_HPP
 #define XSTD_TEST_BOOST_INT128_HPP
 
-// An integer-class type xstd has never heard of, which xstd::int128 cannot be:
-// the library supplies its own trait associations for that one.
+// An integer-class type xstd has never heard of, which xstd::int128 cannot be.
 #if __has_include(<boost/int128.hpp>)
 
 #define XSTD_TEST_HAS_BOOST_INT128
@@ -19,8 +18,7 @@
 
 namespace xstd::test {
 
-// Named once because the spelling is not settled: upstream dropped the _t
-// suffix after its last release tag, so it depends on the pinned commit.
+// Named once: upstream dropped the _t suffix after its last release tag.
 using boost_int128 = boost::int128::int128;
 using boost_uint128 = boost::int128::uint128;
 
@@ -28,8 +26,7 @@ using boost_uint128 = boost::int128::uint128;
 
 namespace xstd {
 
-// The one thing a library cannot work out for a type it does not know. Here
-// rather than in a shipped header, so this stays a test of the extension point.
+// The one thing a library cannot work out for a type it does not know.
 template<>
 struct make_unsigned_like<test::boost_int128> : std::type_identity<test::boost_uint128>
 {};

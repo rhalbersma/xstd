@@ -21,8 +21,7 @@ struct compressed_member
 
 static_assert(sizeof(compressed_member) == sizeof(int));
 
-// the tag can be declared in place, which is how a class names each of its
-// conditional members; both stand in for the same Type, the colliding case
+// the tag can be declared in place; both stand in for the same Type, the colliding case
 using member1 = xstd::conditional_data_member_t<false, tag1, struct member1_tag>;
 using member2 = xstd::conditional_data_member_t<false, tag1, struct member2_tag>;
 
@@ -32,14 +31,12 @@ BOOST_AUTO_TEST_CASE(ConditionalDataMember)
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::conditional_data_member_t<false, tag1, tag2>, xstd::empty_type<tag2>>));
         XSTD_CONSTEXPR_CHECK((std::is_empty_v<xstd::conditional_data_member_t<false, tag1, tag2>>));
 
-        // the tag names the member rather than the type it stands in for, so
-        // two absent ones can still overlap in the layout
+        // the tag names the member, so two absent ones can still overlap in the layout
         XSTD_CONSTEXPR_CHECK((std::is_empty_v<member1>));
         XSTD_CONSTEXPR_CHECK((std::is_empty_v<member2>));
         XSTD_CONSTEXPR_CHECK((not std::is_same_v<member1, member2>));
 
-        // the tag is inert when the member is present: same Type, same tags
-        // as above, and the two agree once the condition holds
+        // the tag is inert when the member is present, and the two then agree
         XSTD_CONSTEXPR_CHECK((std::is_same_v<
                               xstd::conditional_data_member_t<true, tag1, struct member1_tag>,
                               xstd::conditional_data_member_t<true, tag1, struct member2_tag>>));

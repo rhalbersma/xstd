@@ -6,9 +6,7 @@
 #ifndef XSTD_TEST_ABSL_INT128_HPP
 #define XSTD_TEST_ABSL_INT128_HPP
 
-// An integer-class type xstd has never heard of which carries no noexcept
-// anywhere, so the conditional exception specification is answered against a
-// type in the field rather than against a fixture written to imitate one.
+// An integer-class type xstd has never heard of, carrying no noexcept anywhere.
 #if __has_include(<absl/numeric/int128.h>)
 
 #define XSTD_TEST_HAS_ABSL_INT128
@@ -20,8 +18,7 @@
 
 namespace xstd::test {
 
-// Named here for the reason the Boost.Int128 pair is: one spelling for the
-// tests to use, whichever header supplied it.
+// One spelling for the tests to use, whichever header supplied it.
 using absl_int128 = absl::int128;
 using absl_uint128 = absl::uint128;
 
@@ -29,8 +26,7 @@ using absl_uint128 = absl::uint128;
 
 namespace xstd {
 
-// The one thing a library cannot work out for a type it does not know. Here
-// rather than in a shipped header, so this stays a test of the extension point.
+// The one thing a library cannot work out for a type it does not know.
 template<>
 struct make_unsigned_like<test::absl_int128> : std::type_identity<test::absl_uint128>
 {};
