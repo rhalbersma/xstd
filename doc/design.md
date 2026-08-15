@@ -260,6 +260,40 @@ finds nothing that differs; `readability-magic-numbers` does fire on it, and is
 suppressed one line at a time rather than by teaching the check to ignore `10`
 throughout the library.
 
+The digits come off the unsigned counterpart of `I`. A signed value is reduced
+once, by `unsigned_abs`, to a sign and a magnitude that `make_unsigned_like_t`
+can hold - the only type in which the magnitude of `min()` is representable at
+all - and everything after that is unsigned arithmetic. Staying in `I` would
+work, since `%` yields a remainder of the value's own sign that a digit table
+read backwards can absorb, but it pays for the sign at every digit rather than
+once, and it forces both loops to test `rest / radix == 0` where an unsigned
+magnitude tests `rest >= radix`. That is one division per digit rather than
+two, and for the integer-class types this overload exists to serve a division
+is a call rather than an instruction. libstdc++ makes the same reduction in
+`__to_chars_i`, for the same reason, and the loop shape here is its
+`__detail::__to_chars`: top-tested on the radix, one quotient and one remainder
+per digit, and the last digit written after the loop rather than as a break in
+the middle of one.
+
+Neither loop counts characters. The first walks a pointer forward from where
+the most significant digit goes, a step per further digit, and a step that
+lands on `last` is the short buffer; the second walks that same pointer back
+down, writing as it goes, and stops where it started. The buffer's end is
+therefore the walk's own bound rather than a size compared against `last -
+first`, which keeps the comparison between two pointers and leaves no
+signed-to-unsigned mismatch for `std::cmp_less` to answer - the one libstdc++
+answers with a cast, and only because its caller has already established the
+range is non-empty. The sign is written last, after the digits, into the one
+position the walk reserved and no digit claimed; writing it first, as
+`__to_chars_i` does, is what obliges libstdc++ to leave a `'-'` in a buffer it
+then reports as too small.
+
+That the walk cannot start before there is room for the characters every value
+writes - the first digit, and the sign before it - is why `value_too_large` has
+two returns rather than one. Both are covered per type, by a buffer one
+character short for the walk and an empty range for the check ahead of it,
+since gcov records them per instantiation.
+
 The two are overloads on one name rather than one function branching on an `if
 constexpr`, and they are kept apart by subsumption rather than by hand: the
 delegating overload requires a `std::to_chars` call to be well-formed *on top
@@ -281,8 +315,8 @@ type, as the tests do, still needs a named concept, and the test defines one.
 Their order in the header is not editorial. gcov names only the first group of
 functions sharing a start line in a file, and gcovr keys its merge across
 translation units on those names, so an unnamed group merges with nothing. The
-digits body contains a line no other translation unit can reach - the
-short-buffer return - so it has to be the named one; every line of the
+digits body contains lines no other translation unit can reach - the
+short-buffer returns - so it has to be the named one; every line of the
 delegating body runs wherever it is instantiated at all, so leaving that group
 unnamed costs nothing. Ordered the other way the file measures 98% and the
 coverage gate fails.

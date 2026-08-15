@@ -6,15 +6,17 @@
 #ifndef XSTD_CHARCONV_TO_CHARS_HPP
 #define XSTD_CHARCONV_TO_CHARS_HPP
 
-#include <xstd/concepts/integral_like.hpp>     // integral_like
-#include <xstd/type_traits/is_signed_like.hpp> // is_signed_like_v
-#include <cassert>                             // assert
-#include <charconv>                            // to_chars, to_chars_result
-#include <concepts>                            // same_as
-#include <cstddef>                             // ptrdiff_t, size_t
-#include <limits>                              // numeric_limits
-#include <system_error>                        // errc
-#include <utility>                             // cmp_less, pair
+#include <xstd/concepts/integral_like.hpp>         // integral_like
+#include <xstd/cstdlib/unsigned_abs.hpp>           // unsigned_abs
+#include <xstd/type_traits/is_signed_like.hpp>     // is_signed_like_v
+#include <xstd/type_traits/make_unsigned_like.hpp> // make_unsigned_like_t
+#include <cassert>                                 // assert
+#include <charconv>                                // to_chars, to_chars_result
+#include <concepts>                                // same_as
+#include <cstddef>                                 // ptrdiff_t, size_t
+#include <limits>                                  // numeric_limits
+#include <system_error>                            // errc
+#include <utility>                                 // pair
 
 namespace xstd {
 
@@ -33,63 +35,74 @@ template<integral_like I>
 {
         assert(2 <= base and base <= 36);
 
-        // A pointer rather than a string_view: the offset below is signed, and
-        // a view's size_type would want a widening cast to subscript.
+        // A pointer rather than a string_view: the digits are subscripted, and
+        // a view would add a size no one asks for.
         static constexpr auto* digits = "0123456789abcdefghijklmnopqrstuvwxyz";
 
-        // static_cast rather than I{0}: /6 grants the conversion, where braces
-        // are overload resolution an initializer_list constructor would win.
-        auto const radix = static_cast<I>(base);
-        auto const zero = static_cast<I>(0);
+        // The digits come off the unsigned counterpart, where the magnitude of
+        // min() is representable and the loops below can stop at the radix
+        // rather than at zero. static_cast rather than U{0}: /6 grants the
+        // conversion, where braces are overload resolution an initializer_list
+        // constructor would win.
+        using U = make_unsigned_like_t<I>;
+        auto const radix = static_cast<U>(base);
 
-        // Whether a sign is written and which way the table is read. Under an
-        // if constexpr: gcov counts branches per instantiation.
-        auto const [negative, stride] = [&] -> std::pair<bool, std::ptrdiff_t> {
+        // Sign and magnitude, negated once here rather than once per digit.
+        // Under an if constexpr: gcov counts branches per instantiation, and
+        // unsigned_abs is spelled for signed types alone.
+        auto const [negative, magnitude] = [&] -> std::pair<bool, U> {
                 if constexpr (is_signed_like_v<I>) {
-                        auto const is_negative = value < zero;
-                        return {is_negative, is_negative ? -1 : 1};
+                        return {value < static_cast<I>(0), unsigned_abs(value)};
                 } else {
-                        return {false, 1};
+                        return {false, value};
                 }
         }();
 
-        auto count = std::size_t{0};
-        for (auto rest = value;; rest = static_cast<I>(rest / radix)) {
-                ++count;
-                if (rest / radix == zero) {
-                        break;
-                }
-        }
         // Converted rather than selected: a conditional here would be a branch
         // an unsigned instantiation could only take one side of.
-        count += static_cast<std::size_t>(negative);
+        auto const sign_width = static_cast<std::ptrdiff_t>(negative);
 
-        if (std::cmp_less(last - first, count)) {
+        // Every value writes a digit, and a negative one a sign before it.
+        if (last - first < 1 + sign_width) {
                 return {.ptr = last, .ec = std::errc::value_too_large};
         }
 
-        auto* out = first + count;
-        for (auto rest = value;; rest = static_cast<I>(rest / radix)) {
-                // The stride absorbs the remainder's sign; the value's own sign
-                // is written once, below.
-                auto const digit = static_cast<int>(rest % radix);
-                auto const index = stride * digit;
-                // In range by construction, asserted because operator% on an
-                // integer-class type is opaque to the analyzer.
-                assert(0 <= index and index < base);
-                *--out = digits[index];
-                if (rest / radix == zero) {
-                        break;
+        // The most significant digit's position, one past the sign when there
+        // is one, then a step per further digit. Claiming a position outside
+        // the buffer is the short buffer, so the walk is its own bound rather
+        // than a count compared against one - which is also what keeps the
+        // comparison between two pointers instead of between a size and a
+        // difference of them.
+        auto* out = first + sign_width;
+        for (auto rest = magnitude; rest >= radix; rest = static_cast<U>(rest / radix)) {
+                if (++out == last) {
+                        return {.ptr = last, .ec = std::errc::value_too_large};
                 }
         }
-        // The one place the sign is a test rather than an index, so the one
-        // that stays under an if constexpr, for the reason above.
+
+        // Taken while out still means the last digit, before the write below
+        // walks it back down to where it started.
+        auto const result = std::to_chars_result{.ptr = out + 1, .ec = std::errc{}};
+
+        auto rest = magnitude;
+        for (; rest >= radix; rest = static_cast<U>(rest / radix)) {
+                *out-- = digits[static_cast<std::size_t>(rest % radix)];
+        }
+        // What the loop leaves is a single digit, so the last one is written
+        // here rather than as a break in the middle. No decrement: for a value
+        // without a sign it would step below first.
+        *out = digits[static_cast<std::size_t>(rest)];
+
+        // Written last because the walk runs backwards, into the one position
+        // it reserved and no digit claimed. The one place the sign is a test
+        // rather than an offset, so the one that stays under an if constexpr,
+        // for the reason above.
         if constexpr (is_signed_like_v<I>) {
                 if (negative) {
-                        *--out = '-';
+                        *first = '-';
                 }
         }
-        return {.ptr = first + count, .ec = std::errc{}};
+        return result;
 }
 
 // The standard's own call wherever it covers I, constrained on that call for

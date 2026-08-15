@@ -102,6 +102,14 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCase, T, xstd::test::exact_wid
         auto const short_buffer = xstd::to_chars(buffer.data(), buffer.data() + buffer.size() - 1, std::numeric_limits<T>::min(), 2);
         BOOST_CHECK(short_buffer.ec == std::errc::value_too_large);
         BOOST_CHECK(short_buffer.ptr == buffer.data() + buffer.size() - 1);
+
+        // A range with no room at all, which the digits path answers before
+        // counting anything: what does not fit is the sign and the one digit
+        // every value writes, not a digit the walk went on to find. Per type
+        // for the same reason as above, that being a second return.
+        auto const empty = xstd::to_chars(buffer.data(), buffer.data(), std::numeric_limits<T>::min(), 2);
+        BOOST_CHECK(empty.ec == std::errc::value_too_large);
+        BOOST_CHECK(empty.ptr == buffer.data());
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCaseUnsigned, T, xstd::test::exact_width_unsigned_types)
@@ -113,6 +121,11 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCaseUnsigned, T, xstd::test::e
         auto const short_buffer = xstd::to_chars(buffer.data(), buffer.data() + buffer.size() - 1, std::numeric_limits<T>::max(), 2);
         BOOST_CHECK(short_buffer.ec == std::errc::value_too_large);
         BOOST_CHECK(short_buffer.ptr == buffer.data() + buffer.size() - 1);
+
+        // As above: no room at all, answered before any digit is counted.
+        auto const empty = xstd::to_chars(buffer.data(), buffer.data(), std::numeric_limits<T>::max(), 2);
+        BOOST_CHECK(empty.ec == std::errc::value_too_large);
+        BOOST_CHECK(empty.ptr == buffer.data());
 }
 
 // Ground truth this file computes rather than borrows. DigitsPathMatchesTheStandard
