@@ -6,22 +6,22 @@
 #ifndef XSTD_CSTDLIB_DIV_T_HPP
 #define XSTD_CSTDLIB_DIV_T_HPP
 
-#include <xstd/concepts/signed_integral_like.hpp> // signed_integral_like
+#include <xstd/concepts/integral_like.hpp> // integral_like
 
 namespace xstd {
 
-template<signed_integral_like S>
+template<integral_like I>
 struct div_t
 {
-        S quot, rem;
+        I quot, rem;
         // constexpr and the exception specification are both implicit for a
         // defaulted function; [[nodiscard]] is not. See doc/design.md.
         [[nodiscard]] friend auto operator==(div_t const&, div_t const&) -> bool = default;
 };
 
 // Explicit to keep -Wctad-maybe-unsupported quiet.
-template<signed_integral_like S>
-div_t(S, S) -> div_t<S>;
+template<integral_like I>
+div_t(I, I) -> div_t<I>;
 
 } // namespace xstd
 

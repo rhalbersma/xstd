@@ -6,17 +6,16 @@
 #ifndef XSTD_TEST_CONSTEXPR_HPP
 #define XSTD_TEST_CONSTEXPR_HPP
 
-#include <xstd/charconv/to_chars.hpp>             // to_chars, to_chars_max_size
-#include <xstd/concepts/integral_like.hpp>        // integral_like
-#include <xstd/concepts/signed_integral_like.hpp> // signed_integral_like
-#include <xstd/cstdint.hpp>                       // int128, uint128
-#include <xstd/cstdlib/div_t.hpp>                 // div_t
-#include <boost/test/unit_test.hpp>               // BOOST_CHECK, BOOST_CHECK_EQUAL
-#include <array>                                  // array
-#include <cassert>                                // assert
-#include <ostream>                                // ostream
-#include <string_view>                            // string_view
-#include <system_error>                           // errc
+#include <xstd/charconv/to_chars.hpp>      // to_chars, to_chars_max_size
+#include <xstd/concepts/integral_like.hpp> // integral_like
+#include <xstd/cstdint.hpp>                // int128, uint128
+#include <xstd/cstdlib/div_t.hpp>          // div_t
+#include <boost/test/unit_test.hpp>        // BOOST_CHECK, BOOST_CHECK_EQUAL
+#include <array>                           // array
+#include <cassert>                         // assert
+#include <ostream>                         // ostream
+#include <string_view>                     // string_view
+#include <system_error>                    // errc
 
 namespace xstd::test {
 
@@ -73,10 +72,10 @@ struct print_log_value<xstd::uint128>
 
 // Specialized rather than routed through std::format, so a failing check on a
 // div_t prints for every element type div_t accepts.
-template<xstd::signed_integral_like S>
-struct print_log_value<xstd::div_t<S>>
+template<xstd::integral_like I>
+struct print_log_value<xstd::div_t<I>>
 {
-        auto operator()(std::ostream& ostr, xstd::div_t<S> const& d) const
+        auto operator()(std::ostream& ostr, xstd::div_t<I> const& d) const
                 -> void
         {
                 ostr << '(';

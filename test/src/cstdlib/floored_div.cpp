@@ -5,8 +5,10 @@
 
 #include <xstd/cstdlib/floored_div.hpp>    // floored_div
 #include <xstd/test/constexpr.hpp>         // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
-#include <xstd/test/exact_width_types.hpp> // exact_width_signed_types
+#include <xstd/test/exact_width_types.hpp> // exact_width_signed_types, exact_width_unsigned_types
+#include <xstd/cstdlib/div.hpp>            // div
 #include <boost/test/unit_test.hpp>        // Boost.Test
+#include <limits>                          // numeric_limits
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
@@ -20,6 +22,23 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(FlooredDiv, T, xstd::test::exact_width_signed_type
         XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(T{+1}, T{-2})), (xstd::div_t<T>{-1, -1}));
         XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(T{-1}, T{+2})), (xstd::div_t<T>{-1, +1}));
         XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(T{-1}, T{-2})), (xstd::div_t<T>{0, -1}));
+}
+
+// Over an unsigned type the three conventions coincide, which is what the
+// header returns truncated division to say. Checked against xstd::div rather
+// than against literals, so the case states the identity it relies on.
+BOOST_AUTO_TEST_CASE_TEMPLATE(FlooredDivUnsigned, T, xstd::test::exact_width_unsigned_types)
+{
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(T{8}, T{3})), (xstd::div_t<T>{2, 2}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(T{1}, T{2})), (xstd::div_t<T>{0, 1}));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(T{0}, T{3})), (xstd::div_t<T>{0, 0}));
+
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(T{8}, T{3})), (xstd::div(T{8}, T{3})));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(T{1}, T{2})), (xstd::div(T{1}, T{2})));
+
+        using limits = std::numeric_limits<T>;
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(limits::max(), T{3})), (xstd::div(limits::max(), T{3})));
+        XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(limits::min(), limits::max())), (xstd::div(limits::min(), limits::max())));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -32,11 +32,44 @@ BOOST_AUTO_TEST_CASE(NothrowIntegralOperators)
 #endif
 }
 
+// Cv-transparent on both branches, as integral_like is, and for the reason the
+// header gives. const needs nothing: every row is stated over a const operand
+// already. volatile is the one that takes the stripping, and only on the
+// integer-class branch - the built-in types answer a volatile operand on the
+// language's own operators, where a type whose operators are declared const
+// members answers none of them. absl::uint128 is the type that shows it: the
+// built-in 128-bit type reaches this concept along the integer-class branch
+// too, being no longer integral in this dialect, but its operators are the
+// language's rather than members, so it cannot tell the two apart.
+BOOST_AUTO_TEST_CASE(NothrowIntegralOperatorsIsCvTransparentOnBothBranches)
+{
+        XSTD_CONSTEXPR_CHECK(xstd::nothrow_integral_operators<int const>);
+        XSTD_CONSTEXPR_CHECK(xstd::nothrow_integral_operators<int volatile>);
+        XSTD_CONSTEXPR_CHECK(xstd::nothrow_integral_operators<int const volatile>);
+
+        XSTD_CONSTEXPR_CHECK(xstd::nothrow_integral_operators<xstd::int128 const>);
+        XSTD_CONSTEXPR_CHECK(xstd::nothrow_integral_operators<xstd::int128 volatile>);
+        XSTD_CONSTEXPR_CHECK(xstd::nothrow_integral_operators<xstd::int128 const volatile>);
+
+        // A qualifier does not turn a no into a yes either: the unannotated
+        // type is refused under every one of them.
+#ifdef XSTD_TEST_HAS_ABSL_INT128
+        using T = xstd::test::absl_int128;
+
+        XSTD_CONSTEXPR_CHECK(not xstd::nothrow_integral_operators<T const>);
+        XSTD_CONSTEXPR_CHECK(not xstd::nothrow_integral_operators<T volatile>);
+        XSTD_CONSTEXPR_CHECK(not xstd::nothrow_integral_operators<T const volatile>);
+#endif
+}
+
 // Total, the conjunction short-circuiting on integral_like before any operator
 // is named, so a caller can ask this of any type and get an answer.
 BOOST_AUTO_TEST_CASE(NothrowIntegralOperatorsIsTotal)
 {
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_integral_operators<void>);
+        // The stripping is remove_cv_t rather than remove_cvref_t: a reference
+        // is not an integral-like type, and making one transparent would widen
+        // the domain rather than leave it alone.
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_integral_operators<int&>);
         // NOLINTNEXTLINE(modernize-avoid-c-arrays): a built-in array is the type under test, not a container choice
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_integral_operators<int[3]>);

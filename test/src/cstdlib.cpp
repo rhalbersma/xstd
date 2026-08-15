@@ -39,9 +39,15 @@ concept has_sign = requires (T x) { xstd::sign(x); };
 template<class T, class U>
 concept has_div = requires (T numer, U denom) { xstd::div(numer, denom); };
 
-// The constraint itself: signed integral in, nothing else, and the argument
-// type comes back out rather than the promoted type. The standard's widths
-// alone, std::make_unsigned_t below naming no other, and what one constrained
+template<class T>
+concept has_euclidean_div = requires (T numer, T denom) { xstd::euclidean_div(numer, denom); };
+
+template<class T>
+concept has_floored_div = requires (T numer, T denom) { xstd::floored_div(numer, denom); };
+
+// The constraint itself: integral-like in, nothing else, and the argument type
+// comes back out rather than the promoted type. The standard's widths alone,
+// std::make_unsigned_t below naming no other, and what one constrained
 // template buys over abs/labs/llabs/imaxabs: int8_t and int16_t have no name
 // in that scheme, and the two that do no longer need one.
 BOOST_AUTO_TEST_CASE_TEMPLATE(Constraints, T, xstd::test::std_signed_types)
@@ -67,27 +73,58 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Constraints, T, xstd::test::std_signed_types)
         static_assert(has_sign<T>);
         static_assert(has_div<T, T>);
 
-        // Unsigned arguments are outside the constraint, at every width.
+        // Unsigned arguments are inside it too, at every width, and answer in
+        // their own type. abs and unsigned_abs coincide there, differing in
+        // nothing a signature can show.
         using U = std::make_unsigned_t<T>;
-        static_assert(not has_abs<U>);
-        static_assert(not has_unsigned_abs<U>);
-        static_assert(not has_sign<U>);
-        static_assert(not has_div<U, U>);
+        static_assert(has_abs<U>);
+        static_assert(has_unsigned_abs<U>);
+        static_assert(has_sign<U>);
+        static_assert(has_div<U, U>);
+
+        static_assert(std::same_as<decltype(xstd::abs(U{})), U>);
+        static_assert(std::same_as<decltype(xstd::unsigned_abs(U{})), U>);
+        static_assert(std::same_as<decltype(xstd::sign(U{})), int>);
+        static_assert(std::same_as<decltype(xstd::div(U{1}, U{1})), xstd::div_t<U>>);
+        static_assert(std::same_as<decltype(xstd::euclidean_div(U{1}, U{1})), xstd::div_t<U>>);
+        static_assert(std::same_as<decltype(xstd::floored_div(U{1}, U{1})), xstd::div_t<U>>);
+
+        static_assert(noexcept(xstd::abs(U{})));
+        static_assert(noexcept(xstd::unsigned_abs(U{})));
+        static_assert(noexcept(xstd::sign(U{})));
+        static_assert(noexcept(xstd::div(U{1}, U{1})));
+        static_assert(noexcept(xstd::euclidean_div(U{1}, U{1})));
+        static_assert(noexcept(xstd::floored_div(U{1}, U{1})));
 
         BOOST_CHECK(true); // silence Boost.Test's "test case did not check any assertions"
 }
 
-BOOST_AUTO_TEST_CASE(NonSignedIntegralArgumentsAreRejected)
+BOOST_AUTO_TEST_CASE(NonIntegralLikeArgumentsAreRejected)
 {
-        static_assert(not has_abs<bool>);
         static_assert(not has_abs<double>);
         static_assert(not has_sign<char*>);
 
         // Answers rather than hard errors only because the header deduces
         // unsigned_abs's return type; Clang before 21 has no CWG2369.
-        static_assert(not has_unsigned_abs<bool>);
         static_assert(not has_unsigned_abs<double>);
         static_assert(not has_unsigned_abs<char*>);
+
+        // bool satisfies integral_like - it is unsigned-like, having a
+        // numeric_limits that says integer and not signed - so it reaches each
+        // of these on the constraint alone. Every one is deleted instead, as
+        // xstd::to_chars is and for its reason. Four of the six have to be:
+        // unsigned_abs forms make_unsigned_like_t<I> in its body, where
+        // make_unsigned_like<bool> is the empty primary and the failure is no
+        // longer in the immediate context, so without the deletion the call is
+        // ill-formed rather than unsatisfied - and div reaches that through its
+        // own postconditions, the two named divisions through div. sign and abs
+        // would merely have answered 1 and true.
+        static_assert(not has_abs<bool>);
+        static_assert(not has_sign<bool>);
+        static_assert(not has_unsigned_abs<bool>);
+        static_assert(not has_div<bool, bool>);
+        static_assert(not has_euclidean_div<bool>);
+        static_assert(not has_floored_div<bool>);
 
         // Both parameters deduce the same T, so a mixed-width call is a
         // deduction failure rather than a silent conversion of one operand.

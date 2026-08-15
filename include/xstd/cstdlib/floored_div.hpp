@@ -6,32 +6,47 @@
 #ifndef XSTD_CSTDLIB_FLOORED_DIV_HPP
 #define XSTD_CSTDLIB_FLOORED_DIV_HPP
 
+#include <xstd/concepts/integral_like.hpp>              // integral_like
 #include <xstd/concepts/nothrow_integral_operators.hpp> // nothrow_integral_operators
-#include <xstd/concepts/signed_integral_like.hpp>       // signed_integral_like
 #include <xstd/cstdlib/div.hpp>                         // div
 #include <xstd/cstdlib/div_t.hpp>                       // IWYU pragma: export; div_t
 #include <xstd/cstdlib/sign.hpp>                        // sign
 #include <xstd/cstdlib/unsigned_abs.hpp>                // unsigned_abs
+#include <xstd/type_traits/is_unsigned_like.hpp>        // is_unsigned_like_v
 #include <cassert>                                      // assert
 
 namespace xstd {
 
 // Floored division: the remainder has the denominator's sign.
-template<signed_integral_like S>
-[[nodiscard]] constexpr auto floored_div(S numer, S denom) noexcept(nothrow_integral_operators<S>)
-        -> div_t<S>
+template<integral_like I>
+[[nodiscard]] constexpr auto floored_div(I numer, I denom) noexcept(nothrow_integral_operators<I>)
+        -> div_t<I>
 {
-        assert(denom != static_cast<S>(0));
-        auto const [qT, rT] = div(numer, denom);
-        auto const zero = static_cast<S>(0);
-        auto const one = static_cast<S>(1);
-        auto const adjust = sign(rT) == -sign(denom);
-        auto const qF = static_cast<S>(qT - (adjust ? one : zero));
-        auto const rF = static_cast<S>(rT + (adjust ? denom : zero));
-        assert(unsigned_abs(rF) < unsigned_abs(denom));
-        assert(rF == static_cast<S>(0) or sign(rF) == sign(denom));
-        return {.quot = qF, .rem = rF};
+        assert(denom != static_cast<I>(0));
+        // An unsigned remainder cannot disagree in sign with an unsigned
+        // denominator, so the floored answer is the truncated one. Left to the
+        // adjustment this would hold only by way of the precondition above -
+        // sign(rT) == -sign(denom) needs both sides zero, hence denom == 0 -
+        // which is a proof a reader has to reconstruct rather than read.
+        if constexpr (is_unsigned_like_v<I>) {
+                auto const dT = xstd::div(numer, denom);
+                assert(dT.rem == static_cast<I>(0) or xstd::sign(dT.rem) == xstd::sign(denom));
+                return dT;
+        } else {
+                auto const [qT, rT] = xstd::div(numer, denom);
+                auto const zero = static_cast<I>(0);
+                auto const one = static_cast<I>(1);
+                auto const adjust = xstd::sign(rT) == -xstd::sign(denom);
+                auto const qF = static_cast<I>(qT - (adjust ? one : zero));
+                auto const rF = static_cast<I>(rT + (adjust ? denom : zero));
+                assert(xstd::unsigned_abs(rF) < xstd::unsigned_abs(denom));
+                assert(rF == static_cast<I>(0) or xstd::sign(rF) == xstd::sign(denom));
+                return {.quot = qF, .rem = rF};
+        }
 }
+
+// Deleted for div's reason, which this reaches through it.
+auto floored_div(bool, bool) -> div_t<bool> = delete;
 
 } // namespace xstd
 

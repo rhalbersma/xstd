@@ -6,16 +6,16 @@
 #ifndef XSTD_FORMAT_DIV_T_HPP
 #define XSTD_FORMAT_DIV_T_HPP
 
-#include <xstd/charconv/to_chars.hpp>             // to_chars, to_chars_max_size
-#include <xstd/concepts/signed_integral_like.hpp> // signed_integral_like
-#include <xstd/cstdlib/div_t.hpp>                 // div_t
-#include <array>                                  // array
-#include <cassert>                                // assert
-#include <format>                                 // formatter
-#include <string>                                 // basic_string
-#include <string_view>                            // basic_string_view
-#include <system_error>                           // errc
-#include <tuple>                                  // tie, tuple
+#include <xstd/charconv/to_chars.hpp>      // to_chars, to_chars_max_size
+#include <xstd/concepts/integral_like.hpp> // integral_like
+#include <xstd/cstdlib/div_t.hpp>          // div_t
+#include <array>                           // array
+#include <cassert>                         // assert
+#include <format>                          // formatter
+#include <string>                          // basic_string
+#include <string_view>                     // basic_string_view
+#include <system_error>                    // errc
+#include <tuple>                           // tie, tuple
 
 // A div_t renders as "(quot, rem)": by the tuple formatter where the standard
 // library can, and by xstd::to_chars where it cannot.
@@ -30,18 +30,18 @@
 
 // The one every div_t matches, rendering the members itself; the string base
 // carries fill, alignment and width, and its grammar is what parse() accepts.
-template<xstd::signed_integral_like S, class CharT>
+template<xstd::integral_like I, class CharT>
 // NOLINTNEXTLINE(bugprone-std-namespace-modification): permitted by [namespace.std]/2, see above
-struct std::formatter<xstd::div_t<S>, CharT> : std::formatter<std::basic_string_view<CharT>, CharT>
+struct std::formatter<xstd::div_t<I>, CharT> : std::formatter<std::basic_string_view<CharT>, CharT>
 {
-        [[nodiscard]] XSTD_CONSTEXPR_FORMAT auto format(xstd::div_t<S> const& d, auto& ctx) const
+        [[nodiscard]] XSTD_CONSTEXPR_FORMAT auto format(xstd::div_t<I> const& d, auto& ctx) const
                 -> decltype(ctx.out())
         {
-                constexpr auto N = xstd::to_chars_max_size<S>;
+                constexpr auto N = xstd::to_chars_max_size<I>;
                 auto widened = std::basic_string<CharT>{};
                 auto buffer = std::array<char, N>{};
 
-                auto const append = [&](S const value) XSTD_CONSTEXPR_FORMAT -> void {
+                auto const append = [&](I const value) XSTD_CONSTEXPR_FORMAT -> void {
                         auto const result = xstd::to_chars(buffer.data(), buffer.data() + N, value);
                         // The buffer is sized for base 2, so decimal always fits.
                         assert(result.ec == std::errc{});
@@ -65,17 +65,17 @@ struct std::formatter<xstd::div_t<S>, CharT> : std::formatter<std::basic_string_
 
 // The more constrained one: the standard's own rendering. The constraint asks
 // after the tuple rather than after S, which covers both ways it can be absent.
-template<xstd::signed_integral_like S, class CharT>
-        requires std::formattable<std::tuple<S const&, S const&>, CharT>
+template<xstd::integral_like I, class CharT>
+        requires std::formattable<std::tuple<I const&, I const&>, CharT>
 // NOLINTNEXTLINE(bugprone-std-namespace-modification): permitted by [namespace.std]/2, see above
-struct std::formatter<xstd::div_t<S>, CharT> : std::formatter<std::tuple<S const&, S const&>, CharT>
+struct std::formatter<xstd::div_t<I>, CharT> : std::formatter<std::tuple<I const&, I const&>, CharT>
 {
-        [[nodiscard]] XSTD_CONSTEXPR_FORMAT auto format(xstd::div_t<S> const& d, auto& ctx) const
+        [[nodiscard]] XSTD_CONSTEXPR_FORMAT auto format(xstd::div_t<I> const& d, auto& ctx) const
                 -> decltype(ctx.out())
         {
                 // tie yields exactly tuple<S const&, S const&>, the base's own
                 // type, so nothing is copied on the way in.
-                return std::formatter<std::tuple<S const&, S const&>, CharT>::format(std::tie(d.quot, d.rem), ctx);
+                return std::formatter<std::tuple<I const&, I const&>, CharT>::format(std::tie(d.quot, d.rem), ctx);
         }
 };
 

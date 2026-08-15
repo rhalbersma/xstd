@@ -16,7 +16,6 @@
 #include <cstddef>                                 // ptrdiff_t, size_t
 #include <limits>                                  // numeric_limits
 #include <system_error>                            // errc
-#include <utility>                                 // pair
 
 namespace xstd {
 
@@ -47,16 +46,16 @@ template<integral_like I>
         using U = make_unsigned_like_t<I>;
         auto const radix = static_cast<U>(base);
 
-        // Sign and magnitude, negated once here rather than once per digit.
-        // Under an if constexpr: gcov counts branches per instantiation, and
-        // unsigned_abs is spelled for signed types alone.
-        auto const [negative, magnitude] = [&] -> std::pair<bool, U> {
-                if constexpr (is_signed_like_v<I>) {
-                        return {value < static_cast<I>(0), unsigned_abs(value)};
-                } else {
-                        return {false, value};
-                }
-        }();
+        // Sign and magnitude, each reduced once here rather than once per
+        // digit, and neither behind an if constexpr any more. unsigned_abs is
+        // total over integral_like, where it is the identity; and "x < zero"
+        // is false for every value of an unsigned type rather than ill-formed,
+        // the same comparison xstd::sign is written over. Nothing is selected,
+        // so nothing here is a branch an unsigned instantiation could only
+        // ever take one side of.
+        auto const zero = static_cast<I>(0);
+        auto const magnitude = xstd::unsigned_abs(value);
+        auto const negative = value < zero;
 
         // Converted rather than selected: a conditional here would be a branch
         // an unsigned instantiation could only take one side of.
