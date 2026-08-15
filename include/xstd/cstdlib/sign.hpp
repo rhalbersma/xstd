@@ -18,13 +18,7 @@ template<integral_like I>
         -> int
 {
         auto const zero = static_cast<I>(0);
-        // One comparison rather than two. "x < zero" is false for every value
-        // of an unsigned type rather than ill-formed, so the difference would
-        // have been correct as written - but it is a comparison the answer can
-        // never depend on, and for an integer-class type a comparison is a
-        // call rather than an instruction. This function is on the path of
-        // div's postconditions and floored_div's adjustment, so that is a call
-        // per use of either.
+        // One comparison, not two: for an integer-class type the dead one is a call.
         if constexpr (is_unsigned_like_v<I>) {
                 return static_cast<int>(zero < x);
         } else {
@@ -32,8 +26,7 @@ template<integral_like I>
         }
 }
 
-// Deleted as <xstd/charconv/to_chars.hpp> deletes it, and for its reason:
-// bool is integral-like, and sign(true) would answer 1.
+// Deleted for to_chars's reason: bool is integral-like, and sign(true) would answer 1.
 auto sign(bool) -> int = delete;
 
 } // namespace xstd

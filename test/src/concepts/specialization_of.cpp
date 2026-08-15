@@ -36,8 +36,7 @@ BOOST_AUTO_TEST_CASE(SpecializationOf)
         XSTD_CONSTEXPR_CHECK(has_as_complex<std::complex<double>>);
         XSTD_CONSTEXPR_CHECK(not has_as_complex<int>);
 
-        // and it runs, which an unevaluated requires-expression cannot show.
-        // double rather than int: the MSVC STL deprecates the other constructors
+        // and it runs; double rather than int, the MSVC STL deprecating the others
         XSTD_CONSTEXPR_CHECK_EQUAL((as_complex(std::complex<double>{1.0, 2.0})), (std::complex<double>{1.0, 2.0}));
 }
 

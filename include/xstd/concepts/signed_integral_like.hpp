@@ -11,8 +11,7 @@
 
 namespace xstd {
 
-// Mirrors std::signed_integral while preserving integral_like as an atomic
-// constraint for subsumption.
+// Mirrors std::signed_integral, keeping integral_like atomic for subsumption.
 template<class T>
 concept signed_integral_like = integral_like<T> and is_signed_like_v<T>;
 

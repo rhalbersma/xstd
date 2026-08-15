@@ -24,9 +24,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(FlooredDiv, T, xstd::test::exact_width_signed_type
         XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(T{-1}, T{-2})), (xstd::div_t<T>{0, -1}));
 }
 
-// Over an unsigned type the three conventions coincide, which is what the
-// header returns truncated division to say. Checked against xstd::div rather
-// than against literals, so the case states the identity it relies on.
+// Unsigned, the three conventions coincide; checked against xstd::div, not against literals.
 BOOST_AUTO_TEST_CASE_TEMPLATE(FlooredDivUnsigned, T, xstd::test::exact_width_unsigned_types)
 {
         XSTD_CONSTEXPR_CHECK_EQUAL((xstd::floored_div(T{8}, T{3})), (xstd::div_t<T>{2, 2}));

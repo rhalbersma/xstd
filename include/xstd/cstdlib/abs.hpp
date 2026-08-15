@@ -19,8 +19,7 @@ template<integral_like I>
 [[nodiscard]] constexpr auto abs(I x) noexcept(nothrow_integral_operators<I>)
         -> I
 {
-        // An unsigned value is its own absolute value, and its min() is 0, so
-        // the precondition below has nothing left to exclude.
+        // An unsigned value is its own magnitude, and its min() is 0.
         if constexpr (is_unsigned_like_v<I>) {
                 return x;
         } else {
@@ -30,8 +29,7 @@ template<integral_like I>
         }
 }
 
-// Deleted for the reason to_chars is: bool is integral-like, and abs(true)
-// would answer true.
+// Deleted for to_chars's reason: bool is integral-like, and abs(true) would answer true.
 auto abs(bool) -> bool = delete;
 
 } // namespace xstd

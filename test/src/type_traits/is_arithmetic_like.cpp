@@ -8,8 +8,7 @@
 #include <xstd/test/constexpr.hpp>                 // XSTD_CONSTEXPR_CHECK
 #include <boost/test/unit_test.hpp>                // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <limits>                                  // numeric_limits
-// A class type that says it is a number but not an integer, where only its
-// std::numeric_limits matters. At global scope, as a specialization must be.
+// A class that says it is a number but not an integer; only its numeric_limits matters.
 
 // clang-format off
 struct not_an_integer_class_type {};
@@ -21,8 +20,7 @@ struct std::numeric_limits<not_an_integer_class_type> : std::numeric_limits<doub
 
 BOOST_AUTO_TEST_SUITE(TypeTraits)
 
-// The half xstd has not opened: only the integral disjunct of is_arithmetic_v
-// is widened, and opening the other would be a second exposition-only concept.
+// The half xstd has not opened: only the integral disjunct is widened.
 BOOST_AUTO_TEST_CASE(ArithmeticLikeOpensTheIntegralHalfOnly)
 {
         XSTD_CONSTEXPR_CHECK(std::numeric_limits<not_an_integer_class_type>::is_specialized);
@@ -31,8 +29,7 @@ BOOST_AUTO_TEST_CASE(ArithmeticLikeOpensTheIntegralHalfOnly)
         XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<not_an_integer_class_type>);
         XSTD_CONSTEXPR_CHECK(not xstd::is_arithmetic_like_v<not_an_integer_class_type>);
 
-        // the built-in floating-point types are the standard's half, reported
-        // exactly as the standard reports them
+        // the built-in floating-point types are reported exactly as the standard does
         XSTD_CONSTEXPR_CHECK(xstd::is_arithmetic_like_v<double>);
         XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<double>);
 }

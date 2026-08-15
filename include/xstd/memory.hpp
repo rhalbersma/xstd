@@ -13,8 +13,7 @@
 
 namespace xstd {
 
-// Rounds size up to the next multiple of alignment, e.g. so a requested
-// number of bits can be rounded up to a whole number of storage blocks.
+// Rounds size up to the next multiple of alignment, e.g. bits to whole blocks.
 [[nodiscard]] constexpr auto aligned_size(std::size_t alignment, std::size_t size) noexcept
         -> std::size_t
 {

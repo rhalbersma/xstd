@@ -6,8 +6,7 @@
 #ifndef XSTD_CONFIG_NO_UNIQUE_ADDRESS_HPP
 #define XSTD_CONFIG_NO_UNIQUE_ADDRESS_HPP
 
-// MSVC keeps the standard spelling layout-neutral for binary compatibility;
-// its vendor spelling supplies the standard no_unique_address semantics.
+// MSVC keeps the standard spelling layout-neutral; its vendor spelling has the semantics.
 #ifdef _MSC_VER
 #define XSTD_NO_UNIQUE_ADDRESS msvc::no_unique_address
 #else

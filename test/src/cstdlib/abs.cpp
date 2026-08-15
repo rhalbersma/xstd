@@ -24,8 +24,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Abs, T, xstd::test::exact_width_signed_types)
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(static_cast<T>(limits::min() + 1)), limits::max());
 }
 
-// The identity, and total where the signed overload is not: min() is 0, which
-// is its own absolute value, so the precondition above has nothing to exclude.
+// The identity, and total where the signed case is not: min() is 0, its own magnitude.
 BOOST_AUTO_TEST_CASE_TEMPLATE(AbsUnsigned, T, xstd::test::exact_width_unsigned_types)
 {
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(T{0}), T{0});

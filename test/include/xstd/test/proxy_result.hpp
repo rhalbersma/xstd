@@ -11,19 +11,7 @@
 #include <cstddef>          // size_t
 #include <limits>           // numeric_limits
 
-// An integer-class type in everything but [iterator.concept.winc]/7.6: its
-// non-assignment binary operators hand back a proxy that converts to it rather
-// than it, as an expression-template arithmetic type does. /7.6 pins those
-// results to I, so this is not an integer-class type, and the concept is only
-// able to say so while its binary rows name the operator's own result type. A
-// static_cast<I> around each of them is of type I whether or not the operator
-// was, and takes this type in.
-//
-// A class template over its storage rather than a plain class, for a reason
-// beyond the room that leaves for a second width: clang's intra-TU
-// lifetime analysis does not enter a template, and every member here that
-// hands back *this would otherwise want a [[clang::lifetimebound]] of its own
-// under the -Weverything the test build runs with.
+// An integer-class type in everything but /7.6: its binary operators return a proxy.
 namespace xstd::test {
 
 template<class Storage>
@@ -164,8 +152,7 @@ class proxy_result_type
                 return *this;
         }
 
-        // The one departure. Everything above is what the subclause asks for;
-        // these ten return the proxy rather than the type.
+        // The one departure: these ten return the proxy rather than the type.
         friend constexpr auto operator*(self lhs, self rhs) -> proxy
         {
                 return proxy(static_cast<Storage>(lhs.m_value * rhs.m_value));
@@ -215,8 +202,7 @@ using proxy_result = proxy_result_type<uint128>;
 
 } // namespace xstd::test
 
-// /11's members in the type rather than in the storage, as for the other
-// fixtures. Only is_specialized and is_integer are asked of it here.
+// /11's members in the type rather than the storage; only two are asked of it here.
 template<>
 class std::numeric_limits<xstd::test::proxy_result> : public std::numeric_limits<xstd::uint128>
 {

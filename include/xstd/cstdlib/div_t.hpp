@@ -14,8 +14,7 @@ template<integral_like I>
 struct div_t
 {
         I quot, rem;
-        // constexpr and the exception specification are both implicit for a
-        // defaulted function; [[nodiscard]] is not. See doc/design.md.
+        // Both specifiers are implicit for a defaulted function; [[nodiscard]] is not.
         [[nodiscard]] friend auto operator==(div_t const&, div_t const&) -> bool = default;
 };
 

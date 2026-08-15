@@ -13,10 +13,7 @@
 
 namespace xstd {
 
-// Like Rust's unsigned_abs: total absolute value, returning the unsigned
-// counterpart so MIN is valid. Shares abs's shape, which is what says the two
-// are the same function over an unsigned type and differ only in return type;
-// over a signed one this is the total half of the pair and abs the partial.
+// Like Rust's unsigned_abs: total, returning the unsigned counterpart so MIN is valid.
 template<integral_like I>
 [[nodiscard]] constexpr auto unsigned_abs(I x) noexcept(nothrow_integral_operators<I>)
 {
@@ -30,10 +27,7 @@ template<integral_like I>
         }
 }
 
-// Deleted rather than left to fail inside the body. bool satisfies
-// integral_like, make_unsigned_like<bool> is the empty primary, and the alias
-// is formed where a substitution failure can no longer be one - so without
-// this the call is ill-formed instead of unsatisfied.
+// Deleted, or bool reaches make_unsigned_like_t here and is ill-formed, not unsatisfied.
 auto unsigned_abs(bool) -> bool = delete;
 
 } // namespace xstd

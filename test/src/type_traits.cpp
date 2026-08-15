@@ -13,8 +13,7 @@ BOOST_AUTO_TEST_SUITE(TypeTraits)
 
 enum class color : unsigned { red = 1 };
 
-// An incomplete type is answered rather than hard-errored, which the sizeof
-// term in integer_class_type is what buys: everything after it needs complete.
+// An incomplete type is answered, not hard-errored: what the sizeof term buys.
 BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAnswerForIncompleteTypes)
 {
         XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<struct never_defined>);
@@ -23,8 +22,7 @@ BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAnswerForIncompleteTypes)
         XSTD_CONSTEXPR_CHECK(not xstd::is_unsigned_like_v<struct never_defined>);
 }
 
-// The four opened traits, checked against the standard's directly rather than
-// against expectations: a table can drift, an equality cannot.
+// Checked against the standard's directly: a table can drift, an equality cannot.
 template<class T>
 auto check_agrees_with_std()
         -> void

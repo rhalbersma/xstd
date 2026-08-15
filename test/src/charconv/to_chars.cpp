@@ -18,15 +18,13 @@
 
 BOOST_AUTO_TEST_SUITE(CharConvToChars)
 
-// Named concepts rather than bare requires-expressions: a deleted or ambiguous
-// call is ill-formed, and non-dependently so at the concrete types below.
+// Named concepts, not bare requires-expressions: a deleted call is non-dependently ill-formed.
 template<class T>
 concept has_std_to_chars = requires (char* p, T value, int base) {
         { std::to_chars(p, p, value, base) } -> std::same_as<std::to_chars_result>;
 };
 
-// Also pins that the constrained overload wins by partial ordering rather than
-// tying, an ambiguous call being one that does not compile either.
+// Also pins that the constrained overload wins by partial ordering rather than tying.
 template<class T>
 concept has_xstd_to_chars = requires (char* p, T value) { xstd::to_chars(p, p, value, 10); };
 
@@ -40,8 +38,7 @@ template<class T>
         return std::string(buffer.data(), result.ptr);
 }
 
-// The standard's, for the types it covers, so the two can be compared. Sized
-// generously rather than by to_chars_max_size, to keep the comparison honest.
+// The standard's, sized generously rather than by to_chars_max_size, to stay honest.
 template<class T>
 [[nodiscard]] auto rendered_by_std(T value, int base)
         -> std::string
@@ -52,30 +49,25 @@ template<class T>
         return std::string(buffer.data(), result.ptr);
 }
 
-// Which path a 128-bit type takes is a property of the standard library and the
-// dialect, so it is not asserted - only that both paths exist and agree.
+// Which path a 128-bit type takes is the library's and the dialect's, so only agreement is asserted.
 BOOST_AUTO_TEST_CASE(DelegatesWhereTheStandardLibraryCovers)
 {
         static_assert(has_std_to_chars<int>);
         static_assert(has_std_to_chars<long long>);
         static_assert(has_std_to_chars<unsigned>);
 
-        // bool is integral-like, but the standard deletes its to_chars and so
-        // does xstd, rather than letting it fall through to the digits path.
+        // bool is integral-like, but deleted here as in the standard.
         static_assert(not has_std_to_chars<bool>);
         static_assert(not has_xstd_to_chars<bool>);
         static_assert(has_xstd_to_chars<int>);
 
-        // The ambiguous case has to reach the digits path too, which is what
-        // libstdc++ produces for __int128 in the strict dialect.
+        // The ambiguous case reaches the digits path too, as libstdc++ produces for __int128.
         struct not_an_integer
         {};
         static_assert(not has_std_to_chars<not_an_integer>);
 }
 
-// The load-bearing property: the digits path renders byte-identically to the
-// standard's, at every base. Through int128, the only way to name that path,
-// and over the standard's widths alone, the only ones std::to_chars covers.
+// The load-bearing property: the two paths render byte-identically, at every base.
 BOOST_AUTO_TEST_CASE_TEMPLATE(DigitsPathMatchesTheStandard, T, xstd::test::std_signed_types)
 {
         for (auto base = 2; base <= 36; ++base) {
@@ -87,8 +79,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(DigitsPathMatchesTheStandard, T, xstd::test::std_s
         }
 }
 
-// The worst case is min() in base 2, where digits counts value bits only, so a
-// signed type needs two more characters and not one.
+// The worst case is min() in base 2, where a signed type needs two more characters.
 BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCase, T, xstd::test::exact_width_signed_types)
 {
         auto buffer = std::array<char, xstd::to_chars_max_size<T>>{};
@@ -97,16 +88,12 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCase, T, xstd::test::exact_wid
         auto const max = xstd::to_chars(buffer.data(), buffer.data() + buffer.size(), std::numeric_limits<T>::max(), 2);
         BOOST_CHECK(max.ec == std::errc{});
 
-        // And exactly: one character less does not fit. Per type, gcov
-        // recording the short-buffer return per instantiation.
+        // And exactly: one character less does not fit. Per type, as gcov records it.
         auto const short_buffer = xstd::to_chars(buffer.data(), buffer.data() + buffer.size() - 1, std::numeric_limits<T>::min(), 2);
         BOOST_CHECK(short_buffer.ec == std::errc::value_too_large);
         BOOST_CHECK(short_buffer.ptr == buffer.data() + buffer.size() - 1);
 
-        // A range with no room at all, which the digits path answers before
-        // counting anything: what does not fit is the sign and the one digit
-        // every value writes, not a digit the walk went on to find. Per type
-        // for the same reason as above, that being a second return.
+        // No room at all, answered before any digit is counted: the second return.
         auto const empty = xstd::to_chars(buffer.data(), buffer.data(), std::numeric_limits<T>::min(), 2);
         BOOST_CHECK(empty.ec == std::errc::value_too_large);
         BOOST_CHECK(empty.ptr == buffer.data());
@@ -128,19 +115,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCaseUnsigned, T, xstd::test::e
         BOOST_CHECK(empty.ptr == buffer.data());
 }
 
-// Ground truth this file computes rather than borrows. DigitsPathMatchesTheStandard
-// above can only check the widths std::to_chars covers, which leaves the two the
-// suite most depends on - xstd::int128 in either of its spellings, and a third
-// party's - checked against nothing but themselves. Base 16 closes that: it puts
-// a boundary of any exact width into a shape a string is built to directly, max()
-// a 7 and then f's, min() an 8 and then zeros, an unsigned max() f's the whole
-// way. Nothing here counts in the type under test, so a fault in to_chars cannot
-// also produce the value it is compared against - which is what lets the printer
-// in test/constexpr.hpp render a failing check with this same function.
+// Ground truth built here rather than borrowed, so a fault cannot produce its own expectation.
 BOOST_AUTO_TEST_CASE_TEMPLATE(HexBoundariesMatchGroundTruth, T, xstd::test::exact_width_signed_types)
 {
-        // digits counts value bits, one short of the width, so the boundaries
-        // run to that many hex characters past the leading one.
+        // digits counts value bits, so the boundaries run that many hex characters past the first.
         constexpr auto rest = static_cast<std::size_t>(std::numeric_limits<T>::digits - 3) / 4;
 
         BOOST_CHECK_EQUAL(rendered(std::numeric_limits<T>::max(), 16), "7" + std::string(rest, 'f'));
@@ -156,8 +134,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(HexBoundariesMatchGroundTruth, T, xstd::test::exac
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(HexBoundariesMatchGroundTruthUnsigned, T, xstd::test::exact_width_unsigned_types)
 {
-        // No sign bit here, so digits is the width and the answer is f's all
-        // the way rather than a leading digit and then f's.
+        // No sign bit, so digits is the width and the answer is f's all the way.
         constexpr auto width = static_cast<std::size_t>(std::numeric_limits<T>::digits) / 4;
 
         BOOST_CHECK_EQUAL(rendered(std::numeric_limits<T>::max(), 16), std::string(width, 'f'));
@@ -179,24 +156,21 @@ BOOST_AUTO_TEST_CASE(Int128Boundaries)
         BOOST_CHECK_EQUAL(rendered(xstd::int128{-1}, 10), "-1");
         BOOST_CHECK_EQUAL(rendered(xstd::int128{35}, 36), "z");
 
-        // The default base, which every call above passes explicitly, on both
-        // sides of the delegation.
+        // The default base, which every call above passes explicitly.
         auto decimal = std::array<char, xstd::to_chars_max_size<xstd::int128>>{};
         auto const wide = xstd::to_chars(decimal.data(), decimal.data() + decimal.size(), xstd::int128{-42});
         BOOST_CHECK_EQUAL(std::string(decimal.data(), wide.ptr), "-42");
         auto const narrow = xstd::to_chars(decimal.data(), decimal.data() + decimal.size(), 42);
         BOOST_CHECK_EQUAL(std::string(decimal.data(), narrow.ptr), "42");
 
-        // The short-buffer return in the unsigned instantiation, which the
-        // coverage gate counts separately from the signed one below.
+        // The short-buffer return in the unsigned instantiation, counted separately.
         auto buffer = std::array<char, xstd::to_chars_max_size<xstd::uint128>>{};
         auto const truncated = xstd::to_chars(
                 buffer.data(), buffer.data(), std::numeric_limits<xstd::uint128>::max(), 2);
         BOOST_CHECK(truncated.ec == std::errc::value_too_large);
 }
 
-// A constant expression rather than a constexpr function called at runtime,
-// which is what std::formatter<div_t<S>>::format needs to opt into P3391.
+// A constant expression, which is what std::formatter<div_t<I>>::format needs for P3391.
 template<class T>
 [[nodiscard]] consteval auto rendered_at_compile_time(T value, int base, std::string_view expected)
         -> bool
@@ -216,15 +190,7 @@ BOOST_AUTO_TEST_CASE(UsableInAConstantExpression)
                                                "ffffffffffffffffffffffffffffffff"));
 }
 
-// The same question asked of every type in the lists, which the four above
-// cannot ask: they name xstd's own spellings, and those are the built-in
-// 128-bit pair, whose operators are constexpr because the compiler's are. A
-// third party's are constexpr only where it says so, one operator at a time -
-// absl::int128 spells operator/ constexpr under an intrinsic and leaves
-// operator/= a plain inline member - so which operators the digits path
-// reaches decides whether it can be constant-evaluated over that type at all,
-// and nothing above would notice it stopping. Rendering is checked elsewhere;
-// what this pins is reaching a constant expression.
+// Asked of every type in the lists: a third party is constexpr only where it says so.
 template<class T>
 [[nodiscard]] consteval auto renders_at_compile_time(T value, int base)
         -> bool
@@ -247,8 +213,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(UsableInAConstantExpressionPerTypeUnsigned, T, xst
         static_assert(renders_at_compile_time(std::numeric_limits<T>::min(), 36));
 }
 
-// A buffer too small reports value_too_large and leaves ptr at last, rather
-// than writing a truncated answer.
+// A buffer too small reports value_too_large and leaves ptr at last, not a truncation.
 BOOST_AUTO_TEST_CASE(ShortBuffer)
 {
         auto buffer = std::array<char, 4>{};
@@ -256,8 +221,7 @@ BOOST_AUTO_TEST_CASE(ShortBuffer)
         BOOST_CHECK(result.ec == std::errc::value_too_large);
         BOOST_CHECK(result.ptr == buffer.data() + buffer.size());
 
-        // The same, in the signed digits instantiation: ptr is left at last
-        // rather than pointing into a partial answer.
+        // The same in the signed digits instantiation: ptr at last, not into a partial answer.
         auto const wide = xstd::to_chars(buffer.data(), buffer.data() + buffer.size(), std::numeric_limits<xstd::int128>::min(), 10);
         BOOST_CHECK(wide.ec == std::errc::value_too_large);
         BOOST_CHECK(wide.ptr == buffer.data() + buffer.size());

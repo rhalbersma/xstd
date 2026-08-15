@@ -18,25 +18,14 @@
 namespace xstd {
 
 // Euclidean division: the remainder is nonnegative.
-//
-// The calls below are qualified. Unqualified, ADL adds the argument type's own
-// namespace, and a non-template found there beats this library's constrained
-// template outright - Boost.Int128 supplies exactly that, a div returning its
-// own i128div_t and u128div_t. A structured binding takes those apart just as
-// happily, so the substitution is silent and costs the operands xstd::div's
-// pre- and postconditions.
 template<integral_like I>
 [[nodiscard]] constexpr auto euclidean_div(I numer, I denom) noexcept(nothrow_integral_operators<I>)
         -> div_t<I>
 {
         assert(denom != static_cast<I>(0));
-        // A truncated remainder carries the numerator's sign, so an unsigned
-        // one is already nonnegative and the Euclidean answer is the truncated
-        // one. Said rather than left to fall out of an adjustment that happens
-        // to be dead: the postcondition below is still asserted, so the
-        // unsigned path is checked against this convention rather than
-        // trusting the theorem that produced it.
+        // An unsigned truncated remainder is already nonnegative, so it is the answer.
         if constexpr (is_unsigned_like_v<I>) {
+                // Qualified: unqualified, ADL finds Boost.Int128's own div and it wins.
                 auto const dT = xstd::div(numer, denom);
                 assert(xstd::sign(dT.rem) >= 0);
                 return dT;
@@ -53,7 +42,7 @@ template<integral_like I>
         }
 }
 
-// Deleted for div's reason, which this reaches through it.
+// Deleted for div's reason, reached through it.
 auto euclidean_div(bool, bool) -> div_t<bool> = delete;
 
 } // namespace xstd

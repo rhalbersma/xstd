@@ -19,8 +19,7 @@ enum class scoped : unsigned { s0 };
 
 BOOST_AUTO_TEST_CASE(IntegralLike)
 {
-        // The built-in branch follows std::integral, including its treatment
-        // of bool as an unsigned integral type.
+        // The built-in branch follows std::integral, bool included.
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<bool>);
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<char> and xstd::integral_like<char32_t>);
 
@@ -29,21 +28,18 @@ BOOST_AUTO_TEST_CASE(IntegralLike)
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<scoped>);
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<int*>);
 
-        // answered rather than hard-errored because the requirements they
-        // would trip over sit inside a concept, which short-circuits
+        // answered rather than hard-errored, the concept short-circuiting first
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<void>);
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<int&>);
         // NOLINTNEXTLINE(modernize-avoid-c-arrays): a built-in array is the type under test, not a container choice
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<int[3]>);
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<int()>);
 
-        // C++23's arithmetic concepts inherit the category traits' cv
-        // transparency, and the widened concepts do the same.
+        // The widened concepts inherit the category traits' cv transparency.
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<int const>);
 }
 
-// Disjoint branches, per /3's width clause. Asserted on the internal concept
-// because integral_like answers true for these either way.
+// Disjoint branches per /3, asserted on the internal concept as the outer says yes either way.
 BOOST_AUTO_TEST_CASE(NoIntegralTypeIsAnIntegerClassType)
 {
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integer_class_type<int>);
@@ -56,10 +52,7 @@ BOOST_AUTO_TEST_CASE(NoIntegralTypeIsAnIntegerClassType)
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<char> and xstd::integral_like<unsigned long long>);
 }
 
-// /7.3 and /7.6 give the value-producing operators a result type, and the
-// concept asks for it rather than for something a static_cast<I> could reach.
-// The fixture is an integer-class type in every other respect, so it is these
-// rows alone that turn it away.
+// The concept asks for /7.6's result type, not for what a static_cast<I> could reach.
 BOOST_AUTO_TEST_CASE(OperatorResultsAreTheTypeItself)
 {
         using T = xstd::test::proxy_result;
@@ -67,8 +60,7 @@ BOOST_AUTO_TEST_CASE(OperatorResultsAreTheTypeItself)
         XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integer_class_type<T>);
         XSTD_CONSTEXPR_CHECK(not xstd::integral_like<T>);
 
-        // Everything the binary operators return does convert to it, which is
-        // all a static_cast<I> in those rows would have established.
+        // Everything they return does convert to it, which is all a cast would have shown.
         XSTD_CONSTEXPR_CHECK((std::convertible_to<decltype(T() + T()), T>));
         XSTD_CONSTEXPR_CHECK((not std::same_as<decltype(T() + T()), T>));
 
@@ -78,9 +70,7 @@ BOOST_AUTO_TEST_CASE(OperatorResultsAreTheTypeItself)
 #endif
 }
 
-// On both branches. The integer-class one takes doing: its requirements are
-// stated for an object that can be assigned, so a const type fails ++a. It
-// also takes a type on that branch, which is what the optional dependency is.
+// On both branches; the integer-class one takes doing, a const type failing ++a.
 BOOST_AUTO_TEST_CASE(IntegralLikeIsCvTransparentOnBothBranches)
 {
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<int const>);

@@ -23,11 +23,7 @@ template<integral_like I>
         -> div_t<I>
 {
         assert(denom != static_cast<I>(0));
-        // An unsigned remainder cannot disagree in sign with an unsigned
-        // denominator, so the floored answer is the truncated one. Left to the
-        // adjustment this would hold only by way of the precondition above -
-        // sign(rT) == -sign(denom) needs both sides zero, hence denom == 0 -
-        // which is a proof a reader has to reconstruct rather than read.
+        // An unsigned remainder cannot disagree in sign with its denominator.
         if constexpr (is_unsigned_like_v<I>) {
                 auto const dT = xstd::div(numer, denom);
                 assert(dT.rem == static_cast<I>(0) or xstd::sign(dT.rem) == xstd::sign(denom));
@@ -45,7 +41,7 @@ template<integral_like I>
         }
 }
 
-// Deleted for div's reason, which this reaches through it.
+// Deleted for div's reason, reached through it.
 auto floored_div(bool, bool) -> div_t<bool> = delete;
 
 } // namespace xstd
