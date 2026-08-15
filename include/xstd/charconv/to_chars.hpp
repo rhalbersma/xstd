@@ -67,6 +67,16 @@ template<integral_like I>
                 return {.ptr = last, .ec = std::errc::value_too_large};
         }
 
+        // Both loops reduce with `rest = rest / radix` rather than `rest /=
+        // radix`, and the difference is not stylistic: [iterator.concept.winc]
+        // asks an integer-class type for both, but a real one can be constexpr
+        // on only the first. absl::int128 is - its operator/ is constexpr where
+        // an intrinsic backs it, while operator/= is a plain inline member - so
+        // the compound form would quietly cost this function its constant
+        // evaluation over that type. No cast either way: /7.6 gives operator/
+        // the result type U, which is what #152 established for the thirteen it
+        // removed elsewhere.
+        //
         // The most significant digit's position, one past the sign when there
         // is one, then a step per further digit. Claiming a position outside
         // the buffer is the short buffer, so the walk is its own bound rather
@@ -74,7 +84,7 @@ template<integral_like I>
         // comparison between two pointers instead of between a size and a
         // difference of them.
         auto* out = first + sign_width;
-        for (auto rest = magnitude; rest >= radix; rest = static_cast<U>(rest / radix)) {
+        for (auto rest = magnitude; rest >= radix; rest = rest / radix) {
                 if (++out == last) {
                         return {.ptr = last, .ec = std::errc::value_too_large};
                 }
@@ -84,9 +94,16 @@ template<integral_like I>
         // walks it back down to where it started.
         auto const result = std::to_chars_result{.ptr = out + 1, .ec = std::errc{}};
 
+        // A while rather than a for: the quotient names what the next iteration
+        // reduces to, and a name declared in the body is not in scope in a for's
+        // increment. Naming both halves is what says the two are one division -
+        // which is what the compiler emits, a single divmod per digit.
         auto rest = magnitude;
-        for (; rest >= radix; rest = static_cast<U>(rest / radix)) {
-                *out-- = digits[static_cast<std::size_t>(rest % radix)];
+        while (rest >= radix) {
+                auto const quot = rest / radix;
+                auto const rem = rest % radix;
+                *out-- = digits[static_cast<std::size_t>(rem)];
+                rest = quot;
         }
         // What the loop leaves is a single digit, so the last one is written
         // here rather than as a break in the middle. No decrement: for a value
