@@ -99,7 +99,6 @@ template<integral_like I>
 }
 
 // Deleted as the standard deletes it, rather than rendering true as "1".
-
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
 auto to_chars(char*, char*, bool, int = 10) -> std::to_chars_result = delete;
 
