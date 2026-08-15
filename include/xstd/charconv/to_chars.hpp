@@ -14,6 +14,7 @@
 #include <charconv>                                // to_chars, to_chars_result
 #include <concepts>                                // same_as
 #include <cstddef>                                 // ptrdiff_t, size_t
+#include <iterator>                                // distance, next
 #include <limits>                                  // numeric_limits
 #include <system_error>                            // errc
 
@@ -48,7 +49,7 @@ template<integral_like I>
         auto const sign_width = static_cast<std::ptrdiff_t>(negative);
 
         // Every value writes a digit, and a negative one a sign before it.
-        if (last - first < 1 + sign_width) {
+        if (std::distance(first, last) < sign_width + 1) {
                 return {.ptr = last, .ec = std::errc::value_too_large};
         }
 
@@ -61,7 +62,7 @@ template<integral_like I>
         }
 
         // Taken while out still means the last digit, before the write walks it back down.
-        auto const result = std::to_chars_result{.ptr = out + 1, .ec = std::errc{}};
+        auto const result = std::to_chars_result{.ptr = std::next(out), .ec = std::errc{}};
 
         // "rest / radix" not "/=": absl::int128 is constexpr on the first only.
         auto rest = magnitude;
@@ -74,10 +75,10 @@ template<integral_like I>
         // The loop leaves a single digit. No decrement: unsigned, it would step below first.
         *out = digits[static_cast<std::size_t>(rest)];
 
-        // Into the position the walk reserved; here the sign is a test, not an offset.
+        // Back into the position the walk reserved; here the sign is a test, not an offset.
         if constexpr (is_signed_like_v<I>) {
                 if (negative) {
-                        *first = '-';
+                        *--out = '-';
                 }
         }
         return result;
