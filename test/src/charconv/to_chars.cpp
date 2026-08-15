@@ -216,6 +216,37 @@ BOOST_AUTO_TEST_CASE(UsableInAConstantExpression)
                                                "ffffffffffffffffffffffffffffffff"));
 }
 
+// The same question asked of every type in the lists, which the four above
+// cannot ask: they name xstd's own spellings, and those are the built-in
+// 128-bit pair, whose operators are constexpr because the compiler's are. A
+// third party's are constexpr only where it says so, one operator at a time -
+// absl::int128 spells operator/ constexpr under an intrinsic and leaves
+// operator/= a plain inline member - so which operators the digits path
+// reaches decides whether it can be constant-evaluated over that type at all,
+// and nothing above would notice it stopping. Rendering is checked elsewhere;
+// what this pins is reaching a constant expression.
+template<class T>
+[[nodiscard]] consteval auto renders_at_compile_time(T value, int base)
+        -> bool
+{
+        auto buffer = std::array<char, xstd::to_chars_max_size<T>>{};
+        auto const result = xstd::to_chars(buffer.data(), buffer.data() + buffer.size(), value, base);
+        return result.ec == std::errc{} and result.ptr != buffer.data();
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(UsableInAConstantExpressionPerType, T, xstd::test::exact_width_signed_types)
+{
+        static_assert(renders_at_compile_time(std::numeric_limits<T>::min(), 10));
+        static_assert(renders_at_compile_time(std::numeric_limits<T>::max(), 16));
+        static_assert(renders_at_compile_time(T{0}, 2));
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(UsableInAConstantExpressionPerTypeUnsigned, T, xstd::test::exact_width_unsigned_types)
+{
+        static_assert(renders_at_compile_time(std::numeric_limits<T>::max(), 10));
+        static_assert(renders_at_compile_time(std::numeric_limits<T>::min(), 36));
+}
+
 // A buffer too small reports value_too_large and leaves ptr at last, rather
 // than writing a truncated answer.
 BOOST_AUTO_TEST_CASE(ShortBuffer)
