@@ -4,7 +4,7 @@ Directory: .
 ------------------------------------------------------------------------------
 File                                       Lines     Exec  Cover   Missing
 ------------------------------------------------------------------------------
-include/xstd/charconv/to_chars.hpp            25       25   100%
+include/xstd/charconv/to_chars.hpp            24       24   100%
 include/xstd/cstdlib/abs.hpp                   4        4   100%
 include/xstd/cstdlib/div.hpp                   4        4   100%
 include/xstd/cstdlib/div_t.hpp                 2        2   100%
@@ -17,5 +17,5 @@ include/xstd/memory.hpp                        6        6   100%
 include/xstd/type_traits/empty_type.hpp        3        3   100%
 include/xstd/utility.hpp                       2        2   100%
 ------------------------------------------------------------------------------
-TOTAL                                         88       88   100%
+TOTAL                                         87       87   100%
 ------------------------------------------------------------------------------
