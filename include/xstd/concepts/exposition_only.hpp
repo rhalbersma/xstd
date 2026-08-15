@@ -52,8 +52,7 @@ concept integer_class_type =
                 { a <<= n } -> std::same_as<I&>;
                 { a >>= n } -> std::same_as<I&>;
         } and
-        // I exactly again, per /7.6. Fenced off: clang-format reads "a * b" as a declaration.
-        // clang-format off
+        // I exactly again, per /7.6.
         requires (I const a, I const b) {
                 { a * b } -> std::same_as<I>;
                 { a / b } -> std::same_as<I>;
@@ -64,7 +63,6 @@ concept integer_class_type =
                 { a ^ b } -> std::same_as<I>;
                 { a | b } -> std::same_as<I>;
         } and
-        // clang-format on
         requires (I const a, std::size_t const n) {
                 { a << n } -> std::same_as<I>;
                 { a >> n } -> std::same_as<I>;

@@ -28,8 +28,6 @@ concept nothrow_integral_operators =
                 { ~a } noexcept;
                 { not a } noexcept;
         } and
-        // Fenced off: clang-format reads "a * b" in a requires-expression as a declaration.
-        // clang-format off
         requires (I const a, I const b) {
                 { a * b } noexcept;
                 { a / b } noexcept;
@@ -40,7 +38,6 @@ concept nothrow_integral_operators =
                 { a ^ b } noexcept;
                 { a | b } noexcept;
         } and
-        // clang-format on
         requires (I const a, std::size_t const n) {
                 { a << n } noexcept;
                 { a >> n } noexcept;
