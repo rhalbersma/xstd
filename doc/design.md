@@ -97,10 +97,14 @@ unsigned branch still asserts its own convention's postcondition, so the path
 is checked against the convention rather than trusting the theorem that
 produced it.
 
-`sign` is the one with no branch, because it has no theorem to state: `0 < x`
-less `x < 0` is the definition of the sign of a value over any ordered type,
-not the signed algorithm with an arm an unsigned instantiation cannot take. It
-answers 0 or 1 there, never -1.
+`sign` branches for a different reason than the rest. `0 < x` less `x < 0` is
+the definition of the sign of a value over any ordered type, so the difference
+would have been correct as written - `x < zero` is false for every value of an
+unsigned type rather than ill-formed. But it is a comparison the answer can
+never depend on, and for an integer-class type a comparison is a call rather
+than an instruction. `sign` is on the path of `div`'s postconditions and
+`floored_div`'s adjustment, so the unsigned instantiation asks one question
+instead of two. It answers 0 or 1 there, never -1.
 
 `bool` is integral-like - unsigned-like, in fact, its `numeric_limits` saying
 integer and not signed - so it satisfies the widened constraint and is deleted
