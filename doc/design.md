@@ -68,22 +68,67 @@ admits the type.
 A template parameter is named for the concept constraining it: `I` under
 `integral_like`, `S` under `signed_integral_like`. The letters carry the
 constraint into the body, where `S{-1}` reads as something the type can hold
-and `I{-1}` would not. Where a parameter is deduced from a type that is already
-constrained - `S` from `div_t<S>` in the formatter - the constraint is spelled
-anyway: it can never be the reason a specialization fails to match, but the
-alternative reads as though `div_t` were open to any element type.
+and `I{-1}` would not - which is exactly the line `div` has to take care over,
+its `static_cast<I>(-1)` naming `max()` rather than a value below zero. Where a
+parameter is deduced from a type that is already constrained - `I` from
+`div_t<I>` in the formatter - the constraint is spelled anyway: it can never be
+the reason a specialization fails to match, but the alternative reads as though
+`div_t` were open to any element type.
 
-The arithmetic functions use one constrained template per operation. This
-covers every signed integer-like width without families such as `abs`, `labs`,
+The arithmetic functions use one constrained template per operation, over
+`integral_like` rather than over its signed half. This covers every
+integer-like width of either signedness without families such as `abs`, `labs`,
 `llabs`, and `imaxabs`. A function returns the argument type rather than a
 promoted type, and a two-argument function requires both arguments to have the
 same type unless the caller explicitly selects one.
 
-`abs` has the usual signed-minimum precondition. `unsigned_abs` returns the unsigned
-counterpart and can represent that magnitude. `div`, `euclidean_div`, and
-`floored_div` require a nonzero denominator, and `MIN / -1` remains outside
-their contract. All integer operations are `constexpr`. Their `noexcept` is
-conditional, on whether the element type's own operations carry the specifier.
+Over an unsigned type four of the six are the same function they were and one
+is the identity, but that is stated rather than left to fall out of an
+adjustment that happens to be dead. `abs` and `unsigned_abs` share a shape -
+`if constexpr (is_unsigned_like_v<I>) return x;` - which is what says the two
+coincide there and differ only in return type. `euclidean_div` and
+`floored_div` return `xstd::div`'s answer outright, because a truncated
+remainder carries the numerator's sign and an unsigned one is therefore already
+both nonnegative and in agreement with its denominator. Left to the
+adjustments, the floored case would hold only by way of the nonzero-denominator
+precondition three lines above it - `sign(rT) == -sign(denom)` needs both sides
+zero - which is a proof a reader has to reconstruct rather than read. Each
+unsigned branch still asserts its own convention's postcondition, so the path
+is checked against the convention rather than trusting the theorem that
+produced it.
+
+`sign` is the one with no branch, because it has no theorem to state: `0 < x`
+less `x < 0` is the definition of the sign of a value over any ordered type,
+not the signed algorithm with an arm an unsigned instantiation cannot take. It
+answers 0 or 1 there, never -1.
+
+`bool` is integral-like - unsigned-like, in fact, its `numeric_limits` saying
+integer and not signed - so it satisfies the widened constraint and is deleted
+from all six, as it is from `to_chars` and for that reason. Four of the
+deletions are load-bearing rather than tidy: `unsigned_abs` forms
+`make_unsigned_like_t<I>` in its body, where `make_unsigned_like<bool>` is the
+empty primary and the failure is no longer in the immediate context, so without
+the deletion the call is ill-formed instead of unsatisfied; `div` reaches that
+through its own postconditions and the two named divisions through `div`.
+`sign` and `abs` would merely have answered 1 and `true`.
+
+The calls these functions make to each other are qualified. Unqualified, ADL
+adds the argument type's own namespace, and a non-template found there beats a
+constrained template outright: Boost.Int128 supplies exactly that, a `div`
+returning its own `i128div_t` and `u128div_t`, which a structured binding takes
+apart as happily as xstd's `div_t`. So `euclidean_div` and `floored_div` had
+been calling Boost's `div` over Boost's types, silently and for both
+signednesses, agreeing on the numbers and skipping every one of `xstd::div`'s
+assertions. Returning the result rather than destructuring it is what made the
+substitution a type error instead of a coincidence.
+
+`abs` has the signed minimum as a precondition and is total over an unsigned
+type, whose `min()` is `0`. `unsigned_abs` returns the unsigned counterpart and
+can represent that magnitude at every width. `div`, `euclidean_div`, and
+`floored_div` require a nonzero denominator; `MIN / -1` remains outside their
+contract, and is a precondition only a signed type can reach at all. All
+integer operations are `constexpr`. Their `noexcept` is conditional, on whether
+the element type's own operations carry the specifier.
 
 That condition exists because [iterator.concept.winc] does not ask for
 `noexcept` anywhere - the word does not occur in the subclause. The only thing
@@ -106,6 +151,16 @@ Conditioning keeps both: a built-in or an annotated integer-class type gets the
 specifier, an unannotated one gets an honest `noexcept(false)`, and neither is
 refused. `xstd::to_chars` is unconditional in the other direction - it has no
 `noexcept` at all, because `std::to_chars` has none either.
+
+Like the concepts beside it, `nothrow_integral_operators` asks its questions of
+the cv-stripped type, in `integer_class_type`'s spelling. `const` would have
+survived unaided, every row being stated over a `const` operand already;
+`volatile` splits the two branches the widening joins, since a built-in answers
+a volatile operand on the language's own operators where a type whose operators
+are declared `const` members answers none of them. Nothing in the library could
+reach that - all six functions take their argument by value, so top-level cv
+never survives deduction - but the concept is public, and a caller asking it
+directly is asking about a type, not about a qualifier.
 
 Which of the two an integer-class type gets is not something the library can
 observe about a type's behavior, only about its declarations, so the predicate
@@ -260,10 +315,15 @@ finds nothing that differs; `readability-magic-numbers` does fire on it, and is
 suppressed one line at a time rather than by teaching the check to ignore `10`
 throughout the library.
 
-The digits come off the unsigned counterpart of `I`. A signed value is reduced
-once, by `unsigned_abs`, to a sign and a magnitude that `make_unsigned_like_t`
-can hold - the only type in which the magnitude of `min()` is representable at
-all - and everything after that is unsigned arithmetic. Staying in `I` would
+The digits come off the unsigned counterpart of `I`. A value is reduced once,
+by `unsigned_abs`, to a sign and a magnitude that `make_unsigned_like_t` can
+hold - the only type in which the magnitude of `min()` is representable at all
+- and everything after that is unsigned arithmetic. Neither half is behind an
+`if constexpr` any more: `unsigned_abs` is total over `integral_like`, where it
+is the identity, and `x < zero` is false for every value of an unsigned type
+rather than ill-formed. That is one fewer lambda, and one fewer place where an
+added line moves the function groups gcovr keys its cross-translation-unit
+merge on. Staying in `I` would
 work, since `%` yields a remainder of the value's own sign that a digit table
 read backwards can absorb, but it pays for the sign at every digit rather than
 once, and it forces both loops to test `rest / radix == 0` where an unsigned
@@ -369,8 +429,8 @@ int const&>>` is false even though `int` is perfectly formattable. Testing
 `formattable` on the *tuple* rather than on the element covers both with one
 predicate. Where it does not hold, the other specialization renders the members
 through `xstd::to_chars` into an inherited string formatter, which asks nothing
-beyond what `signed_integral_like` already guarantees - so `div_t` formats for
-every type it accepts, on every implementation.
+beyond what `integral_like` already guarantees - so `div_t` formats for every
+type it accepts, of either signedness, on every implementation.
 
 The choice between them is left to partial ordering, on the same footing as
 `to_chars`'s two overloads: the tuple one requires

@@ -6,30 +6,40 @@
 #ifndef XSTD_CSTDLIB_DIV_HPP
 #define XSTD_CSTDLIB_DIV_HPP
 
+#include <xstd/concepts/integral_like.hpp>              // integral_like
 #include <xstd/concepts/nothrow_integral_operators.hpp> // nothrow_integral_operators
-#include <xstd/concepts/signed_integral_like.hpp>       // signed_integral_like
 #include <xstd/cstdlib/div_t.hpp>                       // IWYU pragma: export; div_t
 #include <xstd/cstdlib/sign.hpp>                        // sign
 #include <xstd/cstdlib/unsigned_abs.hpp>                // unsigned_abs
+#include <xstd/type_traits/is_signed_like.hpp>          // is_signed_like_v
 #include <cassert>                                      // assert
 #include <limits>                                       // numeric_limits
 
 namespace xstd {
 
 // Truncated division, as specified by [expr.mul].
-template<signed_integral_like S>
-[[nodiscard]] constexpr auto div(S numer, S denom) noexcept(nothrow_integral_operators<S>)
-        -> div_t<S>
+template<integral_like I>
+[[nodiscard]] constexpr auto div(I numer, I denom) noexcept(nothrow_integral_operators<I>)
+        -> div_t<I>
 {
-        assert(denom != static_cast<S>(0));
-        assert(numer != std::numeric_limits<S>::min() or denom != static_cast<S>(-1));
-        auto const qT = static_cast<S>(numer / denom);
-        auto const rT = static_cast<S>(numer % denom);
-        assert(numer == static_cast<S>(static_cast<S>(denom * qT) + rT));
-        assert(unsigned_abs(rT) < unsigned_abs(denom));
-        assert(sign(rT) == sign(numer) or rT == static_cast<S>(0));
+        assert(denom != static_cast<I>(0));
+        // MIN / -1 is the one unrepresentable quotient, and only a signed type
+        // has a MIN to reach it with: over an unsigned one static_cast<I>(-1)
+        // is max() and min() is 0, so the same line would refuse div(0, max).
+        if constexpr (is_signed_like_v<I>) {
+                assert(numer != std::numeric_limits<I>::min() or denom != static_cast<I>(-1));
+        }
+        auto const qT = static_cast<I>(numer / denom);
+        auto const rT = static_cast<I>(numer % denom);
+        assert(numer == static_cast<I>(static_cast<I>(denom * qT) + rT));
+        assert(xstd::unsigned_abs(rT) < xstd::unsigned_abs(denom));
+        assert(xstd::sign(rT) == xstd::sign(numer) or rT == static_cast<I>(0));
         return {.quot = qT, .rem = rT};
 }
+
+// Deleted for unsigned_abs's reason, which this reaches through its own
+// postconditions.
+auto div(bool, bool) -> div_t<bool> = delete;
 
 } // namespace xstd
 
