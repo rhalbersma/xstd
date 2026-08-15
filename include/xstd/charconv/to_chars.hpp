@@ -7,6 +7,7 @@
 #define XSTD_CHARCONV_TO_CHARS_HPP
 
 #include <xstd/concepts/integral_like.hpp>         // integral_like
+#include <xstd/cstdlib/div.hpp>                    // div
 #include <xstd/cstdlib/unsigned_abs.hpp>           // unsigned_abs
 #include <xstd/type_traits/is_signed_like.hpp>     // is_signed_like_v
 #include <xstd/type_traits/make_unsigned_like.hpp> // make_unsigned_like_t
@@ -14,6 +15,7 @@
 #include <charconv>                                // to_chars, to_chars_result
 #include <concepts>                                // same_as
 #include <cstddef>                                 // ptrdiff_t, size_t
+#include <iterator>                                // distance, next
 #include <limits>                                  // numeric_limits
 #include <system_error>                            // errc
 
@@ -48,12 +50,13 @@ template<integral_like I>
         auto const sign_width = static_cast<std::ptrdiff_t>(negative);
 
         // Every value writes a digit, and a negative one a sign before it.
-        if (last - first < 1 + sign_width) {
+        if (std::distance(first, last) < sign_width + 1) {
                 return {.ptr = last, .ec = std::errc::value_too_large};
         }
 
         // The walk claims a position per digit, so a step onto last is the short buffer.
         auto* out = first + sign_width;
+        // "rest / radix" not "/=": absl::int128 is constexpr on the first only.
         for (auto rest = magnitude; rest >= radix; rest = rest / radix) {
                 if (++out == last) {
                         return {.ptr = last, .ec = std::errc::value_too_large};
@@ -61,23 +64,22 @@ template<integral_like I>
         }
 
         // Taken while out still means the last digit, before the write walks it back down.
-        auto const result = std::to_chars_result{.ptr = out + 1, .ec = std::errc{}};
+        auto const result = std::to_chars_result{.ptr = std::next(out), .ec = std::errc{}};
 
-        // "rest / radix" not "/=": absl::int128 is constexpr on the first only.
+        // One divmod per digit, named by the library's own truncated division.
         auto rest = magnitude;
         while (rest >= radix) {
-                auto const quot = rest / radix;
-                auto const rem = rest % radix;
+                auto const [quot, rem] = xstd::div(rest, radix);
                 *out-- = digits[static_cast<std::size_t>(rem)];
                 rest = quot;
         }
         // The loop leaves a single digit. No decrement: unsigned, it would step below first.
         *out = digits[static_cast<std::size_t>(rest)];
 
-        // Into the position the walk reserved; here the sign is a test, not an offset.
+        // Back into the position the walk reserved; here the sign is a test, not an offset.
         if constexpr (is_signed_like_v<I>) {
                 if (negative) {
-                        *first = '-';
+                        *--out = '-';
                 }
         }
         return result;
@@ -97,7 +99,6 @@ template<integral_like I>
 }
 
 // Deleted as the standard deletes it, rather than rendering true as "1".
-
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
 auto to_chars(char*, char*, bool, int = 10) -> std::to_chars_result = delete;
 

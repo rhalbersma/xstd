@@ -234,11 +234,12 @@ same reduction in `__to_chars_i`, and the loop shape here is its
 Neither loop counts characters. The first walks a pointer forward from where the
 most significant digit goes, and a step onto `last` is the short buffer; the
 second walks it back down, writing as it goes. The buffer's end is the walk's own
-bound rather than a size compared against `last - first`, which keeps the
-comparison between two pointers and leaves no signed-to-unsigned mismatch to
-answer. The sign is written last, into the one position the walk reserved and no
-digit claimed; writing it first is what obliges libstdc++ to leave a `'-'` in a
-buffer it then reports as too small. That the walk cannot start before there is
+bound rather than a count, which keeps the comparison between two pointers and
+leaves no signed-to-unsigned mismatch to answer; the one place a length is asked
+for at all is the check ahead of the walk, which spells it `std::distance`. The
+sign is written last, the walk stepping back into the one position it reserved
+and no digit claimed; writing it first is what obliges libstdc++ to leave a `'-'`
+in a buffer it then reports as too small. That the walk cannot start before there is
 room for the first digit and the sign is why `value_too_large` has two returns,
 both covered per type since gcov records them per instantiation.
 
