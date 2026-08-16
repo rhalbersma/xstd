@@ -16,7 +16,7 @@
 #define XSTD_TEST_HAS_BIT_PRECISE
 
 // Dividing wider than 64 bits calls compiler-rt, which clang-cl does not link: __udivti3.
-#if defined(_MSC_VER)
+#ifdef _MSC_VER
 #define XSTD_TEST_BIT_PRECISE_MAX 64
 #elif __BITINT_MAXWIDTH__ >= 256
 #define XSTD_TEST_BIT_PRECISE_MAX 256
