@@ -6,9 +6,9 @@
 #ifndef XSTD_CONCEPTS_NOTHROW_INTEGRAL_OPERATORS_HPP
 #define XSTD_CONCEPTS_NOTHROW_INTEGRAL_OPERATORS_HPP
 
-#include <xstd/concepts/integral_like.hpp> // integral_like
-#include <cstddef>                         // size_t
-#include <type_traits>                     // is_same_v, remove_cv_t
+#include <xstd/concepts/integer_like.hpp> // integer_like
+#include <cstddef>                        // size_t
+#include <type_traits>                    // is_same_v, remove_cv_t
 
 namespace xstd {
 
@@ -17,7 +17,7 @@ template<class T, class I = std::remove_cv_t<T>>
 concept nothrow_integral_operators =
         // I is the parameter's own default; naming it explicitly cannot redirect the question.
         std::is_same_v<I, std::remove_cv_t<T>> and
-        integral_like<I> and
+        integer_like<I> and
         // The conversions themselves: /6 and /8 make both explicit, so the cast is the expression.
         requires {
                 { static_cast<I>(0) } noexcept;
@@ -31,12 +31,12 @@ concept nothrow_integral_operators =
                 { not a } noexcept;
         } and
         requires (I const a, I const b) {
-                { a * b } noexcept;
+                { a* b } noexcept;
                 { a / b } noexcept;
                 { a % b } noexcept;
                 { a + b } noexcept;
                 { a - b } noexcept;
-                { a & b } noexcept;
+                { a& b } noexcept;
                 { a ^ b } noexcept;
                 { a | b } noexcept;
         } and

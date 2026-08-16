@@ -6,22 +6,22 @@
 #ifndef XSTD_TEST_CONSTEXPR_HPP
 #define XSTD_TEST_CONSTEXPR_HPP
 
-#include <xstd/charconv/to_chars.hpp>      // to_chars, to_chars_max_size
-#include <xstd/concepts/integral_like.hpp> // integral_like
-#include <xstd/cstdint.hpp>                // int128, uint128
-#include <xstd/cstdlib/div_t.hpp>          // div_t
-#include <boost/test/unit_test.hpp>        // BOOST_CHECK, BOOST_CHECK_EQUAL
-#include <array>                           // array
-#include <cassert>                         // assert
-#include <ostream>                         // ostream
-#include <string_view>                     // string_view
-#include <system_error>                    // errc
+#include <xstd/charconv/to_chars.hpp>     // to_chars, to_chars_max_size
+#include <xstd/concepts/integer_like.hpp> // integer_like
+#include <xstd/cstdint.hpp>               // int128, uint128
+#include <xstd/cstdlib/div_t.hpp>         // div_t
+#include <boost/test/unit_test.hpp>       // BOOST_CHECK, BOOST_CHECK_EQUAL
+#include <array>                          // array
+#include <cassert>                        // assert
+#include <ostream>                        // ostream
+#include <string_view>                    // string_view
+#include <system_error>                   // errc
 
 namespace xstd::test {
 
 // The one thing that renders a 128-bit value everywhere the suite builds.
-template<integral_like I>
-auto print_integral_like(std::ostream& ostr, I const value)
+template<integer_like I>
+auto print_integer_like(std::ostream& ostr, I const value)
         -> void
 {
         auto buffer = std::array<char, to_chars_max_size<I>>{};
@@ -42,7 +42,7 @@ struct print_log_value<xstd::int128>
         auto operator()(std::ostream& ostr, xstd::int128 const value) const
                 -> void
         {
-                xstd::test::print_integral_like(ostr, value);
+                xstd::test::print_integer_like(ostr, value);
         }
 };
 
@@ -52,21 +52,21 @@ struct print_log_value<xstd::uint128>
         auto operator()(std::ostream& ostr, xstd::uint128 const value) const
                 -> void
         {
-                xstd::test::print_integral_like(ostr, value);
+                xstd::test::print_integer_like(ostr, value);
         }
 };
 
 // Specialized, not routed through std::format, so it prints for every element type.
-template<xstd::integral_like I>
+template<xstd::integer_like I>
 struct print_log_value<xstd::div_t<I>>
 {
         auto operator()(std::ostream& ostr, xstd::div_t<I> const& d) const
                 -> void
         {
                 ostr << '(';
-                xstd::test::print_integral_like(ostr, d.quot);
+                xstd::test::print_integer_like(ostr, d.quot);
                 ostr << ", ";
-                xstd::test::print_integral_like(ostr, d.rem);
+                xstd::test::print_integer_like(ostr, d.rem);
                 ostr << ')';
         }
 };

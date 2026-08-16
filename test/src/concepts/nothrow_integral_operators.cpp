@@ -3,7 +3,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/concepts/integral_like.hpp>              // integral_like
+#include <xstd/concepts/integer_like.hpp>               // integer_like
 #include <xstd/concepts/nothrow_integral_operators.hpp> // nothrow_integral_operators
 #include <xstd/cstdint.hpp>                             // int128, uint128
 #include <xstd/cstdlib/abs.hpp>                         // abs
@@ -19,12 +19,15 @@ BOOST_AUTO_TEST_CASE(NothrowIntegralOperators)
 {
         // The built-in widths and the 128-bit type the library names all carry it.
         XSTD_CONSTEXPR_CHECK(xstd::nothrow_integral_operators<int>);
-        XSTD_CONSTEXPR_CHECK(xstd::nothrow_integral_operators<bool> and xstd::nothrow_integral_operators<char32_t>);
+        XSTD_CONSTEXPR_CHECK(xstd::nothrow_integral_operators<char32_t>);
+
+        // Its first conjunct is integer_like, which cv bool is not, so the operators go unasked.
+        XSTD_CONSTEXPR_CHECK(not xstd::nothrow_integral_operators<bool>);
         XSTD_CONSTEXPR_CHECK(xstd::nothrow_integral_operators<xstd::int128> and xstd::nothrow_integral_operators<xstd::uint128>);
 
-        // Admitted by integral_like and refused here: why the two are separate concepts.
+        // Admitted by integer_like and refused here: why the two are separate concepts.
 #ifdef XSTD_TEST_HAS_ABSL_INT128
-        XSTD_CONSTEXPR_CHECK(xstd::integral_like<xstd::test::absl_int128>);
+        XSTD_CONSTEXPR_CHECK(xstd::integer_like<xstd::test::absl_int128>);
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_integral_operators<xstd::test::absl_int128>);
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_integral_operators<xstd::test::absl_uint128>);
 #endif
@@ -51,18 +54,18 @@ BOOST_AUTO_TEST_CASE(NothrowIntegralOperatorsIsCvTransparentOnBothBranches)
 #endif
 }
 
-// Total: the conjunction short-circuits on integral_like before any operator is named.
+// Total: the conjunction short-circuits on integer_like before any operator is named.
 BOOST_AUTO_TEST_CASE(NothrowIntegralOperatorsIsTotal)
 {
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_integral_operators<void>);
-        // remove_cv_t, not remove_cvref_t: a reference is not an integral-like type.
+        // remove_cv_t, not remove_cvref_t: a reference is not an integer-like type.
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_integral_operators<int&>);
         // NOLINTNEXTLINE(modernize-avoid-c-arrays): a built-in array is the type under test, not a container choice
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_integral_operators<int[3]>);
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_integral_operators<int()>);
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_integral_operators<std::complex<double>>);
 
-        // Turned away by integral_like rather than by ~ or %.
+        // Turned away by integer_like rather than by ~ or %.
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_integral_operators<double>);
 }
 

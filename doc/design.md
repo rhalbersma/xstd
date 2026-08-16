@@ -14,7 +14,9 @@ across the tested toolchains. Consumers need no third-party dependencies.
   evaluation unless the standard library operation they delegate to prevents it.
 - **Generalize integer support.** The standard integral concepts and traits are
   closed over built-in types; xstd's `_like` counterparts also accept
-  integer-class types, on their behavior and `std::numeric_limits`.
+  integer-class types, on their behavior and `std::numeric_limits`. They are
+  named and defined after [iterator.concept.winc]'s *integer-like*, which
+  excludes cv `bool`.
 - **Keep metaprogramming small.** `specialization_of`, `empty_type` and
   `conditional_data_member_t` solve local problems without a framework.
 - **Make semantics explicit.** The three division functions name their rounding
@@ -26,7 +28,7 @@ across the tested toolchains. Consumers need no third-party dependencies.
 
 ### Integer-like types
 
-`integral_like`, `signed_integral_like` and `unsigned_integral_like` widen the
+`integer_like`, `signed_integer_like` and `unsigned_integer_like` widen the
 standard concepts to structurally recognized integer-class types, and the `_like`
 traits follow the same rule. Built-in integers need no customization; a
 user-defined signed/unsigned pair supplies the opposite `make_signed_like` and
@@ -61,14 +63,14 @@ fail it. Both halves are the test. A failing assertion on its own would hold jus
 as well for a fixture that had drifted out of conformance somewhere else entirely,
 and would go on holding after the clause it was written for had been relaxed.
 
-A template parameter is named for its concept: `I` under `integral_like`, `S`
-under `signed_integral_like`. The letters carry the constraint into the body,
+A template parameter is named for its concept: `I` under `integer_like`, `S`
+under `signed_integer_like`. The letters carry the constraint into the body,
 where `S{-1}` reads as something the type can hold and `I{-1}` would not — which
 is the line `div` takes care over, its `static_cast<I>(-1)` naming `max()` rather
 than a value below zero.
 
 The arithmetic functions use one constrained template per operation, over
-`integral_like` rather than its signed half, covering every integer-like width of
+`integer_like` rather than its signed half, covering every integer-like width of
 either signedness without families such as `abs`, `labs`, `llabs` and `imaxabs`.
 A function returns the argument type rather than a promoted one, and a
 two-argument function requires both arguments to have the same type.
@@ -94,34 +96,45 @@ comparisons is correct as written, but the second is one the answer can never
 depend on, and for an integer-class type a comparison is a call — and `sign` is
 on the path of `div`'s postconditions and `floored_div`'s adjustment.
 
-`bool` is integral-like, and unsigned-like at that, so the widened constraint
-admits it; all six delete it, as `to_chars` does. The deletions say one thing,
-and it is worth saying once rather than six times: `bool` is a truth value, not
-the one-bit unsigned integer a `uint1_t` would be, had the language one. Such a
-type would be modular, and `bool` is not. Converting to it normalizes instead of
-wrapping — `bool(2)` is `true` where `uint8_t(256)` is `0`. Its operators promote
-before they compute, so `true + true` is `2` and not `0`, and `-`, `~`, `&` and
-`<<` all hand back an `int`. Its increment was removed in C++17 and it never had
-a decrement, leaving it the one integral type that steps nowhere. So `abs(true)`
-would answer `true` and `sign(true)` would answer `1`: not wrong about a truth
-value, but answers to questions that were only ever about numbers. libstdc++
-draws the same line one level lower, its `__is_integer_like` excluding `bool`
-outright; [iterator.concept.winc] does not, `bool` being integral, so this
-library follows the subclause and excludes `bool` a deleted overload at a time.
+`bool` is excluded because the subclause excludes it. [iterator.concept.winc]/1
+opens "a type `I` **other than cv `bool`** is integer-like if it models
+`integral<I>` or if it is an integer-class type", so the exclusion is the first
+thing the definition says, and `integer_like` says it in the same place. The
+`remove_cv_t` is the subclause's "cv" and nothing more: `is_integral_v<const
+bool>` is `true`, so a bare `same_as<T, bool>` would let `const bool` through.
 
-They used to be load-bearing for a second reason. `unsigned_abs` forms
-`make_unsigned_like_t<I>` in its body, where `make_unsigned_like<bool>` is the
-empty primary and the failure is no longer in the immediate context, so without
-the deletion the call was ill-formed rather than unsatisfied. That is what
-`has_unsigned_counterpart` now asks for up front, and `bool` fails it like any
-other type with no counterpart, so the deletions no longer carry that weight
-alone.
+The reason the subclause is right is worth writing down, because it is the reason
+the six deleted overloads used to give six different ways. `bool` is a truth
+value, not the one-bit unsigned integer a `uint1_t` would be, had the language
+one. Such a type would be modular, and `bool` is not. Converting to it normalizes
+instead of wrapping — `bool(2)` is `true` where `uint8_t(256)` is `0`. Its
+operators promote before they compute, so `true + true` is `2` and not `0`, and
+`-`, `~`, `&` and `<<` all hand back an `int`. Its increment was removed in C++17
+and it never had a decrement, leaving it the one integral type that steps
+nowhere. So `abs(true)` would answer `true` and `sign(true)` would answer `1`:
+not wrong about a truth value, but answers to questions that were only ever about
+numbers.
 
-The concept exists because the reasoning above generalizes past `bool`, where a
-deletion cannot follow. A signed integer-class type whose counterpart the user has
-not registered satisfies `integral_like`, and `unsigned_abs` and `to_chars` would
+Those deletions are gone. A type the concept turns away needs no overload to
+turn it away twice, and six of them said in six wordings what the definition now
+says once. `to_chars` keeps its one, because `std::to_chars` keeps its one.
+
+The character types stay, and that is the subclause's answer too: they are
+integral and they are not `bool`. `<charconv>` agrees — `std::to_chars` accepts
+every one of them and prints it numerically — so narrowing here would make
+`xstd::to_chars` refuse calls the facility it widens accepts. A stricter line
+exists and is proposed: [p3701](https://wg21.link/p3701) would add
+`std::integer`, excluding `bool` and every character type. If it lands, the
+arithmetic surface may want that set and `to_chars` will still want this one.
+It cannot simply be adopted: `std::integer` is closed over built-in types, so no
+integer-class type can satisfy it, and its `cv-unqualified` conjunct rejects the
+`const` operands these concepts deliberately accept.
+
+`has_unsigned_counterpart` exists because the missing-counterpart problem reaches
+types no concept turns away. A signed integer-class type whose counterpart the user has
+not registered satisfies `integer_like`, and `unsigned_abs` and `to_chars` would
 then form a `make_unsigned_like_t` that does not exist. `to_chars` was the worse
-of the two: constrained on `integral_like` alone while its body needed the
+of the two: constrained on `integer_like` alone while its body needed the
 counterpart, it answered *yes* to a detection idiom for a call that was ill-formed,
 which defeats the fallback such an idiom exists to select. Both now require it, and
 so the failure is a plain unsatisfied constraint. `to_chars`'s delegating overload
@@ -129,7 +142,7 @@ asks for it without needing it, so that its constraints stay a superset of the
 digits overload's and subsumption still orders the two; the two
 `std::formatter<div_t<I>>` specializations are paired the same way.
 
-The three divisions are constrained on `integral_like` alone, and deliberately.
+The three divisions are constrained on `integer_like` alone, and deliberately.
 They never form the counterpart to compute with — `/` and `%` are all their bodies
 want, and the subclause supplies both. It appears in exactly one place, the
 assertion that the remainder is smaller than the denominator, which is written
@@ -183,7 +196,7 @@ direction, having no `noexcept` at all, because `std::to_chars` has none either.
 
 The predicate is named for what it can see — a type's declarations, not its
 behavior. "Integral" rather than "arithmetic", because `is_arithmetic_like` is
-the integral-like half *or* floating point and this answers false for every
+the integer-like half *or* floating point and this answers false for every
 floating-point type; "operators", because it ranges over a type's operators
 rather than its category. It is public because it *is* those six exception
 specifications, and a caller asking whether one throws over their own type is
@@ -255,7 +268,7 @@ The type utilities intentionally remain narrow:
 
 - `is_specialization_of` and `specialization_of` recognize specializations of
   class templates whose parameters are types.
-- `is_integral_like`, `is_arithmetic_like`, `is_signed_like` and
+- `is_integer_like`, `is_arithmetic_like`, `is_signed_like` and
   `is_unsigned_like` are open counterparts of the standard traits.
 - `empty_type` and `conditional_data_member_t` support optional
   `[[no_unique_address]]` storage.
@@ -288,7 +301,7 @@ the wrapped one writes its own.
 
 ### Character conversion
 
-`xstd::to_chars` widens `std::to_chars` to every integral-like type. Where the
+`xstd::to_chars` widens `std::to_chars` to every integer-like type. Where the
 standard library covers the type it *is* that call, so callers get the tuned
 implementation; where it does not, the digits are produced here to the same
 specification, bases 2 through 36 and `value_too_large` included. The default
@@ -320,7 +333,7 @@ both covered per type since gcov records them per instantiation.
 
 The two overloads are kept apart by subsumption rather than by hand: the
 delegating one requires a `std::to_chars` call to be well-formed *on top of*
-`integral_like`, and a conjunction subsumes its left operand, so it wins partial
+`integer_like`, and a conjunction subsumes its left operand, so it wins partial
 ordering wherever both are viable. Spelling the other as the negation would work
 too, but a negated atomic constraint does not subsume, so exclusivity and
 exhaustiveness would become an invariant to maintain across two edits instead of
@@ -358,7 +371,7 @@ resolution failing is still failing in the immediate context.
 `formatter<__int128, CharT>` *only* under `__STRICT_ANSI__`. So the three
 facilities disagree about one type along different axes: `<format>` works only in
 the strict dialect, `<charconv>` only outside it, and `<ostream>` in neither.
-`bool` is integral-like, and `to_chars` is deleted for it as in the standard.
+`bool` is integer-like, and `to_chars` is deleted for it as in the standard.
 
 ### Formatting
 

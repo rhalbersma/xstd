@@ -7,7 +7,7 @@
 #define XSTD_CSTDLIB_FLOORED_DIV_HPP
 
 #include <xstd/concepts/has_unsigned_counterpart.hpp>   // has_unsigned_counterpart
-#include <xstd/concepts/integral_like.hpp>              // integral_like
+#include <xstd/concepts/integer_like.hpp>               // integer_like
 #include <xstd/concepts/nothrow_integral_operators.hpp> // nothrow_integral_operators
 #include <xstd/cstdlib/div.hpp>                         // div
 #include <xstd/cstdlib/div_t.hpp>                       // IWYU pragma: export; div_t
@@ -19,7 +19,7 @@
 namespace xstd {
 
 // Floored division: a nonzero remainder has the denominator's sign.
-template<integral_like I>
+template<integer_like I>
 [[nodiscard]] constexpr auto floored_div(I numer, I denom) noexcept(nothrow_integral_operators<I>)
         -> div_t<I>
 {
@@ -43,9 +43,6 @@ template<integral_like I>
                 return {.quot = qF, .rem = rF};
         }
 }
-
-// Deleted: bool is integral-like but not a 1-bit integer, and a bool quotient is no answer.
-auto floored_div(bool, bool) -> div_t<bool> = delete;
 
 } // namespace xstd
 

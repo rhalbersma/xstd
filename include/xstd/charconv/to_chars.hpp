@@ -7,7 +7,7 @@
 #define XSTD_CHARCONV_TO_CHARS_HPP
 
 #include <xstd/concepts/has_unsigned_counterpart.hpp> // has_unsigned_counterpart
-#include <xstd/concepts/integral_like.hpp>            // integral_like
+#include <xstd/concepts/integer_like.hpp>             // integer_like
 #include <xstd/cstdlib/div.hpp>                       // div
 #include <xstd/cstdlib/unsigned_abs.hpp>              // unsigned_abs
 #include <xstd/type_traits/is_signed_like.hpp>        // is_signed_like_v
@@ -34,13 +34,12 @@ concept std_to_chars_covers = requires (char* p, I value, int base) {
 namespace xstd {
 
 // Worst case is base 2: one character per value bit, and two more when signed.
-template<integral_like I>
-        requires (not std::is_same_v<std::remove_cv_t<I>, bool>)
+template<integer_like I>
 inline constexpr auto to_chars_max_size =
         static_cast<std::size_t>(std::numeric_limits<I>::digits) + (is_signed_like_v<I> ? 2 : 0);
 
 // The standard's own call where it covers I; an ambiguous overload leaves this unsatisfied.
-template<integral_like I>
+template<integer_like I>
 // The counterpart is carried unneeded, to stay a superset of the digits overload's.
         requires has_unsigned_counterpart<I> and exposition_only::std_to_chars_covers<I>
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
@@ -56,7 +55,7 @@ template<integral_like I>
 auto to_chars(char*, char*, bool, int = 10) -> std::to_chars_result = delete;
 
 // For the types the two above miss; less constrained, so a call prefers the standard's.
-template<integral_like I>
+template<integer_like I>
 // The digits come off the counterpart, so it is a constraint rather than a body.
         requires has_unsigned_counterpart<I>
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above

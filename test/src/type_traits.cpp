@@ -16,7 +16,7 @@ enum class color : unsigned { red = 1 };
 // An incomplete type is answered, not hard-errored: what the sizeof term buys.
 BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAnswerForIncompleteTypes)
 {
-        XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<struct never_defined>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_integer_like_v<struct never_defined>);
         XSTD_CONSTEXPR_CHECK(not xstd::is_arithmetic_like_v<struct never_defined>);
         XSTD_CONSTEXPR_CHECK(not xstd::is_signed_like_v<struct never_defined>);
         XSTD_CONSTEXPR_CHECK(not xstd::is_unsigned_like_v<struct never_defined>);
@@ -30,7 +30,7 @@ auto check_agrees_with_std()
         XSTD_CONSTEXPR_CHECK(xstd::is_arithmetic_like_v<T> == std::is_arithmetic_v<T>);
         XSTD_CONSTEXPR_CHECK(xstd::is_signed_like_v<T> == std::is_signed_v<T>);
         XSTD_CONSTEXPR_CHECK(xstd::is_unsigned_like_v<T> == std::is_unsigned_v<T>);
-        XSTD_CONSTEXPR_CHECK(xstd::is_integral_like_v<T> == std::is_integral_v<T>);
+        XSTD_CONSTEXPR_CHECK(xstd::is_integer_like_v<T> == std::is_integral_v<T>);
 }
 
 BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAgreeWithStd)
@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAgreeWithStd)
         check_agrees_with_std<int[3]>();
 }
 
-// Sign modifiers are inverse transformations for supported integral-like types.
+// Sign modifiers are inverse transformations for supported integer-like types.
 BOOST_AUTO_TEST_CASE(MakeSignedAndUnsignedLikeAreInverses)
 {
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_signed_like_t<xstd::make_unsigned_like_t<int>>, int>));

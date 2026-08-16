@@ -5,7 +5,7 @@
 
 #include <xstd/cstdlib.hpp>                // complete arithmetic surface
 #include <xstd/cstdint.hpp>                // int128, uint128
-#include <xstd/concepts.hpp>               // integral_like, signed_integral_like
+#include <xstd/concepts.hpp>               // integer_like, signed_integer_like
 #include <xstd/type_traits.hpp>            // make_unsigned_like_t
 #include <xstd/test/absl_int128.hpp>       // XSTD_TEST_HAS_ABSL_INT128
 #include <xstd/test/boost_int128.hpp>      // XSTD_TEST_HAS_BOOST_INT128
@@ -45,7 +45,7 @@ concept has_euclidean_div = requires (T numer, T denom) { xstd::euclidean_div(nu
 template<class T>
 concept has_floored_div = requires (T numer, T denom) { xstd::floored_div(numer, denom); };
 
-// The constraint itself: integral-like in, and the argument type back out, not a promotion.
+// The constraint itself: integer-like in, and the argument type back out, not a promotion.
 BOOST_AUTO_TEST_CASE_TEMPLATE(Constraints, T, xstd::test::std_signed_types)
 {
         static_assert(std::same_as<decltype(xstd::abs(T{})), T>);
@@ -101,13 +101,15 @@ BOOST_AUTO_TEST_CASE(NonIntegralLikeArgumentsAreRejected)
         static_assert(not has_unsigned_abs<double>);
         static_assert(not has_unsigned_abs<char*>);
 
-        // bool is unsigned-like, so the constraint admits it; all six delete it instead.
+        // cv bool is not integer-like, so every one of the six turns it away by constraint.
         static_assert(not has_abs<bool>);
         static_assert(not has_sign<bool>);
         static_assert(not has_unsigned_abs<bool>);
         static_assert(not has_div<bool, bool>);
         static_assert(not has_euclidean_div<bool>);
         static_assert(not has_floored_div<bool>);
+        static_assert(not has_abs<const bool>);
+        static_assert(not has_abs<volatile bool>);
 
         // Both parameters deduce one T, so a mixed-width call fails rather than converting.
         static_assert(not has_div<std::int32_t, std::int64_t>);
@@ -121,8 +123,8 @@ BOOST_AUTO_TEST_CASE(UnregisteredIntegerClassTypeReachesAllButTheTwoThatFormIt)
 {
         using T = xstd::test::unregistered_int_class;
 
-        static_assert(xstd::integral_like<T>);
-        static_assert(xstd::signed_integral_like<T>);
+        static_assert(xstd::integer_like<T>);
+        static_assert(xstd::signed_integer_like<T>);
         static_assert(not xstd::has_unsigned_counterpart<T>);
 
         // The two that produce a value of the counterpart type cannot serve it.
@@ -199,8 +201,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(BoundaryDivisions, T, xstd::test::std_signed_types
 }
 
 // The whole surface at one type std::signed_integral can never accept, both arms of each.
-template<xstd::signed_integral_like S>
-auto check_signed_integral_like()
+template<xstd::signed_integer_like S>
+auto check_signed_integer_like()
         -> void
 {
         using U = xstd::make_unsigned_like_t<S>;
@@ -242,7 +244,7 @@ template<std::signed_integral T>
 auto check_built_in_width()
         -> void
 {
-        check_signed_integral_like<T>();
+        check_signed_integer_like<T>();
 }
 
 BOOST_AUTO_TEST_CASE(BuiltInWidths)
@@ -256,11 +258,11 @@ BOOST_AUTO_TEST_CASE(BuiltInWidths)
 // Platform details stay behind the xstd aliases; only the public names are used.
 BOOST_AUTO_TEST_CASE(Int128Aliases)
 {
-        static_assert(xstd::signed_integral_like<xstd::int128>);
+        static_assert(xstd::signed_integer_like<xstd::int128>);
         static_assert(std::same_as<decltype(xstd::unsigned_abs(xstd::int128{})), xstd::uint128>);
         static_assert(std::same_as<decltype(xstd::div(xstd::int128{1}, xstd::int128{1})), xstd::div_t<xstd::int128>>);
 
-        check_signed_integral_like<xstd::int128>();
+        check_signed_integer_like<xstd::int128>();
 }
 
 // The same battery over a type the library does not know about, which xstd::int128 cannot show.
@@ -270,11 +272,11 @@ BOOST_AUTO_TEST_CASE(ThirdPartyIntegerClassType)
 {
         using T = xstd::test::boost_int128;
 
-        static_assert(xstd::signed_integral_like<T>);
+        static_assert(xstd::signed_integer_like<T>);
         static_assert(std::same_as<decltype(xstd::unsigned_abs(T{})), xstd::test::boost_uint128>);
         static_assert(std::same_as<decltype(xstd::div(T{1}, T{1})), xstd::div_t<T>>);
 
-        check_signed_integral_like<T>();
+        check_signed_integer_like<T>();
 }
 
 #endif
@@ -286,8 +288,8 @@ BOOST_AUTO_TEST_CASE(UnannotatedThirdPartyIntegerClassType)
 {
         using T = xstd::test::absl_int128;
 
-        static_assert(xstd::integral_like<T>);
-        static_assert(xstd::signed_integral_like<T>);
+        static_assert(xstd::integer_like<T>);
+        static_assert(xstd::signed_integer_like<T>);
         static_assert(std::same_as<decltype(xstd::unsigned_abs(T{})), xstd::test::absl_uint128>);
         static_assert(std::same_as<decltype(xstd::div(T{1}, T{1})), xstd::div_t<T>>);
 
@@ -304,7 +306,7 @@ BOOST_AUTO_TEST_CASE(UnannotatedThirdPartyIntegerClassType)
         static_assert(noexcept(xstd::div(1, 1)));
 
 #ifdef ABSL_HAVE_INTRINSIC_INT128
-        check_signed_integral_like<T>();
+        check_signed_integer_like<T>();
 #else
         // Without an intrinsic its operator/ and operator% are not constexpr, so check at run time.
         BOOST_CHECK(xstd::abs(T{-2}) == T{2});
