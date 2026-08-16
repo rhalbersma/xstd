@@ -12,8 +12,17 @@
 #include <type_traits>                             // type_identity
 
 // C23's bit-precise integers, which in C++ only Clang has, and whose ceiling it names here.
-#if defined(__BITINT_MAXWIDTH__)
+#ifdef __BITINT_MAXWIDTH__
 #define XSTD_TEST_HAS_BIT_PRECISE
+
+// Dividing wider than 64 bits calls compiler-rt, which clang-cl does not link: __udivti3.
+#if defined(_MSC_VER)
+#define XSTD_TEST_BIT_PRECISE_MAX 64
+#elif __BITINT_MAXWIDTH__ >= 256
+#define XSTD_TEST_BIT_PRECISE_MAX 256
+#else
+#define XSTD_TEST_BIT_PRECISE_MAX 128
+#endif
 
 namespace xstd::test {
 
@@ -80,7 +89,7 @@ struct storage_limits<signed _BitInt(N)>
 template<std::size_t N>
 using bit_uint = integer_class<unsigned _BitInt(N), false>;
 
-// Clang rejects a signed width of 1 outright: one bit leaves no room for a magnitude.
+// C23 sets the signed minimum at two bits, so only the unsigned list starts at one.
 template<std::size_t N>
 using bit_int = integer_class<signed _BitInt(N), false>;
 
@@ -91,6 +100,6 @@ template<std::size_t N>
 struct xstd::make_unsigned_like<xstd::test::bit_int<N>> : std::type_identity<xstd::test::bit_uint<N>>
 {};
 
-#endif // defined(__BITINT_MAXWIDTH__)
+#endif // __BITINT_MAXWIDTH__
 
 #endif // XSTD_TEST_BIT_PRECISE_HPP

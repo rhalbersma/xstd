@@ -25,7 +25,8 @@ struct storage_limits : std::numeric_limits<Storage>
 
 // Sign bit included, so that a counterpart is the same width rather than the same digits.
 template<class Storage>
-inline constexpr auto storage_width = storage_limits<Storage>::digits + storage_limits<Storage>::is_signed;
+inline constexpr auto storage_width =
+        storage_limits<Storage>::digits + static_cast<int>(storage_limits<Storage>::is_signed);
 
 // What the binary operators return in the proxy variant: convertible to the type, not it.
 template<class Storage, bool ProxyResults>
