@@ -39,7 +39,7 @@ target_sources(
         include/xstd/concepts/exposition_only.hpp
         include/xstd/concepts/has_unsigned_counterpart.hpp
         include/xstd/concepts/integer_like.hpp
-        include/xstd/concepts/nothrow_integral_operators.hpp
+        include/xstd/concepts/nothrow_integer_operators.hpp
         include/xstd/concepts/signed_integer_like.hpp
         include/xstd/concepts/specialization_of.hpp
         include/xstd/concepts/unsigned_integer_like.hpp

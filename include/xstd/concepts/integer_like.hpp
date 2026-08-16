@@ -13,9 +13,9 @@
 namespace xstd {
 
 // [iterator.concept.winc]/1 as written: a type other than cv bool, integral or integer-class.
-template<class T>
-concept integer_like = (not std::same_as<std::remove_cv_t<T>, bool>) and
-                       (std::integral<T> or exposition_only::integer_class_type<T>);
+template<class I>
+concept integer_like = (not std::same_as<std::remove_cv_t<I>, bool>) and
+                       (std::integral<I> or exposition_only::integer_class_type<I>);
 
 } // namespace xstd
 

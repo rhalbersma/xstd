@@ -42,7 +42,7 @@ of the type, so a `const` type fails at `++a`, at `a += b` and at `std::regular`
 Nothing in the subclause wants that difference — /11 speaks of "every (possibly
 cv-qualified) integer-class type" — so the qualification comes off once, in a
 defaulted second template parameter that binds the type the body is written over.
-`nothrow_integral_operators` uses the same spelling: `const` would have survived
+`nothrow_integer_operators` uses the same spelling: `const` would have survived
 unaided, every row being stated over a `const` operand, but `volatile` splits the
 two branches, a built-in answering a volatile operand on the language's own
 operators where a class type's `const` members answer none of them.
@@ -101,7 +101,7 @@ opens "a type `I` **other than cv `bool`** is integer-like if it models
 `integral<I>` or if it is an integer-class type", so the exclusion is the first
 thing the definition says, and `integer_like` says it in the same place. The
 `remove_cv_t` is the subclause's "cv" and nothing more: `is_integral_v<const
-bool>` is `true`, so a bare `same_as<T, bool>` would let `const bool` through.
+bool>` is `true`, so a bare `same_as<I, bool>` would let `const bool` through.
 
 The reason the subclause is right is worth writing down, because it is the reason
 the six deleted overloads used to give six different ways. `bool` is a truth
@@ -252,7 +252,7 @@ whole of what a user has to write. Both dependencies are optional; see
 
 The two are not interchangeable, which is why both are here. Boost annotates its
 operations and Abseil annotates none, so they land on opposite sides of
-`nothrow_integral_operators`. They differ once more: `absl::int128`'s `operator/`
+`nothrow_integer_operators`. They differ once more: `absl::int128`'s `operator/`
 and `operator%` are `constexpr` only where a 128-bit intrinsic backs them, and
 out-of-line otherwise. That is the one place these tests assert something about
 the target rather than the type. The whole-surface battery in
@@ -274,10 +274,10 @@ The type utilities intentionally remain narrow:
   `[[no_unique_address]]` storage.
 - `to_underlying` forwards a plain enum and preserves one wrapped in
   `std::integral_constant`.
-- `nothrow_integral_operators` answers whether the conditional `noexcept` holds.
+- `nothrow_integer_operators` answers whether the conditional `noexcept` holds.
 
 A concept spelling is provided when the standard library has an analogous
-concept; otherwise the trait is the interface. `nothrow_integral_operators` is
+concept; otherwise the trait is the interface. `nothrow_integer_operators` is
 the one concept with no trait beside it, having no standard trait to mirror, and
 is spelled the way a caller writes it: inside a `noexcept`.
 

@@ -6,15 +6,15 @@
 #ifndef XSTD_CSTDLIB_SIGN_HPP
 #define XSTD_CSTDLIB_SIGN_HPP
 
-#include <xstd/concepts/integer_like.hpp>               // integer_like
-#include <xstd/concepts/nothrow_integral_operators.hpp> // nothrow_integral_operators
-#include <xstd/type_traits/is_unsigned_like.hpp>        // is_unsigned_like_v
+#include <xstd/concepts/integer_like.hpp>              // integer_like
+#include <xstd/concepts/nothrow_integer_operators.hpp> // nothrow_integer_operators
+#include <xstd/type_traits/is_unsigned_like.hpp>       // is_unsigned_like_v
 
 namespace xstd {
 
 // Returns -1, 0, or 1; over an unsigned type, 0 or 1.
 template<integer_like I>
-[[nodiscard]] constexpr auto sign(I x) noexcept(nothrow_integral_operators<I>)
+[[nodiscard]] constexpr auto sign(I x) noexcept(nothrow_integer_operators<I>)
         -> int
 {
         auto const zero = static_cast<I>(0);

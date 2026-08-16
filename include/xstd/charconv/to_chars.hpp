@@ -19,7 +19,6 @@
 #include <iterator>                                   // distance, next
 #include <limits>                                     // numeric_limits
 #include <system_error>                               // errc
-#include <type_traits>                                // is_same_v, remove_cv_t
 
 // Named, not written inline, so each requires-clause below stays one line and one conjunction.
 namespace xstd::exposition_only {
