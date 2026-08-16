@@ -31,12 +31,12 @@ concept nothrow_integral_operators =
                 { not a } noexcept;
         } and
         requires (I const a, I const b) {
-                { a* b } noexcept;
+                { a * b } noexcept;
                 { a / b } noexcept;
                 { a % b } noexcept;
                 { a + b } noexcept;
                 { a - b } noexcept;
-                { a& b } noexcept;
+                { a & b } noexcept;
                 { a ^ b } noexcept;
                 { a | b } noexcept;
         } and
