@@ -6,19 +6,32 @@
 #ifndef XSTD_CHARCONV_TO_CHARS_HPP
 #define XSTD_CHARCONV_TO_CHARS_HPP
 
-#include <xstd/concepts/integral_like.hpp>         // integral_like
-#include <xstd/cstdlib/div.hpp>                    // div
-#include <xstd/cstdlib/unsigned_abs.hpp>           // unsigned_abs
-#include <xstd/type_traits/is_signed_like.hpp>     // is_signed_like_v
-#include <xstd/type_traits/make_unsigned_like.hpp> // make_unsigned_like_t
-#include <cassert>                                 // assert
-#include <charconv>                                // to_chars, to_chars_result
-#include <concepts>                                // same_as
-#include <cstddef>                                 // ptrdiff_t, size_t
-#include <iterator>                                // distance, next
-#include <limits>                                  // numeric_limits
-#include <system_error>                            // errc
-#include <type_traits>                             // is_same_v, remove_cv_t
+#include <xstd/concepts/has_unsigned_counterpart.hpp> // has_unsigned_counterpart
+#include <xstd/concepts/integral_like.hpp>            // integral_like
+#include <xstd/cstdlib/div.hpp>                       // div
+#include <xstd/cstdlib/unsigned_abs.hpp>              // unsigned_abs
+#include <xstd/type_traits/is_signed_like.hpp>        // is_signed_like_v
+#include <xstd/type_traits/make_unsigned_like.hpp>    // make_unsigned_like_t
+#include <cassert>                                    // assert
+#include <charconv>                                   // to_chars, to_chars_result
+#include <concepts>                                   // same_as
+#include <cstddef>                                    // ptrdiff_t, size_t
+#include <iterator>                                   // distance, next
+#include <limits>                                     // numeric_limits
+#include <system_error>                               // errc
+#include <type_traits>                                // is_same_v, remove_cv_t
+
+// Named rather than written inline below, so that each overload's requires-clause is one
+// line: there is no standard concept for "the standard library converts this type", and a
+// requires-expression nested inside a requires-clause reads as neither one thing nor two.
+namespace xstd::exposition_only {
+
+template<class I>
+concept std_to_chars_covers = requires (char* p, I value, int base) {
+        { std::to_chars(p, p, value, base) } -> std::same_as<std::to_chars_result>;
+};
+
+} // namespace xstd::exposition_only
 
 namespace xstd {
 
@@ -30,10 +43,10 @@ inline constexpr auto to_chars_max_size =
         static_cast<std::size_t>(std::numeric_limits<I>::digits) + (is_signed_like_v<I> ? 2 : 0);
 
 // The standard's own call where it covers I; an ambiguous overload leaves this unsatisfied.
+// It carries has_unsigned_counterpart without needing it, so that its constraints stay a
+// superset of the digits overload's below and subsumption still orders the two.
 template<integral_like I>
-        requires requires (char* p, I value, int base) {
-                { std::to_chars(p, p, value, base) } -> std::same_as<std::to_chars_result>;
-        }
+        requires has_unsigned_counterpart<I> and exposition_only::std_to_chars_covers<I>
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
 [[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10)
         -> std::to_chars_result
@@ -47,7 +60,9 @@ template<integral_like I>
 auto to_chars(char*, char*, bool, int = 10) -> std::to_chars_result = delete;
 
 // For the types the two above miss; less constrained, so a call prefers the standard's.
+// The counterpart is what the digits come off, so it is a constraint rather than a body.
 template<integral_like I>
+        requires has_unsigned_counterpart<I>
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
 [[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10)
         -> std::to_chars_result

@@ -6,6 +6,7 @@
 #ifndef XSTD_CSTDLIB_EUCLIDEAN_DIV_HPP
 #define XSTD_CSTDLIB_EUCLIDEAN_DIV_HPP
 
+#include <xstd/concepts/has_unsigned_counterpart.hpp>   // has_unsigned_counterpart
 #include <xstd/concepts/integral_like.hpp>              // integral_like
 #include <xstd/concepts/nothrow_integral_operators.hpp> // nothrow_integral_operators
 #include <xstd/cstdlib/div.hpp>                         // div
@@ -19,6 +20,7 @@ namespace xstd {
 
 // Euclidean division: the remainder is nonnegative.
 template<integral_like I>
+        requires has_unsigned_counterpart<I>
 [[nodiscard]] constexpr auto euclidean_div(I numer, I denom) noexcept(nothrow_integral_operators<I>)
         -> div_t<I>
 {

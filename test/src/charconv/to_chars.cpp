@@ -5,7 +5,9 @@
 
 #include <xstd/charconv/to_chars.hpp>      // to_chars, to_chars_max_size
 #include <xstd/cstdint.hpp>                // int128, uint128
+#include <xstd/concepts/integral_like.hpp> // integral_like
 #include <xstd/test/exact_width_types.hpp> // std_signed_types, exact_width_signed_types, exact_width_unsigned_types
+#include <xstd/test/integer_class.hpp>     // conforming_int_class, unregistered_int_class
 #include <boost/test/unit_test.hpp>        // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_CHECK, BOOST_CHECK_EQUAL
 #include <array>                           // array
 #include <charconv>                        // to_chars, to_chars_result
@@ -65,6 +67,12 @@ BOOST_AUTO_TEST_CASE(DelegatesWhereTheStandardLibraryCovers)
         struct not_an_integer
         {};
         static_assert(not has_std_to_chars<not_an_integer>);
+
+        // The digits path produces on the unsigned counterpart, so a type without one is
+        // outside the constraint rather than inside it and ill-formed in the body.
+        static_assert(xstd::integral_like<xstd::test::unregistered_int_class>);
+        static_assert(not has_xstd_to_chars<xstd::test::unregistered_int_class>);
+        static_assert(has_xstd_to_chars<xstd::test::conforming_int_class>);
 }
 
 // The load-bearing property: the two paths render byte-identically, at every base.

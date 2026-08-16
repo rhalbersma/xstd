@@ -9,7 +9,7 @@
 #include <xstd/concepts/unsigned_integral_like.hpp> // unsigned_integral_like
 #include <xstd/test/absl_int128.hpp>                // XSTD_TEST_HAS_ABSL_INT128, absl_int128, absl_uint128
 #include <xstd/test/constexpr.hpp>                  // XSTD_CONSTEXPR_CHECK
-#include <xstd/test/proxy_result.hpp>               // proxy_result
+#include <xstd/test/integer_class.hpp>              // conforming_int_class, proxy_result
 #include <boost/test/unit_test.hpp>                 // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <concepts>                                 // convertible_to, same_as
 
@@ -53,18 +53,24 @@ BOOST_AUTO_TEST_CASE(NoIntegralTypeIsAnIntegerClassType)
 }
 
 // The concept asks for /7.6's result type, not for what a static_cast<I> could reach.
+// Asserted both ways round: the two fixtures are one class template at one storage type,
+// differing in that clause alone, so a yes and a no together are what pin the clause. A no
+// on its own would hold just as well for a type that failed somewhere else entirely.
 BOOST_AUTO_TEST_CASE(OperatorResultsAreTheTypeItself)
 {
-        using T = xstd::test::proxy_result;
+        using conforming = xstd::test::conforming_int_class;
+        using proxied = xstd::test::proxy_result;
 
-        XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integer_class_type<T>);
-        XSTD_CONSTEXPR_CHECK(not xstd::integral_like<T>);
+        XSTD_CONSTEXPR_CHECK(xstd::exposition_only::integer_class_type<conforming>);
+        XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integer_class_type<proxied>);
+        XSTD_CONSTEXPR_CHECK(xstd::integral_like<conforming>);
+        XSTD_CONSTEXPR_CHECK(not xstd::integral_like<proxied>);
 
-        // Everything they return does convert to it, which is all a cast would have shown.
-        XSTD_CONSTEXPR_CHECK((std::convertible_to<decltype(T() + T()), T>));
-        XSTD_CONSTEXPR_CHECK((not std::same_as<decltype(T() + T()), T>));
+        // Everything the proxy returns does convert, which is all a cast would have shown.
+        XSTD_CONSTEXPR_CHECK((std::convertible_to<decltype(proxied() + proxied()), proxied>));
+        XSTD_CONSTEXPR_CHECK((not std::same_as<decltype(proxied() + proxied()), proxied>));
 
-        // absl::uint128 differs from it in nothing else and passes.
+        // absl::uint128 differs from the conforming one in nothing that matters, and agrees.
 #ifdef XSTD_TEST_HAS_ABSL_INT128
         XSTD_CONSTEXPR_CHECK(xstd::exposition_only::integer_class_type<xstd::test::absl_uint128>);
 #endif
@@ -76,6 +82,14 @@ BOOST_AUTO_TEST_CASE(IntegralLikeIsCvTransparentOnBothBranches)
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<int const>);
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<int volatile>);
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<int const volatile>);
+
+        // The integer-class branch unconditionally, both third parties being optional.
+        using owned = xstd::test::conforming_int_class;
+
+        XSTD_CONSTEXPR_CHECK(xstd::integral_like<owned const>);
+        XSTD_CONSTEXPR_CHECK(xstd::integral_like<owned volatile>);
+        XSTD_CONSTEXPR_CHECK(xstd::integral_like<owned const volatile>);
+        XSTD_CONSTEXPR_CHECK(xstd::unsigned_integral_like<owned const>);
 
 #ifdef XSTD_TEST_HAS_ABSL_INT128
         using T = xstd::test::absl_int128;

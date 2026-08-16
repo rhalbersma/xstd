@@ -22,11 +22,13 @@ on:
 
 jobs:
   build:
-    name: GCC ${{ matrix.label }}
+    name: GCC ${{ matrix.label }} ${{ matrix.build_type }}
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
+        build_type: [Release, Debug]
+        label: ["15", "16", "17-SVN"]
         include:
           - label: "15"
             version: 15
@@ -138,7 +140,7 @@ jobs:
           VCPKG_GCC_VERSION: ${{ matrix.version }}
         run: >
           cmake -S . -B build
-          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           -DCMAKE_C_COMPILER=${{ matrix.cc }}
           -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
           -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake

@@ -30,7 +30,9 @@ across the tested toolchains. Consumers need no third-party dependencies.
 standard concepts to structurally recognized integer-class types, and the `_like`
 traits follow the same rule. Built-in integers need no customization; a
 user-defined signed/unsigned pair supplies the opposite `make_signed_like` and
-`make_unsigned_like` specializations.
+`make_unsigned_like` specializations. `has_unsigned_counterpart` is where the
+integer functions ask whether that has been done, so a type arriving without it
+is turned away by a constraint rather than inside a body.
 
 The widening is cv-transparent on both branches. That takes doing only on the
 integer-class one: [iterator.concept.winc] states its requirements for an object
@@ -50,6 +52,14 @@ here can tell the difference, every use being a contextual conversion. The
 language draws the line in one place anyway — a rewritten `!=` needs its
 `operator==` to return exactly `bool` ([over.match.oper]) — so a type whose
 equality returns a proxy must write `!=` out, and then the concept admits it.
+
+That the concept asks for `I` exactly, rather than for something a `static_cast<I>`
+could reach, is pinned by a pair of fixtures in `test/include/xstd/test/` that are
+one class template at one storage type, differing in /7.6 alone: the conforming
+one is asserted to satisfy `integer_class_type` and the proxy-returning one to
+fail it. Both halves are the test. A failing assertion on its own would hold just
+as well for a fixture that had drifted out of conformance somewhere else entirely,
+and would go on holding after the clause it was written for had been relaxed.
 
 A template parameter is named for its concept: `I` under `integral_like`, `S`
 under `signed_integral_like`. The letters carry the constraint into the body,
@@ -85,12 +95,33 @@ depend on, and for an integer-class type a comparison is a call — and `sign` i
 on the path of `div`'s postconditions and `floored_div`'s adjustment.
 
 `bool` is integral-like, and unsigned-like at that, so the widened constraint
-admits it; all six delete it, as `to_chars` does. Four of the deletions are
-load-bearing: `unsigned_abs` forms `make_unsigned_like_t<I>` in its body, where
-`make_unsigned_like<bool>` is the empty primary and the failure is no longer in
-the immediate context, so without the deletion the call is ill-formed rather than
-unsatisfied; `div` reaches that through its postconditions and the two named
-divisions through `div`.
+admits it; all six delete it, as `to_chars` does. The deletions are now there for
+what they say rather than for what they prevent: `abs(true)` would answer `true`
+and `sign(true)` would answer `1`, and neither is an answer worth giving.
+
+They used to be load-bearing for a second reason. `unsigned_abs` forms
+`make_unsigned_like_t<I>` in its body, where `make_unsigned_like<bool>` is the
+empty primary and the failure is no longer in the immediate context, so without
+the deletion the call was ill-formed rather than unsatisfied; `div` reached that
+through its postconditions and the two named divisions through `div`. That is
+what `has_unsigned_counterpart` now asks for up front, and `bool` fails it like
+any other type with no counterpart, so the deletions no longer carry that weight
+alone.
+
+The concept exists because the reasoning above generalizes past `bool`, where a
+deletion cannot follow. A signed integer-class type whose counterpart the user
+has not registered satisfies `integral_like`, and every one of these bodies would
+then form a `make_unsigned_like_t` that does not exist. Two things made that
+worse than an ordinary error. `div` reaches `unsigned_abs` only from inside an
+`assert`, so the call compiled under `NDEBUG` and failed to compile without it —
+a build that worked in Release and not in Debug. And `to_chars` was constrained on
+`integral_like` alone while its body needed the counterpart, so a detection idiom
+answered *yes* for a call that was ill-formed. Requiring the counterpart in the
+signature makes both a plain unsatisfied constraint, identically in either mode.
+`to_chars`'s delegating overload asks for it too, without needing it, so that its
+constraints stay a superset of the digits overload's and subsumption still orders
+the two; the two `std::formatter<div_t<I>>` specializations are paired the same
+way for the same reason.
 
 The calls these functions make to each other are qualified. Unqualified, ADL adds
 the argument's own namespace, where a non-template beats a constrained template
@@ -263,10 +294,14 @@ delegating one requires a `std::to_chars` call to be well-formed *on top of*
 ordering wherever both are viable. Spelling the other as the negation would work
 too, but a negated atomic constraint does not subsume, so exclusivity and
 exhaustiveness would become an invariant to maintain across two edits instead of
-a property of the constraints. The constraint is that call written where it
-applies, there being no standard concept for "the standard library converts this
-type"; it stays an answer rather than an error because `I` is the overload's own
-parameter, which keeps the expression dependent until the constraint is checked.
+a property of the constraints. The constraint is that call itself, there being no
+standard concept for "the standard library converts this type"; it stays an answer
+rather than an error because `I` is the overload's own parameter, which keeps the
+expression dependent until the constraint is checked. It is spelled as a named
+concept a few lines above rather than inline, so that each overload's
+requires-clause is one line and one conjunction — a requires-expression nested
+inside a requires-clause reads as neither one thing nor two, and with
+`ColumnLimit: 0` its continuation indent is the formatter's to choose.
 
 Their order in the header is reading order: the standard's own call, then the
 deletion the standard also makes, then the fallback for what neither covers. It
