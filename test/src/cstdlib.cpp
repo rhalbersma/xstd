@@ -116,12 +116,8 @@ BOOST_AUTO_TEST_CASE(NonIntegralLikeArgumentsAreRejected)
         BOOST_CHECK(true);
 }
 
-// An integer-class type the library has not been told the unsigned counterpart of. Every
-// other fixture in the suite arrives with that association already written, so this is the
-// only one that reaches the constraint. It matters that these are answers: the functions
-// form make_unsigned_like_t in their bodies, and div reaches it from inside an assert, so
-// left to the body this type would compile under NDEBUG and fail to compile without it.
-BOOST_AUTO_TEST_CASE(UnregisteredIntegerClassTypeIsOutsideTheDomain)
+// The one fixture with no counterpart registered, which splits the arithmetic surface in two.
+BOOST_AUTO_TEST_CASE(UnregisteredIntegerClassTypeReachesAllButTheTwoThatFormIt)
 {
         using T = xstd::test::unregistered_int_class;
 
@@ -129,16 +125,22 @@ BOOST_AUTO_TEST_CASE(UnregisteredIntegerClassTypeIsOutsideTheDomain)
         static_assert(xstd::signed_integral_like<T>);
         static_assert(not xstd::has_unsigned_counterpart<T>);
 
+        // The two that produce a value of the counterpart type cannot serve it.
         static_assert(not has_unsigned_abs<T>);
-        static_assert(not has_div<T, T>);
-        static_assert(not has_euclidean_div<T>);
-        static_assert(not has_floored_div<T>);
 
-        // abs and sign never form the counterpart, so they take it as they take any width.
+        // The rest only wanted it to state a postcondition, which an if constexpr drops.
+        static_assert(has_div<T, T>);
+        static_assert(has_euclidean_div<T>);
+        static_assert(has_floored_div<T>);
         static_assert(has_abs<T>);
         static_assert(has_sign<T>);
 
-        // And the conforming unsigned fixture is inside the domain, being its own counterpart.
+        // The if constexpr discards the assertion, not the preprocessor, so NDEBUG agrees.
+        static_assert(xstd::div(T{8}, T{3}) == xstd::div_t<T>{2, 2});
+        static_assert(xstd::euclidean_div(T{-8}, T{3}) == xstd::div_t<T>{-3, 1});
+        static_assert(xstd::floored_div(T{8}, T{-3}) == xstd::div_t<T>{-3, -1});
+
+        // The conforming unsigned fixture is its own counterpart, so the bound is checked there.
         using U = xstd::test::conforming_int_class;
 
         static_assert(xstd::has_unsigned_counterpart<U>);

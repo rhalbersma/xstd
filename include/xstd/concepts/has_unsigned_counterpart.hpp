@@ -10,9 +10,7 @@
 
 namespace xstd {
 
-// Whether make_unsigned_like names a type for T, which the integer functions form in
-// their bodies. True of every integral type but bool, of an unsigned integer-class type,
-// and of a signed one whose pair the user has registered.
+// Whether make_unsigned_like names a type for T, which unsigned_abs and to_chars produce.
 template<class T>
 concept has_unsigned_counterpart = requires { typename make_unsigned_like_t<T>; };
 

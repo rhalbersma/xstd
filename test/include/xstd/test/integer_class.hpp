@@ -12,10 +12,7 @@
 #include <limits>           // numeric_limits
 #include <type_traits>      // conditional_t
 
-// A hand-written integer-class type, in two variants: one that returns itself from its
-// binary operators as /7.6 requires, and one that returns a proxy. Everything else is
-// shared, so the pair differs in that clause and in nothing else - which is what lets a
-// case assert the concept both ways round rather than only that the proxy fails.
+// One integer-class type in two variants, differing at /7.6 alone so a case can assert both.
 namespace xstd::test {
 
 template<class Storage, bool ProxyResults>
@@ -228,8 +225,7 @@ using conforming_int_class = integer_class<uint128, false>;
 // The same type with /7.6 broken, and nothing else changed.
 using proxy_result = integer_class<uint128, true>;
 
-// Conforming and signed, so its counterpart would have to be registered - and is not. The
-// integer functions are constrained rather than bodied over that, so this answers no.
+// Conforming and signed, with the counterpart unregistered that unsigned_abs would return.
 using unregistered_int_class = integer_class<int128, false>;
 
 } // namespace xstd::test

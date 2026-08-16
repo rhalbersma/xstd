@@ -68,8 +68,7 @@ BOOST_AUTO_TEST_CASE(DelegatesWhereTheStandardLibraryCovers)
         {};
         static_assert(not has_std_to_chars<not_an_integer>);
 
-        // The digits path produces on the unsigned counterpart, so a type without one is
-        // outside the constraint rather than inside it and ill-formed in the body.
+        // The digits come off the counterpart, so a type without one is unsatisfied, not broken.
         static_assert(xstd::integral_like<xstd::test::unregistered_int_class>);
         static_assert(not has_xstd_to_chars<xstd::test::unregistered_int_class>);
         static_assert(has_xstd_to_chars<xstd::test::conforming_int_class>);

@@ -29,7 +29,7 @@ template<integral_like I>
         }
 }
 
-// Deleted, or bool reaches make_unsigned_like_t here and is ill-formed, not unsatisfied.
+// Deleted: bool is integral-like, and unsigned_abs(true) would answer true.
 auto unsigned_abs(bool) -> bool = delete;
 
 } // namespace xstd

@@ -80,8 +80,7 @@ concept integer_class_type =
         requires {
                 { static_cast<I>(0) } -> std::same_as<I>;
         } and
-        // /6 the other way: an integer-class value converts to any integral type. These two
-        // stand for "any", differing in signedness and width; to_chars needs the size_t one.
+        // /6 the other way: to any integral type, these two standing for "any" by sign and width.
         requires (I const a) {
                 { static_cast<int>(a) } -> std::same_as<int>;
                 { static_cast<std::size_t>(a) } -> std::same_as<std::size_t>;

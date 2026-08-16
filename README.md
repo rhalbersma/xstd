@@ -97,11 +97,12 @@ struct storage {
 
 The integer functions take any integral-like type of either signedness and
 return the argument type rather than a promoted one; a two-argument call
-requires both arguments to have the same type. `unsigned_abs`, the three
-divisions and `to_chars` additionally require an unsigned counterpart, which is
-automatic for every integral type but `bool` and for an unsigned integer-class
-type, and which a signed integer-class type supplies by specializing
-`make_unsigned_like`; without one the call is unsatisfied rather than ill-formed. `abs` keeps the signed
+requires both arguments to have the same type. `unsigned_abs` and `to_chars`
+additionally require an unsigned counterpart, which they produce a value of;
+it is automatic for every integral type but `bool` and for an unsigned
+integer-class type, and a signed integer-class type supplies it by specializing
+`make_unsigned_like`. Without one the call is unsatisfied rather than ill-formed.
+The three divisions ask for no such thing. `abs` keeps the signed
 minimum-value precondition and is total over an unsigned type, whose `min()`
 is `0`; `unsigned_abs` is total over both, returning the unsigned counterpart.
 The division functions require a nonzero divisor, and `MIN / -1` is outside
