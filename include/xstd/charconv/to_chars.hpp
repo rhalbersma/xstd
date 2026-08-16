@@ -18,15 +18,35 @@
 #include <iterator>                                // distance, next
 #include <limits>                                  // numeric_limits
 #include <system_error>                            // errc
+#include <type_traits>                             // is_same_v, remove_cv_t
 
 namespace xstd {
 
 // Worst case is base 2: one character per value bit, and two more when signed.
+// bool is excluded to keep this sized for exactly the types to_chars converts.
 template<integral_like I>
+        requires (not std::is_same_v<std::remove_cv_t<I>, bool>)
 inline constexpr auto to_chars_max_size =
         static_cast<std::size_t>(std::numeric_limits<I>::digits) + (is_signed_like_v<I> ? 2 : 0);
 
-// For the types std::to_chars misses; less constrained, so a call prefers the standard's.
+// The standard's own call where it covers I; an ambiguous overload leaves this unsatisfied.
+template<integral_like I>
+        requires requires (char* p, I value, int base) {
+                { std::to_chars(p, p, value, base) } -> std::same_as<std::to_chars_result>;
+        }
+// NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
+[[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10)
+        -> std::to_chars_result
+{
+        assert(2 <= base and base <= 36);
+        return std::to_chars(first, last, value, base);
+}
+
+// Deleted as the standard deletes it, rather than rendering true as "1".
+// NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
+auto to_chars(char*, char*, bool, int = 10) -> std::to_chars_result = delete;
+
+// For the types the two above miss; less constrained, so a call prefers the standard's.
 template<integral_like I>
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
 [[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10)
@@ -84,23 +104,6 @@ template<integral_like I>
         }
         return result;
 }
-
-// The standard's own call where it covers I; an ambiguous overload leaves this unsatisfied.
-template<integral_like I>
-        requires requires (char* p, I value, int base) {
-                { std::to_chars(p, p, value, base) } -> std::same_as<std::to_chars_result>;
-        }
-// NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
-[[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10)
-        -> std::to_chars_result
-{
-        assert(2 <= base and base <= 36);
-        return std::to_chars(first, last, value, base);
-}
-
-// Deleted as the standard deletes it, rather than rendering true as "1".
-// NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
-auto to_chars(char*, char*, bool, int = 10) -> std::to_chars_result = delete;
 
 } // namespace xstd
 

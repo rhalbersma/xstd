@@ -10,7 +10,7 @@
 #include <concepts>    // constructible_from, integral, regular, same_as, three_way_comparable
 #include <cstddef>     // size_t
 #include <limits>      // numeric_limits
-#include <type_traits> // remove_cv_t
+#include <type_traits> // is_same_v, remove_cv_t
 
 // Internal concepts used to define xstd's public numeric traits and concepts.
 namespace xstd::exposition_only {
@@ -18,6 +18,8 @@ namespace xstd::exposition_only {
 // [iterator.concept.winc], asked of I: T with the cv off, per /11. Nothing needs noexcept.
 template<class T, class I = std::remove_cv_t<T>>
 concept integer_class_type =
+        // I is the parameter's own default; naming it explicitly cannot redirect the question.
+        std::is_same_v<I, std::remove_cv_t<T>> and
         // Entailed by /3's width clause; without it int and short get in.
         (not std::integral<I>) and
         requires { sizeof(I); } and

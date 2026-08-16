@@ -8,13 +8,15 @@
 
 #include <xstd/concepts/integral_like.hpp> // integral_like
 #include <cstddef>                         // size_t
-#include <type_traits>                     // remove_cv_t
+#include <type_traits>                     // is_same_v, remove_cv_t
 
 namespace xstd {
 
 // Whether a type's const operations all carry noexcept, asked of I with the cv stripped.
 template<class T, class I = std::remove_cv_t<T>>
 concept nothrow_integral_operators =
+        // I is the parameter's own default; naming it explicitly cannot redirect the question.
+        std::is_same_v<I, std::remove_cv_t<T>> and
         integral_like<I> and
         // The conversions themselves: /6 and /8 make both explicit, so the cast is the expression.
         requires {

@@ -25,9 +25,8 @@ template<integral_like I>
         assert(denom != static_cast<I>(0));
         // An unsigned remainder cannot disagree in sign with its denominator.
         if constexpr (is_unsigned_like_v<I>) {
-                auto const dT = xstd::div(numer, denom);
-                assert(dT.rem == static_cast<I>(0) or xstd::sign(dT.rem) == xstd::sign(denom));
-                return dT;
+                // Qualified: unqualified, ADL finds Boost.Int128's own div and it wins.
+                return xstd::div(numer, denom);
         } else {
                 auto const [qT, rT] = xstd::div(numer, denom);
                 auto const zero = static_cast<I>(0);

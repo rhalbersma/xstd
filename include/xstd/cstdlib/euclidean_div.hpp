@@ -26,9 +26,7 @@ template<integral_like I>
         // An unsigned truncated remainder is already nonnegative, so it is the answer.
         if constexpr (is_unsigned_like_v<I>) {
                 // Qualified: unqualified, ADL finds Boost.Int128's own div and it wins.
-                auto const dT = xstd::div(numer, denom);
-                assert(xstd::sign(dT.rem) >= 0);
-                return dT;
+                return xstd::div(numer, denom);
         } else {
                 auto const [qT, rT] = xstd::div(numer, denom);
                 auto const zero = static_cast<I>(0);
