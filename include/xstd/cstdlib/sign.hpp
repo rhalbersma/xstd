@@ -26,7 +26,7 @@ template<integral_like I>
         }
 }
 
-// Deleted for to_chars's reason: bool is integral-like, and sign(true) would answer 1.
+// Deleted: bool is integral-like but not a 1-bit integer, and sign(true) would answer 1.
 auto sign(bool) -> int = delete;
 
 } // namespace xstd

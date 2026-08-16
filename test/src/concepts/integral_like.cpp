@@ -52,10 +52,7 @@ BOOST_AUTO_TEST_CASE(NoIntegralTypeIsAnIntegerClassType)
         XSTD_CONSTEXPR_CHECK(xstd::integral_like<char> and xstd::integral_like<unsigned long long>);
 }
 
-// The concept asks for /7.6's result type, not for what a static_cast<I> could reach.
-// Asserted both ways round: the two fixtures are one class template at one storage type,
-// differing in that clause alone, so a yes and a no together are what pin the clause. A no
-// on its own would hold just as well for a type that failed somewhere else entirely.
+// /7.6's result type exactly; asserted both ways, a no alone proving nothing about that clause.
 BOOST_AUTO_TEST_CASE(OperatorResultsAreTheTypeItself)
 {
         using conforming = xstd::test::conforming_int_class;

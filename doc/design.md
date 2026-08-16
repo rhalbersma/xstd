@@ -95,33 +95,63 @@ depend on, and for an integer-class type a comparison is a call — and `sign` i
 on the path of `div`'s postconditions and `floored_div`'s adjustment.
 
 `bool` is integral-like, and unsigned-like at that, so the widened constraint
-admits it; all six delete it, as `to_chars` does. The deletions are now there for
-what they say rather than for what they prevent: `abs(true)` would answer `true`
-and `sign(true)` would answer `1`, and neither is an answer worth giving.
+admits it; all six delete it, as `to_chars` does. The deletions say one thing,
+and it is worth saying once rather than six times: `bool` is a truth value, not
+the one-bit unsigned integer a `uint1_t` would be, had the language one. Such a
+type would be modular, and `bool` is not. Converting to it normalizes instead of
+wrapping — `bool(2)` is `true` where `uint8_t(256)` is `0`. Its operators promote
+before they compute, so `true + true` is `2` and not `0`, and `-`, `~`, `&` and
+`<<` all hand back an `int`. Its increment was removed in C++17 and it never had
+a decrement, leaving it the one integral type that steps nowhere. So `abs(true)`
+would answer `true` and `sign(true)` would answer `1`: not wrong about a truth
+value, but answers to questions that were only ever about numbers. libstdc++
+draws the same line one level lower, its `__is_integer_like` excluding `bool`
+outright; [iterator.concept.winc] does not, `bool` being integral, so this
+library follows the subclause and excludes `bool` a deleted overload at a time.
 
 They used to be load-bearing for a second reason. `unsigned_abs` forms
 `make_unsigned_like_t<I>` in its body, where `make_unsigned_like<bool>` is the
 empty primary and the failure is no longer in the immediate context, so without
-the deletion the call was ill-formed rather than unsatisfied; `div` reached that
-through its postconditions and the two named divisions through `div`. That is
-what `has_unsigned_counterpart` now asks for up front, and `bool` fails it like
-any other type with no counterpart, so the deletions no longer carry that weight
+the deletion the call was ill-formed rather than unsatisfied. That is what
+`has_unsigned_counterpart` now asks for up front, and `bool` fails it like any
+other type with no counterpart, so the deletions no longer carry that weight
 alone.
 
 The concept exists because the reasoning above generalizes past `bool`, where a
-deletion cannot follow. A signed integer-class type whose counterpart the user
-has not registered satisfies `integral_like`, and every one of these bodies would
-then form a `make_unsigned_like_t` that does not exist. Two things made that
-worse than an ordinary error. `div` reaches `unsigned_abs` only from inside an
-`assert`, so the call compiled under `NDEBUG` and failed to compile without it —
-a build that worked in Release and not in Debug. And `to_chars` was constrained on
-`integral_like` alone while its body needed the counterpart, so a detection idiom
-answered *yes* for a call that was ill-formed. Requiring the counterpart in the
-signature makes both a plain unsatisfied constraint, identically in either mode.
-`to_chars`'s delegating overload asks for it too, without needing it, so that its
-constraints stay a superset of the digits overload's and subsumption still orders
-the two; the two `std::formatter<div_t<I>>` specializations are paired the same
-way for the same reason.
+deletion cannot follow. A signed integer-class type whose counterpart the user has
+not registered satisfies `integral_like`, and `unsigned_abs` and `to_chars` would
+then form a `make_unsigned_like_t` that does not exist. `to_chars` was the worse
+of the two: constrained on `integral_like` alone while its body needed the
+counterpart, it answered *yes* to a detection idiom for a call that was ill-formed,
+which defeats the fallback such an idiom exists to select. Both now require it, and
+so the failure is a plain unsatisfied constraint. `to_chars`'s delegating overload
+asks for it without needing it, so that its constraints stay a superset of the
+digits overload's and subsumption still orders the two; the two
+`std::formatter<div_t<I>>` specializations are paired the same way.
+
+The three divisions are constrained on `integral_like` alone, and deliberately.
+They never form the counterpart to compute with — `/` and `%` are all their bodies
+want, and the subclause supplies both. It appears in exactly one place, the
+assertion that the remainder is smaller than the denominator, which is written
+over magnitudes because `|MIN|` fits in no type but the counterpart. Requiring it
+in the signature would let one debug-only diagnostic decide what `div` divides, in
+release builds as much as debug ones, which is the assertion setting the contract
+rather than checking it. So that assertion is asked only where it can be said:
+
+```cpp
+if constexpr (has_unsigned_counterpart<I>) {
+        assert(xstd::unsigned_abs(rT) < xstd::unsigned_abs(denom));
+}
+```
+
+An `if constexpr` discards the branch without instantiating it, and does so on the
+same terms with `NDEBUG` and without, so the mode-dependent compilation this was
+first written to cure does not come back. The bound then goes unchecked for a type
+with no counterpart, which is the honest cost: there is no way to compare those two
+magnitudes in a type that cannot hold one of them. Spelling it `rT / denom == 0`
+would avoid the counterpart and cover every type, but it would check the bound with
+the very operator that produced the quotient, and an assertion correlated with what
+it checks is the thing the unsigned branches above were relieved of.
 
 The calls these functions make to each other are qualified. Unqualified, ADL adds
 the argument's own namespace, where a non-template beats a constrained template
@@ -343,14 +373,16 @@ may not be formattable, which is the Microsoft STL's 128-bit classes, or tuple
 formatting itself may be missing, p2286 having reached libstdc++ only in GCC 15.
 Testing `formattable` on the *tuple* covers both with one predicate. Where it
 does not hold, the other specialization renders the members through
-`xstd::to_chars` into an inherited string formatter, which asks nothing beyond
-`integral_like` — so `div_t` formats for every type it accepts, of either
-signedness, on every implementation.
+`xstd::to_chars` into an inherited string formatter, so `div_t` formats on every
+implementation and for either signedness — for every element type `xstd::to_chars`
+itself covers, which is to say every one with an unsigned counterpart.
 
 The choice is left to partial ordering, on the same footing as `to_chars`'s
 overloads: the tuple one requires the base it inherits, spelled where it applies,
-and the other requires nothing. Both produce `(quot, rem)`, so which runs is not
-observable in the output — only in the spec grammar, `parse()` being inherited.
+on top of the counterpart the other asks for, so its constraints are a superset
+and it wins wherever both are viable. Both produce `(quot, rem)`, so which runs is
+not observable in the output — only in the spec grammar, `parse()` being
+inherited, which is why the README says so.
 
 xstd specializes `std::formatter` only for `div_t`, which is program-defined. The
 128-bit types are not xstd's to specialize for: they are built-ins or

@@ -10,16 +10,23 @@
 #include <compare>          // strong_ordering
 #include <cstddef>          // size_t
 #include <limits>           // numeric_limits
-#include <type_traits>      // conditional_t
+#include <type_traits>      // conditional_t, is_same_v
 
-// A hand-written integer-class type, in two variants: one that returns itself from its
-// binary operators as /7.6 requires, and one that returns a proxy. Everything else is
-// shared, so the pair differs in that clause and in nothing else - which is what lets a
-// case assert the concept both ways round rather than only that the proxy fails.
+// One integer-class type in two variants, differing at /7.6 alone so a case can assert both.
 namespace xstd::test {
 
 template<class Storage, bool ProxyResults>
 class integer_class;
+
+// The storage's limits, an indirection so a storage std may not describe can be described here.
+template<class Storage>
+struct storage_limits : std::numeric_limits<Storage>
+{};
+
+// Sign bit included, so that a counterpart is the same width rather than the same digits.
+template<class Storage>
+inline constexpr auto storage_width =
+        storage_limits<Storage>::digits + static_cast<int>(storage_limits<Storage>::is_signed);
 
 // What the binary operators return in the proxy variant: convertible to the type, not it.
 template<class Storage, bool ProxyResults>
@@ -46,6 +53,10 @@ class integer_class
 
         Storage m_value{};
 
+        // Every instantiation, so that the same-width counterpart can read this one's value.
+        template<class, bool>
+        friend class integer_class;
+
         // The one line the two variants differ on, reached by every binary operator below.
         [[nodiscard]] static constexpr auto wrap(Storage value) -> binary_result
         {
@@ -70,6 +81,14 @@ class integer_class
                 result.m_value = value;
                 return result;
         }
+
+        // The conversion unsigned_abs and to_chars perform on the counterpart they return.
+        template<class OtherStorage>
+                requires (not std::is_same_v<OtherStorage, Storage>) and
+                         (storage_width<OtherStorage> == storage_width<Storage>)
+        explicit constexpr integer_class(integer_class<OtherStorage, ProxyResults> other)
+            : m_value(static_cast<Storage>(other.m_value))
+        {}
 
         // /8, and /6 the other way: explicit conversions out to the integral types.
         [[nodiscard]] explicit constexpr operator bool() const
@@ -218,8 +237,15 @@ class integer_class
                 return wrap(static_cast<Storage>(lhs.m_value >> n));
         }
 
-        friend constexpr auto operator==(self, self) -> bool = default;
-        friend constexpr auto operator<=>(self, self) -> std::strong_ordering = default;
+        // Written out, not defaulted: a bit-precise member's implied comparison is ambiguous.
+        friend constexpr auto operator==(self lhs, self rhs) -> bool
+        {
+                return lhs.m_value == rhs.m_value;
+        }
+        friend constexpr auto operator<=>(self lhs, self rhs) -> std::strong_ordering
+        {
+                return lhs.m_value <=> rhs.m_value;
+        }
 };
 
 // Conforming, and its own unsigned counterpart by make_unsigned_like's partial specialization.
@@ -228,8 +254,7 @@ using conforming_int_class = integer_class<uint128, false>;
 // The same type with /7.6 broken, and nothing else changed.
 using proxy_result = integer_class<uint128, true>;
 
-// Conforming and signed, so its counterpart would have to be registered - and is not. The
-// integer functions are constrained rather than bodied over that, so this answers no.
+// Conforming and signed, with the counterpart unregistered that unsigned_abs would return.
 using unregistered_int_class = integer_class<int128, false>;
 
 } // namespace xstd::test
@@ -238,22 +263,22 @@ using unregistered_int_class = integer_class<int128, false>;
 template<class Storage, bool ProxyResults>
 // NOLINTNEXTLINE(bugprone-std-namespace-modification): permitted by [namespace.std]/2 for a program-defined type
 class std::numeric_limits<xstd::test::integer_class<Storage, ProxyResults>>
-    : public std::numeric_limits<Storage>
+    : public xstd::test::storage_limits<Storage>
 {
         using type = xstd::test::integer_class<Storage, ProxyResults>;
 
       public:
         [[nodiscard]] static constexpr auto min() -> type
         {
-                return type::from(std::numeric_limits<Storage>::min());
+                return type::from(xstd::test::storage_limits<Storage>::min());
         }
         [[nodiscard]] static constexpr auto max() -> type
         {
-                return type::from(std::numeric_limits<Storage>::max());
+                return type::from(xstd::test::storage_limits<Storage>::max());
         }
         [[nodiscard]] static constexpr auto lowest() -> type
         {
-                return type::from(std::numeric_limits<Storage>::lowest());
+                return type::from(xstd::test::storage_limits<Storage>::lowest());
         }
 };
 

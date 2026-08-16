@@ -20,7 +20,6 @@ namespace xstd {
 
 // Euclidean division: the remainder is nonnegative.
 template<integral_like I>
-        requires has_unsigned_counterpart<I>
 [[nodiscard]] constexpr auto euclidean_div(I numer, I denom) noexcept(nothrow_integral_operators<I>)
         -> div_t<I>
 {
@@ -36,13 +35,16 @@ template<integral_like I>
                 auto const adjust = rT < zero;
                 auto const qE = adjust ? (denom > zero ? static_cast<I>(qT - one) : static_cast<I>(qT + one)) : qT;
                 auto const rE = adjust ? (denom > zero ? static_cast<I>(rT + denom) : static_cast<I>(rT - denom)) : rT;
-                assert(xstd::unsigned_abs(rE) < xstd::unsigned_abs(denom));
+                // Asked only where a counterpart exists to say it in, |MIN| fitting in no other type.
+                if constexpr (has_unsigned_counterpart<I>) {
+                        assert(xstd::unsigned_abs(rE) < xstd::unsigned_abs(denom));
+                }
                 assert(xstd::sign(rE) >= 0);
                 return {.quot = qE, .rem = rE};
         }
 }
 
-// Deleted for div's reason, reached through it.
+// Deleted: bool is integral-like but not a 1-bit integer, and a bool quotient is no answer.
 auto euclidean_div(bool, bool) -> div_t<bool> = delete;
 
 } // namespace xstd

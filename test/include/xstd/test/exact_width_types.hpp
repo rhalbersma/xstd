@@ -7,6 +7,7 @@
 #define XSTD_TEST_EXACT_WIDTH_TYPES_HPP
 
 #include <xstd/test/absl_int128.hpp>  // XSTD_TEST_HAS_ABSL_INT128
+#include <xstd/test/bit_precise.hpp>  // XSTD_TEST_HAS_BIT_PRECISE, bit_int, bit_uint
 #include <xstd/test/boost_int128.hpp> // XSTD_TEST_HAS_BOOST_INT128
 #include <xstd/cstdint.hpp>           // int128, uint128
 #include <cstdint>                    // exact-width integer types
@@ -40,6 +41,44 @@ using absl_unsigned_types = std::tuple<absl_uint128>;
 #else
 using absl_signed_types = std::tuple<>;
 using absl_unsigned_types = std::tuple<>;
+#endif
+
+// The widths no fundamental type names, one bit and up, kept apart from the lists below:
+// a case naming 2 as a literal cannot run at a width that cannot hold it.
+#ifdef XSTD_TEST_HAS_BIT_PRECISE
+// The widths every implementation of the extension divides without help from a runtime.
+using narrow_bit_precise_signed_types =
+        std::tuple<bit_int<2>, bit_int<3>, bit_int<4>, bit_int<8>, bit_int<16>, bit_int<32>, bit_int<64>>;
+using narrow_bit_precise_unsigned_types =
+        std::tuple<bit_uint<1>, bit_uint<2>, bit_uint<3>, bit_uint<4>, bit_uint<8>, bit_uint<16>, bit_uint<32>,
+                   bit_uint<64>>;
+
+// And the two above them, each asking the ceiling rather than assuming one.
+#if XSTD_TEST_BIT_PRECISE_MAX >= 128
+using wide_bit_precise_signed_types = std::tuple<bit_int<128>>;
+using wide_bit_precise_unsigned_types = std::tuple<bit_uint<128>>;
+#else
+using wide_bit_precise_signed_types = std::tuple<>;
+using wide_bit_precise_unsigned_types = std::tuple<>;
+#endif
+
+#if XSTD_TEST_BIT_PRECISE_MAX >= 256
+using widest_bit_precise_signed_types = std::tuple<bit_int<256>>;
+using widest_bit_precise_unsigned_types = std::tuple<bit_uint<256>>;
+#else
+using widest_bit_precise_signed_types = std::tuple<>;
+using widest_bit_precise_unsigned_types = std::tuple<>;
+#endif
+
+using bit_precise_signed_types = decltype(std::tuple_cat(
+        std::declval<narrow_bit_precise_signed_types>(), std::declval<wide_bit_precise_signed_types>(),
+        std::declval<widest_bit_precise_signed_types>()));
+using bit_precise_unsigned_types = decltype(std::tuple_cat(
+        std::declval<narrow_bit_precise_unsigned_types>(), std::declval<wide_bit_precise_unsigned_types>(),
+        std::declval<widest_bit_precise_unsigned_types>()));
+#else
+using bit_precise_signed_types = std::tuple<>;
+using bit_precise_unsigned_types = std::tuple<>;
 #endif
 
 // Concatenated through declval so the lists above stay readable as lists.

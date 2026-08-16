@@ -20,7 +20,6 @@ namespace xstd {
 
 // Truncated division, as specified by [expr.mul].
 template<integral_like I>
-        requires has_unsigned_counterpart<I>
 [[nodiscard]] constexpr auto div(I numer, I denom) noexcept(nothrow_integral_operators<I>)
         -> div_t<I>
 {
@@ -32,12 +31,15 @@ template<integral_like I>
         auto const qT = static_cast<I>(numer / denom);
         auto const rT = static_cast<I>(numer % denom);
         assert(numer == static_cast<I>(static_cast<I>(denom * qT) + rT));
-        assert(xstd::unsigned_abs(rT) < xstd::unsigned_abs(denom));
+        // Asked only where a counterpart exists to say it in, |MIN| fitting in no other type.
+        if constexpr (has_unsigned_counterpart<I>) {
+                assert(xstd::unsigned_abs(rT) < xstd::unsigned_abs(denom));
+        }
         assert(xstd::sign(rT) == xstd::sign(numer) or rT == static_cast<I>(0));
         return {.quot = qT, .rem = rT};
 }
 
-// Deleted for unsigned_abs's reason, reached here through the postconditions above.
+// Deleted: bool is integral-like but not a 1-bit integer, and a bool quotient is no answer.
 auto div(bool, bool) -> div_t<bool> = delete;
 
 } // namespace xstd

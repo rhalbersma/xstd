@@ -28,8 +28,8 @@
 #endif
 
 // The one every renderable div_t matches; the string base carries fill, alignment and width.
-// The counterpart is what xstd::to_chars produces the digits on, so it is asked for here.
 template<xstd::integral_like I, class CharT>
+// xstd::to_chars produces the digits on the counterpart, so it is asked for here.
         requires xstd::has_unsigned_counterpart<I>
 // NOLINTNEXTLINE(bugprone-std-namespace-modification): permitted by [namespace.std]/2, see above
 struct std::formatter<xstd::div_t<I>, CharT> : std::formatter<std::basic_string_view<CharT>, CharT>
@@ -63,8 +63,8 @@ struct std::formatter<xstd::div_t<I>, CharT> : std::formatter<std::basic_string_
 };
 
 // The more constrained one: asked after the tuple, which covers both ways it can be absent.
-// It repeats has_unsigned_counterpart, without needing it, to stay a superset of the above.
 template<xstd::integral_like I, class CharT>
+// The counterpart is carried unneeded, to stay a superset of the specialization above.
         requires xstd::has_unsigned_counterpart<I> and
                  std::formattable<std::tuple<I const&, I const&>, CharT>
 // NOLINTNEXTLINE(bugprone-std-namespace-modification): permitted by [namespace.std]/2, see above

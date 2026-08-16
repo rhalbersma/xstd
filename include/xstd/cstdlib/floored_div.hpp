@@ -18,9 +18,8 @@
 
 namespace xstd {
 
-// Floored division: the remainder has the denominator's sign.
+// Floored division: a nonzero remainder has the denominator's sign.
 template<integral_like I>
-        requires has_unsigned_counterpart<I>
 [[nodiscard]] constexpr auto floored_div(I numer, I denom) noexcept(nothrow_integral_operators<I>)
         -> div_t<I>
 {
@@ -36,13 +35,16 @@ template<integral_like I>
                 auto const adjust = xstd::sign(rT) == -xstd::sign(denom);
                 auto const qF = static_cast<I>(qT - (adjust ? one : zero));
                 auto const rF = static_cast<I>(rT + (adjust ? denom : zero));
-                assert(xstd::unsigned_abs(rF) < xstd::unsigned_abs(denom));
-                assert(rF == static_cast<I>(0) or xstd::sign(rF) == xstd::sign(denom));
+                // Asked only where a counterpart exists to say it in, |MIN| fitting in no other type.
+                if constexpr (has_unsigned_counterpart<I>) {
+                        assert(xstd::unsigned_abs(rF) < xstd::unsigned_abs(denom));
+                }
+                assert(xstd::sign(rF) == xstd::sign(denom) or rF == static_cast<I>(0));
                 return {.quot = qF, .rem = rF};
         }
 }
 
-// Deleted for div's reason, reached through it.
+// Deleted: bool is integral-like but not a 1-bit integer, and a bool quotient is no answer.
 auto floored_div(bool, bool) -> div_t<bool> = delete;
 
 } // namespace xstd

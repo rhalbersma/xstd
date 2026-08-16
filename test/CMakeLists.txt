@@ -40,6 +40,7 @@ set(cxx_compile_options_warnings
         -Wno-global-constructors            # triggered by Boost.Test
         -Wno-used-but-marked-unused         # triggered by Boost.Test
         -Wno-c2y-extensions                 # triggered by Boost.Test's use of __COUNTER__
+        -Wno-bit-int-extension              # _BitInt is C23; in C++ Clang alone has it
         -Wno-lifetime-safety-lifetimebound-violation  # can't verify chained operator<< returns ostr
         # Reads any reference to a container as a reference into it, so a
         # function that grows one twice - the div_t formatter's loop over
