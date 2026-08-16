@@ -108,6 +108,10 @@ is `0`; `unsigned_abs` is total over both, returning the unsigned counterpart.
 The division functions require a nonzero divisor, and `MIN / -1` is outside
 their contract. `bool` is excluded, as it is from `std::to_chars`.
 
+A `div_t` renders as `(quot, rem)` for every element type it accepts, but which
+format specs it accepts depends on that type: where the standard library can
+format a tuple of it the tuple grammar applies, and otherwise a string one.
+
 See [the design notes](doc/design.md) for rationale and for customizing an
 integer-class type, and [CONTRIBUTING.md](CONTRIBUTING.md) to build the library itself.
 

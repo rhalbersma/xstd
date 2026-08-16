@@ -363,14 +363,16 @@ may not be formattable, which is the Microsoft STL's 128-bit classes, or tuple
 formatting itself may be missing, p2286 having reached libstdc++ only in GCC 15.
 Testing `formattable` on the *tuple* covers both with one predicate. Where it
 does not hold, the other specialization renders the members through
-`xstd::to_chars` into an inherited string formatter, which asks nothing beyond
-`integral_like` — so `div_t` formats for every type it accepts, of either
-signedness, on every implementation.
+`xstd::to_chars` into an inherited string formatter, so `div_t` formats on every
+implementation and for either signedness — for every element type `xstd::to_chars`
+itself covers, which is to say every one with an unsigned counterpart.
 
 The choice is left to partial ordering, on the same footing as `to_chars`'s
 overloads: the tuple one requires the base it inherits, spelled where it applies,
-and the other requires nothing. Both produce `(quot, rem)`, so which runs is not
-observable in the output — only in the spec grammar, `parse()` being inherited.
+on top of the counterpart the other asks for, so its constraints are a superset
+and it wins wherever both are viable. Both produce `(quot, rem)`, so which runs is
+not observable in the output — only in the spec grammar, `parse()` being
+inherited, which is why the README says so.
 
 xstd specializes `std::formatter` only for `div_t`, which is program-defined. The
 128-bit types are not xstd's to specialize for: they are built-ins or
