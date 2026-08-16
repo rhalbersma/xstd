@@ -6,6 +6,7 @@
 #ifndef XSTD_CSTDLIB_FLOORED_DIV_HPP
 #define XSTD_CSTDLIB_FLOORED_DIV_HPP
 
+#include <xstd/concepts/has_unsigned_counterpart.hpp>   // has_unsigned_counterpart
 #include <xstd/concepts/integral_like.hpp>              // integral_like
 #include <xstd/concepts/nothrow_integral_operators.hpp> // nothrow_integral_operators
 #include <xstd/cstdlib/div.hpp>                         // div
@@ -19,15 +20,15 @@ namespace xstd {
 
 // Floored division: the remainder has the denominator's sign.
 template<integral_like I>
+        requires has_unsigned_counterpart<I>
 [[nodiscard]] constexpr auto floored_div(I numer, I denom) noexcept(nothrow_integral_operators<I>)
         -> div_t<I>
 {
         assert(denom != static_cast<I>(0));
         // An unsigned remainder cannot disagree in sign with its denominator.
         if constexpr (is_unsigned_like_v<I>) {
-                auto const dT = xstd::div(numer, denom);
-                assert(dT.rem == static_cast<I>(0) or xstd::sign(dT.rem) == xstd::sign(denom));
-                return dT;
+                // Qualified: unqualified, ADL finds Boost.Int128's own div and it wins.
+                return xstd::div(numer, denom);
         } else {
                 auto const [qT, rT] = xstd::div(numer, denom);
                 auto const zero = static_cast<I>(0);

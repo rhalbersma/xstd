@@ -37,6 +37,7 @@ target_sources(
     FILES
         include/xstd/concepts.hpp
         include/xstd/concepts/exposition_only.hpp
+        include/xstd/concepts/has_unsigned_counterpart.hpp
         include/xstd/concepts/integral_like.hpp
         include/xstd/concepts/nothrow_integral_operators.hpp
         include/xstd/concepts/signed_integral_like.hpp

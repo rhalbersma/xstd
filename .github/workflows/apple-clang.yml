@@ -24,11 +24,13 @@ jobs:
   build:
     # Apple does not publish an open-source Apple Clang trunk/nightly. Test
     # the latest stable Xcode release from each of the two supported series.
-    name: Apple Clang ${{ matrix.label }}
+    name: Apple Clang ${{ matrix.label }} ${{ matrix.build_type }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
+        build_type: [Release, Debug]
+        label: ["Xcode 16.4", "Xcode 26.6"]
         include:
           - label: Xcode 16.4
             os: macos-15
@@ -83,7 +85,7 @@ jobs:
       - name: Configure
         run: >
           cmake -S . -B build
-          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
           -DVCPKG_TARGET_TRIPLET=arm64-osx
 

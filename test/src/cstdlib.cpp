@@ -9,6 +9,7 @@
 #include <xstd/type_traits.hpp>            // make_unsigned_like_t
 #include <xstd/test/absl_int128.hpp>       // XSTD_TEST_HAS_ABSL_INT128
 #include <xstd/test/boost_int128.hpp>      // XSTD_TEST_HAS_BOOST_INT128
+#include <xstd/test/integer_class.hpp>     // conforming_int_class, unregistered_int_class
 #include <xstd/test/exact_width_types.hpp> // std_signed_types
 #include <xstd/test/constexpr.hpp>         // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
 #include <boost/test/unit_test.hpp>        // Boost.Test
@@ -111,6 +112,38 @@ BOOST_AUTO_TEST_CASE(NonIntegralLikeArgumentsAreRejected)
         // Both parameters deduce one T, so a mixed-width call fails rather than converting.
         static_assert(not has_div<std::int32_t, std::int64_t>);
         static_assert(std::same_as<decltype(xstd::div<std::int64_t>(8, 3)), xstd::div_t<std::int64_t>>);
+
+        BOOST_CHECK(true);
+}
+
+// An integer-class type the library has not been told the unsigned counterpart of. Every
+// other fixture in the suite arrives with that association already written, so this is the
+// only one that reaches the constraint. It matters that these are answers: the functions
+// form make_unsigned_like_t in their bodies, and div reaches it from inside an assert, so
+// left to the body this type would compile under NDEBUG and fail to compile without it.
+BOOST_AUTO_TEST_CASE(UnregisteredIntegerClassTypeIsOutsideTheDomain)
+{
+        using T = xstd::test::unregistered_int_class;
+
+        static_assert(xstd::integral_like<T>);
+        static_assert(xstd::signed_integral_like<T>);
+        static_assert(not xstd::has_unsigned_counterpart<T>);
+
+        static_assert(not has_unsigned_abs<T>);
+        static_assert(not has_div<T, T>);
+        static_assert(not has_euclidean_div<T>);
+        static_assert(not has_floored_div<T>);
+
+        // abs and sign never form the counterpart, so they take it as they take any width.
+        static_assert(has_abs<T>);
+        static_assert(has_sign<T>);
+
+        // And the conforming unsigned fixture is inside the domain, being its own counterpart.
+        using U = xstd::test::conforming_int_class;
+
+        static_assert(xstd::has_unsigned_counterpart<U>);
+        static_assert(has_unsigned_abs<U> and has_div<U, U>);
+        static_assert(has_euclidean_div<U> and has_floored_div<U>);
 
         BOOST_CHECK(true);
 }

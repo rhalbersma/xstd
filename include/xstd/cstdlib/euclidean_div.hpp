@@ -6,6 +6,7 @@
 #ifndef XSTD_CSTDLIB_EUCLIDEAN_DIV_HPP
 #define XSTD_CSTDLIB_EUCLIDEAN_DIV_HPP
 
+#include <xstd/concepts/has_unsigned_counterpart.hpp>   // has_unsigned_counterpart
 #include <xstd/concepts/integral_like.hpp>              // integral_like
 #include <xstd/concepts/nothrow_integral_operators.hpp> // nothrow_integral_operators
 #include <xstd/cstdlib/div.hpp>                         // div
@@ -19,6 +20,7 @@ namespace xstd {
 
 // Euclidean division: the remainder is nonnegative.
 template<integral_like I>
+        requires has_unsigned_counterpart<I>
 [[nodiscard]] constexpr auto euclidean_div(I numer, I denom) noexcept(nothrow_integral_operators<I>)
         -> div_t<I>
 {
@@ -26,9 +28,7 @@ template<integral_like I>
         // An unsigned truncated remainder is already nonnegative, so it is the answer.
         if constexpr (is_unsigned_like_v<I>) {
                 // Qualified: unqualified, ADL finds Boost.Int128's own div and it wins.
-                auto const dT = xstd::div(numer, denom);
-                assert(xstd::sign(dT.rem) >= 0);
-                return dT;
+                return xstd::div(numer, denom);
         } else {
                 auto const [qT, rT] = xstd::div(numer, denom);
                 auto const zero = static_cast<I>(0);
