@@ -106,7 +106,9 @@ The three divisions ask for no such thing. `abs` keeps the signed
 minimum-value precondition and is total over an unsigned type, whose `min()`
 is `0`; `unsigned_abs` is total over both, returning the unsigned counterpart.
 The division functions require a nonzero divisor, and `MIN / -1` is outside
-their contract. `bool` is excluded, as it is from `std::to_chars`.
+their contract. `bool` is deleted from every one of them, as it is from
+`std::to_chars`: it is integral-like, but a truth value rather than a one-bit
+unsigned integer, and it is not modular the way one would be.
 
 A `div_t` renders as `(quot, rem)` for every element type it accepts, but which
 format specs it accepts depends on that type: where the standard library can

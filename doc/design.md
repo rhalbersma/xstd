@@ -95,9 +95,19 @@ depend on, and for an integer-class type a comparison is a call — and `sign` i
 on the path of `div`'s postconditions and `floored_div`'s adjustment.
 
 `bool` is integral-like, and unsigned-like at that, so the widened constraint
-admits it; all six delete it, as `to_chars` does. The deletions are now there for
-what they say rather than for what they prevent: `abs(true)` would answer `true`
-and `sign(true)` would answer `1`, and neither is an answer worth giving.
+admits it; all six delete it, as `to_chars` does. The deletions say one thing,
+and it is worth saying once rather than six times: `bool` is a truth value, not
+the one-bit unsigned integer a `uint1_t` would be, had the language one. Such a
+type would be modular, and `bool` is not. Converting to it normalizes instead of
+wrapping — `bool(2)` is `true` where `uint8_t(256)` is `0`. Its operators promote
+before they compute, so `true + true` is `2` and not `0`, and `-`, `~`, `&` and
+`<<` all hand back an `int`. Its increment was removed in C++17 and it never had
+a decrement, leaving it the one integral type that steps nowhere. So `abs(true)`
+would answer `true` and `sign(true)` would answer `1`: not wrong about a truth
+value, but answers to questions that were only ever about numbers. libstdc++
+draws the same line one level lower, its `__is_integer_like` excluding `bool`
+outright; [iterator.concept.winc] does not, `bool` being integral, so this
+library follows the subclause and excludes `bool` a deleted overload at a time.
 
 They used to be load-bearing for a second reason. `unsigned_abs` forms
 `make_unsigned_like_t<I>` in its body, where `make_unsigned_like<bool>` is the

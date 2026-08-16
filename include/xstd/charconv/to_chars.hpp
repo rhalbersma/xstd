@@ -51,7 +51,7 @@ template<integral_like I>
         return std::to_chars(first, last, value, base);
 }
 
-// Deleted as the standard deletes it, rather than rendering true as "1".
+// Deleted as the standard deletes it: bool is not a 1-bit integer, and true is no "1".
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
 auto to_chars(char*, char*, bool, int = 10) -> std::to_chars_result = delete;
 

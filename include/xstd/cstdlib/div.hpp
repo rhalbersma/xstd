@@ -39,7 +39,7 @@ template<integral_like I>
         return {.quot = qT, .rem = rT};
 }
 
-// Deleted: bool is integral-like, and dividing two of them would answer a bool quotient.
+// Deleted: bool is integral-like but not a 1-bit integer, and a bool quotient is no answer.
 auto div(bool, bool) -> div_t<bool> = delete;
 
 } // namespace xstd
