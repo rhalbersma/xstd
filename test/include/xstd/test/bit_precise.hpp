@@ -11,8 +11,8 @@
 #include <cstddef>                                 // size_t
 #include <type_traits>                             // type_identity
 
-// C23's bit-precise integers, which in C++ only Clang has, and there as an extension.
-#if defined(__clang__)
+// C23's bit-precise integers, which in C++ only Clang has, and whose ceiling it names here.
+#if defined(__BITINT_MAXWIDTH__)
 #define XSTD_TEST_HAS_BIT_PRECISE
 
 namespace xstd::test {
@@ -91,6 +91,6 @@ template<std::size_t N>
 struct xstd::make_unsigned_like<xstd::test::bit_int<N>> : std::type_identity<xstd::test::bit_uint<N>>
 {};
 
-#endif // defined(__clang__)
+#endif // defined(__BITINT_MAXWIDTH__)
 
 #endif // XSTD_TEST_BIT_PRECISE_HPP

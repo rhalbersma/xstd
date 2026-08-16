@@ -46,12 +46,23 @@ using absl_unsigned_types = std::tuple<>;
 // The widths no fundamental type names, one bit and up, kept apart from the lists below:
 // a case naming 2 as a literal cannot run at a width that cannot hold it.
 #ifdef XSTD_TEST_HAS_BIT_PRECISE
-using bit_precise_signed_types =
-        std::tuple<bit_int<2>, bit_int<3>, bit_int<4>, bit_int<8>, bit_int<16>, bit_int<32>, bit_int<64>,
-                   bit_int<128>, bit_int<256>>;
-using bit_precise_unsigned_types =
-        std::tuple<bit_uint<1>, bit_uint<2>, bit_uint<3>, bit_uint<4>, bit_uint<8>, bit_uint<16>, bit_uint<32>,
-                   bit_uint<64>, bit_uint<128>, bit_uint<256>>;
+// Apple Clang stops at 128, so the widest pair asks the ceiling rather than assuming one.
+#if __BITINT_MAXWIDTH__ >= 256
+using widest_bit_precise_signed_types = std::tuple<bit_int<256>>;
+using widest_bit_precise_unsigned_types = std::tuple<bit_uint<256>>;
+#else
+using widest_bit_precise_signed_types = std::tuple<>;
+using widest_bit_precise_unsigned_types = std::tuple<>;
+#endif
+
+using bit_precise_signed_types = decltype(std::tuple_cat(
+        std::declval<std::tuple<bit_int<2>, bit_int<3>, bit_int<4>, bit_int<8>, bit_int<16>, bit_int<32>,
+                                bit_int<64>, bit_int<128>>>(),
+        std::declval<widest_bit_precise_signed_types>()));
+using bit_precise_unsigned_types = decltype(std::tuple_cat(
+        std::declval<std::tuple<bit_uint<1>, bit_uint<2>, bit_uint<3>, bit_uint<4>, bit_uint<8>, bit_uint<16>,
+                                bit_uint<32>, bit_uint<64>, bit_uint<128>>>(),
+        std::declval<widest_bit_precise_unsigned_types>()));
 #else
 using bit_precise_signed_types = std::tuple<>;
 using bit_precise_unsigned_types = std::tuple<>;
