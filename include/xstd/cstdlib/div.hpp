@@ -6,21 +6,21 @@
 #ifndef XSTD_CSTDLIB_DIV_HPP
 #define XSTD_CSTDLIB_DIV_HPP
 
-#include <xstd/concepts/has_unsigned_counterpart.hpp>   // has_unsigned_counterpart
-#include <xstd/concepts/integral_like.hpp>              // integral_like
-#include <xstd/concepts/nothrow_integral_operators.hpp> // nothrow_integral_operators
-#include <xstd/cstdlib/div_t.hpp>                       // IWYU pragma: export; div_t
-#include <xstd/cstdlib/sign.hpp>                        // sign
-#include <xstd/cstdlib/unsigned_abs.hpp>                // unsigned_abs
-#include <xstd/type_traits/is_signed_like.hpp>          // is_signed_like_v
-#include <cassert>                                      // assert
-#include <limits>                                       // numeric_limits
+#include <xstd/concepts/has_unsigned_counterpart.hpp>  // has_unsigned_counterpart
+#include <xstd/concepts/integer_like.hpp>              // integer_like
+#include <xstd/concepts/nothrow_integer_operators.hpp> // nothrow_integer_operators
+#include <xstd/cstdlib/div_t.hpp>                      // IWYU pragma: export; div_t
+#include <xstd/cstdlib/sign.hpp>                       // sign
+#include <xstd/cstdlib/unsigned_abs.hpp>               // unsigned_abs
+#include <xstd/type_traits/is_signed_like.hpp>         // is_signed_like_v
+#include <cassert>                                     // assert
+#include <limits>                                      // numeric_limits
 
 namespace xstd {
 
 // Truncated division, as specified by [expr.mul].
-template<integral_like I>
-[[nodiscard]] constexpr auto div(I numer, I denom) noexcept(nothrow_integral_operators<I>)
+template<integer_like I>
+[[nodiscard]] constexpr auto div(I numer, I denom) noexcept(nothrow_integer_operators<I>)
         -> div_t<I>
 {
         assert(denom != static_cast<I>(0));
@@ -38,9 +38,6 @@ template<integral_like I>
         assert(xstd::sign(rT) == xstd::sign(numer) or rT == static_cast<I>(0));
         return {.quot = qT, .rem = rT};
 }
-
-// Deleted: bool is integral-like but not a 1-bit integer, and a bool quotient is no answer.
-auto div(bool, bool) -> div_t<bool> = delete;
 
 } // namespace xstd
 

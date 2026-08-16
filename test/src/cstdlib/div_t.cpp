@@ -19,7 +19,7 @@ BOOST_AUTO_TEST_CASE(DeducedDivT)
         static_assert(std::same_as<decltype(xstd::div_t{1L, 2L}), xstd::div_t<long>>);
         static_assert(std::same_as<decltype(xstd::div_t{std::int8_t{1}, std::int8_t{2}}), xstd::div_t<std::int8_t>>);
 
-        // And at an unsigned width, div_t being open to every integral-like element type.
+        // And at an unsigned width, div_t being open to every integer-like element type.
         static_assert(std::same_as<decltype(xstd::div_t{1U, 2U}), xstd::div_t<unsigned>>);
         static_assert(std::same_as<decltype(xstd::div_t{std::uint8_t{1}, std::uint8_t{2}}), xstd::div_t<std::uint8_t>>);
 

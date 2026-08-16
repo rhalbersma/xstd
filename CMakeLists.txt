@@ -38,11 +38,11 @@ target_sources(
         include/xstd/concepts.hpp
         include/xstd/concepts/exposition_only.hpp
         include/xstd/concepts/has_unsigned_counterpart.hpp
-        include/xstd/concepts/integral_like.hpp
-        include/xstd/concepts/nothrow_integral_operators.hpp
-        include/xstd/concepts/signed_integral_like.hpp
+        include/xstd/concepts/integer_like.hpp
+        include/xstd/concepts/nothrow_integer_operators.hpp
+        include/xstd/concepts/signed_integer_like.hpp
         include/xstd/concepts/specialization_of.hpp
-        include/xstd/concepts/unsigned_integral_like.hpp
+        include/xstd/concepts/unsigned_integer_like.hpp
         include/xstd/charconv.hpp
         include/xstd/charconv/to_chars.hpp
         include/xstd/cstdint.hpp
@@ -61,7 +61,7 @@ target_sources(
         include/xstd/type_traits/conditional_data_member.hpp
         include/xstd/type_traits/empty_type.hpp
         include/xstd/type_traits/is_arithmetic_like.hpp
-        include/xstd/type_traits/is_integral_like.hpp
+        include/xstd/type_traits/is_integer_like.hpp
         include/xstd/type_traits/is_signed_like.hpp
         include/xstd/type_traits/is_specialization_of.hpp
         include/xstd/type_traits/is_unsigned_like.hpp

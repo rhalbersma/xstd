@@ -10,7 +10,7 @@
 #include <xstd/type_traits/empty_type.hpp> // IWYU pragma: export; empty_type
 
 // Primary type categories
-#include <xstd/type_traits/is_integral_like.hpp> // IWYU pragma: export; is_integral_like
+#include <xstd/type_traits/is_integer_like.hpp> // IWYU pragma: export; is_integer_like
 
 // Composite type categories
 #include <xstd/type_traits/is_arithmetic_like.hpp> // IWYU pragma: export; is_arithmetic_like

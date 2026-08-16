@@ -4,7 +4,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/type_traits/is_arithmetic_like.hpp> // is_arithmetic_like
-#include <xstd/type_traits/is_integral_like.hpp>   // is_integral_like_v
+#include <xstd/type_traits/is_integer_like.hpp>    // is_integer_like_v
 #include <xstd/test/constexpr.hpp>                 // XSTD_CONSTEXPR_CHECK
 #include <boost/test/unit_test.hpp>                // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <limits>                                  // numeric_limits
@@ -26,12 +26,12 @@ BOOST_AUTO_TEST_CASE(ArithmeticLikeOpensTheIntegralHalfOnly)
         XSTD_CONSTEXPR_CHECK(std::numeric_limits<not_an_integer_class_type>::is_specialized);
         XSTD_CONSTEXPR_CHECK(not std::numeric_limits<not_an_integer_class_type>::is_integer);
 
-        XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<not_an_integer_class_type>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_integer_like_v<not_an_integer_class_type>);
         XSTD_CONSTEXPR_CHECK(not xstd::is_arithmetic_like_v<not_an_integer_class_type>);
 
         // the built-in floating-point types are reported exactly as the standard does
         XSTD_CONSTEXPR_CHECK(xstd::is_arithmetic_like_v<double>);
-        XSTD_CONSTEXPR_CHECK(not xstd::is_integral_like_v<double>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_integer_like_v<double>);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

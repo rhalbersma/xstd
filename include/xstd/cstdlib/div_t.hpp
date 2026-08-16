@@ -6,11 +6,11 @@
 #ifndef XSTD_CSTDLIB_DIV_T_HPP
 #define XSTD_CSTDLIB_DIV_T_HPP
 
-#include <xstd/concepts/integral_like.hpp> // integral_like
+#include <xstd/concepts/integer_like.hpp> // integer_like
 
 namespace xstd {
 
-template<integral_like I>
+template<integer_like I>
 struct div_t
 {
         I quot, rem;
@@ -19,7 +19,7 @@ struct div_t
 };
 
 // Explicit to keep -Wctad-maybe-unsupported quiet.
-template<integral_like I>
+template<integer_like I>
 div_t(I, I) -> div_t<I>;
 
 } // namespace xstd

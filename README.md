@@ -47,13 +47,13 @@ the same `xstd::xstd` target.
 
 | Header | Additions | Description | Reference |
 | :----- | :-------- | :---------- | :-------- |
-| `<xstd/concepts.hpp>` | `integral_like` <br> `signed_integral_like` <br> `unsigned_integral_like` <br> `has_unsigned_counterpart` <br> `nothrow_integral_operators` <br> `specialization_of` | Constraint form of `is_integral_like` <br> Open form of `std::signed_integral` <br> Open form of `std::unsigned_integral` <br> Domain of the integer functions <br> Exception specification of the integer functions <br> Constraint form of `is_specialization_of` | [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> none <br> none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) |
-| `<xstd/charconv.hpp>` | `to_chars` <br> `to_chars_max_size` | `std::to_chars`, widened to any integral-like type <br> Buffer size that holds any value of `T` at any base | [charconv.to.chars] <br> none |
+| `<xstd/concepts.hpp>` | `integer_like` <br> `signed_integer_like` <br> `unsigned_integer_like` <br> `has_unsigned_counterpart` <br> `nothrow_integer_operators` <br> `specialization_of` | Constraint form of `is_integer_like` <br> Open form of `std::signed_integral` <br> Open form of `std::unsigned_integral` <br> Domain of the integer functions <br> Exception specification of the integer functions <br> Constraint form of `is_specialization_of` | [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> none <br> none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) |
+| `<xstd/charconv.hpp>` | `to_chars` <br> `to_chars_max_size` | `std::to_chars`, widened to any integer-like type <br> Buffer size that holds any value of `T` at any base | [charconv.to.chars] <br> none |
 | `<xstd/cstdint.hpp>` | `int128` <br> `uint128` | Platform 128-bit signed integer <br> Platform 128-bit unsigned integer | none <br> none |
 | `<xstd/cstdlib.hpp>` | `div_t` <br> `sign` <br> `abs` <br> `unsigned_abs` <br> `div` <br> `euclidean_div` <br> `floored_div` | Defaulted equality comparison <br> `-1`, `0`, or `1`; `0` or `1` when unsigned <br> `constexpr`, any integer-like type <br> Total `\|x\|`, returning the unsigned counterpart <br> Truncated division, any integer-like type <br> Euclidean division <br> Floored division | none <br> [Boost.Math](https://www.boost.org/doc/libs/1_80_0/libs/math/doc/html/math_toolkit/sign_functions.html) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Rust `unsigned_abs`](https://doc.rust-lang.org/std/primitive.i32.html#method.unsigned_abs) (no C++ equivalent) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) |
 | `<xstd/format.hpp>` | `formatter<div_t>` | `std::format` support for every element type `div_t` accepts | [p3391](https://wg21.link/p3391) (C++29, not yet implemented) |
 | `<xstd/memory.hpp>` | `aligned_size` | Round a size up to a power-of-two alignment | none |
-| `<xstd/type_traits.hpp>` | `XSTD_NO_UNIQUE_ADDRESS` <br> `empty_type` <br> `is_integral_like` <br> `is_arithmetic_like` <br> `is_signed_like` <br> `is_unsigned_like` <br> `is_specialization_of` <br> `make_signed_like` <br> `make_unsigned_like` <br> `conditional_data_member_t` | Portable spelling of `no_unique_address` <br> A tagged empty type <br> `std::is_integral`, opened to integer-class types <br> `std::is_arithmetic`, opened through the integral half <br> `std::is_signed`, opened the same way <br> `std::is_unsigned`, opened the same way <br> Is a type a class template specialization? <br> Open, user-specializable `std::make_signed` <br> Open, user-specializable `std::make_unsigned` <br> A conditionally present member | none <br> none <br> [iterator.concept.winc] (`is-integer-like`) <br> none <br> none <br> none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> none <br> none <br> none |
+| `<xstd/type_traits.hpp>` | `XSTD_NO_UNIQUE_ADDRESS` <br> `empty_type` <br> `is_integer_like` <br> `is_arithmetic_like` <br> `is_signed_like` <br> `is_unsigned_like` <br> `is_specialization_of` <br> `make_signed_like` <br> `make_unsigned_like` <br> `conditional_data_member_t` | Portable spelling of `no_unique_address` <br> A tagged empty type <br> `std::is_integral`, opened to integer-class types <br> `std::is_arithmetic`, opened through the integral half <br> `std::is_signed`, opened the same way <br> `std::is_unsigned`, opened the same way <br> Is a type a class template specialization? <br> Open, user-specializable `std::make_signed` <br> Open, user-specializable `std::make_unsigned` <br> A conditionally present member | none <br> none <br> [iterator.concept.winc] (`is-integer-like`) <br> none <br> none <br> none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> none <br> none <br> none |
 | `<xstd/utility.hpp>` | `to_underlying` | `std::to_underlying`, plus an `std::integral_constant` overload | [p1682r1](https://wg21.link/p1682r1) (`std::to_underlying`) |
 
 ## Examples
@@ -78,8 +78,8 @@ integer-class types, including the portable 128-bit aliases:
 #include <xstd/concepts.hpp>
 #include <xstd/cstdint.hpp>
 
-static_assert(xstd::signed_integral_like<xstd::int128>);
-static_assert(xstd::unsigned_integral_like<xstd::uint128>);
+static_assert(xstd::signed_integer_like<xstd::int128>);
+static_assert(xstd::unsigned_integer_like<xstd::uint128>);
 ```
 
 Use `XSTD_NO_UNIQUE_ADDRESS` inside an attribute-specifier. It expands to
@@ -95,20 +95,21 @@ struct storage {
 };
 ```
 
-The integer functions take any integral-like type of either signedness and
+The integer functions take any integer-like type of either signedness and
 return the argument type rather than a promoted one; a two-argument call
 requires both arguments to have the same type. `unsigned_abs` and `to_chars`
 additionally require an unsigned counterpart, which they produce a value of;
-it is automatic for every integral type but `bool` and for an unsigned
+it is automatic for every integer-like built-in type and for an unsigned
 integer-class type, and a signed integer-class type supplies it by specializing
 `make_unsigned_like`. Without one the call is unsatisfied rather than ill-formed.
 The three divisions ask for no such thing. `abs` keeps the signed
 minimum-value precondition and is total over an unsigned type, whose `min()`
 is `0`; `unsigned_abs` is total over both, returning the unsigned counterpart.
 The division functions require a nonzero divisor, and `MIN / -1` is outside
-their contract. `bool` is deleted from every one of them, as it is from
-`std::to_chars`: it is integral-like, but a truth value rather than a one-bit
-unsigned integer, and it is not modular the way one would be.
+their contract. Nothing takes cv `bool`: [iterator.concept.winc] excludes it
+from integer-like, a truth value being no one-bit unsigned integer and not
+modular the way one would be. The character types are integer-like and are
+accepted, as `std::to_chars` accepts them.
 
 A `div_t` renders as `(quot, rem)` for every element type it accepts, but which
 format specs it accepts depends on that type: where the standard library can

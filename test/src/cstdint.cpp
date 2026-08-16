@@ -3,7 +3,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/concepts.hpp>        // signed_integral_like, unsigned_integral_like
+#include <xstd/concepts.hpp>        // signed_integer_like, unsigned_integer_like
 #include <xstd/cstdint.hpp>         // int128, uint128
 #include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK
 #include <xstd/type_traits.hpp>     // make_signed_like_t, make_unsigned_like_t
@@ -21,8 +21,8 @@ BOOST_AUTO_TEST_CASE(Int128)
         static_assert(not std::numeric_limits<xstd::uint128>::is_signed);
         static_assert(std::numeric_limits<xstd::int128>::digits == 127);
         static_assert(std::numeric_limits<xstd::uint128>::digits == 128);
-        static_assert(xstd::signed_integral_like<xstd::int128>);
-        static_assert(xstd::unsigned_integral_like<xstd::uint128>);
+        static_assert(xstd::signed_integer_like<xstd::int128>);
+        static_assert(xstd::unsigned_integer_like<xstd::uint128>);
         static_assert(std::is_same_v<xstd::make_signed_like_t<xstd::uint128>, xstd::int128>);
         static_assert(std::is_same_v<xstd::make_unsigned_like_t<xstd::int128>, xstd::uint128>);
         XSTD_CONSTEXPR_CHECK(xstd::int128{-1} < xstd::int128{0});

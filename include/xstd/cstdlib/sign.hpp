@@ -6,15 +6,15 @@
 #ifndef XSTD_CSTDLIB_SIGN_HPP
 #define XSTD_CSTDLIB_SIGN_HPP
 
-#include <xstd/concepts/integral_like.hpp>              // integral_like
-#include <xstd/concepts/nothrow_integral_operators.hpp> // nothrow_integral_operators
-#include <xstd/type_traits/is_unsigned_like.hpp>        // is_unsigned_like_v
+#include <xstd/concepts/integer_like.hpp>              // integer_like
+#include <xstd/concepts/nothrow_integer_operators.hpp> // nothrow_integer_operators
+#include <xstd/type_traits/is_unsigned_like.hpp>       // is_unsigned_like_v
 
 namespace xstd {
 
 // Returns -1, 0, or 1; over an unsigned type, 0 or 1.
-template<integral_like I>
-[[nodiscard]] constexpr auto sign(I x) noexcept(nothrow_integral_operators<I>)
+template<integer_like I>
+[[nodiscard]] constexpr auto sign(I x) noexcept(nothrow_integer_operators<I>)
         -> int
 {
         auto const zero = static_cast<I>(0);
@@ -25,9 +25,6 @@ template<integral_like I>
                 return static_cast<int>(zero < x) - static_cast<int>(x < zero);
         }
 }
-
-// Deleted: bool is integral-like but not a 1-bit integer, and sign(true) would answer 1.
-auto sign(bool) -> int = delete;
 
 } // namespace xstd
 

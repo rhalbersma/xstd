@@ -6,17 +6,17 @@
 #ifndef XSTD_CSTDLIB_ABS_HPP
 #define XSTD_CSTDLIB_ABS_HPP
 
-#include <xstd/concepts/integral_like.hpp>              // integral_like
-#include <xstd/concepts/nothrow_integral_operators.hpp> // nothrow_integral_operators
-#include <xstd/type_traits/is_unsigned_like.hpp>        // is_unsigned_like_v
-#include <cassert>                                      // assert
-#include <limits>                                       // numeric_limits
+#include <xstd/concepts/integer_like.hpp>              // integer_like
+#include <xstd/concepts/nothrow_integer_operators.hpp> // nothrow_integer_operators
+#include <xstd/type_traits/is_unsigned_like.hpp>       // is_unsigned_like_v
+#include <cassert>                                     // assert
+#include <limits>                                      // numeric_limits
 
 namespace xstd {
 
 // constexpr generalization of abs/labs/llabs/imaxabs.
-template<integral_like I>
-[[nodiscard]] constexpr auto abs(I x) noexcept(nothrow_integral_operators<I>)
+template<integer_like I>
+[[nodiscard]] constexpr auto abs(I x) noexcept(nothrow_integer_operators<I>)
         -> I
 {
         // An unsigned value is its own magnitude, and its min() is 0.
@@ -28,9 +28,6 @@ template<integral_like I>
                 return static_cast<I>(x < zero ? -x : x);
         }
 }
-
-// Deleted: bool is integral-like but not a 1-bit integer, and abs(true) would answer true.
-auto abs(bool) -> bool = delete;
 
 } // namespace xstd
 
