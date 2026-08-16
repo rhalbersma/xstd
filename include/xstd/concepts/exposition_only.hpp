@@ -76,15 +76,10 @@ concept integer_class_type =
         // /9's two concepts carry the comparisons, boolean-testable rather than bool.
         std::regular<I> and
         std::three_way_comparable<I, std::strong_ordering> and
-        // The same direction again, in the spelling <xstd/cstdlib.hpp> uses for its constants.
-        requires {
-                { static_cast<I>(0) } -> std::same_as<I>;
-        } and
-        // /6 the other way: to any integral type, these two standing for "any" by sign and width.
-        requires (I const a) {
-                { static_cast<int>(a) } -> std::same_as<int>;
-                { static_cast<std::size_t>(a) } -> std::same_as<std::size_t>;
-        } and
+        // /6 the other way, in the same vocabulary: direct-initialization is what a cast does.
+        // Only the size_t row is a conversion a body performs; the int row covers the signed side.
+        std::constructible_from<int, I> and
+        std::constructible_from<std::size_t, I> and
         std::numeric_limits<I>::is_specialized and
         std::numeric_limits<I>::is_integer;
 
