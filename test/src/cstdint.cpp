@@ -8,8 +8,8 @@
 #include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK
 #include <xstd/type_traits.hpp>     // make_signed_t, make_unsigned_t
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END
+#include <concepts>                 // same_as
 #include <limits>                   // numeric_limits
-#include <type_traits>              // is_same_v
 
 BOOST_AUTO_TEST_SUITE(Cstdint)
 
@@ -23,8 +23,8 @@ BOOST_AUTO_TEST_CASE(Int128)
         static_assert(std::numeric_limits<xstd::uint128>::digits == 128);
         static_assert(xstd::signed_integer_like<xstd::int128>);
         static_assert(xstd::unsigned_integer_like<xstd::uint128>);
-        static_assert(std::is_same_v<xstd::make_signed_t<xstd::uint128>, xstd::int128>);
-        static_assert(std::is_same_v<xstd::make_unsigned_t<xstd::int128>, xstd::uint128>);
+        static_assert(std::same_as<xstd::make_signed_t<xstd::uint128>, xstd::int128>);
+        static_assert(std::same_as<xstd::make_unsigned_t<xstd::int128>, xstd::uint128>);
         XSTD_CONSTEXPR_CHECK(xstd::int128{-1} < xstd::int128{0});
         XSTD_CONSTEXPR_CHECK((xstd::uint128{1} << 127) > xstd::uint128{0});
 }

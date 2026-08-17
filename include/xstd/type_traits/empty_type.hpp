@@ -7,7 +7,8 @@
 #define XSTD_TYPE_TRAITS_EMPTY_TYPE_HPP
 
 #include <compare>     // strong_ordering
-#include <type_traits> // is_same_v, remove_cvref_t
+#include <concepts>    // same_as
+#include <type_traits> // remove_cvref_t
 
 namespace xstd {
 
@@ -19,7 +20,7 @@ struct empty_type
 
         // Constructible like any alternative member, without hijacking copy or move.
         template<class... Args>
-                requires ((not std::is_same_v<std::remove_cvref_t<Args>, empty_type>) and ...)
+                requires ((not std::same_as<std::remove_cvref_t<Args>, empty_type>) and ...)
         [[nodiscard]] constexpr explicit empty_type(Args&&...) noexcept
         {}
 

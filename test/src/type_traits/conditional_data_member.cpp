@@ -6,7 +6,8 @@
 #include <xstd/type_traits/conditional_data_member.hpp> // conditional_data_member
 #include <xstd/test/constexpr.hpp>                      // XSTD_CONSTEXPR_CHECK
 #include <boost/test/unit_test.hpp>                     // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
-#include <type_traits>                                  // is_empty_v, is_same_v
+#include <concepts>                                     // same_as
+#include <type_traits>                                  // is_empty_v
 
 BOOST_AUTO_TEST_SUITE(TypeTraits)
 
@@ -27,17 +28,17 @@ using member2 = xstd::conditional_data_member_t<false, tag1, struct member2_tag>
 
 BOOST_AUTO_TEST_CASE(ConditionalDataMember)
 {
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::conditional_data_member_t<true, tag1, tag2>, tag1>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::conditional_data_member_t<false, tag1, tag2>, xstd::empty_type<tag2>>));
+        XSTD_CONSTEXPR_CHECK((std::same_as<xstd::conditional_data_member_t<true, tag1, tag2>, tag1>));
+        XSTD_CONSTEXPR_CHECK((std::same_as<xstd::conditional_data_member_t<false, tag1, tag2>, xstd::empty_type<tag2>>));
         XSTD_CONSTEXPR_CHECK((std::is_empty_v<xstd::conditional_data_member_t<false, tag1, tag2>>));
 
         // the tag names the member, so two absent ones can still overlap in the layout
         XSTD_CONSTEXPR_CHECK((std::is_empty_v<member1>));
         XSTD_CONSTEXPR_CHECK((std::is_empty_v<member2>));
-        XSTD_CONSTEXPR_CHECK((not std::is_same_v<member1, member2>));
+        XSTD_CONSTEXPR_CHECK((not std::same_as<member1, member2>));
 
         // the tag is inert when the member is present, and the two then agree
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<
+        XSTD_CONSTEXPR_CHECK((std::same_as<
                               xstd::conditional_data_member_t<true, tag1, struct member1_tag>,
                               xstd::conditional_data_member_t<true, tag1, struct member2_tag>>));
 
