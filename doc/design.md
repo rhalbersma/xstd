@@ -30,7 +30,12 @@ across the tested toolchains. Consumers need no third-party dependencies.
 
 `integer_like`, `signed_integer_like` and `unsigned_integer_like` widen the
 standard concepts to structurally recognized integer-class types, and the `_like`
-traits follow the same rule. Built-in integers need no customization; a
+traits follow the same rule. The subclause names exactly one exposition-only
+concept, *is-integer-like*, and introduces *integer-class type* as a term instead
+— "a set of implementation-defined types that behave as integer types do" (/2).
+`integer_class` is this library's structural reading of that term, which is why it
+carries a name of its own rather than a hidden one: the term is normative, not
+exposition-only, and `integer_like` is defined in terms of it. Built-in integers need no customization; a
 user-defined signed/unsigned pair supplies the opposite `make_signed_like` and
 `make_unsigned_like` specializations. `has_unsigned_counterpart` is where the
 integer functions ask whether that has been done, so a type arriving without it
