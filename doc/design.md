@@ -286,6 +286,15 @@ concept; otherwise the trait is the interface. `nothrow_integer_operators` is
 the one concept with no trait beside it, having no standard trait to mirror, and
 is spelled the way a caller writes it: inside a `noexcept`.
 
+Which decides where the `is` goes, and the subclause is no guide there. Its
+concept is *is-integer-like* — the only concept in the library or the standard
+whose name starts with `is`, because it is exposition-only and answers to nobody.
+The convention outside it is the opposite and is worth following: `is` marks a
+trait, as in `std::is_integral`, and a concept goes bare, as in `std::integral`.
+So the pair here is `integer_like` and `is_integer_like`, mirroring that pair
+exactly, rather than an `is_integer_like` concept transliterating a hyphenated
+name that was never meant to be public.
+
 ### `to_underlying`
 
 The [original 2016 sketch](ideas.md#1-convenient-underlying-types-for-scoped-enums)
