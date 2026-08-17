@@ -147,6 +147,21 @@ asks for it without needing it, so that its constraints stay a superset of the
 digits overload's and subsumption still orders the two; the two
 `std::formatter<div_t<I>>` specializations are paired the same way.
 
+That constraint can only be *unsatisfied* because the `make_signed` and
+`make_unsigned` primaries are empty, and both are structured to keep it that way.
+Each is a primary that names no `type`, a partial specialization per half of
+`integer_like` — `std::make_signed` for the integrals it answers for, the type
+itself for an integer-class type of that signedness — and the cross-direction
+association for the 128-bit aliases. Neither may inherit `std::make_signed`
+unconditionally, tempting as an unconstrained primary looks: `std::make_unsigned`
+is undefined for a class type and for cv `bool`, so a signed integer-class type
+without a registered counterpart, the very case `has_unsigned_counterpart` exists
+to detect, would become a hard error inside the trait rather than a `false`. The
+`std::integral` conjunct is a second line as well as a first: `std::make_unsigned`
+accepts an enumeration and answers with its underlying type's counterpart, an
+association this library does not make, and constraining on the integral half of
+`integer_like` declines it in the same place it declines `bool`.
+
 The three divisions are constrained on `integer_like` alone, and deliberately.
 They never form the counterpart to compute with — `/` and `%` are all their bodies
 want, and the subclause supplies both. It appears in exactly one place, the

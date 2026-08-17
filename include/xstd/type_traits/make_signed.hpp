@@ -8,8 +8,10 @@
 
 #include <xstd/cstdint.hpp>                // int128, uint128
 #include <xstd/concepts/integer_class.hpp> // integer_class
+#include <xstd/concepts/integer_like.hpp>  // integer_like
 #include <xstd/type_traits/is_signed.hpp>  // is_signed_v
-#include <type_traits>                     // is_integral_v, is_same_v, make_signed, remove_cv_t, type_identity
+#include <concepts>                        // integral
+#include <type_traits>                     // make_signed, type_identity
 
 namespace xstd {
 
@@ -18,24 +20,27 @@ template<class T>
 struct make_signed
 {};
 
-template<class T>
-        requires std::is_integral_v<T> and (not std::is_same_v<std::remove_cv_t<T>, bool>)
-struct make_signed<T> : std::make_signed<T>
+// Ask std for the integral half of integer_like, which is every integral it answers for:
+// bool it excludes, and an enumeration never was one, though std::make_signed takes it.
+template<integer_like I>
+        requires std::integral<I>
+struct make_signed<I> : std::make_signed<I>
 {};
 
-// Such a type is its own counterpart; an unsigned one needs a user specialization.
-template<class T>
-        requires integer_class<T> and is_signed_v<T>
-struct make_signed<T> : std::type_identity<T>
+// The other half is where std stops. Such a type is its own counterpart; an unsigned one
+// needs a user specialization, and the empty primary is what says so.
+template<integer_class I>
+        requires is_signed_v<I>
+struct make_signed<I> : std::type_identity<I>
 {};
-
-template<class T>
-using make_signed_t = make_signed<T>::type;
 
 // The public 128-bit aliases provide their cross-direction association.
 template<>
 struct make_signed<uint128> : std::type_identity<int128>
 {};
+
+template<class T>
+using make_signed_t = make_signed<T>::type;
 
 } // namespace xstd
 
