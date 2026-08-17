@@ -3,16 +3,15 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/concepts/integer_class.hpp>            // integer_class
-#include <xstd/concepts/integer_class_operations.hpp> // integer_class_operations
-#include <xstd/concepts/integer_like.hpp>             // integer_like
-#include <xstd/concepts/signed_integer_like.hpp>      // signed_integer_like
-#include <xstd/concepts/unsigned_integer_like.hpp>    // unsigned_integer_like
-#include <xstd/test/absl_int128.hpp>                  // XSTD_TEST_HAS_ABSL_INT128, absl_int128, absl_uint128
-#include <xstd/test/constexpr.hpp>                    // XSTD_CONSTEXPR_CHECK
-#include <xstd/test/integer_class.hpp>                // conforming_int_class, conforming_signed_int_class, proxy_result, unpaired_int_class
-#include <boost/test/unit_test.hpp>                   // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
-#include <concepts>                                   // convertible_to, same_as
+#include <xstd/concepts/integer_class.hpp>         // integer_class
+#include <xstd/concepts/integer_like.hpp>          // integer_like
+#include <xstd/concepts/signed_integer_like.hpp>   // signed_integer_like
+#include <xstd/concepts/unsigned_integer_like.hpp> // unsigned_integer_like
+#include <xstd/test/absl_int128.hpp>               // XSTD_TEST_HAS_ABSL_INT128, absl_int128, absl_uint128
+#include <xstd/test/constexpr.hpp>                 // XSTD_CONSTEXPR_CHECK
+#include <xstd/test/integer_class.hpp>             // conforming_int_class, conforming_signed_int_class, proxy_result, unpaired_int_class
+#include <boost/test/unit_test.hpp>                // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
+#include <concepts>                                // convertible_to, same_as
 
 BOOST_AUTO_TEST_SUITE(Concepts)
 
@@ -42,7 +41,7 @@ BOOST_AUTO_TEST_CASE(IntegralLike)
         XSTD_CONSTEXPR_CHECK(xstd::integer_like<int const>);
 }
 
-// Disjoint branches per /3, asserted on the internal concept as the outer says yes either way.
+// Disjoint branches per /3, asserted on the inner concept as the outer says yes either way.
 BOOST_AUTO_TEST_CASE(NoIntegralTypeIsAnIntegerClassType)
 {
         XSTD_CONSTEXPR_CHECK(not xstd::integer_class<int>);
@@ -76,17 +75,19 @@ BOOST_AUTO_TEST_CASE(OperatorResultsAreTheTypeItself)
 #endif
 }
 
-// The subclause states the operations; that a type come in a pair is this library's own half.
-BOOST_AUTO_TEST_CASE(AnIntegerClassTypeIsOneHalfOfAPair)
+// The subclause states the operations; that a type come in a pair is this library's own half,
+// and integer_like is where it asks for it - so the two concepts disagree about exactly one type.
+BOOST_AUTO_TEST_CASE(AnIntegerLikeTypeIsOneHalfOfAPair)
 {
         using unpaired = xstd::test::unpaired_int_class;
         using owned = xstd::test::conforming_int_class;
         using owned_signed = xstd::test::conforming_signed_int_class;
 
-        // Every operation the subclause states, and no counterpart to go with them.
-        XSTD_CONSTEXPR_CHECK(xstd::integer_class_operations<unpaired>);
-        XSTD_CONSTEXPR_CHECK(not xstd::integer_class<unpaired>);
+        // An integer-class type by every operation the subclause states, which is what the term
+        // means, and no counterpart to divide with, which is what this library needs.
+        XSTD_CONSTEXPR_CHECK(xstd::integer_class<unpaired>);
         XSTD_CONSTEXPR_CHECK(not xstd::integer_like<unpaired>);
+        XSTD_CONSTEXPR_CHECK(not xstd::signed_integer_like<unpaired>);
 
         // Its pair is registered both ways, so each half is admitted and names the other.
         XSTD_CONSTEXPR_CHECK(xstd::integer_class<owned> and xstd::integer_class<owned_signed>);
@@ -94,10 +95,10 @@ BOOST_AUTO_TEST_CASE(AnIntegerClassTypeIsOneHalfOfAPair)
         XSTD_CONSTEXPR_CHECK(xstd::signed_integer_like<owned_signed>);
 
         // The proxy variant fails at /7.6, so the pairing clause is never the reason.
-        XSTD_CONSTEXPR_CHECK(not xstd::integer_class_operations<xstd::test::proxy_result>);
+        XSTD_CONSTEXPR_CHECK(not xstd::integer_class<xstd::test::proxy_result>);
 
-        // The integral branch is untouched by it: std pairs those types itself.
-        XSTD_CONSTEXPR_CHECK(not xstd::integer_class_operations<int>);
+        // The integral branch never reaches the clause on its own account: std pairs those types.
+        XSTD_CONSTEXPR_CHECK(not xstd::integer_class<int>);
         XSTD_CONSTEXPR_CHECK(xstd::integer_like<int>);
 }
 

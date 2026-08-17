@@ -37,7 +37,6 @@ target_sources(
     FILES
         include/xstd/concepts.hpp
         include/xstd/concepts/integer_class.hpp
-        include/xstd/concepts/integer_class_operations.hpp
         include/xstd/concepts/integer_like.hpp
         include/xstd/concepts/nothrow_integer_operators.hpp
         include/xstd/concepts/signed_integer_like.hpp

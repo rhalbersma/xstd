@@ -6,10 +6,10 @@
 #ifndef XSTD_TYPE_TRAITS_MAKE_UNSIGNED_HPP
 #define XSTD_TYPE_TRAITS_MAKE_UNSIGNED_HPP
 
-#include <xstd/concepts/integer_class_operations.hpp> // integer_class_operations
-#include <xstd/type_traits/is_unsigned.hpp>           // is_unsigned_v
-#include <concepts>                                   // integral, same_as
-#include <type_traits>                                // is_enum_v, make_unsigned, remove_cv_t, type_identity
+#include <xstd/concepts/integer_class.hpp>  // integer_class
+#include <xstd/type_traits/is_unsigned.hpp> // is_unsigned_v
+#include <concepts>                         // integral, same_as
+#include <type_traits>                      // is_enum_v, make_unsigned, remove_cv_t, type_identity
 
 namespace xstd {
 
@@ -26,7 +26,7 @@ struct make_unsigned<T> : std::make_unsigned<T>
 {};
 
 // Where std stops: its own counterpart, the other half of the pair being the user's to say.
-template<integer_class_operations I>
+template<integer_class I>
         requires is_unsigned_v<I>
 struct make_unsigned<I> : std::type_identity<I>
 {};
