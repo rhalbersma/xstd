@@ -5,11 +5,11 @@
 
 #include <xstd/cstdlib.hpp>                // complete arithmetic surface
 #include <xstd/cstdint.hpp>                // int128, uint128
-#include <xstd/concepts.hpp>               // integer_like, signed_integer_like
-#include <xstd/type_traits.hpp>            // make_unsigned_t
+#include <xstd/concepts.hpp>               // integer_class, integer_class_operations, integer_like, signed_integer_like
+#include <xstd/type_traits.hpp>            // is_signed_v, make_signed_t, make_unsigned_t
 #include <xstd/test/absl_int128.hpp>       // XSTD_TEST_HAS_ABSL_INT128
 #include <xstd/test/boost_int128.hpp>      // XSTD_TEST_HAS_BOOST_INT128
-#include <xstd/test/integer_class.hpp>     // conforming_int_class, unregistered_int_class
+#include <xstd/test/integer_class.hpp>     // conforming_int_class, unpaired_int_class
 #include <xstd/test/exact_width_types.hpp> // std_signed_types
 #include <xstd/test/constexpr.hpp>         // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
 #include <boost/test/unit_test.hpp>        // Boost.Test
@@ -118,36 +118,42 @@ BOOST_AUTO_TEST_CASE(NonIntegralLikeArgumentsAreRejected)
         BOOST_CHECK(true);
 }
 
-// The one fixture with no counterpart registered, which splits the arithmetic surface in two.
-BOOST_AUTO_TEST_CASE(UnregisteredIntegerClassTypeReachesAllButTheTwoThatFormIt)
+// The one fixture left unpaired, which no longer reaches any of the surface at all.
+BOOST_AUTO_TEST_CASE(UnpairedIntegerClassTypeIsTurnedAwayByEveryConstraint)
 {
-        using T = xstd::test::unregistered_int_class;
+        using T = xstd::test::unpaired_int_class;
 
-        static_assert(xstd::integer_like<T>);
-        static_assert(xstd::signed_integer_like<T>);
-        static_assert(not xstd::has_unsigned_counterpart<T>);
+        // Conforming in every operation the subclause states, and a counterpart is all it lacks.
+        static_assert(xstd::integer_class_operations<T>);
+        static_assert(xstd::is_signed_v<T>);
+        static_assert(not xstd::integer_class<T>);
+        static_assert(not xstd::integer_like<T>);
+        static_assert(not xstd::signed_integer_like<T>);
 
-        // The two that produce a value of the counterpart type cannot serve it.
+        // So all six turn it away by constraint, the way they turn cv bool away.
         static_assert(not has_unsigned_abs<T>);
+        static_assert(not has_div<T, T>);
+        static_assert(not has_euclidean_div<T>);
+        static_assert(not has_floored_div<T>);
+        static_assert(not has_abs<T>);
+        static_assert(not has_sign<T>);
 
-        // The rest only wanted it to state a postcondition, which an if constexpr drops.
-        static_assert(has_div<T, T>);
-        static_assert(has_euclidean_div<T>);
-        static_assert(has_floored_div<T>);
-        static_assert(has_abs<T>);
-        static_assert(has_sign<T>);
-
-        // The if constexpr discards the assertion, not the preprocessor, so NDEBUG agrees.
-        static_assert(xstd::div(T{8}, T{3}) == xstd::div_t<T>{2, 2});
-        static_assert(xstd::euclidean_div(T{-8}, T{3}) == xstd::div_t<T>{-3, 1});
-        static_assert(xstd::floored_div(T{8}, T{-3}) == xstd::div_t<T>{-3, -1});
-
-        // The conforming unsigned fixture is its own counterpart, so the bound is checked there.
+        // Its pair, registered in both directions, reaches all six and states every bound.
+        using S = xstd::test::conforming_signed_int_class;
         using U = xstd::test::conforming_int_class;
 
-        static_assert(xstd::has_unsigned_counterpart<U>);
+        static_assert(std::same_as<xstd::make_unsigned_t<S>, U>);
+        static_assert(std::same_as<xstd::make_signed_t<U>, S>);
+        static_assert(has_unsigned_abs<S> and has_div<S, S>);
+        static_assert(has_euclidean_div<S> and has_floored_div<S>);
+        static_assert(has_abs<S> and has_sign<S>);
         static_assert(has_unsigned_abs<U> and has_div<U, U>);
         static_assert(has_euclidean_div<U> and has_floored_div<U>);
+
+        // The assertions the counterpart states are checked, not discarded, so NDEBUG agrees.
+        static_assert(xstd::div(S{8}, S{3}) == xstd::div_t<S>{2, 2});
+        static_assert(xstd::euclidean_div(S{-8}, S{3}) == xstd::div_t<S>{-3, 1});
+        static_assert(xstd::floored_div(S{8}, S{-3}) == xstd::div_t<S>{-3, -1});
 
         BOOST_CHECK(true);
 }

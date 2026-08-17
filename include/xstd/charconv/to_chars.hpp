@@ -6,19 +6,18 @@
 #ifndef XSTD_CHARCONV_TO_CHARS_HPP
 #define XSTD_CHARCONV_TO_CHARS_HPP
 
-#include <xstd/concepts/has_unsigned_counterpart.hpp> // has_unsigned_counterpart
-#include <xstd/concepts/integer_like.hpp>             // integer_like
-#include <xstd/cstdlib/div.hpp>                       // div
-#include <xstd/cstdlib/unsigned_abs.hpp>              // unsigned_abs
-#include <xstd/type_traits/is_signed.hpp>             // is_signed_v
-#include <xstd/type_traits/make_unsigned.hpp>         // make_unsigned_t
-#include <cassert>                                    // assert
-#include <charconv>                                   // to_chars, to_chars_result
-#include <concepts>                                   // same_as
-#include <cstddef>                                    // ptrdiff_t, size_t
-#include <iterator>                                   // distance, next
-#include <limits>                                     // numeric_limits
-#include <system_error>                               // errc
+#include <xstd/concepts/integer_like.hpp>     // integer_like
+#include <xstd/cstdlib/div.hpp>               // div
+#include <xstd/cstdlib/unsigned_abs.hpp>      // unsigned_abs
+#include <xstd/type_traits/is_signed.hpp>     // is_signed_v
+#include <xstd/type_traits/make_unsigned.hpp> // make_unsigned_t
+#include <cassert>                            // assert
+#include <charconv>                           // to_chars, to_chars_result
+#include <concepts>                           // same_as
+#include <cstddef>                            // ptrdiff_t, size_t
+#include <iterator>                           // distance, next
+#include <limits>                             // numeric_limits
+#include <system_error>                       // errc
 
 namespace xstd {
 
@@ -35,8 +34,7 @@ inline constexpr auto to_chars_max_size =
 
 // The standard's own call where it covers I; an ambiguous overload leaves this unsatisfied.
 template<integer_like I>
-// The counterpart is carried unneeded, to stay a superset of the digits overload's.
-        requires has_unsigned_counterpart<I> and std_to_chars_covers<I>
+        requires std_to_chars_covers<I>
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
 [[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10)
         -> std::to_chars_result
@@ -51,8 +49,6 @@ auto to_chars(char*, char*, bool, int = 10) -> std::to_chars_result = delete;
 
 // For the types the two above miss; less constrained, so a call prefers the standard's.
 template<integer_like I>
-// The digits come off the counterpart, so it is a constraint rather than a body.
-        requires has_unsigned_counterpart<I>
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
 [[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10)
         -> std::to_chars_result

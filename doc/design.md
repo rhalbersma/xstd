@@ -33,13 +33,14 @@ standard concepts to structurally recognized integer-class types, and the `_like
 traits follow the same rule. The subclause names exactly one exposition-only
 concept, *is-integer-like*, and introduces *integer-class type* as a term instead
 — "a set of implementation-defined types that behave as integer types do" (/2).
-`integer_class` is this library's structural reading of that term, which is why it
-carries a name of its own rather than a hidden one: the term is normative, not
-exposition-only, and `integer_like` is defined in terms of it. Built-in integers need no customization; a
-user-defined signed/unsigned pair supplies the opposite `make_signed` and
-`make_unsigned` specializations. `has_unsigned_counterpart` is where the
-integer functions ask whether that has been done, so a type arriving without it
-is turned away by a constraint rather than inside a body.
+`integer_class_operations` is this library's structural reading of that term, which
+is why it carries a name of its own rather than a hidden one: the term is
+normative, not exposition-only. `integer_class` is those operations and one thing
+more, that the type be one of a signed/unsigned pair, and it is what
+`integer_like` is defined in terms of. Built-in integers need no customization; a
+user-defined pair supplies the opposite `make_signed` and `make_unsigned`
+specializations, and a type arriving without them is not an integer-class type
+here, so every function turns it away by the constraint it already had.
 
 The widening is cv-transparent on both branches. That takes doing only on the
 integer-class one: [iterator.concept.winc] states its requirements for an object
@@ -135,56 +136,64 @@ It cannot simply be adopted: `std::integer` is closed over built-in types, so no
 integer-class type can satisfy it, and its `cv-unqualified` conjunct rejects the
 `const` operands these concepts deliberately accept.
 
-`has_unsigned_counterpart` exists because the missing-counterpart problem reaches
-types no concept turns away. A signed integer-class type whose counterpart the user has
-not registered satisfies `integer_like`, and `unsigned_abs` and `to_chars` would
-then form a `make_unsigned_t` that does not exist. `to_chars` was the worse
-of the two: constrained on `integer_like` alone while its body needed the
-counterpart, it answered *yes* to a detection idiom for a call that was ill-formed,
-which defeats the fallback such an idiom exists to select. Both now require it, and
-so the failure is a plain unsatisfied constraint. `to_chars`'s delegating overload
-asks for it without needing it, so that its constraints stay a superset of the
-digits overload's and subsumption still orders the two; the two
-`std::formatter<div_t<I>>` specializations are paired the same way.
+An integer-class type is one of a pair here, which is more than
+[iterator.concept.winc] asks and less than it leaves out. [basic.fundamental]/2
+gives every signed integer type, standard and extended alike, "a corresponding
+(but different)" unsigned integer type of the same width, and back again. /3 gives
+an integer-class type a width and a signedness, and /5 maps it onto B(I), "a unique
+hypothetical extended integer type of the same signedness with the same width" —
+which /2 then pairs. So the pairing holds one level down, of the type the subclause
+maps an integer-class type onto, and the subclause never lifts it back up to the
+integer-class type itself. This library lifts it: `make_signed` and `make_unsigned`
+must both name a type, and [meta.trans.sign] says what they name — the type itself
+where the signedness already matches, and "the corresponding" type of the other
+signedness where it does not.
 
-That constraint can only be *unsatisfied* because the `make_signed` and
-`make_unsigned` primaries are empty, and both are structured to keep it that way.
-Each is a primary that names no `type`, a partial specialization per half of
-`integer_like` — `std::make_signed` for the integrals it answers for, the type
-itself for an integer-class type of that signedness — and the cross-direction
-association for the 128-bit aliases. Neither may inherit `std::make_signed`
-unconditionally, tempting as an unconstrained primary looks: `std::make_unsigned`
-is undefined for a class type and for cv `bool`, so a signed integer-class type
-without a registered counterpart, the very case `has_unsigned_counterpart` exists
-to detect, would become a hard error inside the trait rather than a `false`. The
-`std::integral` conjunct is a second line as well as a first: `std::make_unsigned`
-accepts an enumeration and answers with its underlying type's counterpart, an
-association this library does not make, and constraining on the integral half of
-`integer_like` declines it in the same place it declines `bool`.
+That makes `integer_class` a name for more than the term it is taken from, and
+the split is where the honesty is: `integer_class_operations` is the term, whole
+and unextended, and `integer_class` is the term plus what this library needs to
+divide with. The half that is automatic is the matching one, so a user writes one
+specialization per type and two per pair. What that buys is a surface with no
+seam in it: `unsigned_abs` and `to_chars` used to carry a second constraint for
+the counterpart they produce, the two `std::formatter<div_t<I>>` specializations
+carried it to stay ordered by subsumption, and the three divisions guarded their
+remainder postcondition with an `if constexpr` for the types that could not state
+it. All eight sites are gone; `integer_like` says it once, where it was always
+being asked.
+
+The cost is a type that has no counterpart and could have divided anyway. An
+unsigned integer class with no signed sibling is now refused rather than served,
+and the suite has a real one: `unsigned _BitInt(1)`, whose signed counterpart C23
+does not allow, C23 setting the signed minimum at two bits. Its registration is
+constrained rather than written for every width, so the trait answers no there and
+the concept turns the type away, instead of the specialization hard-erroring on a
+type the language will not form.
+
+That the failure stays an unsatisfied constraint rather than a hard error is what
+the empty `make_signed` and `make_unsigned` primaries are for, and it is why the
+two traits ask `integer_class_operations` and not `integer_class`: the concept asks
+the traits what the counterparts are, so the traits cannot ask the concept back.
+`is_signed_v` and `is_unsigned_v` are on the same footing, and rightly — a
+signedness is a property of the operations, which every integer-class type has,
+pair or no pair.
 
 The three divisions are constrained on `integer_like` alone, and deliberately.
 They never form the counterpart to compute with — `/` and `%` are all their bodies
 want, and the subclause supplies both. It appears in exactly one place, the
 assertion that the remainder is smaller than the denominator, which is written
-over magnitudes because `|MIN|` fits in no type but the counterpart. Requiring it
-in the signature would let one debug-only diagnostic decide what `div` divides, in
-release builds as much as debug ones, which is the assertion setting the contract
-rather than checking it. So that assertion is asked only where it can be said:
+over magnitudes because `|MIN|` fits in no type but the counterpart:
 
 ```cpp
-if constexpr (has_unsigned_counterpart<I>) {
-        assert(xstd::unsigned_abs(rT) < xstd::unsigned_abs(denom));
-}
+assert(xstd::unsigned_abs(rT) < xstd::unsigned_abs(denom));
 ```
 
-An `if constexpr` discards the branch without instantiating it, and does so on the
-same terms with `NDEBUG` and without, so the mode-dependent compilation this was
-first written to cure does not come back. The bound then goes unchecked for a type
-with no counterpart, which is the honest cost: there is no way to compare those two
-magnitudes in a type that cannot hold one of them. Spelling it `rT / denom == 0`
-would avoid the counterpart and cover every type, but it would check the bound with
-the very operator that produced the quotient, and an assertion correlated with what
-it checks is the thing the unsigned branches above were relieved of.
+That assertion used to be reachable only through an `if constexpr`, because a type
+admitted without a counterpart could not state it. Now every type that gets this
+far has one, so the bound is checked at every width and every signedness, and no
+debug-only diagnostic decides what `div` divides. Spelling it `rT / denom == 0`
+would avoid the counterpart, but it would check the bound with the very operator
+that produced the quotient, and an assertion correlated with what it checks is the
+thing the unsigned branches above were relieved of.
 
 The calls these functions make to each other are qualified. Unqualified, ADL adds
 the argument's own namespace, where a non-template beats a constrained template
@@ -261,13 +270,17 @@ reach into a user-defined namespace, but `<xstd/cstdint.hpp>` exists precisely
 because the standard header lacks the type, so the day it gains one is the day
 the two spellings collide. Boost.Int128 renamed the same way during its review.
 
-Those aliases cannot demonstrate the widening on their own: the library supplies
-their `make_signed` and `make_unsigned` specializations, so they reach
-the arithmetic surface along a path no third party can take. The exact-width test
-lists therefore also carry Boost.Int128 and `absl::int128`, which no header names
-and nothing specializes for — they are admitted on the strength of their own
-operations, and the two trait associations in `test/include/xstd/test/` are the
-whole of what a user has to write. Both dependencies are optional; see
+Their two associations live in `<xstd/cstdint.hpp>`, beside the aliases and not
+inside the traits, which is where `test/include/xstd/test/` puts Abseil's and
+Boost.Int128's: the header that introduces a pair registers it, so whoever can
+name the type has the specializations in scope and cannot reach the type through
+a translation unit that would answer differently. It also leaves `make_signed`
+and `make_unsigned` knowing about no type in particular. What the aliases still
+cannot do is demonstrate the widening on their own, being specialized for by a
+header of this library's; the exact-width test lists therefore also carry
+Boost.Int128 and `absl::int128`, which no shipped header names, and the two
+associations written for each in `test/include/xstd/test/` are the whole of what
+a user has to write. Both dependencies are optional; see
 [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 The two are not interchangeable, which is why both are here. Boost annotates its
@@ -288,8 +301,7 @@ The type utilities intentionally remain narrow:
 
 - `is_specialization_of` and `specialization_of` recognize specializations of
   class templates whose parameters are types.
-- `is_integer_like`, `is_arithmetic_like`, `is_signed` and
-  `is_unsigned` are open counterparts of the standard traits.
+- `is_signed` and `is_unsigned` are open counterparts of the standard traits.
 - `empty_type` and `conditional_data_member_t` support optional
   `[[no_unique_address]]` storage.
 - `to_underlying` forwards a plain enum and preserves one wrapped in
@@ -306,9 +318,10 @@ concept is *is-integer-like* — the only concept in the library or the standard
 whose name starts with `is`, because it is exposition-only and answers to nobody.
 The convention outside it is the opposite and is worth following: `is` marks a
 trait, as in `std::is_integral`, and a concept goes bare, as in `std::integral`.
-So the pair here is `integer_like` and `is_integer_like`, mirroring that pair
-exactly, rather than an `is_integer_like` concept transliterating a hyphenated
-name that was never meant to be public.
+So the concept here is `integer_like`, bare, rather than an `is_integer_like`
+transliterating a hyphenated name that was never meant to be public; where a trait
+does stand beside a concept, as `is_signed` does beside `signed_integer_like`, the
+`is` is what marks which is which.
 
 ### `to_underlying`
 

@@ -6,12 +6,10 @@
 #ifndef XSTD_TYPE_TRAITS_MAKE_UNSIGNED_HPP
 #define XSTD_TYPE_TRAITS_MAKE_UNSIGNED_HPP
 
-#include <xstd/cstdint.hpp>                 // int128, uint128
-#include <xstd/concepts/integer_class.hpp>  // integer_class
-#include <xstd/concepts/integer_like.hpp>   // integer_like
-#include <xstd/type_traits/is_unsigned.hpp> // is_unsigned_v
-#include <concepts>                         // integral
-#include <type_traits>                      // make_unsigned, type_identity
+#include <xstd/concepts/integer_class_operations.hpp> // integer_class_operations
+#include <xstd/type_traits/is_unsigned.hpp>           // is_unsigned_v
+#include <concepts>                                   // integral, same_as
+#include <type_traits>                                // make_unsigned, remove_cv_t, type_identity
 
 namespace xstd {
 
@@ -20,23 +18,16 @@ template<class T>
 struct make_unsigned
 {};
 
-// Ask std for the integral half of integer_like, which is every integral it answers for:
-// bool it excludes, and an enumeration never was one, though std::make_unsigned takes it.
-template<integer_like I>
-        requires std::integral<I>
-struct make_unsigned<I> : std::make_unsigned<I>
+// Ask std where std knows: its own mandated domain, less the cv bool integer_like also excludes.
+template<class T>
+        requires std::integral<T> and (not std::same_as<std::remove_cv_t<T>, bool>)
+struct make_unsigned<T> : std::make_unsigned<T>
 {};
 
-// The other half is where std stops. Such a type is its own counterpart; a signed one
-// needs a user specialization, and the empty primary is what says so.
-template<integer_class I>
+// Where std stops: its own counterpart, the other half of the pair being the user's to say.
+template<integer_class_operations I>
         requires is_unsigned_v<I>
 struct make_unsigned<I> : std::type_identity<I>
-{};
-
-// The public 128-bit aliases provide their cross-direction association.
-template<>
-struct make_unsigned<int128> : std::type_identity<uint128>
 {};
 
 template<class T>

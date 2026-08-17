@@ -6,7 +6,6 @@
 #ifndef XSTD_CSTDLIB_EUCLIDEAN_DIV_HPP
 #define XSTD_CSTDLIB_EUCLIDEAN_DIV_HPP
 
-#include <xstd/concepts/has_unsigned_counterpart.hpp>  // has_unsigned_counterpart
 #include <xstd/concepts/integer_like.hpp>              // integer_like
 #include <xstd/concepts/nothrow_integer_operators.hpp> // nothrow_integer_operators
 #include <xstd/cstdlib/div.hpp>                        // div
@@ -35,10 +34,8 @@ template<integer_like I>
                 auto const adjust = rT < zero;
                 auto const qE = adjust ? (denom > zero ? static_cast<I>(qT - one) : static_cast<I>(qT + one)) : qT;
                 auto const rE = adjust ? (denom > zero ? static_cast<I>(rT + denom) : static_cast<I>(rT - denom)) : rT;
-                // Asked only where a counterpart exists to say it in, |MIN| fitting in no other type.
-                if constexpr (has_unsigned_counterpart<I>) {
-                        assert(xstd::unsigned_abs(rE) < xstd::unsigned_abs(denom));
-                }
+                // Said on the counterpart every integer_like type has, |MIN| fitting in no other.
+                assert(xstd::unsigned_abs(rE) < xstd::unsigned_abs(denom));
                 assert(xstd::sign(rE) >= 0);
                 return {.quot = qE, .rem = rE};
         }

@@ -6,7 +6,8 @@
 #ifndef XSTD_TEST_BIT_PRECISE_HPP
 #define XSTD_TEST_BIT_PRECISE_HPP
 
-#include <xstd/test/integer_class.hpp>        // integer_class, storage_limits
+#include <xstd/test/integer_class.hpp>        // integer_class, storage_limits, variant
+#include <xstd/type_traits/make_signed.hpp>   // make_signed
 #include <xstd/type_traits/make_unsigned.hpp> // make_unsigned
 #include <cstddef>                            // size_t
 #include <type_traits>                        // type_identity
@@ -87,17 +88,23 @@ struct storage_limits<signed _BitInt(N)>
 
 // Wrapped rather than used raw: is_integral is false for these, so integer_like refuses them.
 template<std::size_t N>
-using bit_uint = integer_class<unsigned _BitInt(N), false>;
+using bit_uint = integer_class<unsigned _BitInt(N), variant::conforming>;
 
 // C23 sets the signed minimum at two bits, so only the unsigned list starts at one.
 template<std::size_t N>
-using bit_int = integer_class<signed _BitInt(N), false>;
+using bit_int = integer_class<signed _BitInt(N), variant::conforming>;
 
 } // namespace xstd::test
 
-// The unsigned one is its own, by make_unsigned's partial specialization for such a type.
+// The pair, one specialization per direction; each type is its own the other way round.
 template<std::size_t N>
 struct xstd::make_unsigned<xstd::test::bit_int<N>> : std::type_identity<xstd::test::bit_uint<N>>
+{};
+
+// Constrained where C23's two-bit signed minimum leaves a one-bit unsigned with no counterpart.
+template<std::size_t N>
+        requires (N >= 2)
+struct xstd::make_signed<xstd::test::bit_uint<N>> : std::type_identity<xstd::test::bit_int<N>>
 {};
 
 #endif // __BITINT_MAXWIDTH__

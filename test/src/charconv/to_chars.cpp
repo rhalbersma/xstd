@@ -7,7 +7,7 @@
 #include <xstd/cstdint.hpp>                // int128, uint128
 #include <xstd/concepts/integer_like.hpp>  // integer_like
 #include <xstd/test/exact_width_types.hpp> // std_signed_types, exact_width_signed_types, exact_width_unsigned_types
-#include <xstd/test/integer_class.hpp>     // conforming_int_class, unregistered_int_class
+#include <xstd/test/integer_class.hpp>     // conforming_int_class, unpaired_int_class
 #include <boost/test/unit_test.hpp>        // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_CHECK, BOOST_CHECK_EQUAL
 #include <array>                           // array
 #include <charconv>                        // to_chars, to_chars_result
@@ -68,10 +68,11 @@ BOOST_AUTO_TEST_CASE(DelegatesWhereTheStandardLibraryCovers)
         {};
         static_assert(not has_std_to_chars<not_an_integer>);
 
-        // The digits come off the counterpart, so a type without one is unsatisfied, not broken.
-        static_assert(xstd::integer_like<xstd::test::unregistered_int_class>);
-        static_assert(not has_xstd_to_chars<xstd::test::unregistered_int_class>);
+        // The digits come off the counterpart, which an integer-like type now always has.
+        static_assert(not xstd::integer_like<xstd::test::unpaired_int_class>);
+        static_assert(not has_xstd_to_chars<xstd::test::unpaired_int_class>);
         static_assert(has_xstd_to_chars<xstd::test::conforming_int_class>);
+        static_assert(has_xstd_to_chars<xstd::test::conforming_signed_int_class>);
 }
 
 // The load-bearing property: the two paths render byte-identically, at every base.
