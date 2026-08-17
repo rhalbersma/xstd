@@ -11,10 +11,10 @@
 
 #define XSTD_TEST_HAS_BOOST_INT128
 
-#include <boost/int128.hpp>                        // int128, uint128
-#include <xstd/type_traits/make_signed_like.hpp>   // make_signed_like
-#include <xstd/type_traits/make_unsigned_like.hpp> // make_unsigned_like
-#include <type_traits>                             // type_identity
+#include <boost/int128.hpp>                   // int128, uint128
+#include <xstd/type_traits/make_signed.hpp>   // make_signed
+#include <xstd/type_traits/make_unsigned.hpp> // make_unsigned
+#include <type_traits>                        // type_identity
 
 namespace xstd::test {
 
@@ -28,11 +28,11 @@ namespace xstd {
 
 // The one thing a library cannot work out for a type it does not know.
 template<>
-struct make_unsigned_like<test::boost_int128> : std::type_identity<test::boost_uint128>
+struct make_unsigned<test::boost_int128> : std::type_identity<test::boost_uint128>
 {};
 
 template<>
-struct make_signed_like<test::boost_uint128> : std::type_identity<test::boost_int128>
+struct make_signed<test::boost_uint128> : std::type_identity<test::boost_int128>
 {};
 
 } // namespace xstd

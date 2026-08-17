@@ -248,7 +248,7 @@ class integer_class
         }
 };
 
-// Conforming, and its own unsigned counterpart by make_unsigned_like's partial specialization.
+// Conforming, and its own unsigned counterpart by make_unsigned's partial specialization.
 using conforming_int_class = integer_class<uint128, false>;
 
 // The same type with /7.6 broken, and nothing else changed.

@@ -6,7 +6,7 @@
 #include <xstd/cstdlib.hpp>                // complete arithmetic surface
 #include <xstd/cstdint.hpp>                // int128, uint128
 #include <xstd/concepts.hpp>               // integer_like, signed_integer_like
-#include <xstd/type_traits.hpp>            // make_unsigned_like_t
+#include <xstd/type_traits.hpp>            // make_unsigned_t
 #include <xstd/test/absl_int128.hpp>       // XSTD_TEST_HAS_ABSL_INT128
 #include <xstd/test/boost_int128.hpp>      // XSTD_TEST_HAS_BOOST_INT128
 #include <xstd/test/integer_class.hpp>     // conforming_int_class, unregistered_int_class
@@ -205,7 +205,7 @@ template<xstd::signed_integer_like S>
 auto check_signed_integer_like()
         -> void
 {
-        using U = xstd::make_unsigned_like_t<S>;
+        using U = xstd::make_unsigned_t<S>;
         using limits = std::numeric_limits<S>;
 
         XSTD_CONSTEXPR_CHECK_EQUAL((xstd::abs(S{-2})), (S{2}));

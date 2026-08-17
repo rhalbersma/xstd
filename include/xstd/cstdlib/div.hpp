@@ -12,7 +12,7 @@
 #include <xstd/cstdlib/div_t.hpp>                      // IWYU pragma: export; div_t
 #include <xstd/cstdlib/sign.hpp>                       // sign
 #include <xstd/cstdlib/unsigned_abs.hpp>               // unsigned_abs
-#include <xstd/type_traits/is_signed_like.hpp>         // is_signed_like_v
+#include <xstd/type_traits/is_signed.hpp>              // is_signed_v
 #include <cassert>                                     // assert
 #include <limits>                                      // numeric_limits
 
@@ -25,7 +25,7 @@ template<integer_like I>
 {
         assert(denom != static_cast<I>(0));
         // Only a signed type has a MIN to reach it with; unsigned, this refuses div(0, max).
-        if constexpr (is_signed_like_v<I>) {
+        if constexpr (is_signed_v<I>) {
                 assert(numer != std::numeric_limits<I>::min() or denom != static_cast<I>(-1));
         }
         auto const qT = static_cast<I>(numer / denom);

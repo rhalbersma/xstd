@@ -10,8 +10,8 @@
 #include <xstd/concepts/integer_like.hpp>             // integer_like
 #include <xstd/cstdlib/div.hpp>                       // div
 #include <xstd/cstdlib/unsigned_abs.hpp>              // unsigned_abs
-#include <xstd/type_traits/is_signed_like.hpp>        // is_signed_like_v
-#include <xstd/type_traits/make_unsigned_like.hpp>    // make_unsigned_like_t
+#include <xstd/type_traits/is_signed.hpp>             // is_signed_v
+#include <xstd/type_traits/make_unsigned.hpp>         // make_unsigned_t
 #include <cassert>                                    // assert
 #include <charconv>                                   // to_chars, to_chars_result
 #include <concepts>                                   // same_as
@@ -31,7 +31,7 @@ concept std_to_chars_covers = requires (char* p, I value, int base) {
 // Worst case is base 2: one character per value bit, and two more when signed.
 template<integer_like I>
 inline constexpr auto to_chars_max_size =
-        static_cast<std::size_t>(std::numeric_limits<I>::digits) + (is_signed_like_v<I> ? 2 : 0);
+        static_cast<std::size_t>(std::numeric_limits<I>::digits) + (is_signed_v<I> ? 2 : 0);
 
 // The standard's own call where it covers I; an ambiguous overload leaves this unsatisfied.
 template<integer_like I>
@@ -63,7 +63,7 @@ template<integer_like I>
         static constexpr auto* digits = "0123456789abcdefghijklmnopqrstuvwxyz";
 
         // The unsigned counterpart holds |min()| and lets both loops stop at the radix.
-        using U = make_unsigned_like_t<I>;
+        using U = make_unsigned_t<I>;
         auto const radix = static_cast<U>(base);
 
         // Reduced once here, not per digit; both are well-formed and branchless when unsigned.
@@ -102,7 +102,7 @@ template<integer_like I>
         *out = digits[static_cast<std::size_t>(rest)];
 
         // Back into the position the walk reserved; here the sign is a test, not an offset.
-        if constexpr (is_signed_like_v<I>) {
+        if constexpr (is_signed_v<I>) {
                 if (negative) {
                         *--out = '-';
                 }

@@ -8,7 +8,7 @@
 
 #include <xstd/concepts/integer_like.hpp>              // integer_like
 #include <xstd/concepts/nothrow_integer_operators.hpp> // nothrow_integer_operators
-#include <xstd/type_traits/is_unsigned_like.hpp>       // is_unsigned_like_v
+#include <xstd/type_traits/is_unsigned.hpp>            // is_unsigned_v
 
 namespace xstd {
 
@@ -19,7 +19,7 @@ template<integer_like I>
 {
         auto const zero = static_cast<I>(0);
         // One comparison, not two: for an integer-class type the dead one is a call.
-        if constexpr (is_unsigned_like_v<I>) {
+        if constexpr (is_unsigned_v<I>) {
                 return static_cast<int>(zero < x);
         } else {
                 return static_cast<int>(zero < x) - static_cast<int>(x < zero);

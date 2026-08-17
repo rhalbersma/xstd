@@ -16,10 +16,8 @@ enum class color : unsigned { red = 1 };
 // An incomplete type is answered, not hard-errored: what the sizeof term buys.
 BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAnswerForIncompleteTypes)
 {
-        XSTD_CONSTEXPR_CHECK(not xstd::is_integer_like_v<struct never_defined>);
-        XSTD_CONSTEXPR_CHECK(not xstd::is_arithmetic_like_v<struct never_defined>);
-        XSTD_CONSTEXPR_CHECK(not xstd::is_signed_like_v<struct never_defined>);
-        XSTD_CONSTEXPR_CHECK(not xstd::is_unsigned_like_v<struct never_defined>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_signed_v<struct never_defined>);
+        XSTD_CONSTEXPR_CHECK(not xstd::is_unsigned_v<struct never_defined>);
 }
 
 // Checked against the standard's directly: a table can drift, an equality cannot.
@@ -27,10 +25,8 @@ template<class T>
 auto check_agrees_with_std()
         -> void
 {
-        XSTD_CONSTEXPR_CHECK(xstd::is_arithmetic_like_v<T> == std::is_arithmetic_v<T>);
-        XSTD_CONSTEXPR_CHECK(xstd::is_signed_like_v<T> == std::is_signed_v<T>);
-        XSTD_CONSTEXPR_CHECK(xstd::is_unsigned_like_v<T> == std::is_unsigned_v<T>);
-        XSTD_CONSTEXPR_CHECK(xstd::is_integer_like_v<T> == std::is_integral_v<T>);
+        XSTD_CONSTEXPR_CHECK(xstd::is_signed_v<T> == std::is_signed_v<T>);
+        XSTD_CONSTEXPR_CHECK(xstd::is_unsigned_v<T> == std::is_unsigned_v<T>);
 }
 
 BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAgreeWithStd)
@@ -58,9 +54,9 @@ BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAgreeWithStd)
 // Sign modifiers are inverse transformations for supported integer-like types.
 BOOST_AUTO_TEST_CASE(MakeSignedAndUnsignedLikeAreInverses)
 {
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_signed_like_t<xstd::make_unsigned_like_t<int>>, int>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_like_t<xstd::make_signed_like_t<unsigned>>, unsigned>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_signed_like_t<xstd::make_unsigned_like_t<int const>>, int const>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_signed_t<xstd::make_unsigned_t<int>>, int>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_t<xstd::make_signed_t<unsigned>>, unsigned>));
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_signed_t<xstd::make_unsigned_t<int const>>, int const>));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

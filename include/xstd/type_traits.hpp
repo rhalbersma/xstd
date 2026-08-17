@@ -10,21 +10,19 @@
 #include <xstd/type_traits/empty_type.hpp> // IWYU pragma: export; empty_type
 
 // Primary type categories
-#include <xstd/type_traits/is_integer_like.hpp> // IWYU pragma: export; is_integer_like
 
 // Composite type categories
-#include <xstd/type_traits/is_arithmetic_like.hpp> // IWYU pragma: export; is_arithmetic_like
 
 // Type properties
-#include <xstd/type_traits/is_signed_like.hpp>   // IWYU pragma: export; is_signed_like
-#include <xstd/type_traits/is_unsigned_like.hpp> // IWYU pragma: export; is_unsigned_like
+#include <xstd/type_traits/is_signed.hpp>   // IWYU pragma: export; is_signed
+#include <xstd/type_traits/is_unsigned.hpp> // IWYU pragma: export; is_unsigned
 
 // Type relationships
 #include <xstd/type_traits/is_specialization_of.hpp> // IWYU pragma: export; is_specialization_of
 
 // Sign modifiers
-#include <xstd/type_traits/make_signed_like.hpp>   // IWYU pragma: export; make_signed_like
-#include <xstd/type_traits/make_unsigned_like.hpp> // IWYU pragma: export; make_unsigned_like
+#include <xstd/type_traits/make_signed.hpp>   // IWYU pragma: export; make_signed
+#include <xstd/type_traits/make_unsigned.hpp> // IWYU pragma: export; make_unsigned
 
 // Miscellaneous transformations
 #include <xstd/type_traits/conditional_data_member.hpp> // IWYU pragma: export; XSTD_NO_UNIQUE_ADDRESS, conditional_data_member_t

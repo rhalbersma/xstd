@@ -9,14 +9,14 @@
 #include <boost/test/unit_test.hpp>        // Boost.Test
 #include <concepts>                        // same_as
 #include <limits>                          // numeric_limits
-#include <xstd/type_traits.hpp>            // make_unsigned_like_t
+#include <xstd/type_traits.hpp>            // make_unsigned_t
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
 // The MIN-boundary wraparound, at compile time: what distinguishes unsigned_abs from abs.
 BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedAbs, T, xstd::test::exact_width_signed_types)
 {
-        using U = xstd::make_unsigned_like_t<T>;
+        using U = xstd::make_unsigned_t<T>;
 
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::unsigned_abs(T{-2}), U{2});
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::unsigned_abs(T{0}), U{0});
@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedAbs, T, xstd::test::exact_width_signed_typ
 // The identity, and its own counterpart, so that boundary is not a boundary here.
 BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedAbsUnsigned, T, xstd::test::exact_width_unsigned_types)
 {
-        static_assert(std::same_as<xstd::make_unsigned_like_t<T>, T>);
+        static_assert(std::same_as<xstd::make_unsigned_t<T>, T>);
         static_assert(std::same_as<decltype(xstd::unsigned_abs(T{})), T>);
 
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::unsigned_abs(T{0}), T{0});
