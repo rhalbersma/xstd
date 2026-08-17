@@ -9,7 +9,7 @@
 #include <xstd/concepts/integer_class.hpp> // integer_class
 #include <xstd/type_traits/is_signed.hpp>  // is_signed_v
 #include <concepts>                        // integral, same_as
-#include <type_traits>                     // is_enum_v, make_signed, remove_cv_t, type_identity
+#include <type_traits>                     // add_const_t, add_cv_t, add_volatile_t, is_enum_v, make_signed, remove_cv_t, type_identity
 
 namespace xstd {
 
@@ -17,6 +17,9 @@ namespace xstd {
 template<class T>
 struct make_signed
 {};
+
+template<class T>
+using make_signed_t = make_signed<T>::type;
 
 // [meta.trans.sign]/2's whole mandated domain, less the cv bool std declines to pair there.
 template<class T>
@@ -31,7 +34,16 @@ struct make_signed<I> : std::type_identity<I>
 {};
 
 template<class T>
-using make_signed_t = make_signed<T>::type;
+struct make_signed<T const> : std::type_identity<std::add_const_t<make_signed_t<T>>>
+{};
+
+template<class T>
+struct make_signed<T volatile> : std::type_identity<std::add_volatile_t<make_signed_t<T>>>
+{};
+
+template<class T>
+struct make_signed<T const volatile> : std::type_identity<std::add_cv_t<make_signed_t<T>>>
+{};
 
 } // namespace xstd
 
