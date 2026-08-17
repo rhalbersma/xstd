@@ -15,7 +15,7 @@ BOOST_AUTO_TEST_SUITE(TypeTraits)
 enum class color : unsigned { red = 1 };
 
 // An enumeration whose underlying type is the one type the domain excludes.
-enum class flag : bool { off, on };
+enum class flag : bool { on = true };
 
 // A named concept: a non-dependent invalid operand is a hard error on GCC.
 template<class T>
