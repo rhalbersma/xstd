@@ -7,6 +7,7 @@
 #include <xstd/test/constexpr.hpp>  // XSTD_CONSTEXPR_CHECK
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <complex>                  // complex
+#include <concepts>                 // same_as
 #include <type_traits>              // standard traits
 
 BOOST_AUTO_TEST_SUITE(TypeTraits)
@@ -54,9 +55,9 @@ BOOST_AUTO_TEST_CASE(OpenedNumericTraitsAgreeWithStd)
 // Sign modifiers are inverse transformations for supported integer-like types.
 BOOST_AUTO_TEST_CASE(MakeSignedAndUnsignedLikeAreInverses)
 {
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_signed_t<xstd::make_unsigned_t<int>>, int>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_t<xstd::make_signed_t<unsigned>>, unsigned>));
-        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_signed_t<xstd::make_unsigned_t<int const>>, int const>));
+        XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_signed_t<xstd::make_unsigned_t<int>>, int>));
+        XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_unsigned_t<xstd::make_signed_t<unsigned>>, unsigned>));
+        XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_signed_t<xstd::make_unsigned_t<int const>>, int const>));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -10,7 +10,7 @@
 #include <concepts>    // constructible_from, integral, regular, same_as, three_way_comparable
 #include <cstddef>     // size_t
 #include <limits>      // numeric_limits
-#include <type_traits> // is_same_v, remove_cv_t
+#include <type_traits> // remove_cv_t
 
 // [iterator.concept.winc]'s integer-class type, which integer_like admits alongside integral.
 namespace xstd {
@@ -19,7 +19,7 @@ namespace xstd {
 template<class T, class I = std::remove_cv_t<T>>
 concept integer_class =
         // I is the parameter's own default; naming it explicitly cannot redirect the question.
-        std::is_same_v<I, std::remove_cv_t<T>> and
+        std::same_as<I, std::remove_cv_t<T>> and
         // Entailed by /3's width clause; without it int and short get in.
         (not std::integral<I>) and
         requires { sizeof(I); } and

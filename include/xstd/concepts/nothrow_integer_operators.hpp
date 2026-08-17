@@ -7,8 +7,9 @@
 #define XSTD_CONCEPTS_NOTHROW_INTEGER_OPERATORS_HPP
 
 #include <xstd/concepts/integer_like.hpp> // integer_like
+#include <concepts>                       // same_as
 #include <cstddef>                        // size_t
-#include <type_traits>                    // is_same_v, remove_cv_t
+#include <type_traits>                    // remove_cv_t
 
 namespace xstd {
 
@@ -16,7 +17,7 @@ namespace xstd {
 template<class T, class I = std::remove_cv_t<T>>
 concept nothrow_integer_operators =
         // I is the parameter's own default; naming it explicitly cannot redirect the question.
-        std::is_same_v<I, std::remove_cv_t<T>> and
+        std::same_as<I, std::remove_cv_t<T>> and
         integer_like<I> and
         // The conversions themselves: /6 and /8 make both explicit, so the cast is the expression.
         requires {

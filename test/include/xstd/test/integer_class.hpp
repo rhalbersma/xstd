@@ -10,9 +10,10 @@
 #include <xstd/type_traits/make_signed.hpp>   // make_signed
 #include <xstd/type_traits/make_unsigned.hpp> // make_unsigned
 #include <compare>                            // strong_ordering
+#include <concepts>                           // same_as
 #include <cstddef>                            // size_t
 #include <limits>                             // numeric_limits
-#include <type_traits>                        // conditional_t, is_same_v, type_identity
+#include <type_traits>                        // conditional_t, type_identity
 
 // One integer-class type in three variants, so that a case can assert what each one costs.
 namespace xstd::test {
@@ -94,7 +95,7 @@ class integer_class
 
         // The conversion unsigned_abs and to_chars perform on the counterpart they return.
         template<class OtherStorage>
-                requires (not std::is_same_v<OtherStorage, Storage>) and
+                requires (not std::same_as<OtherStorage, Storage>) and
                          (storage_width<OtherStorage> == storage_width<Storage>)
         explicit constexpr integer_class(integer_class<OtherStorage, V> other)
             : m_value(static_cast<Storage>(other.m_value))

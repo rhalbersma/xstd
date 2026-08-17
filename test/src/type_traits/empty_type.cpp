@@ -7,8 +7,8 @@
 #include <xstd/test/constexpr.hpp>         // XSTD_CONSTEXPR_CHECK
 #include <boost/test/unit_test.hpp>        // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <compare>                         // strong_ordering
-#include <concepts>                        // regular, totally_ordered
-#include <type_traits>                     // is_constructible_v, is_convertible_v, is_empty_v, is_nothrow_constructible_v, is_nothrow_default_constructible_v, is_same_v, is_trivially_constructible_v, is_trivially_copyable_v
+#include <concepts>                        // regular, same_as, totally_ordered
+#include <type_traits>                     // is_constructible_v, is_convertible_v, is_empty_v, is_nothrow_constructible_v, is_nothrow_default_constructible_v, is_trivially_constructible_v, is_trivially_copyable_v
 
 BOOST_AUTO_TEST_SUITE(TypeTraits)
 
@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_CASE(EmptyTypesAreNotEqual)
         using empty1 = xstd::empty_type<struct tag1>;
         using empty2 = xstd::empty_type<struct tag2>;
 
-        XSTD_CONSTEXPR_CHECK((not std::is_same_v<empty1, empty2>));
+        XSTD_CONSTEXPR_CHECK((not std::same_as<empty1, empty2>));
 }
 
 BOOST_AUTO_TEST_SUITE_END()
