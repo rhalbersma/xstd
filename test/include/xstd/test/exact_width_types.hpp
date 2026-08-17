@@ -43,15 +43,13 @@ using absl_signed_types = std::tuple<>;
 using absl_unsigned_types = std::tuple<>;
 #endif
 
-// The widths no fundamental type names, one bit and up, kept apart from the lists below:
-// a case naming 2 as a literal cannot run at a width that cannot hold it.
+// The widths no fundamental type names, from the two bits a signed counterpart needs up.
 #ifdef XSTD_TEST_HAS_BIT_PRECISE
 // The widths every implementation of the extension divides without help from a runtime.
 using narrow_bit_precise_signed_types =
         std::tuple<bit_int<2>, bit_int<3>, bit_int<4>, bit_int<8>, bit_int<16>, bit_int<32>, bit_int<64>>;
 using narrow_bit_precise_unsigned_types =
-        std::tuple<bit_uint<1>, bit_uint<2>, bit_uint<3>, bit_uint<4>, bit_uint<8>, bit_uint<16>, bit_uint<32>,
-                   bit_uint<64>>;
+        std::tuple<bit_uint<2>, bit_uint<3>, bit_uint<4>, bit_uint<8>, bit_uint<16>, bit_uint<32>, bit_uint<64>>;
 
 // And the two above them, each asking the ceiling rather than assuming one.
 #if XSTD_TEST_BIT_PRECISE_MAX >= 128

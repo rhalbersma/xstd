@@ -47,7 +47,7 @@ the same `xstd::xstd` target.
 
 | Header | Additions | Description | Reference |
 | :----- | :-------- | :---------- | :-------- |
-| `<xstd/concepts.hpp>` | `integer_class` <br> `integer_like` <br> `signed_integer_like` <br> `unsigned_integer_like` <br> `has_unsigned_counterpart` <br> `nothrow_integer_operators` <br> `specialization_of` | [iterator.concept.winc]'s integer-class type <br> Constraint form of [iterator.concept.winc]'s *is-integer-like* <br> Open form of `std::signed_integral` <br> Open form of `std::unsigned_integral` <br> Domain of the integer functions <br> Exception specification of the integer functions <br> Constraint form of `is_specialization_of` | [iterator.concept.winc] (integer-class type) <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> none <br> none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) |
+| `<xstd/concepts.hpp>` | `integer_class_operations` <br> `integer_class` <br> `integer_like` <br> `signed_integer_like` <br> `unsigned_integer_like` <br> `nothrow_integer_operators` <br> `specialization_of` | The operations [iterator.concept.winc] states of an integer-class type <br> Those operations, and the signed/unsigned pair this library asks for <br> Constraint form of [iterator.concept.winc]'s *is-integer-like* <br> Open form of `std::signed_integral` <br> Open form of `std::unsigned_integral` <br> Exception specification of the integer functions <br> Constraint form of `is_specialization_of` | [iterator.concept.winc] (integer-class type) <br> [iterator.concept.winc] (integer-class type), [basic.fundamental]/2 <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) |
 | `<xstd/charconv.hpp>` | `to_chars` <br> `to_chars_max_size` | `std::to_chars`, widened to any integer-like type <br> Buffer size that holds any value of `T` at any base | [charconv.to.chars] <br> none |
 | `<xstd/cstdint.hpp>` | `int128` <br> `uint128` | Platform 128-bit signed integer <br> Platform 128-bit unsigned integer | none <br> none |
 | `<xstd/cstdlib.hpp>` | `div_t` <br> `sign` <br> `abs` <br> `unsigned_abs` <br> `div` <br> `euclidean_div` <br> `floored_div` | Defaulted equality comparison <br> `-1`, `0`, or `1`; `0` or `1` when unsigned <br> `constexpr`, any integer-like type <br> Total `\|x\|`, returning the unsigned counterpart <br> Truncated division, any integer-like type <br> Euclidean division <br> Floored division | none <br> [Boost.Math](https://www.boost.org/doc/libs/1_80_0/libs/math/doc/html/math_toolkit/sign_functions.html) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Rust `unsigned_abs`](https://doc.rust-lang.org/std/primitive.i32.html#method.unsigned_abs) (no C++ equivalent) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (C++23, not yet implemented) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) |
@@ -97,12 +97,12 @@ struct storage {
 
 The integer functions take any integer-like type of either signedness and
 return the argument type rather than a promoted one; a two-argument call
-requires both arguments to have the same type. `unsigned_abs` and `to_chars`
-additionally require an unsigned counterpart, which they produce a value of;
-it is automatic for every integer-like built-in type and for an unsigned
-integer-class type, and a signed integer-class type supplies it by specializing
-`make_unsigned`. Without one the call is unsatisfied rather than ill-formed.
-The three divisions ask for no such thing. `abs` keeps the signed
+requires both arguments to have the same type. Every one of them has the
+counterpart it needs, because an integer-class type is one of a signed/unsigned
+pair here: `make_signed` and `make_unsigned` must both name a type for it, which
+is automatic in the direction its own signedness answers and a specialization the
+type's author writes in the other. A type without that pair is not integer-like,
+so a call is unsatisfied rather than ill-formed. `abs` keeps the signed
 minimum-value precondition and is total over an unsigned type, whose `min()`
 is `0`; `unsigned_abs` is total over both, returning the unsigned counterpart.
 The division functions require a nonzero divisor, and `MIN / -1` is outside

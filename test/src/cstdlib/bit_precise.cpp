@@ -6,8 +6,11 @@
 #include <xstd/test/bit_precise.hpp>          // XSTD_TEST_HAS_BIT_PRECISE, bit_int, bit_uint
 #include <xstd/test/exact_width_types.hpp>    // bit_precise_signed_types, bit_precise_unsigned_types
 #include <xstd/cstdlib.hpp>                   // abs, div, euclidean_div, floored_div, sign, unsigned_abs
+#include <xstd/concepts.hpp>                  // integer_class, integer_class_operations, integer_like
+#include <xstd/type_traits/make_signed.hpp>   // make_signed_t
 #include <xstd/type_traits/make_unsigned.hpp> // make_unsigned_t
 #include <boost/test/unit_test.hpp>           // Boost.Test
+#include <concepts>                           // same_as
 #include <limits>                             // numeric_limits
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
@@ -66,10 +69,31 @@ auto sweep() -> void
 
 } // namespace
 
+// Named concepts, not bare requires-expressions: a non-dependent invalid operand hard-errors.
+template<class T>
+concept has_make_signed = requires { typename xstd::make_signed_t<T>; };
+
+template<class T>
+concept has_div = requires (T x) { xstd::div(x, x); };
+
+// The width whose signed counterpart C23 does not allow, and which is turned away for it.
+BOOST_AUTO_TEST_CASE(OneBitUnsignedHasNoPairAndSoNoSurface)
+{
+        using T = xstd::test::bit_uint<1>;
+
+        static_assert(xstd::integer_class_operations<T>);
+        static_assert(std::same_as<xstd::make_unsigned_t<T>, T>);
+        static_assert(not has_make_signed<T>);
+        static_assert(not xstd::integer_class<T>);
+        static_assert(not xstd::integer_like<T>);
+        static_assert(not has_div<T>);
+
+        BOOST_CHECK(true);
+}
+
 // What no other width affords: the postconditions over the complete value space, not a sample.
 BOOST_AUTO_TEST_CASE(DivisionOverEveryPair)
 {
-        sweep<xstd::test::bit_uint<1>>();
         sweep<xstd::test::bit_uint<2>>();
         sweep<xstd::test::bit_uint<3>>();
         sweep<xstd::test::bit_uint<4>>();
@@ -92,7 +116,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(SignedExtremes, T, xstd::test::bit_precise_signed_
         BOOST_CHECK(xstd::unsigned_abs(limits::min()) == static_cast<U>(limits::max()) + U(1));
 }
 
-// One bit is a width here, and the list starts there: it is the unsigned list that can.
+// Two bits up on both lists now, one bit being a width with no counterpart to pair it.
 BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedExtremes, T, xstd::test::bit_precise_unsigned_types)
 {
         using limits = std::numeric_limits<T>;

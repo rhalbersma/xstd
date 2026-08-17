@@ -3,15 +3,16 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/concepts/integer_class.hpp>         // integer_class
-#include <xstd/concepts/integer_like.hpp>          // integer_like
-#include <xstd/concepts/signed_integer_like.hpp>   // signed_integer_like
-#include <xstd/concepts/unsigned_integer_like.hpp> // unsigned_integer_like
-#include <xstd/test/absl_int128.hpp>               // XSTD_TEST_HAS_ABSL_INT128, absl_int128, absl_uint128
-#include <xstd/test/constexpr.hpp>                 // XSTD_CONSTEXPR_CHECK
-#include <xstd/test/integer_class.hpp>             // conforming_int_class, proxy_result
-#include <boost/test/unit_test.hpp>                // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
-#include <concepts>                                // convertible_to, same_as
+#include <xstd/concepts/integer_class.hpp>            // integer_class
+#include <xstd/concepts/integer_class_operations.hpp> // integer_class_operations
+#include <xstd/concepts/integer_like.hpp>             // integer_like
+#include <xstd/concepts/signed_integer_like.hpp>      // signed_integer_like
+#include <xstd/concepts/unsigned_integer_like.hpp>    // unsigned_integer_like
+#include <xstd/test/absl_int128.hpp>                  // XSTD_TEST_HAS_ABSL_INT128, absl_int128, absl_uint128
+#include <xstd/test/constexpr.hpp>                    // XSTD_CONSTEXPR_CHECK
+#include <xstd/test/integer_class.hpp>                // conforming_int_class, conforming_signed_int_class, proxy_result, unpaired_int_class
+#include <boost/test/unit_test.hpp>                   // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
+#include <concepts>                                   // convertible_to, same_as
 
 BOOST_AUTO_TEST_SUITE(Concepts)
 
@@ -75,6 +76,31 @@ BOOST_AUTO_TEST_CASE(OperatorResultsAreTheTypeItself)
 #endif
 }
 
+// The subclause states the operations; that a type come in a pair is this library's own half.
+BOOST_AUTO_TEST_CASE(AnIntegerClassTypeIsOneHalfOfAPair)
+{
+        using unpaired = xstd::test::unpaired_int_class;
+        using owned = xstd::test::conforming_int_class;
+        using owned_signed = xstd::test::conforming_signed_int_class;
+
+        // Every operation the subclause states, and no counterpart to go with them.
+        XSTD_CONSTEXPR_CHECK(xstd::integer_class_operations<unpaired>);
+        XSTD_CONSTEXPR_CHECK(not xstd::integer_class<unpaired>);
+        XSTD_CONSTEXPR_CHECK(not xstd::integer_like<unpaired>);
+
+        // Its pair is registered both ways, so each half is admitted and names the other.
+        XSTD_CONSTEXPR_CHECK(xstd::integer_class<owned> and xstd::integer_class<owned_signed>);
+        XSTD_CONSTEXPR_CHECK(xstd::unsigned_integer_like<owned>);
+        XSTD_CONSTEXPR_CHECK(xstd::signed_integer_like<owned_signed>);
+
+        // The proxy variant fails at /7.6, so the pairing clause is never the reason.
+        XSTD_CONSTEXPR_CHECK(not xstd::integer_class_operations<xstd::test::proxy_result>);
+
+        // The integral branch is untouched by it: std pairs those types itself.
+        XSTD_CONSTEXPR_CHECK(not xstd::integer_class_operations<int>);
+        XSTD_CONSTEXPR_CHECK(xstd::integer_like<int>);
+}
+
 // On both branches; the integer-class one takes doing, a const type failing ++a.
 BOOST_AUTO_TEST_CASE(IntegralLikeIsCvTransparentOnBothBranches)
 {
@@ -89,6 +115,10 @@ BOOST_AUTO_TEST_CASE(IntegralLikeIsCvTransparentOnBothBranches)
         XSTD_CONSTEXPR_CHECK(xstd::integer_like<owned volatile>);
         XSTD_CONSTEXPR_CHECK(xstd::integer_like<owned const volatile>);
         XSTD_CONSTEXPR_CHECK(xstd::unsigned_integer_like<owned const>);
+
+        // The pairing clause asks about the type, not the qualifier: a user specializes once.
+        XSTD_CONSTEXPR_CHECK(xstd::integer_like<xstd::test::conforming_signed_int_class const>);
+        XSTD_CONSTEXPR_CHECK(not xstd::integer_like<xstd::test::unpaired_int_class const>);
 
 #ifdef XSTD_TEST_HAS_ABSL_INT128
         using T = xstd::test::absl_int128;

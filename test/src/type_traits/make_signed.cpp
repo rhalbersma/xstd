@@ -11,6 +11,8 @@
 
 BOOST_AUTO_TEST_SUITE(TypeTraits)
 
+enum class color : unsigned { red = 1 };
+
 // A named concept: a non-dependent invalid operand is a hard error on GCC.
 template<class T>
 concept has_make_signed = requires { typename xstd::make_signed_t<T>; };
@@ -23,6 +25,8 @@ BOOST_AUTO_TEST_CASE(MakeSignedLike)
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_signed_t<unsigned const>, int const>));
         XSTD_CONSTEXPR_CHECK(not has_make_signed<bool>);
         XSTD_CONSTEXPR_CHECK(not has_make_signed<double>);
+        // An enumeration included, the mandated domain being std's to describe and not ours.
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_signed_t<color>, std::make_signed_t<color>>));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

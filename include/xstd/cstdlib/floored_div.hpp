@@ -6,7 +6,6 @@
 #ifndef XSTD_CSTDLIB_FLOORED_DIV_HPP
 #define XSTD_CSTDLIB_FLOORED_DIV_HPP
 
-#include <xstd/concepts/has_unsigned_counterpart.hpp>  // has_unsigned_counterpart
 #include <xstd/concepts/integer_like.hpp>              // integer_like
 #include <xstd/concepts/nothrow_integer_operators.hpp> // nothrow_integer_operators
 #include <xstd/cstdlib/div.hpp>                        // div
@@ -35,10 +34,8 @@ template<integer_like I>
                 auto const adjust = xstd::sign(rT) == -xstd::sign(denom);
                 auto const qF = static_cast<I>(qT - (adjust ? one : zero));
                 auto const rF = static_cast<I>(rT + (adjust ? denom : zero));
-                // Asked only where a counterpart exists to say it in, |MIN| fitting in no other type.
-                if constexpr (has_unsigned_counterpart<I>) {
-                        assert(xstd::unsigned_abs(rF) < xstd::unsigned_abs(denom));
-                }
+                // Said on the counterpart every integer_like type has, |MIN| fitting in no other.
+                assert(xstd::unsigned_abs(rF) < xstd::unsigned_abs(denom));
                 assert(xstd::sign(rF) == xstd::sign(denom) or rF == static_cast<I>(0));
                 return {.quot = qF, .rem = rF};
         }

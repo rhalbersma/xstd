@@ -28,16 +28,20 @@ BOOST_AUTO_TEST_CASE(MakeUnsignedLike)
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_t<int>, std::make_unsigned_t<int>>));
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_t<unsigned>, unsigned>));
 
+        // including the enumerations, which [meta.trans.sign]/2 mandates as much as the integrals.
+        // Written as the equality rather than the answer: the association is std's to make.
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_t<color>, std::make_unsigned_t<color>>));
+
         // and answers no where std::make_unsigned hard-errors: the point of an empty primary
         XSTD_CONSTEXPR_CHECK(not has_make_unsigned<bool>);
         XSTD_CONSTEXPR_CHECK(not has_make_unsigned<double>);
         XSTD_CONSTEXPR_CHECK(not has_make_unsigned<int*>);
-        XSTD_CONSTEXPR_CHECK(not has_make_unsigned<color>);
         XSTD_CONSTEXPR_CHECK(not has_make_unsigned<std::complex<double>>);
         XSTD_CONSTEXPR_CHECK(not has_make_unsigned<void>);
 
         // cv-qualification is preserved, just as by std::make_unsigned.
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_t<int const>, unsigned const>));
+        XSTD_CONSTEXPR_CHECK(std::is_const_v<xstd::make_unsigned_t<color const>>);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

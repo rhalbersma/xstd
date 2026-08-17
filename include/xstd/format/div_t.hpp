@@ -6,17 +6,16 @@
 #ifndef XSTD_FORMAT_DIV_T_HPP
 #define XSTD_FORMAT_DIV_T_HPP
 
-#include <xstd/charconv/to_chars.hpp>                 // to_chars, to_chars_max_size
-#include <xstd/concepts/has_unsigned_counterpart.hpp> // has_unsigned_counterpart
-#include <xstd/concepts/integer_like.hpp>             // integer_like
-#include <xstd/cstdlib/div_t.hpp>                     // div_t
-#include <array>                                      // array
-#include <cassert>                                    // assert
-#include <format>                                     // formatter
-#include <string>                                     // basic_string
-#include <string_view>                                // basic_string_view
-#include <system_error>                               // errc
-#include <tuple>                                      // tie, tuple
+#include <xstd/charconv/to_chars.hpp>     // to_chars, to_chars_max_size
+#include <xstd/concepts/integer_like.hpp> // integer_like
+#include <xstd/cstdlib/div_t.hpp>         // div_t
+#include <array>                          // array
+#include <cassert>                        // assert
+#include <format>                         // formatter
+#include <string>                         // basic_string
+#include <string_view>                    // basic_string_view
+#include <system_error>                   // errc
+#include <tuple>                          // tie, tuple
 
 // A div_t renders as "(quot, rem)": by the tuple formatter, or by xstd::to_chars.
 
@@ -29,8 +28,6 @@
 
 // The one every renderable div_t matches; the string base carries fill, alignment and width.
 template<xstd::integer_like I, class CharT>
-// xstd::to_chars produces the digits on the counterpart, so it is asked for here.
-        requires xstd::has_unsigned_counterpart<I>
 // NOLINTNEXTLINE(bugprone-std-namespace-modification): permitted by [namespace.std]/2, see above
 struct std::formatter<xstd::div_t<I>, CharT> : std::formatter<std::basic_string_view<CharT>, CharT>
 {
@@ -64,9 +61,7 @@ struct std::formatter<xstd::div_t<I>, CharT> : std::formatter<std::basic_string_
 
 // The more constrained one: asked after the tuple, which covers both ways it can be absent.
 template<xstd::integer_like I, class CharT>
-// The counterpart is carried unneeded, to stay a superset of the specialization above.
-        requires xstd::has_unsigned_counterpart<I> and
-                 std::formattable<std::tuple<I const&, I const&>, CharT>
+        requires std::formattable<std::tuple<I const&, I const&>, CharT>
 // NOLINTNEXTLINE(bugprone-std-namespace-modification): permitted by [namespace.std]/2, see above
 struct std::formatter<xstd::div_t<I>, CharT> : std::formatter<std::tuple<I const&, I const&>, CharT>
 {
