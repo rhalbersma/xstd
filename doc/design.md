@@ -188,8 +188,18 @@ turns it away at `++a` long before the pairing clause is asked, so no concept
 admits one and no function accepts one. The only conjunct left on that branch is
 cv `bool`, which is `integer_like`'s exclusion said a second time, because the
 trait sits below the concept that states it — `integer_class` asks the traits, so
-the traits cannot ask back. Underlying `bool` is not cv `bool`: `enum class flag :
-bool` is an enumeration like any other, and std answers for it by size.
+the traits cannot ask back.
+
+One corner of that domain is not portable, and this library forwards it rather
+than deciding it. An enumeration whose underlying type is `bool` satisfies the
+Mandates as written — it is an enumeration type, and it is not cv `bool` — and
+libstdc++ answers for it by size, `unsigned char`. libc++ rejects it: "`make_unsigned`
+is only compatible with non-bool integers and enum types, but was given ... whose
+underlying type is `bool`", looking through the enumeration to a type the Mandates
+excludes only when it is `T` itself. Asking std for std's domain means inheriting
+that disagreement, which is the same posture the rest of this branch takes, so no
+test pins it — a suite that asserted either answer would be asserting a standard
+library and not this one.
 
 The three divisions are constrained on `integer_like` alone, and deliberately.
 They never form the counterpart to compute with — `/` and `%` are all their bodies
