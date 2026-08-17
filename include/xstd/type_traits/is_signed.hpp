@@ -17,7 +17,7 @@ inline constexpr auto is_signed_v = std::is_signed_v<T>;
 
 // Where std stops: -1 lands below zero only where there is room below zero.
 template<integer_class I>
-inline constexpr auto is_signed_v<I> = I(-1) < I(0);
+inline constexpr auto is_signed_v<I> = static_cast<I>(-1) < static_cast<I>(0);
 
 template<class T>
 using is_signed = std::bool_constant<is_signed_v<T>>;

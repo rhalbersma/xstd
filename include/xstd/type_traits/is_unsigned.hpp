@@ -17,7 +17,7 @@ inline constexpr auto is_unsigned_v = std::is_unsigned_v<T>;
 
 // Where std stops: -1 lands above zero only where it wrapped, which is what unsigned means.
 template<integer_class I>
-inline constexpr auto is_unsigned_v<I> = I(0) < I(-1);
+inline constexpr auto is_unsigned_v<I> = static_cast<I>(0) < static_cast<I>(-1);
 
 template<class T>
 using is_unsigned = std::bool_constant<is_unsigned_v<T>>;
