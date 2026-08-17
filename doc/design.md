@@ -177,6 +177,20 @@ the traits what the counterparts are, so the traits cannot ask the concept back.
 signedness is a property of the operations, which every integer-class type has,
 pair or no pair.
 
+Below the integer-class branch, both traits ask std for all of what std was
+mandated to answer, and not for the part of it this library happens to use.
+[meta.trans.sign]/2's domain is "an integral or enumeration type other than cv
+`bool`", so the enumerations are in it, and the branch says so rather than
+stopping at `std::integral` — the same rule `is_signed_v` and `is_unsigned_v`
+already follow by delegating to std for every type std describes. An enumeration
+therefore gets an answer here and reaches nothing else: `integer_class_operations`
+turns it away at `++a` long before the pairing clause is asked, so no concept
+admits one and no function accepts one. The only conjunct left on that branch is
+cv `bool`, which is `integer_like`'s exclusion said a second time, because the
+trait sits below the concept that states it — `integer_class` asks the traits, so
+the traits cannot ask back. Underlying `bool` is not cv `bool`: `enum class flag :
+bool` is an enumeration like any other, and std answers for it by size.
+
 The three divisions are constrained on `integer_like` alone, and deliberately.
 They never form the counterpart to compute with — `/` and `%` are all their bodies
 want, and the subclause supplies both. It appears in exactly one place, the

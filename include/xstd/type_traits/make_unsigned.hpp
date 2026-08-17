@@ -9,7 +9,7 @@
 #include <xstd/concepts/integer_class_operations.hpp> // integer_class_operations
 #include <xstd/type_traits/is_unsigned.hpp>           // is_unsigned_v
 #include <concepts>                                   // integral, same_as
-#include <type_traits>                                // make_unsigned, remove_cv_t, type_identity
+#include <type_traits>                                // is_enum_v, make_unsigned, remove_cv_t, type_identity
 
 namespace xstd {
 
@@ -18,9 +18,10 @@ template<class T>
 struct make_unsigned
 {};
 
-// Ask std where std knows: its own mandated domain, less the cv bool integer_like also excludes.
+// Ask std where std knows, over all of it: [meta.trans.sign]/2 mandates an integral or
+// enumeration type, less the cv bool integer_like also excludes.
 template<class T>
-        requires std::integral<T> and (not std::same_as<std::remove_cv_t<T>, bool>)
+        requires (std::integral<T> or std::is_enum_v<T>) and (not std::same_as<std::remove_cv_t<T>, bool>)
 struct make_unsigned<T> : std::make_unsigned<T>
 {};
 

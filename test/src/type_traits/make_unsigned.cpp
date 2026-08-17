@@ -14,6 +14,9 @@ BOOST_AUTO_TEST_SUITE(TypeTraits)
 
 enum class color : unsigned { red = 1 };
 
+// An enumeration whose underlying type is the one type the domain excludes.
+enum class flag : bool { off, on };
+
 // A named concept: a non-dependent invalid operand is a hard error on GCC.
 template<class T>
 concept has_make_unsigned = requires { typename xstd::make_unsigned_t<T>; };
@@ -28,16 +31,23 @@ BOOST_AUTO_TEST_CASE(MakeUnsignedLike)
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_t<int>, std::make_unsigned_t<int>>));
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_t<unsigned>, unsigned>));
 
+        // including the enumerations, which [meta.trans.sign]/2 mandates as much as the integrals.
+        // Written as the equality rather than the answer: the association is std's to make.
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_t<color>, std::make_unsigned_t<color>>));
+        // Underlying bool is no cv bool: the exclusion is of the type itself, and std goes by size.
+        XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_t<flag>, std::make_unsigned_t<flag>>));
+        XSTD_CONSTEXPR_CHECK(sizeof(xstd::make_unsigned_t<flag>) == sizeof(flag));
+
         // and answers no where std::make_unsigned hard-errors: the point of an empty primary
         XSTD_CONSTEXPR_CHECK(not has_make_unsigned<bool>);
         XSTD_CONSTEXPR_CHECK(not has_make_unsigned<double>);
         XSTD_CONSTEXPR_CHECK(not has_make_unsigned<int*>);
-        XSTD_CONSTEXPR_CHECK(not has_make_unsigned<color>);
         XSTD_CONSTEXPR_CHECK(not has_make_unsigned<std::complex<double>>);
         XSTD_CONSTEXPR_CHECK(not has_make_unsigned<void>);
 
         // cv-qualification is preserved, just as by std::make_unsigned.
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_t<int const>, unsigned const>));
+        XSTD_CONSTEXPR_CHECK(std::is_const_v<xstd::make_unsigned_t<color const>>);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
