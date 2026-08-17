@@ -8,7 +8,7 @@
 
 #include <xstd/concepts/integer_like.hpp>              // integer_like
 #include <xstd/concepts/nothrow_integer_operators.hpp> // nothrow_integer_operators
-#include <xstd/type_traits/is_unsigned_like.hpp>       // is_unsigned_like_v
+#include <xstd/type_traits/is_unsigned.hpp>            // is_unsigned_v
 #include <cassert>                                     // assert
 #include <limits>                                      // numeric_limits
 
@@ -20,7 +20,7 @@ template<integer_like I>
         -> I
 {
         // An unsigned value is its own magnitude, and its min() is 0.
-        if constexpr (is_unsigned_like_v<I>) {
+        if constexpr (is_unsigned_v<I>) {
                 return x;
         } else {
                 auto const zero = static_cast<I>(0);

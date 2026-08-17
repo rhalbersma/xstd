@@ -6,14 +6,14 @@
 #ifndef XSTD_CONCEPTS_UNSIGNED_INTEGER_LIKE_HPP
 #define XSTD_CONCEPTS_UNSIGNED_INTEGER_LIKE_HPP
 
-#include <xstd/concepts/integer_like.hpp>        // integer_like
-#include <xstd/type_traits/is_unsigned_like.hpp> // is_unsigned_like_v
+#include <xstd/concepts/integer_like.hpp>   // integer_like
+#include <xstd/type_traits/is_unsigned.hpp> // is_unsigned_v
 
 namespace xstd {
 
 // Mirrors std::unsigned_integral, keeping integer_like atomic for subsumption.
 template<class T>
-concept unsigned_integer_like = integer_like<T> and is_unsigned_like_v<T>;
+concept unsigned_integer_like = integer_like<T> and is_unsigned_v<T>;
 
 } // namespace xstd
 

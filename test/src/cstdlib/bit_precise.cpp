@@ -3,12 +3,12 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/test/bit_precise.hpp>               // XSTD_TEST_HAS_BIT_PRECISE, bit_int, bit_uint
-#include <xstd/test/exact_width_types.hpp>         // bit_precise_signed_types, bit_precise_unsigned_types
-#include <xstd/cstdlib.hpp>                        // abs, div, euclidean_div, floored_div, sign, unsigned_abs
-#include <xstd/type_traits/make_unsigned_like.hpp> // make_unsigned_like_t
-#include <boost/test/unit_test.hpp>                // Boost.Test
-#include <limits>                                  // numeric_limits
+#include <xstd/test/bit_precise.hpp>          // XSTD_TEST_HAS_BIT_PRECISE, bit_int, bit_uint
+#include <xstd/test/exact_width_types.hpp>    // bit_precise_signed_types, bit_precise_unsigned_types
+#include <xstd/cstdlib.hpp>                   // abs, div, euclidean_div, floored_div, sign, unsigned_abs
+#include <xstd/type_traits/make_unsigned.hpp> // make_unsigned_t
+#include <boost/test/unit_test.hpp>           // Boost.Test
+#include <limits>                             // numeric_limits
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
@@ -82,7 +82,7 @@ BOOST_AUTO_TEST_CASE(DivisionOverEveryPair)
 BOOST_AUTO_TEST_CASE_TEMPLATE(SignedExtremes, T, xstd::test::bit_precise_signed_types)
 {
         using limits = std::numeric_limits<T>;
-        using U = xstd::make_unsigned_like_t<T>;
+        using U = xstd::make_unsigned_t<T>;
 
         BOOST_CHECK(xstd::sign(limits::min()) == -1);
         BOOST_CHECK(xstd::sign(limits::max()) == +1);

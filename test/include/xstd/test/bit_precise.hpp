@@ -6,10 +6,10 @@
 #ifndef XSTD_TEST_BIT_PRECISE_HPP
 #define XSTD_TEST_BIT_PRECISE_HPP
 
-#include <xstd/test/integer_class.hpp>             // integer_class, storage_limits
-#include <xstd/type_traits/make_unsigned_like.hpp> // make_unsigned_like
-#include <cstddef>                                 // size_t
-#include <type_traits>                             // type_identity
+#include <xstd/test/integer_class.hpp>        // integer_class, storage_limits
+#include <xstd/type_traits/make_unsigned.hpp> // make_unsigned
+#include <cstddef>                            // size_t
+#include <type_traits>                        // type_identity
 
 // C23's bit-precise integers, which in C++ only Clang has, and whose ceiling it names here.
 #ifdef __BITINT_MAXWIDTH__
@@ -95,9 +95,9 @@ using bit_int = integer_class<signed _BitInt(N), false>;
 
 } // namespace xstd::test
 
-// The unsigned one is its own, by make_unsigned_like's partial specialization for such a type.
+// The unsigned one is its own, by make_unsigned's partial specialization for such a type.
 template<std::size_t N>
-struct xstd::make_unsigned_like<xstd::test::bit_int<N>> : std::type_identity<xstd::test::bit_uint<N>>
+struct xstd::make_unsigned<xstd::test::bit_int<N>> : std::type_identity<xstd::test::bit_uint<N>>
 {};
 
 #endif // __BITINT_MAXWIDTH__

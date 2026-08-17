@@ -13,7 +13,7 @@
 #include <xstd/cstdlib/div_t.hpp>                      // IWYU pragma: export; div_t
 #include <xstd/cstdlib/sign.hpp>                       // sign
 #include <xstd/cstdlib/unsigned_abs.hpp>               // unsigned_abs
-#include <xstd/type_traits/is_unsigned_like.hpp>       // is_unsigned_like_v
+#include <xstd/type_traits/is_unsigned.hpp>            // is_unsigned_v
 #include <cassert>                                     // assert
 
 namespace xstd {
@@ -25,7 +25,7 @@ template<integer_like I>
 {
         assert(denom != static_cast<I>(0));
         // An unsigned remainder cannot disagree in sign with its denominator.
-        if constexpr (is_unsigned_like_v<I>) {
+        if constexpr (is_unsigned_v<I>) {
                 // Qualified: unqualified, ADL finds Boost.Int128's own div and it wins.
                 return xstd::div(numer, denom);
         } else {

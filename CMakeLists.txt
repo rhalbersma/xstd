@@ -60,13 +60,11 @@ target_sources(
         include/xstd/type_traits.hpp
         include/xstd/type_traits/conditional_data_member.hpp
         include/xstd/type_traits/empty_type.hpp
-        include/xstd/type_traits/is_arithmetic_like.hpp
-        include/xstd/type_traits/is_integer_like.hpp
-        include/xstd/type_traits/is_signed_like.hpp
+        include/xstd/type_traits/is_signed.hpp
         include/xstd/type_traits/is_specialization_of.hpp
-        include/xstd/type_traits/is_unsigned_like.hpp
-        include/xstd/type_traits/make_signed_like.hpp
-        include/xstd/type_traits/make_unsigned_like.hpp
+        include/xstd/type_traits/is_unsigned.hpp
+        include/xstd/type_traits/make_signed.hpp
+        include/xstd/type_traits/make_unsigned.hpp
         include/xstd/utility.hpp
 )
 

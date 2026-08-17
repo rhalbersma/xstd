@@ -36,8 +36,8 @@ concept, *is-integer-like*, and introduces *integer-class type* as a term instea
 `integer_class` is this library's structural reading of that term, which is why it
 carries a name of its own rather than a hidden one: the term is normative, not
 exposition-only, and `integer_like` is defined in terms of it. Built-in integers need no customization; a
-user-defined signed/unsigned pair supplies the opposite `make_signed_like` and
-`make_unsigned_like` specializations. `has_unsigned_counterpart` is where the
+user-defined signed/unsigned pair supplies the opposite `make_signed` and
+`make_unsigned` specializations. `has_unsigned_counterpart` is where the
 integer functions ask whether that has been done, so a type arriving without it
 is turned away by a constraint rather than inside a body.
 
@@ -90,7 +90,7 @@ denominator. Left to the adjustment, the floored case would hold only by way of
 the nonzero-denominator precondition above it, which is a proof a reader has to
 reconstruct. Neither unsigned branch asserts its convention's postcondition, an
 assertion there being unable to fail: `sign` branches on the same
-`is_unsigned_like_v` these do, so over an unsigned type it answers 0 or 1 by
+`is_unsigned_v` these do, so over an unsigned type it answers 0 or 1 by
 construction rather than by anything the division established — it could not
 even catch a `numeric_limits` specialization that lied, being misled by the same
 predicate. What is left to check, that the remainder is smaller than the
@@ -138,7 +138,7 @@ integer-class type can satisfy it, and its `cv-unqualified` conjunct rejects the
 `has_unsigned_counterpart` exists because the missing-counterpart problem reaches
 types no concept turns away. A signed integer-class type whose counterpart the user has
 not registered satisfies `integer_like`, and `unsigned_abs` and `to_chars` would
-then form a `make_unsigned_like_t` that does not exist. `to_chars` was the worse
+then form a `make_unsigned_t` that does not exist. `to_chars` was the worse
 of the two: constrained on `integer_like` alone while its body needed the
 counterpart, it answered *yes* to a detection idiom for a call that was ill-formed,
 which defeats the fallback such an idiom exists to select. Both now require it, and
@@ -247,7 +247,7 @@ because the standard header lacks the type, so the day it gains one is the day
 the two spellings collide. Boost.Int128 renamed the same way during its review.
 
 Those aliases cannot demonstrate the widening on their own: the library supplies
-their `make_signed_like` and `make_unsigned_like` specializations, so they reach
+their `make_signed` and `make_unsigned` specializations, so they reach
 the arithmetic surface along a path no third party can take. The exact-width test
 lists therefore also carry Boost.Int128 and `absl::int128`, which no header names
 and nothing specializes for — they are admitted on the strength of their own
@@ -273,8 +273,8 @@ The type utilities intentionally remain narrow:
 
 - `is_specialization_of` and `specialization_of` recognize specializations of
   class templates whose parameters are types.
-- `is_integer_like`, `is_arithmetic_like`, `is_signed_like` and
-  `is_unsigned_like` are open counterparts of the standard traits.
+- `is_integer_like`, `is_arithmetic_like`, `is_signed` and
+  `is_unsigned` are open counterparts of the standard traits.
 - `empty_type` and `conditional_data_member_t` support optional
   `[[no_unique_address]]` storage.
 - `to_underlying` forwards a plain enum and preserves one wrapped in
