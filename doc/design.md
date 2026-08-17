@@ -58,7 +58,7 @@ equality returns a proxy must write `!=` out, and then the concept admits it.
 That the concept asks for `I` exactly, rather than for something a `static_cast<I>`
 could reach, is pinned by a pair of fixtures in `test/include/xstd/test/` that are
 one class template at one storage type, differing in /7.6 alone: the conforming
-one is asserted to satisfy `integer_class_type` and the proxy-returning one to
+one is asserted to satisfy `integer_class` and the proxy-returning one to
 fail it. Both halves are the test. A failing assertion on its own would hold just
 as well for a fixture that had drifted out of conformance somewhere else entirely,
 and would go on holding after the clause it was written for had been relaxed.
@@ -202,7 +202,7 @@ rather than its category. It is public because it *is* those six exception
 specifications, and a caller asking whether one throws over their own type is
 asking exactly this.
 
-Its operations are every requirement `integer_class_type` states over `const`
+Its operations are every requirement `integer_class` states over `const`
 operands, and no more. That boundary is not this library's invention:
 `absl::uint128` declares each of them `constexpr` and not one of its mutating
 operators, so the `const` half is what an integer-class type in the field treats

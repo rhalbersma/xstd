@@ -3,7 +3,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/concepts/exposition_only.hpp>       // integer_class_type
+#include <xstd/concepts/integer_class.hpp>         // integer_class
 #include <xstd/concepts/integer_like.hpp>          // integer_like
 #include <xstd/concepts/signed_integer_like.hpp>   // signed_integer_like
 #include <xstd/concepts/unsigned_integer_like.hpp> // unsigned_integer_like
@@ -44,10 +44,10 @@ BOOST_AUTO_TEST_CASE(IntegralLike)
 // Disjoint branches per /3, asserted on the internal concept as the outer says yes either way.
 BOOST_AUTO_TEST_CASE(NoIntegralTypeIsAnIntegerClassType)
 {
-        XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integer_class_type<int>);
-        XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integer_class_type<short>);
-        XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integer_class_type<char>);
-        XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integer_class_type<unsigned long long>);
+        XSTD_CONSTEXPR_CHECK(not xstd::integer_class<int>);
+        XSTD_CONSTEXPR_CHECK(not xstd::integer_class<short>);
+        XSTD_CONSTEXPR_CHECK(not xstd::integer_class<char>);
+        XSTD_CONSTEXPR_CHECK(not xstd::integer_class<unsigned long long>);
 
         // Each is integer_like all the same, by the other branch.
         XSTD_CONSTEXPR_CHECK(xstd::integer_like<int> and xstd::integer_like<short>);
@@ -60,8 +60,8 @@ BOOST_AUTO_TEST_CASE(OperatorResultsAreTheTypeItself)
         using conforming = xstd::test::conforming_int_class;
         using proxied = xstd::test::proxy_result;
 
-        XSTD_CONSTEXPR_CHECK(xstd::exposition_only::integer_class_type<conforming>);
-        XSTD_CONSTEXPR_CHECK(not xstd::exposition_only::integer_class_type<proxied>);
+        XSTD_CONSTEXPR_CHECK(xstd::integer_class<conforming>);
+        XSTD_CONSTEXPR_CHECK(not xstd::integer_class<proxied>);
         XSTD_CONSTEXPR_CHECK(xstd::integer_like<conforming>);
         XSTD_CONSTEXPR_CHECK(not xstd::integer_like<proxied>);
 
@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(OperatorResultsAreTheTypeItself)
 
         // absl::uint128 differs from the conforming one in nothing that matters, and agrees.
 #ifdef XSTD_TEST_HAS_ABSL_INT128
-        XSTD_CONSTEXPR_CHECK(xstd::exposition_only::integer_class_type<xstd::test::absl_uint128>);
+        XSTD_CONSTEXPR_CHECK(xstd::integer_class<xstd::test::absl_uint128>);
 #endif
 }
 

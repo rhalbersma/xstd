@@ -20,17 +20,13 @@
 #include <limits>                                     // numeric_limits
 #include <system_error>                               // errc
 
-// Named, not written inline, so each requires-clause below stays one line and one conjunction.
-namespace xstd::exposition_only {
+namespace xstd {
 
+// Named, not written inline, so each requires-clause below stays one line and one conjunction.
 template<class I>
 concept std_to_chars_covers = requires (char* p, I value, int base) {
         { std::to_chars(p, p, value, base) } -> std::same_as<std::to_chars_result>;
 };
-
-} // namespace xstd::exposition_only
-
-namespace xstd {
 
 // Worst case is base 2: one character per value bit, and two more when signed.
 template<integer_like I>
@@ -40,7 +36,7 @@ inline constexpr auto to_chars_max_size =
 // The standard's own call where it covers I; an ambiguous overload leaves this unsatisfied.
 template<integer_like I>
 // The counterpart is carried unneeded, to stay a superset of the digits overload's.
-        requires has_unsigned_counterpart<I> and exposition_only::std_to_chars_covers<I>
+        requires has_unsigned_counterpart<I> and std_to_chars_covers<I>
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
 [[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10)
         -> std::to_chars_result

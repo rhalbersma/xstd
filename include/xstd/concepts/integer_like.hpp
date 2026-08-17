@@ -6,16 +6,16 @@
 #ifndef XSTD_CONCEPTS_INTEGER_LIKE_HPP
 #define XSTD_CONCEPTS_INTEGER_LIKE_HPP
 
-#include <xstd/concepts/exposition_only.hpp> // integer_class_type
-#include <concepts>                          // integral, same_as
-#include <type_traits>                       // remove_cv_t
+#include <xstd/concepts/integer_class.hpp> // integer_class
+#include <concepts>                        // integral, same_as
+#include <type_traits>                     // remove_cv_t
 
 namespace xstd {
 
 // [iterator.concept.winc]/1 as written: a type other than cv bool, integral or integer-class.
 template<class I>
 concept integer_like = (not std::same_as<std::remove_cv_t<I>, bool>) and
-                       (std::integral<I> or exposition_only::integer_class_type<I>);
+                       (std::integral<I> or integer_class<I>);
 
 } // namespace xstd
 

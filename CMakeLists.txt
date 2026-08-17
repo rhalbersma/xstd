@@ -36,7 +36,7 @@ target_sources(
     BASE_DIRS include
     FILES
         include/xstd/concepts.hpp
-        include/xstd/concepts/exposition_only.hpp
+        include/xstd/concepts/integer_class.hpp
         include/xstd/concepts/has_unsigned_counterpart.hpp
         include/xstd/concepts/integer_like.hpp
         include/xstd/concepts/nothrow_integer_operators.hpp
