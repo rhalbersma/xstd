@@ -14,9 +14,7 @@
 
 namespace xstd {
 
-// [iterator.concept.winc]/1, and the pair [basic.fundamental]/2 gives every integer type.
-// The subclause's own clause first, so that what this library adds is the last line and not
-// buried in the middle of one.
+// [iterator.concept.winc]/1 first, then the pair [basic.fundamental]/2 gives every integer type.
 template<class I>
 concept integer_like =
         (not std::same_as<std::remove_cv_t<I>, bool>) and

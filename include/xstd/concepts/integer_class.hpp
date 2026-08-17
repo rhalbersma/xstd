@@ -15,8 +15,7 @@
 // [iterator.concept.winc]'s integer-class type, which integer_like admits alongside integral.
 namespace xstd {
 
-// /2's "behave as integer types do", spelled out. The term, and only the term:
-// the pair this library divides with is integer_like's to ask for, not this concept's.
+// /2's "behave as integer types do", spelled out; the term alone, the pair being integer_like's.
 template<class T, class I = std::remove_cv_t<T>>
 concept integer_class =
         // I is the parameter's own default; naming it explicitly cannot redirect the question.

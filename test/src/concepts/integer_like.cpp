@@ -75,16 +75,14 @@ BOOST_AUTO_TEST_CASE(OperatorResultsAreTheTypeItself)
 #endif
 }
 
-// The subclause states the operations; that a type come in a pair is this library's own half,
-// and integer_like is where it asks for it - so the two concepts disagree about exactly one type.
+// The pair is this library's own half, so the two concepts disagree about exactly one type.
 BOOST_AUTO_TEST_CASE(AnIntegerLikeTypeIsOneHalfOfAPair)
 {
         using unpaired = xstd::test::unpaired_int_class;
         using owned = xstd::test::conforming_int_class;
         using owned_signed = xstd::test::conforming_signed_int_class;
 
-        // An integer-class type by every operation the subclause states, which is what the term
-        // means, and no counterpart to divide with, which is what this library needs.
+        // Every operation the subclause states, which is the term, and no counterpart to divide with.
         XSTD_CONSTEXPR_CHECK(xstd::integer_class<unpaired>);
         XSTD_CONSTEXPR_CHECK(not xstd::integer_like<unpaired>);
         XSTD_CONSTEXPR_CHECK(not xstd::signed_integer_like<unpaired>);

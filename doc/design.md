@@ -191,10 +191,18 @@ stopping at `std::integral` — the same rule `is_signed_v` and `is_unsigned_v`
 already follow by delegating to std for every type std describes. An enumeration
 therefore gets an answer here and reaches nothing else: `integer_class` turns it
 away at `++a` long before the pairing clause is asked, so no concept admits one
-and no function accepts one. The only conjunct left on that branch is
-cv `bool`, which is `integer_like`'s exclusion said a second time, because the
-trait sits below the concept that states it — `integer_like` asks the traits, so
-the traits cannot ask back.
+and no function accepts one. The only conjunct left on that branch is cv `bool`,
+and it is not there to mirror `integer_like`'s exclusion of it — that one
+short-circuits first, so nothing in this library ever asks the traits about
+`bool`. It is there because `bool` is integral, so it matches the branch, and std
+declines to pair it anyway: libstdc++ declares the specialization without defining
+it, libc++ diagnoses it. Deriving from that non-answer is a hard error rather than
+an empty trait, and a trait that hard-errors cannot be asked in a
+requires-expression — which is precisely how `integer_like` asks for the pair. The
+clause answers `false` for `bool` only because this conjunct keeps the failure
+soft. `remove_cv_t` is load-bearing one level down for the same reason:
+`is_integral_v<bool const>` is `true`, so `same_as<T, bool>` alone would let
+`bool const` into the branch and hard-error there.
 
 One corner of that domain is not portable, and this library forwards it rather
 than deciding it. An enumeration whose underlying type is `bool` satisfies the
