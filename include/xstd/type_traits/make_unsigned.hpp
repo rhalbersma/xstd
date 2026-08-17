@@ -19,7 +19,10 @@ struct make_unsigned
 {};
 
 // Ask std where std knows, over all of it: [meta.trans.sign]/2 mandates an integral or
-// enumeration type, less the cv bool integer_like also excludes.
+// enumeration type. Less cv bool, which is integral and which std still declines to pair:
+// keeping it out here is what leaves an unpaired type answered rather than ill-formed, and
+// integer_like cannot ask its pairing clause about a type the clause hard-errors on. The
+// remove_cv_t earns its keep, is_integral_v<bool const> being true.
 template<class T>
         requires (std::integral<T> or std::is_enum_v<T>) and (not std::same_as<std::remove_cv_t<T>, bool>)
 struct make_unsigned<T> : std::make_unsigned<T>
