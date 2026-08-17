@@ -5,7 +5,7 @@
 
 #include <xstd/cstdlib.hpp>                // complete arithmetic surface
 #include <xstd/cstdint.hpp>                // int128, uint128
-#include <xstd/concepts.hpp>               // integer_class, integer_class_operations, integer_like, signed_integer_like
+#include <xstd/concepts.hpp>               // integer_class, integer_like, signed_integer_like
 #include <xstd/type_traits.hpp>            // is_signed_v, make_signed_t, make_unsigned_t
 #include <xstd/test/absl_int128.hpp>       // XSTD_TEST_HAS_ABSL_INT128
 #include <xstd/test/boost_int128.hpp>      // XSTD_TEST_HAS_BOOST_INT128
@@ -124,9 +124,8 @@ BOOST_AUTO_TEST_CASE(UnpairedIntegerClassTypeIsTurnedAwayByEveryConstraint)
         using T = xstd::test::unpaired_int_class;
 
         // Conforming in every operation the subclause states, and a counterpart is all it lacks.
-        static_assert(xstd::integer_class_operations<T>);
+        static_assert(xstd::integer_class<T>);
         static_assert(xstd::is_signed_v<T>);
-        static_assert(not xstd::integer_class<T>);
         static_assert(not xstd::integer_like<T>);
         static_assert(not xstd::signed_integer_like<T>);
 

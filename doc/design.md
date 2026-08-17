@@ -33,11 +33,11 @@ standard concepts to structurally recognized integer-class types, and the `_like
 traits follow the same rule. The subclause names exactly one exposition-only
 concept, *is-integer-like*, and introduces *integer-class type* as a term instead
 — "a set of implementation-defined types that behave as integer types do" (/2).
-`integer_class_operations` is this library's structural reading of that term, which
-is why it carries a name of its own rather than a hidden one: the term is
-normative, not exposition-only. `integer_class` is those operations and one thing
-more, that the type be one of a signed/unsigned pair, and it is what
-`integer_like` is defined in terms of. Built-in integers need no customization; a
+`integer_class` is this library's structural reading of that term, which is why it
+carries a name of its own rather than a hidden one: the term is normative, not
+exposition-only. It reads the term and nothing more. `integer_like` is that
+concept or `std::integral`, and one thing more: that the type be one of a
+signed/unsigned pair. Built-in integers need no customization; a
 user-defined pair supplies the opposite `make_signed` and `make_unsigned`
 specializations, and a type arriving without them is not an integer-class type
 here, so every function turns it away by the constraint it already had.
@@ -149,11 +149,16 @@ must both name a type, and [meta.trans.sign] says what they name — the type it
 where the signedness already matches, and "the corresponding" type of the other
 signedness where it does not.
 
-That makes `integer_class` a name for more than the term it is taken from, and
-the split is where the honesty is: `integer_class_operations` is the term, whole
-and unextended, and `integer_class` is the term plus what this library needs to
-divide with. The half that is automatic is the matching one, so a user writes one
-specialization per type and two per pair. What that buys is a surface with no
+The lift is this library's, so it is asked for under this library's own name.
+`integer_class` is the standard's term, whole and unextended; `integer_like` is
+the constraint form of an *exposition-only* concept, which the standard does not
+publish and this library does, and it is the one every function here is
+constrained on. Adding the pair there rather than to `integer_class` costs the
+`_operations` suffix that a third concept needed and keeps a normative term
+meaning what it says. The two disagree about exactly one kind of type - an
+integer-class type whose counterpart nobody registered - and a case asserts that
+disagreement in both directions. The half that is automatic is the matching one,
+so a user writes one specialization per type and two per pair. What that buys is a surface with no
 seam in it: `unsigned_abs` and `to_chars` used to carry a second constraint for
 the counterpart they produce, the two `std::formatter<div_t<I>>` specializations
 carried it to stay ordered by subsumption, and the three divisions guarded their
@@ -170,12 +175,13 @@ the concept turns the type away, instead of the specialization hard-erroring on 
 type the language will not form.
 
 That the failure stays an unsatisfied constraint rather than a hard error is what
-the empty `make_signed` and `make_unsigned` primaries are for, and it is why the
-two traits ask `integer_class_operations` and not `integer_class`: the concept asks
-the traits what the counterparts are, so the traits cannot ask the concept back.
-`is_signed_v` and `is_unsigned_v` are on the same footing, and rightly — a
-signedness is a property of the operations, which every integer-class type has,
-pair or no pair.
+the empty `make_signed` and `make_unsigned` primaries are for. Which layer asks
+which is what keeps the four traits able to answer at all: `integer_like` asks
+them what the counterparts are, so all four are stated over `integer_class`, one
+level below it, and nothing asks back up. `is_signed_v` and `is_unsigned_v` are on
+that level for a reason of their own as well — a signedness is a property of the
+operations, which every integer-class type has, pair or no pair, and an unpaired
+one still answers `is_signed_v` as truly as a paired one does.
 
 Below the integer-class branch, both traits ask std for all of what std was
 mandated to answer, and not for the part of it this library happens to use.
@@ -183,12 +189,20 @@ mandated to answer, and not for the part of it this library happens to use.
 `bool`", so the enumerations are in it, and the branch says so rather than
 stopping at `std::integral` — the same rule `is_signed_v` and `is_unsigned_v`
 already follow by delegating to std for every type std describes. An enumeration
-therefore gets an answer here and reaches nothing else: `integer_class_operations`
-turns it away at `++a` long before the pairing clause is asked, so no concept
-admits one and no function accepts one. The only conjunct left on that branch is
-cv `bool`, which is `integer_like`'s exclusion said a second time, because the
-trait sits below the concept that states it — `integer_class` asks the traits, so
-the traits cannot ask back.
+therefore gets an answer here and reaches nothing else: `integer_class` turns it
+away at `++a` long before the pairing clause is asked, so no concept admits one
+and no function accepts one. The only conjunct left on that branch is cv `bool`,
+and it is not there to mirror `integer_like`'s exclusion of it — that one
+short-circuits first, so nothing in this library ever asks the traits about
+`bool`. It is there because `bool` is integral, so it matches the branch, and std
+declines to pair it anyway: libstdc++ declares the specialization without defining
+it, libc++ diagnoses it. Deriving from that non-answer is a hard error rather than
+an empty trait, and a trait that hard-errors cannot be asked in a
+requires-expression — which is precisely how `integer_like` asks for the pair. The
+clause answers `false` for `bool` only because this conjunct keeps the failure
+soft. `remove_cv_t` is load-bearing one level down for the same reason:
+`is_integral_v<bool const>` is `true`, so `same_as<T, bool>` alone would let
+`bool const` into the branch and hard-error there.
 
 One corner of that domain is not portable, and this library forwards it rather
 than deciding it. An enumeration whose underlying type is `bool` satisfies the

@@ -6,10 +6,10 @@
 #ifndef XSTD_TYPE_TRAITS_MAKE_SIGNED_HPP
 #define XSTD_TYPE_TRAITS_MAKE_SIGNED_HPP
 
-#include <xstd/concepts/integer_class_operations.hpp> // integer_class_operations
-#include <xstd/type_traits/is_signed.hpp>             // is_signed_v
-#include <concepts>                                   // integral, same_as
-#include <type_traits>                                // is_enum_v, make_signed, remove_cv_t, type_identity
+#include <xstd/concepts/integer_class.hpp> // integer_class
+#include <xstd/type_traits/is_signed.hpp>  // is_signed_v
+#include <concepts>                        // integral, same_as
+#include <type_traits>                     // is_enum_v, make_signed, remove_cv_t, type_identity
 
 namespace xstd {
 
@@ -18,15 +18,14 @@ template<class T>
 struct make_signed
 {};
 
-// Ask std where std knows, over all of it: [meta.trans.sign]/2 mandates an integral or
-// enumeration type, less the cv bool integer_like also excludes.
+// [meta.trans.sign]/2's whole mandated domain, less the cv bool std declines to pair there.
 template<class T>
         requires (std::integral<T> or std::is_enum_v<T>) and (not std::same_as<std::remove_cv_t<T>, bool>)
 struct make_signed<T> : std::make_signed<T>
 {};
 
 // Where std stops: its own counterpart, the other half of the pair being the user's to say.
-template<integer_class_operations I>
+template<integer_class I>
         requires is_signed_v<I>
 struct make_signed<I> : std::type_identity<I>
 {};

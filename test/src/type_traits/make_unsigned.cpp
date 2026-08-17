@@ -28,8 +28,7 @@ BOOST_AUTO_TEST_CASE(MakeUnsignedLike)
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_t<int>, std::make_unsigned_t<int>>));
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_t<unsigned>, unsigned>));
 
-        // including the enumerations, which [meta.trans.sign]/2 mandates as much as the integrals.
-        // Written as the equality rather than the answer: the association is std's to make.
+        // including the enumerations /2 mandates, as the equality: the association is std's to make.
         XSTD_CONSTEXPR_CHECK((std::is_same_v<xstd::make_unsigned_t<color>, std::make_unsigned_t<color>>));
 
         // and answers no where std::make_unsigned hard-errors: the point of an empty primary
