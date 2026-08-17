@@ -34,14 +34,17 @@ struct make_signed<I> : std::type_identity<I>
 {};
 
 template<class T>
+        requires requires { typename make_signed_t<T>; }
 struct make_signed<T const> : std::type_identity<std::add_const_t<make_signed_t<T>>>
 {};
 
 template<class T>
+        requires requires { typename make_signed_t<T>; }
 struct make_signed<T volatile> : std::type_identity<std::add_volatile_t<make_signed_t<T>>>
 {};
 
 template<class T>
+        requires requires { typename make_signed_t<T>; }
 struct make_signed<T const volatile> : std::type_identity<std::add_cv_t<make_signed_t<T>>>
 {};
 
