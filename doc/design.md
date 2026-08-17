@@ -30,7 +30,12 @@ across the tested toolchains. Consumers need no third-party dependencies.
 
 `integer_like`, `signed_integer_like` and `unsigned_integer_like` widen the
 standard concepts to structurally recognized integer-class types, and the `_like`
-traits follow the same rule. Built-in integers need no customization; a
+traits follow the same rule. The subclause names exactly one exposition-only
+concept, *is-integer-like*, and introduces *integer-class type* as a term instead
+— "a set of implementation-defined types that behave as integer types do" (/2).
+`integer_class` is this library's structural reading of that term, which is why it
+carries a name of its own rather than a hidden one: the term is normative, not
+exposition-only, and `integer_like` is defined in terms of it. Built-in integers need no customization; a
 user-defined signed/unsigned pair supplies the opposite `make_signed_like` and
 `make_unsigned_like` specializations. `has_unsigned_counterpart` is where the
 integer functions ask whether that has been done, so a type arriving without it
@@ -58,7 +63,7 @@ equality returns a proxy must write `!=` out, and then the concept admits it.
 That the concept asks for `I` exactly, rather than for something a `static_cast<I>`
 could reach, is pinned by a pair of fixtures in `test/include/xstd/test/` that are
 one class template at one storage type, differing in /7.6 alone: the conforming
-one is asserted to satisfy `integer_class_type` and the proxy-returning one to
+one is asserted to satisfy `integer_class` and the proxy-returning one to
 fail it. Both halves are the test. A failing assertion on its own would hold just
 as well for a fixture that had drifted out of conformance somewhere else entirely,
 and would go on holding after the clause it was written for had been relaxed.
@@ -202,7 +207,7 @@ rather than its category. It is public because it *is* those six exception
 specifications, and a caller asking whether one throws over their own type is
 asking exactly this.
 
-Its operations are every requirement `integer_class_type` states over `const`
+Its operations are every requirement `integer_class` states over `const`
 operands, and no more. That boundary is not this library's invention:
 `absl::uint128` declares each of them `constexpr` and not one of its mutating
 operators, so the `const` half is what an integer-class type in the field treats
@@ -280,6 +285,15 @@ A concept spelling is provided when the standard library has an analogous
 concept; otherwise the trait is the interface. `nothrow_integer_operators` is
 the one concept with no trait beside it, having no standard trait to mirror, and
 is spelled the way a caller writes it: inside a `noexcept`.
+
+Which decides where the `is` goes, and the subclause is no guide there. Its
+concept is *is-integer-like* — the only concept in the library or the standard
+whose name starts with `is`, because it is exposition-only and answers to nobody.
+The convention outside it is the opposite and is worth following: `is` marks a
+trait, as in `std::is_integral`, and a concept goes bare, as in `std::integral`.
+So the pair here is `integer_like` and `is_integer_like`, mirroring that pair
+exactly, rather than an `is_integer_like` concept transliterating a hyphenated
+name that was never meant to be public.
 
 ### `to_underlying`
 

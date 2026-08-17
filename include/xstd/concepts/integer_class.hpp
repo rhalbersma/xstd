@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_CONCEPTS_EXPOSITION_ONLY_HPP
-#define XSTD_CONCEPTS_EXPOSITION_ONLY_HPP
+#ifndef XSTD_CONCEPTS_INTEGER_CLASS_HPP
+#define XSTD_CONCEPTS_INTEGER_CLASS_HPP
 
 #include <compare>     // strong_ordering
 #include <concepts>    // constructible_from, integral, regular, same_as, three_way_comparable
@@ -12,12 +12,12 @@
 #include <limits>      // numeric_limits
 #include <type_traits> // is_same_v, remove_cv_t
 
-// Internal concepts used to define xstd's public numeric traits and concepts.
-namespace xstd::exposition_only {
+// [iterator.concept.winc]'s integer-class type, which integer_like admits alongside integral.
+namespace xstd {
 
 // [iterator.concept.winc], asked of I: T with the cv off, per /11. Nothing needs noexcept.
 template<class T, class I = std::remove_cv_t<T>>
-concept integer_class_type =
+concept integer_class =
         // I is the parameter's own default; naming it explicitly cannot redirect the question.
         std::is_same_v<I, std::remove_cv_t<T>> and
         // Entailed by /3's width clause; without it int and short get in.
@@ -83,6 +83,6 @@ concept integer_class_type =
         std::numeric_limits<I>::is_specialized and
         std::numeric_limits<I>::is_integer;
 
-} // namespace xstd::exposition_only
+} // namespace xstd
 
-#endif // XSTD_CONCEPTS_EXPOSITION_ONLY_HPP
+#endif // XSTD_CONCEPTS_INTEGER_CLASS_HPP
