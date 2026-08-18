@@ -7,7 +7,7 @@
 #define XSTD_CONCEPTS_INTEGER_HPP
 
 #include <xstd/concepts/integer_class.hpp>    // integer_class
-#include <xstd/type_traits/is_character.hpp>  // is_character_v
+#include <xstd/type_traits/is_character.hpp>  // is_character
 #include <xstd/type_traits/make_signed.hpp>   // make_signed_t
 #include <xstd/type_traits/make_unsigned.hpp> // make_unsigned_t
 #include <concepts>                           // integral, same_as

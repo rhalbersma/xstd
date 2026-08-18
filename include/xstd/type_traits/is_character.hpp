@@ -6,21 +6,32 @@
 #ifndef XSTD_TYPE_TRAITS_IS_CHARACTER_HPP
 #define XSTD_TYPE_TRAITS_IS_CHARACTER_HPP
 
+#include <type_traits> // bool_constant
+
 namespace xstd {
 
 template<class T>
-inline constexpr auto is_character_v = false;
+struct is_character : std::bool_constant<false>
+{};
 
 template<>
-inline constexpr auto is_character_v<char> = true;
+struct is_character<char> : std::bool_constant<true>
+{};
 template<>
-inline constexpr auto is_character_v<wchar_t> = true;
+struct is_character<wchar_t> : std::bool_constant<true>
+{};
 template<>
-inline constexpr auto is_character_v<char8_t> = true;
+struct is_character<char8_t> : std::bool_constant<true>
+{};
 template<>
-inline constexpr auto is_character_v<char16_t> = true;
+struct is_character<char16_t> : std::bool_constant<true>
+{};
 template<>
-inline constexpr auto is_character_v<char32_t> = true;
+struct is_character<char32_t> : std::bool_constant<true>
+{};
+
+template<class T>
+inline constexpr auto is_character_v = is_character<T>::value;
 
 } // namespace xstd
 

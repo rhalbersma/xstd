@@ -1,7 +1,7 @@
 //          Copyright Rein Halbersma 2014-2026.
 // Distributed under the Boost Software License, Version 1.0.
 
-#include <xstd/type_traits/is_character.hpp>
+#include <xstd/type_traits/is_character.hpp> // is_character
 #include <boost/test/unit_test.hpp>
 
 namespace {
@@ -12,6 +12,13 @@ struct class_type
 
 BOOST_AUTO_TEST_CASE(IsCharacter)
 {
+        static_assert(xstd::is_character<char>::value);
+        static_assert(xstd::is_character<wchar_t>::value);
+        static_assert(xstd::is_character<char8_t>::value);
+        static_assert(xstd::is_character<char16_t>::value);
+        static_assert(xstd::is_character<char32_t>::value);
+        static_assert(not xstd::is_character<bool>::value);
+
         static_assert(xstd::is_character_v<char>);
         static_assert(xstd::is_character_v<wchar_t>);
         static_assert(xstd::is_character_v<char8_t>);
