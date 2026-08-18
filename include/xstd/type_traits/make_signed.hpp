@@ -21,15 +21,16 @@ struct make_signed
 template<class T>
 using make_signed_t = make_signed<T>::type;
 
-// [meta.trans.sign]/2's whole mandated domain, less the cv bool std declines to pair there.
+// The unqualified part of [meta.trans.sign]/2's mandated domain; cv is lifted uniformly below.
 template<class T>
-        requires (std::integral<T> or std::is_enum_v<T>) and (not std::same_as<std::remove_cv_t<T>, bool>)
+        requires std::same_as<T, std::remove_cv_t<T>> and (std::integral<T> or std::is_enum_v<T>) and
+                 (not std::same_as<T, bool>)
 struct make_signed<T> : std::make_signed<T>
 {};
 
 // Where std stops: its own counterpart, the other half of the pair being the user's to say.
 template<integer_class I>
-        requires is_signed_v<I>
+        requires std::same_as<I, std::remove_cv_t<I>> and is_signed_v<I>
 struct make_signed<I> : std::type_identity<I>
 {};
 
