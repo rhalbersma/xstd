@@ -3,86 +3,49 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_TEST_INTEGER_CLASS_HPP
-#define XSTD_TEST_INTEGER_CLASS_HPP
+#ifndef XSTD_TEST_BIT_INTEGER_HPP
+#define XSTD_TEST_BIT_INTEGER_HPP
 
-#include <xstd/cstdint.hpp>                   // int128, uint128
-#include <xstd/type_traits/make_signed.hpp>   // make_signed
-#include <xstd/type_traits/make_unsigned.hpp> // make_unsigned
 #include <compare>                            // strong_ordering
 #include <concepts>                           // same_as
 #include <cstddef>                            // size_t
 #include <limits>                             // numeric_limits
-#include <type_traits>                        // conditional_t, type_identity
 
-// One integer-class type in three variants, so that a case can assert what each one costs.
+// Adapter support for compiler bit-precise integers.
 namespace xstd::test {
 
-// Which fixture this is: the second breaks /7.6, the third is left out of the pairs below.
-enum class variant {
-        conforming,
-        proxy_result,
-        unpaired
-};
-
-template<class Storage, variant V>
-class integer_class;
-
-// The storage's limits, an indirection so a storage std may not describe can be described here.
 template<class Storage>
 struct storage_limits : std::numeric_limits<Storage>
 {};
 
-// Sign bit included, so that a counterpart is the same width rather than the same digits.
 template<class Storage>
 inline constexpr auto storage_width =
         storage_limits<Storage>::digits + static_cast<int>(storage_limits<Storage>::is_signed);
 
-// What the binary operators return in the proxy variant: convertible to the type, not it.
-template<class Storage, variant V>
-class proxy_value
+// A small adapter that gives compiler bit-precise storage the integer-class customization surface.
+template<class Storage>
+class bit_integer
 {
-        Storage m_value;
-
-      public:
-        constexpr explicit proxy_value(Storage value)
-            : m_value(value)
-        {}
-
-        [[nodiscard]] constexpr operator integer_class<Storage, V>() const
-        {
-                return integer_class<Storage, V>::from(m_value);
-        }
-};
-
-template<class Storage, variant V>
-class integer_class
-{
-        using self = integer_class;
-        using binary_result =
-                std::conditional_t<V == variant::proxy_result, proxy_value<Storage, V>, self>;
+        using self = bit_integer;
+        using binary_result = self;
 
         Storage m_value{};
 
         // Every instantiation, so that the same-width counterpart can read this one's value.
-        template<class, variant>
-        friend class integer_class;
+        template<class>
+        friend class bit_integer;
 
-        // The one line the two variants differ on, reached by every binary operator below.
+        // Centralized construction for binary operators.
         [[nodiscard]] static constexpr auto wrap(Storage value) -> binary_result
         {
-                if constexpr (V == variant::proxy_result) {
-                        return proxy_value<Storage, V>(value);
-                } else {
-                        return from(value);
-                }
+                return from(value);
         }
 
       public:
-        integer_class() = default;
+        bit_integer() = default;
 
         // /6 one way, and not explicit: an integral value converts implicitly.
-        constexpr integer_class(int value)
+        constexpr bit_integer(int value)
             : m_value(static_cast<Storage>(value))
         {}
 
@@ -97,7 +60,7 @@ class integer_class
         template<class OtherStorage>
                 requires (not std::same_as<OtherStorage, Storage>) and
                          (storage_width<OtherStorage> == storage_width<Storage>)
-        explicit constexpr integer_class(integer_class<OtherStorage, V> other)
+        explicit constexpr bit_integer(bit_integer<OtherStorage> other)
             : m_value(static_cast<Storage>(other.m_value))
         {}
 
@@ -259,38 +222,15 @@ class integer_class
         }
 };
 
-// Conforming, and its own unsigned counterpart by make_unsigned's partial specialization.
-using conforming_int_class = integer_class<uint128, variant::conforming>;
-
-// The signed half of the same pair, which the two specializations below complete.
-using conforming_signed_int_class = integer_class<int128, variant::conforming>;
-
-// The same type with /7.6 broken, and nothing else changed.
-using proxy_result = integer_class<uint128, variant::proxy_result>;
-
-// Conforming in every operation, and left unpaired: what integer_class asks for beyond them.
-using unpaired_int_class = integer_class<int128, variant::unpaired>;
-
 } // namespace xstd::test
 
-// The pair a user writes for their own two types, which is all either one needs to be admitted.
-template<>
-struct xstd::make_unsigned<xstd::test::conforming_signed_int_class>
-    : std::type_identity<xstd::test::conforming_int_class>
-{};
-
-template<>
-struct xstd::make_signed<xstd::test::conforming_int_class>
-    : std::type_identity<xstd::test::conforming_signed_int_class>
-{};
-
 // /11's members in the type rather than the storage.
-template<class Storage, xstd::test::variant V>
+template<class Storage>
 // NOLINTNEXTLINE(bugprone-std-namespace-modification): permitted by [namespace.std]/2 for a program-defined type
-class std::numeric_limits<xstd::test::integer_class<Storage, V>>
+class std::numeric_limits<xstd::test::bit_integer<Storage>>
     : public xstd::test::storage_limits<Storage>
 {
-        using type = xstd::test::integer_class<Storage, V>;
+        using type = xstd::test::bit_integer<Storage>;
 
       public:
         [[nodiscard]] static constexpr auto min() -> type
@@ -307,4 +247,4 @@ class std::numeric_limits<xstd::test::integer_class<Storage, V>>
         }
 };
 
-#endif // XSTD_TEST_INTEGER_CLASS_HPP
+#endif // XSTD_TEST_BIT_INTEGER_HPP

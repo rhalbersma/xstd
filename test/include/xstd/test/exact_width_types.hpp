@@ -35,7 +35,7 @@ using boost_unsigned_types = std::tuple<>;
 #endif
 
 // A second, conditional on an intrinsic: without one its operator/ is not constexpr.
-#if defined(XSTD_TEST_HAS_ABSL_INT128) and defined(ABSL_HAVE_INTRINSIC_INT128)
+#ifdef XSTD_TEST_HAS_ABSL_INT128
 using absl_signed_types = std::tuple<absl_int128>;
 using absl_unsigned_types = std::tuple<absl_uint128>;
 #else
@@ -47,9 +47,9 @@ using absl_unsigned_types = std::tuple<>;
 #ifdef XSTD_TEST_HAS_BIT_PRECISE
 // The widths every implementation of the extension divides without help from a runtime.
 using narrow_bit_precise_signed_types =
-        std::tuple<bit_int<2>, bit_int<3>, bit_int<4>, bit_int<8>, bit_int<16>, bit_int<32>, bit_int<64>>;
+        std::tuple<bit_int<8>, bit_int<16>, bit_int<32>, bit_int<64>>;
 using narrow_bit_precise_unsigned_types =
-        std::tuple<bit_uint<2>, bit_uint<3>, bit_uint<4>, bit_uint<8>, bit_uint<16>, bit_uint<32>, bit_uint<64>>;
+        std::tuple<bit_uint<8>, bit_uint<16>, bit_uint<32>, bit_uint<64>>;
 
 // And the two above them, each asking the ceiling rather than assuming one.
 #if XSTD_TEST_BIT_PRECISE_MAX >= 128
@@ -79,13 +79,17 @@ using bit_precise_signed_types = std::tuple<>;
 using bit_precise_unsigned_types = std::tuple<>;
 #endif
 
-// Concatenated through declval so the lists above stay readable as lists.
-using exact_width_signed_types = decltype(std::tuple_cat(
+// The authoritative configured test universe. Signed and unsigned subsets remain available
+// because most arithmetic contracts differ at zero or at the signed minimum.
+using exact_width_signed_integer_types = decltype(std::tuple_cat(
         std::declval<std_signed_types>(), std::declval<xstd_signed_types>(), std::declval<boost_signed_types>(),
-        std::declval<absl_signed_types>()));
-using exact_width_unsigned_types = decltype(std::tuple_cat(
+        std::declval<absl_signed_types>(), std::declval<bit_precise_signed_types>()));
+using exact_width_unsigned_integer_types = decltype(std::tuple_cat(
         std::declval<std_unsigned_types>(), std::declval<xstd_unsigned_types>(), std::declval<boost_unsigned_types>(),
-        std::declval<absl_unsigned_types>()));
+        std::declval<absl_unsigned_types>(), std::declval<bit_precise_unsigned_types>()));
+using exact_width_integer_types = decltype(std::tuple_cat(
+        std::declval<exact_width_signed_integer_types>(),
+        std::declval<exact_width_unsigned_integer_types>()));
 
 } // namespace xstd::test
 

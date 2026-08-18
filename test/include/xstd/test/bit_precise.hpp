@@ -6,7 +6,7 @@
 #ifndef XSTD_TEST_BIT_PRECISE_HPP
 #define XSTD_TEST_BIT_PRECISE_HPP
 
-#include <xstd/test/integer_class.hpp>        // integer_class, storage_limits, variant
+#include <xstd/test/bit_integer.hpp>          // bit_integer, storage_limits
 #include <xstd/type_traits/make_signed.hpp>   // make_signed
 #include <xstd/type_traits/make_unsigned.hpp> // make_unsigned
 #include <cstddef>                            // size_t
@@ -88,11 +88,11 @@ struct storage_limits<signed _BitInt(N)>
 
 // Wrapped rather than used raw: is_integral is false for these, so integer_like refuses them.
 template<std::size_t N>
-using bit_uint = integer_class<unsigned _BitInt(N), variant::conforming>;
+using bit_uint = bit_integer<unsigned _BitInt(N)>;
 
 // C23 sets the signed minimum at two bits, so only the unsigned list starts at one.
 template<std::size_t N>
-using bit_int = integer_class<signed _BitInt(N), variant::conforming>;
+using bit_int = bit_integer<signed _BitInt(N)>;
 
 } // namespace xstd::test
 

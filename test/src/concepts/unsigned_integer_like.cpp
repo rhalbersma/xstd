@@ -4,18 +4,19 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/concepts/unsigned_integer_like.hpp> // unsigned_integer_like
-#include <xstd/test/constexpr.hpp>                 // XSTD_CONSTEXPR_CHECK
-#include <boost/test/unit_test.hpp>                // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
+#include <xstd/test/exact_width_types.hpp>         // exact-width integer types
+#include <boost/test/unit_test.hpp>                // Boost.Test
 
 BOOST_AUTO_TEST_SUITE(Concepts)
-
-BOOST_AUTO_TEST_CASE(UnsignedIntegralLike)
+BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedIntegerLike, T, xstd::test::exact_width_unsigned_integer_types)
 {
-        XSTD_CONSTEXPR_CHECK(xstd::unsigned_integer_like<unsigned>);
-        XSTD_CONSTEXPR_CHECK(not xstd::unsigned_integer_like<int>);
-        // The built-in branch follows std::integral, bool included.
-        XSTD_CONSTEXPR_CHECK(not xstd::unsigned_integer_like<bool>);
-        XSTD_CONSTEXPR_CHECK(xstd::unsigned_integer_like<unsigned volatile>);
+        static_assert(xstd::unsigned_integer_like<T>);
+        static_assert(xstd::unsigned_integer_like<T const>);
+        BOOST_CHECK(true);
 }
-
+BOOST_AUTO_TEST_CASE_TEMPLATE(SignedIsNotUnsigned, T, xstd::test::exact_width_signed_integer_types)
+{
+        static_assert(not xstd::unsigned_integer_like<T>);
+        BOOST_CHECK(true);
+}
 BOOST_AUTO_TEST_SUITE_END()

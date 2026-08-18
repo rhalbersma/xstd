@@ -3,17 +3,18 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/cstdlib/div.hpp>            // div
-#include <xstd/test/constexpr.hpp>         // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
-#include <xstd/test/exact_width_types.hpp> // exact_width_signed_types, exact_width_unsigned_types
-#include <boost/test/unit_test.hpp>        // Boost.Test
-#include <limits>                          // numeric_limits
+#include <xstd/cstdlib/div.hpp>                     // div
+#include <xstd/test/constexpr_check.hpp>            // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
+#include <xstd/test/boost_test_print_log_value.hpp> // Boost.Test rendering for integer-like values
+#include <xstd/test/exact_width_types.hpp>          // exact_width_signed_integer_types, exact_width_unsigned_integer_types
+#include <boost/test/unit_test.hpp>                 // Boost.Test
+#include <limits>                                   // numeric_limits
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
 // http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(TruncatedDiv, T, xstd::test::exact_width_signed_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(TruncatedDiv, T, xstd::test::exact_width_signed_integer_types)
 {
         XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{+8}, T{+3})), (xstd::div_t<T>{+2, +2}));
         XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{+8}, T{-3})), (xstd::div_t<T>{-2, +2}));
@@ -25,7 +26,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(TruncatedDiv, T, xstd::test::exact_width_signed_ty
         XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{-1}, T{-2})), (xstd::div_t<T>{0, -1}));
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(TruncatedDivUnsigned, T, xstd::test::exact_width_unsigned_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(TruncatedDivUnsigned, T, xstd::test::exact_width_unsigned_integer_types)
 {
         XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{8}, T{3})), (xstd::div_t<T>{2, 2}));
         XSTD_CONSTEXPR_CHECK_EQUAL((xstd::div(T{1}, T{2})), (xstd::div_t<T>{0, 1}));
