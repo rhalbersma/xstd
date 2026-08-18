@@ -3,6 +3,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
+#include <xstd/concepts/integer.hpp>                   // NOLINT(misc-include-cleaner): used with optional Abseil fixtures
 #include <xstd/concepts/nothrow_integer_operators.hpp> // nothrow_integer_operators
 #include <xstd/cstdint.hpp>                            // int128, uint128
 #include <xstd/cstdlib/abs.hpp>                        // abs
