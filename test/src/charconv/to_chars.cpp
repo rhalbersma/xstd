@@ -74,6 +74,11 @@ BOOST_AUTO_TEST_CASE(DelegatesWhereTheStandardLibraryCovers)
 BOOST_AUTO_TEST_CASE(CharacterTypesStayInTheConversionDomain)
 {
         static_assert(not xstd::integer<char>);
+        static_assert(has_std_to_chars<char>);
+        static_assert(has_std_to_chars<wchar_t>);
+        static_assert(has_std_to_chars<char8_t>);
+        static_assert(has_std_to_chars<char16_t>);
+        static_assert(has_std_to_chars<char32_t>);
         static_assert(has_xstd_to_chars<char>);
         static_assert(has_xstd_to_chars<wchar_t>);
         static_assert(has_xstd_to_chars<char8_t>);
