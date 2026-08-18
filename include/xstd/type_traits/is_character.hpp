@@ -11,31 +11,25 @@
 namespace xstd {
 
 template<class T>
-struct is_character : std::bool_constant<false>
-{};
+inline constexpr auto is_character_v = false;
 
 template<>
-struct is_character<char> : std::bool_constant<true>
-{};
+inline constexpr auto is_character_v<char> = true;
 
 template<>
-struct is_character<wchar_t> : std::bool_constant<true>
-{};
+inline constexpr auto is_character_v<wchar_t> = true;
 
 template<>
-struct is_character<char8_t> : std::bool_constant<true>
-{};
+inline constexpr auto is_character_v<char8_t> = true;
 
 template<>
-struct is_character<char16_t> : std::bool_constant<true>
-{};
+inline constexpr auto is_character_v<char16_t> = true;
 
 template<>
-struct is_character<char32_t> : std::bool_constant<true>
-{};
+inline constexpr auto is_character_v<char32_t> = true;
 
 template<class T>
-inline constexpr auto is_character_v = is_character<T>::value;
+using is_character = std::bool_constant<is_character_v<T>>;
 
 } // namespace xstd
 
