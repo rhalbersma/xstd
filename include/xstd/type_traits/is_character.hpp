@@ -17,15 +17,19 @@ struct is_character : std::bool_constant<false>
 template<>
 struct is_character<char> : std::bool_constant<true>
 {};
+
 template<>
 struct is_character<wchar_t> : std::bool_constant<true>
 {};
+
 template<>
 struct is_character<char8_t> : std::bool_constant<true>
 {};
+
 template<>
 struct is_character<char16_t> : std::bool_constant<true>
 {};
+
 template<>
 struct is_character<char32_t> : std::bool_constant<true>
 {};
