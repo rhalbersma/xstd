@@ -34,17 +34,17 @@ struct make_unsigned<I> : std::type_identity<I>
 {};
 
 template<class T>
-        requires requires { typename make_unsigned_t<T>; }
+        requires requires { typename make_unsigned<T>::type; }
 struct make_unsigned<T const> : std::type_identity<std::add_const_t<make_unsigned_t<T>>>
 {};
 
 template<class T>
-        requires requires { typename make_unsigned_t<T>; }
+        requires requires { typename make_unsigned<T>::type; }
 struct make_unsigned<T volatile> : std::type_identity<std::add_volatile_t<make_unsigned_t<T>>>
 {};
 
 template<class T>
-        requires requires { typename make_unsigned_t<T>; }
+        requires requires { typename make_unsigned<T>::type; }
 struct make_unsigned<T const volatile> : std::type_identity<std::add_cv_t<make_unsigned_t<T>>>
 {};
 
