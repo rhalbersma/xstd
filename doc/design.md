@@ -308,8 +308,9 @@ reach into a user-defined namespace, but `<xstd/cstdint.hpp>` exists precisely
 because the standard header lacks the type, so the day it gains one is the day
 the two spellings collide. Boost.Int128 renamed the same way during its review.
 
-Their two associations live in `<xstd/cstdint.hpp>`, beside the aliases and not
-inside the traits, which is where `test/include/xstd/test/` puts Abseil's and
+Their two associations live in `<xstd/cstdint/int128.hpp>`, beside the aliases
+and not inside the traits; `<xstd/cstdint.hpp>` is the umbrella that exports
+them. This is where `test/include/xstd/test/` puts Abseil's and
 Boost.Int128's: the header that introduces a pair registers it, so whoever can
 name the type has the specializations in scope and cannot reach the type through
 a translation unit that would answer differently. It also leaves `make_signed`

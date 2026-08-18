@@ -9,13 +9,12 @@
 // Helper classes
 #include <xstd/type_traits/empty_type.hpp> // IWYU pragma: export; empty_type
 
-// Primary type categories
-
-// Composite type categories
-
 // Type properties
 #include <xstd/type_traits/is_signed.hpp>   // IWYU pragma: export; is_signed
 #include <xstd/type_traits/is_unsigned.hpp> // IWYU pragma: export; is_unsigned
+
+// Type property specifiers
+#include <xstd/type_traits/no_unique_address.hpp> // IWYU pragma: export; XSTD_NO_UNIQUE_ADDRESS
 
 // Type relationships
 #include <xstd/type_traits/is_specialization_of.hpp> // IWYU pragma: export; is_specialization_of
@@ -25,6 +24,6 @@
 #include <xstd/type_traits/make_unsigned.hpp> // IWYU pragma: export; make_unsigned
 
 // Miscellaneous transformations
-#include <xstd/type_traits/conditional_data_member.hpp> // IWYU pragma: export; XSTD_NO_UNIQUE_ADDRESS, conditional_data_member_t
+#include <xstd/type_traits/conditional_data_member.hpp> // IWYU pragma: export; conditional_data_member_t
 
 #endif // XSTD_TYPE_TRAITS_HPP
