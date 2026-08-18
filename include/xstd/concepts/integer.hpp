@@ -18,9 +18,8 @@ namespace xstd {
 // P3701R0's arithmetic boundary, extended with xstd's paired integer-class types.
 template<class T>
 concept integer =
-        std::same_as<T, std::remove_cv_t<T>> and
-        (not std::same_as<T, bool>) and
-        (not is_character_v<T>) and
+        (not is_character_v<std::remove_cv_t<T>>) and
+        (not std::same_as<std::remove_cv_t<T>, bool>) and
         (std::integral<T> or integer_class<T>) and
         requires {
                 typename make_signed_t<T>;

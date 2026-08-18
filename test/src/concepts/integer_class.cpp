@@ -13,6 +13,9 @@ BOOST_AUTO_TEST_SUITE(Concepts)
 BOOST_AUTO_TEST_CASE_TEMPLATE(IntegerClass, T, xstd::test::exact_width_integer_types)
 {
         static_assert(xstd::integer_class<T> == (not std::integral<T>));
+        static_assert(xstd::integer_class<T const> == (not std::integral<T>));
+        static_assert(xstd::integer_class<T volatile> == (not std::integral<T>));
+        static_assert(xstd::integer_class<T const volatile> == (not std::integral<T>));
         BOOST_CHECK(true);
 }
 
