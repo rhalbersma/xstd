@@ -10,6 +10,7 @@
 #include <xstd/cstdlib/div.hpp>               // div
 #include <xstd/type_traits/is_character.hpp>  // is_character_v
 #include <xstd/type_traits/is_signed.hpp>     // is_signed_v
+#include <xstd/type_traits/make_signed.hpp>   // make_signed_t
 #include <xstd/type_traits/make_unsigned.hpp> // make_unsigned_t
 #include <cassert>                            // assert
 #include <charconv>                           // to_chars, to_chars_result
