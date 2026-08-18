@@ -11,11 +11,14 @@
 #include <xstd/cstdint.hpp>               // int128, uint128
 #include <xstd/cstdlib/div_t.hpp>         // div_t
 #include <boost/test/unit_test.hpp>       // print_log_value
-#include <array>                          // array
-#include <cassert>                        // assert
-#include <ostream>                        // ostream
-#include <string_view>                    // string_view
-#include <system_error>                   // errc
+#ifdef __BITINT_MAXWIDTH__
+#include <xstd/test/bit_integer.hpp> // bit_integer
+#endif
+#include <array>        // array
+#include <cassert>      // assert
+#include <ostream>      // ostream
+#include <string_view>  // string_view
+#include <system_error> // errc
 
 namespace xstd::test {
 
@@ -32,14 +35,36 @@ auto print_integer_like(std::ostream& ostr, I const value) -> void
 
 namespace boost::test_tools::tt_detail {
 
-template<xstd::integer_like I>
-struct print_log_value<I>
+template<>
+struct print_log_value<xstd::int128>
 {
-        auto operator()(std::ostream& ostr, I const value) const -> void
+        auto operator()(std::ostream& ostr, xstd::int128 const value) const -> void
         {
                 xstd::test::print_integer_like(ostr, value);
         }
 };
+
+template<>
+struct print_log_value<xstd::uint128>
+{
+        auto operator()(std::ostream& ostr, xstd::uint128 const value) const -> void
+        {
+                xstd::test::print_integer_like(ostr, value);
+        }
+};
+
+#ifdef __BITINT_MAXWIDTH__
+
+template<class Storage>
+struct print_log_value<xstd::test::bit_integer<Storage>>
+{
+        auto operator()(std::ostream& ostr, xstd::test::bit_integer<Storage> const value) const -> void
+        {
+                xstd::test::print_integer_like(ostr, value);
+        }
+};
+
+#endif // __BITINT_MAXWIDTH__
 
 template<xstd::integer_like I>
 struct print_log_value<xstd::div_t<I>>
