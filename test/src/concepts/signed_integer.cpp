@@ -4,8 +4,8 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/concepts/signed_integer.hpp> // signed_integer
-#include <xstd/test/exact_width_types.hpp>       // exact-width integer types
-#include <boost/test/unit_test.hpp>              // Boost.Test
+#include <xstd/test/exact_width_types.hpp>  // exact-width integer types
+#include <boost/test/unit_test.hpp>         // Boost.Test
 
 BOOST_AUTO_TEST_SUITE(Concepts)
 BOOST_AUTO_TEST_CASE_TEMPLATE(SignedInteger, T, xstd::test::exact_width_signed_integer_types)

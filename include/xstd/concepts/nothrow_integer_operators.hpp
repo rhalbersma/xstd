@@ -7,9 +7,9 @@
 #define XSTD_CONCEPTS_NOTHROW_INTEGER_OPERATORS_HPP
 
 #include <xstd/concepts/integer.hpp> // integer
-#include <concepts>                       // same_as
-#include <cstddef>                        // size_t
-#include <type_traits>                    // remove_cv_t
+#include <concepts>                  // same_as
+#include <cstddef>                   // size_t
+#include <type_traits>               // remove_cv_t
 
 namespace xstd {
 

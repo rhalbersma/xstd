@@ -3,10 +3,10 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/concepts/integer.hpp>  // integer
+#include <xstd/concepts/integer.hpp>       // integer
 #include <xstd/test/exact_width_types.hpp> // exact_width_integer_types
 #include <boost/test/unit_test.hpp>
-#include <cstdint>        // Boost.Test
+#include <cstdint> // Boost.Test
 
 BOOST_AUTO_TEST_SUITE(Concepts)
 BOOST_AUTO_TEST_CASE_TEMPLATE(Integer, T, xstd::test::exact_width_integer_types)

@@ -4,8 +4,8 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/cstdint.hpp>                // int128
-#include <xstd/cstdlib/div_result.hpp>          // div_result
-#include <xstd/format/div_result.hpp>           // IWYU pragma: keep; formatter<div_result>
+#include <xstd/cstdlib/div_result.hpp>     // div_result
+#include <xstd/format/div_result.hpp>      // IWYU pragma: keep; formatter<div_result>
 #include <xstd/test/exact_width_types.hpp> // exact_width_signed_integer_types
 #include <boost/test/unit_test.hpp>        // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_CHECK, BOOST_CHECK_EQUAL
 #include <format>                          // format

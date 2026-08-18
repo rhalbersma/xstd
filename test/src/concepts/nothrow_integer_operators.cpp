@@ -3,12 +3,11 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/concepts/integer.hpp>              // integer
 #include <xstd/concepts/nothrow_integer_operators.hpp> // nothrow_integer_operators
 #include <xstd/cstdint.hpp>                            // int128, uint128
 #include <xstd/cstdlib/abs.hpp>                        // abs
 #include <xstd/cstdlib/div.hpp>                        // div
-#include <xstd/test/absl_int128.hpp>                   // XSTD_TEST_HAS_ABSL_INT128, absl_int128, absl_uint128
+#include <xstd/test/absl_int128.hpp>                   // NOLINT(misc-include-cleaner): conditionally supplies the optional fixtures
 #include <xstd/test/constexpr_check.hpp>               // XSTD_CONSTEXPR_CHECK
 #include <boost/test/unit_test.hpp>                    // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <complex>                                     // complex

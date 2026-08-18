@@ -6,16 +6,16 @@
 #ifndef XSTD_FORMAT_DIV_RESULT_HPP
 #define XSTD_FORMAT_DIV_RESULT_HPP
 
-#include <xstd/charconv/to_chars.hpp>     // to_chars, to_chars_max_size
-#include <xstd/concepts/integer.hpp>      // integer
-#include <xstd/cstdlib/div_result.hpp>     // div_result
-#include <array>                          // array
-#include <cassert>                        // assert
-#include <format>                         // formatter
-#include <string>                         // basic_string
-#include <string_view>                    // basic_string_view
-#include <system_error>                   // errc
-#include <tuple>                          // tie, tuple
+#include <xstd/charconv/to_chars.hpp>  // to_chars, to_chars_max_size
+#include <xstd/concepts/integer.hpp>   // integer
+#include <xstd/cstdlib/div_result.hpp> // div_result
+#include <array>                       // array
+#include <cassert>                     // assert
+#include <format>                      // formatter
+#include <string>                      // basic_string
+#include <string_view>                 // basic_string_view
+#include <system_error>                // errc
+#include <tuple>                       // tie, tuple
 
 // A div_result renders as "(quotient, remainder)": by the tuple formatter, or by xstd::to_chars.
 

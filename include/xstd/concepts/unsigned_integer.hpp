@@ -6,7 +6,7 @@
 #ifndef XSTD_CONCEPTS_UNSIGNED_INTEGER_HPP
 #define XSTD_CONCEPTS_UNSIGNED_INTEGER_HPP
 
-#include <xstd/concepts/integer.hpp>   // integer
+#include <xstd/concepts/integer.hpp>        // integer
 #include <xstd/type_traits/is_unsigned.hpp> // is_unsigned_v
 
 namespace xstd {

@@ -8,7 +8,7 @@
 
 #include <xstd/concepts/integer.hpp>                   // integer
 #include <xstd/concepts/nothrow_integer_operators.hpp> // nothrow_integer_operators
-#include <xstd/cstdlib/div_result.hpp>                  // IWYU pragma: export; div_result
+#include <xstd/cstdlib/div_result.hpp>                 // IWYU pragma: export; div_result
 #include <xstd/cstdlib/sign.hpp>                       // sign
 #include <xstd/cstdlib/unsigned_abs.hpp>               // unsigned_abs
 #include <xstd/type_traits/is_signed.hpp>              // is_signed_v

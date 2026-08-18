@@ -73,7 +73,7 @@ template<detail::integer_or_character I>
         // Reduced once here, not per digit; both are well-formed and branchless when unsigned.
         auto const zero = static_cast<I>(0);
         auto const negative = value < zero;
-        auto const magnitude = negative ? U{} - static_cast<U>(value) : static_cast<U>(value);
+        auto const magnitude = static_cast<U>(negative ? U{} - static_cast<U>(value) : static_cast<U>(value));
 
         // Converted rather than selected: a conditional would be one-sided when unsigned.
         auto const sign_width = static_cast<std::ptrdiff_t>(negative);

@@ -4,6 +4,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/charconv/to_chars.hpp>      // to_chars, to_chars_max_size
+#include <xstd/concepts/integer.hpp>       // integer
 #include <xstd/cstdint.hpp>                // int128, uint128
 #include <xstd/test/exact_width_types.hpp> // std_signed_types, exact_width_signed_integer_types, exact_width_unsigned_integer_types
 #include <boost/test/unit_test.hpp>        // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_CHECK, BOOST_CHECK_EQUAL
