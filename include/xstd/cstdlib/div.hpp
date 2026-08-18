@@ -6,9 +6,9 @@
 #ifndef XSTD_CSTDLIB_DIV_HPP
 #define XSTD_CSTDLIB_DIV_HPP
 
-#include <xstd/concepts/integer_like.hpp>              // integer_like
+#include <xstd/concepts/integer.hpp>                   // integer
 #include <xstd/concepts/nothrow_integer_operators.hpp> // nothrow_integer_operators
-#include <xstd/cstdlib/div_t.hpp>                      // IWYU pragma: export; div_t
+#include <xstd/cstdlib/div_result.hpp>                 // IWYU pragma: export; div_result
 #include <xstd/cstdlib/sign.hpp>                       // sign
 #include <xstd/cstdlib/unsigned_abs.hpp>               // unsigned_abs
 #include <xstd/type_traits/is_signed.hpp>              // is_signed_v
@@ -18,9 +18,9 @@
 namespace xstd {
 
 // Truncated division, as specified by [expr.mul].
-template<integer_like I>
+template<integer I>
 [[nodiscard]] constexpr auto div(I numer, I denom) noexcept(nothrow_integer_operators<I>)
-        -> div_t<I>
+        -> div_result<I>
 {
         assert(denom != static_cast<I>(0));
         // Only a signed type has a MIN to reach it with; unsigned, this refuses div(0, max).
@@ -30,10 +30,10 @@ template<integer_like I>
         auto const qT = static_cast<I>(numer / denom);
         auto const rT = static_cast<I>(numer % denom);
         assert(numer == static_cast<I>(static_cast<I>(denom * qT) + rT));
-        // Said on the counterpart every integer_like type has, |MIN| fitting in no other.
+        // Said on the counterpart every integer type has, |MIN| fitting in no other.
         assert(xstd::unsigned_abs(rT) < xstd::unsigned_abs(denom));
         assert(xstd::sign(rT) == xstd::sign(numer) or rT == static_cast<I>(0));
-        return {.quot = qT, .rem = rT};
+        return {.quotient = qT, .remainder = rT};
 }
 
 } // namespace xstd

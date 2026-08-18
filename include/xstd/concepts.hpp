@@ -7,11 +7,11 @@
 #define XSTD_CONCEPTS_HPP
 
 // Core language concepts
-#include <xstd/concepts/integer_class.hpp>         // IWYU pragma: export; integer_class
-#include <xstd/concepts/integer_like.hpp>          // IWYU pragma: export; integer_like
-#include <xstd/concepts/signed_integer_like.hpp>   // IWYU pragma: export; signed_integer_like
-#include <xstd/concepts/unsigned_integer_like.hpp> // IWYU pragma: export; unsigned_integer_like
-#include <xstd/concepts/specialization_of.hpp>     // IWYU pragma: export; specialization_of
+#include <xstd/concepts/integer_class.hpp>     // IWYU pragma: export; integer_class
+#include <xstd/concepts/integer.hpp>           // IWYU pragma: export; integer
+#include <xstd/concepts/signed_integer.hpp>    // IWYU pragma: export; signed_integer
+#include <xstd/concepts/unsigned_integer.hpp>  // IWYU pragma: export; unsigned_integer
+#include <xstd/concepts/specialization_of.hpp> // IWYU pragma: export; specialization_of
 
 // Domain and exception specification of the integer functions
 #include <xstd/concepts/nothrow_integer_operators.hpp> // IWYU pragma: export; nothrow_integer_operators

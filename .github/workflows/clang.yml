@@ -85,7 +85,7 @@ jobs:
             lld-${{ matrix.version }} \
             clangd-${{ matrix.version }}
 
-      # Each Clang paired with a matching libstdc++, the div_t formatter
+      # Each Clang paired with a matching libstdc++, the div_result formatter
       # needing its std::formatter<tuple>.
       - name: Install libstdc++ ${{ matrix.gcc_version }}
         if: "!matrix.gcc_trunk"

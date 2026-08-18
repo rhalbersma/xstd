@@ -12,10 +12,10 @@
 #include <limits>      // numeric_limits
 #include <type_traits> // remove_cv_t
 
-// [iterator.concept.winc]'s integer-class type, which integer_like admits alongside integral.
+// [iterator.concept.winc]'s integer-class type, which integer admits alongside integral.
 namespace xstd {
 
-// /2's "behave as integer types do", spelled out; the term alone, the pair being integer_like's.
+// /2's "behave as integer types do", spelled out; the term alone, the pair being integer's.
 template<class T_cv, class T = std::remove_cv_t<T_cv>>
 concept integer_class =
         // T is the parameter's own default; naming it explicitly cannot redirect the question.

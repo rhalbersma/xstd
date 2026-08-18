@@ -6,6 +6,6 @@
 #ifndef XSTD_FORMAT_HPP
 #define XSTD_FORMAT_HPP
 
-#include <xstd/format/div_t.hpp> // IWYU pragma: export; formatter<div_t>
+#include <xstd/format/div_result.hpp> // IWYU pragma: export; formatter<div_result>
 
 #endif // XSTD_FORMAT_HPP

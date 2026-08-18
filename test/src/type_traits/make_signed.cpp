@@ -6,7 +6,7 @@
 #include <xstd/type_traits/make_signed.hpp> // make_signed
 #include <xstd/test/constexpr_check.hpp>
 #include <xstd/test/exact_width_types.hpp> // exact-width integer types
-#include <xstd/concepts.hpp>               // signed_integer_like, unsigned_integer_like          // XSTD_CONSTEXPR_CHECK
+#include <xstd/concepts.hpp>               // signed_integer, unsigned_integer          // XSTD_CONSTEXPR_CHECK
 #include <boost/test/unit_test.hpp>        // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <concepts>                        // same_as
 #include <cstdint>                         // int8_t, uint8_t
@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(MakeSignedLike)
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(ExactWidthIntegers, T, xstd::test::exact_width_unsigned_integer_types)
 {
-        static_assert(xstd::signed_integer_like<xstd::make_signed_t<T>>);
+        static_assert(xstd::signed_integer<xstd::make_signed_t<T>>);
         BOOST_CHECK(true);
 }
 

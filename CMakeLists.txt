@@ -37,11 +37,11 @@ target_sources(
     FILES
         include/xstd/concepts.hpp
         include/xstd/concepts/integer_class.hpp
-        include/xstd/concepts/integer_like.hpp
+        include/xstd/concepts/integer.hpp
         include/xstd/concepts/nothrow_integer_operators.hpp
-        include/xstd/concepts/signed_integer_like.hpp
+        include/xstd/concepts/signed_integer.hpp
         include/xstd/concepts/specialization_of.hpp
-        include/xstd/concepts/unsigned_integer_like.hpp
+        include/xstd/concepts/unsigned_integer.hpp
         include/xstd/charconv.hpp
         include/xstd/charconv/to_chars.hpp
         include/xstd/cstdint.hpp
@@ -49,17 +49,18 @@ target_sources(
         include/xstd/cstdlib.hpp
         include/xstd/cstdlib/abs.hpp
         include/xstd/cstdlib/div.hpp
-        include/xstd/cstdlib/div_t.hpp
-        include/xstd/cstdlib/euclidean_div.hpp
-        include/xstd/cstdlib/floored_div.hpp
+        include/xstd/cstdlib/div_result.hpp
+        include/xstd/cstdlib/div_euclid.hpp
+        include/xstd/cstdlib/div_floor.hpp
         include/xstd/cstdlib/sign.hpp
         include/xstd/cstdlib/unsigned_abs.hpp
         include/xstd/format.hpp
-        include/xstd/format/div_t.hpp
+        include/xstd/format/div_result.hpp
         include/xstd/memory.hpp
         include/xstd/type_traits.hpp
         include/xstd/type_traits/conditional_data_member.hpp
         include/xstd/type_traits/empty_type.hpp
+        include/xstd/type_traits/is_character.hpp
         include/xstd/type_traits/is_signed.hpp
         include/xstd/type_traits/is_specialization_of.hpp
         include/xstd/type_traits/is_unsigned.hpp

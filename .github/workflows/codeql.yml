@@ -47,7 +47,7 @@ jobs:
           languages: c-cpp
           queries: security-extended
 
-      # The div_t formatter needs libstdc++'s std::formatter<tuple>, which the
+      # The div_result formatter needs libstdc++'s std::formatter<tuple>, which the
       # image's default GCC 13 does not fully provide.
       - name: Install a <format>-capable GCC
         run: |

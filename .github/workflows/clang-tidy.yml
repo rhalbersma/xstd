@@ -43,7 +43,7 @@ jobs:
           sudo ./llvm.sh 22
           sudo apt-get install -y clang-tidy-22
 
-      # A known-good g++ purely for its libstdc++, the div_t formatter needing
+      # A known-good g++ purely for its libstdc++, the div_result formatter needing
       # std::formatter<tuple>; Clang picks up the newest one it finds.
       - name: Install a <format>-capable libstdc++
         run: |

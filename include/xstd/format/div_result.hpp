@@ -3,21 +3,21 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_FORMAT_DIV_T_HPP
-#define XSTD_FORMAT_DIV_T_HPP
+#ifndef XSTD_FORMAT_DIV_RESULT_HPP
+#define XSTD_FORMAT_DIV_RESULT_HPP
 
-#include <xstd/charconv/to_chars.hpp>     // to_chars, to_chars_max_size
-#include <xstd/concepts/integer_like.hpp> // integer_like
-#include <xstd/cstdlib/div_t.hpp>         // div_t
-#include <array>                          // array
-#include <cassert>                        // assert
-#include <format>                         // formatter
-#include <string>                         // basic_string
-#include <string_view>                    // basic_string_view
-#include <system_error>                   // errc
-#include <tuple>                          // tie, tuple
+#include <xstd/charconv/to_chars.hpp>  // to_chars, to_chars_max_size
+#include <xstd/concepts/integer.hpp>   // integer
+#include <xstd/cstdlib/div_result.hpp> // div_result
+#include <array>                       // array
+#include <cassert>                     // assert
+#include <format>                      // formatter
+#include <string>                      // basic_string
+#include <string_view>                 // basic_string_view
+#include <system_error>                // errc
+#include <tuple>                       // tie, tuple
 
-// A div_t renders as "(quot, rem)": by the tuple formatter, or by xstd::to_chars.
+// A div_result renders as "(quotient, remainder)": by the tuple formatter, or by xstd::to_chars.
 
 // The base's format() is not constexpr before P3391 (C++29); claiming it anyway is IFNDR.
 #if defined(__cpp_lib_constexpr_format) && __cpp_lib_constexpr_format >= 202511L
@@ -26,12 +26,12 @@
 #define XSTD_CONSTEXPR_FORMAT
 #endif
 
-// The one every renderable div_t matches; the string base carries fill, alignment and width.
-template<xstd::integer_like I, class CharT>
+// The one every renderable div_result matches; the string base carries fill, alignment and width.
+template<xstd::integer I, class CharT>
 // NOLINTNEXTLINE(bugprone-std-namespace-modification): permitted by [namespace.std]/2, see above
-struct std::formatter<xstd::div_t<I>, CharT> : std::formatter<std::basic_string_view<CharT>, CharT>
+struct std::formatter<xstd::div_result<I>, CharT> : std::formatter<std::basic_string_view<CharT>, CharT>
 {
-        [[nodiscard]] XSTD_CONSTEXPR_FORMAT auto format(xstd::div_t<I> const& d, auto& ctx) const
+        [[nodiscard]] XSTD_CONSTEXPR_FORMAT auto format(xstd::div_result<I> const& d, auto& ctx) const
                 -> decltype(ctx.out())
         {
                 constexpr auto N = xstd::to_chars_max_size<I>;
@@ -49,10 +49,10 @@ struct std::formatter<xstd::div_t<I>, CharT> : std::formatter<std::basic_string_
 
                 // Spelled to match the tuple formatter, so the two render identically.
                 widened.push_back(static_cast<CharT>('('));
-                append(d.quot);
+                append(d.quotient);
                 widened.push_back(static_cast<CharT>(','));
                 widened.push_back(static_cast<CharT>(' '));
-                append(d.rem);
+                append(d.remainder);
                 widened.push_back(static_cast<CharT>(')'));
 
                 return std::formatter<std::basic_string_view<CharT>, CharT>::format(widened, ctx);
@@ -60,19 +60,19 @@ struct std::formatter<xstd::div_t<I>, CharT> : std::formatter<std::basic_string_
 };
 
 // The more constrained one: asked after the tuple, which covers both ways it can be absent.
-template<xstd::integer_like I, class CharT>
+template<xstd::integer I, class CharT>
         requires std::formattable<std::tuple<I const&, I const&>, CharT>
 // NOLINTNEXTLINE(bugprone-std-namespace-modification): permitted by [namespace.std]/2, see above
-struct std::formatter<xstd::div_t<I>, CharT> : std::formatter<std::tuple<I const&, I const&>, CharT>
+struct std::formatter<xstd::div_result<I>, CharT> : std::formatter<std::tuple<I const&, I const&>, CharT>
 {
-        [[nodiscard]] XSTD_CONSTEXPR_FORMAT auto format(xstd::div_t<I> const& d, auto& ctx) const
+        [[nodiscard]] XSTD_CONSTEXPR_FORMAT auto format(xstd::div_result<I> const& d, auto& ctx) const
                 -> decltype(ctx.out())
         {
                 // tie yields the base's own type, so nothing is copied on the way in.
-                return std::formatter<std::tuple<I const&, I const&>, CharT>::format(std::tie(d.quot, d.rem), ctx);
+                return std::formatter<std::tuple<I const&, I const&>, CharT>::format(std::tie(d.quotient, d.remainder), ctx);
         }
 };
 
 #undef XSTD_CONSTEXPR_FORMAT
 
-#endif // XSTD_FORMAT_DIV_T_HPP
+#endif // XSTD_FORMAT_DIV_RESULT_HPP
