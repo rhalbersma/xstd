@@ -11,7 +11,9 @@ BOOST_AUTO_TEST_SUITE(Concepts)
 BOOST_AUTO_TEST_CASE_TEMPLATE(SignedInteger, T, xstd::test::exact_width_signed_integer_types)
 {
         static_assert(xstd::signed_integer<T>);
-        static_assert(not xstd::signed_integer<T const>);
+        static_assert(xstd::signed_integer<T const>);
+        static_assert(xstd::signed_integer<T volatile>);
+        static_assert(xstd::signed_integer<T const volatile>);
         BOOST_CHECK(true);
 }
 BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedIsNotSigned, T, xstd::test::exact_width_unsigned_integer_types)

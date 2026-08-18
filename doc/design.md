@@ -28,8 +28,8 @@ across the tested toolchains. Consumers need no third-party dependencies.
 
 [P3701R0](https://wg21.link/P3701R0) supplies the `integer`,
 `signed_integer`, and `unsigned_integer` vocabulary and its built-in arithmetic
-boundary. The public concept accepts cv-unqualified standard and extended integer
-types except `bool`, `char`, `wchar_t`, `char8_t`, `char16_t`, and `char32_t`.
+boundary. The public concept is cv-transparent and accepts standard and extended
+integer types except `bool`, `char`, `wchar_t`, `char8_t`, `char16_t`, and `char32_t`.
 `signed char` and `unsigned char` remain integers, so `int8_t` and `uint8_t`
 remain supported where they are aliases of those types.
 
@@ -40,9 +40,9 @@ integer-class type. The refinements use xstd's open signedness traits, preservin
 concept subsumption across built-in, extended, bit-precise, and paired class
 integers.
 
-Character conversion has a deliberately local, broader constraint. `to_chars`
-and `to_chars_max_size` accept either `integer` or one of the five character
-types after cv normalization, while the public arithmetic concept stays narrow.
+Character conversion delegates every non-`bool` standard integral type directly
+to `std::to_chars`, while its fallback accepts only `integer` types the standard
+library does not cover.
 
 ### Conditional `noexcept`
 
@@ -177,11 +177,11 @@ the wrapped one writes its own.
 
 ### Character conversion
 
-`xstd::to_chars` covers every xstd integer and the five character types. Where the
-standard library covers the type it *is* that call, so callers get the tuned
-implementation; where it does not, the digits are produced here to the same
-specification, bases 2 through 36 and `value_too_large` included. The default
-base is written as the literal `10`, as [charconv.to.chars] writes it, so the two
+`xstd::to_chars` delegates every non-`bool` standard integral type directly to
+the standard library, so callers get its tuned implementation. For an xstd
+`integer` that `std::to_chars` does not cover, the digits are produced here to
+the same specification, bases 2 through 36 and `value_too_large` included. The
+default base is written as the literal `10`, as [charconv.to.chars] writes it, so the two
 signatures read alike; `readability-magic-numbers` is suppressed a line at a time
 rather than taught to ignore `10` throughout.
 
@@ -207,25 +207,19 @@ in a buffer it then reports as too small. That the walk cannot start before ther
 room for the first digit and the sign is why `value_too_large` has two returns,
 both covered per type since gcov records them per instantiation.
 
-The two overloads are kept apart by subsumption rather than by hand: the
-delegating one requires a `std::to_chars` call to be well-formed *on top of*
-`integer`, and a conjunction subsumes its left operand, so it wins partial
-ordering wherever both are viable. Spelling the other as the negation would work
-too, but a negated atomic constraint does not subsume, so exclusivity and
-exhaustiveness would become an invariant to maintain across two edits instead of
-a property of the constraints. The constraint is that call itself, there being no
-standard concept for "the standard library converts this type"; it stays an answer
-rather than an error because `I` is the overload's own parameter, which keeps the
-expression dependent until the constraint is checked. It is spelled as a named
-concept a few lines above rather than inline, so that each overload's
-requires-clause is one line and one conjunction — a requires-expression nested
-inside a requires-clause reads as neither one thing nor two, and with
-`ColumnLimit: 0` its continuation indent is the formatter's to choose.
+The overloads state the split literally. The delegating overload accepts
+`std::integral` except `bool`; the fallback accepts `integer` only when a
+`std::to_chars` call is not well-formed. That detection is written directly in
+the fallback's constraint; it stays an answer rather than an error because `I`
+keeps the expression dependent until the constraint is checked. Between the two
+templates, a deleted `bool` overload mirrors the standard explicitly rather than
+leaving the rejection as an incidental result of their constraints.
 
-Their order in the header is reading order: the standard's own call, then the
-deletion the standard also makes, then the fallback for what neither covers. It
-once could not be. gcov names only the first group of functions sharing a start
-line in a file, and gcovr keyed its cross-translation-unit merge on those names,
+Their order in the header is reading order: the standard's own domain, then the
+deleted `bool`, then the fallback for what it does not cover. It once could not
+be. gcov names only the
+first group of functions sharing a start line in a file, and gcovr keyed its
+cross-translation-unit merge on those names,
 so an unnamed group merged with nothing; the digits body contains lines no other
 translation unit can reach — the short-buffer returns — so it had to be the named
 one, and ordered the other way the file measured 98% and the coverage gate
@@ -247,7 +241,7 @@ resolution failing is still failing in the immediate context.
 `formatter<__int128, CharT>` *only* under `__STRICT_ANSI__`. So the three
 facilities disagree about one type along different axes: `<format>` works only in
 the strict dialect, `<charconv>` only outside it, and `<ostream>` in neither.
-`bool` is outside the conversion constraint, and `to_chars` is explicitly deleted for it as in the standard.
+`bool` is outside both conversion constraints.
 
 ### Formatting
 

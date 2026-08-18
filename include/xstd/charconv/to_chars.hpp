@@ -8,13 +8,11 @@
 
 #include <xstd/concepts/integer.hpp>          // integer
 #include <xstd/cstdlib/div.hpp>               // div
-#include <xstd/type_traits/is_character.hpp>  // is_character_v
 #include <xstd/type_traits/is_signed.hpp>     // is_signed_v
-#include <xstd/type_traits/make_signed.hpp>   // make_signed_t
 #include <xstd/type_traits/make_unsigned.hpp> // make_unsigned_t
 #include <cassert>                            // assert
 #include <charconv>                           // to_chars, to_chars_result
-#include <concepts>                           // same_as
+#include <concepts>                           // integral, same_as
 #include <cstddef>                            // ptrdiff_t, size_t
 #include <iterator>                           // distance, next
 #include <limits>                             // numeric_limits
@@ -23,46 +21,32 @@
 
 namespace xstd {
 
-namespace detail {
-
-template<class T>
-concept integer_or_character = integer<T> or is_character_v<std::remove_cv_t<T>>;
-
-} // namespace detail
-
-// Named, not written inline, so each requires-clause below stays one line and one conjunction.
-template<class I>
-concept std_to_chars_covers = requires (char* p, I value, int base) {
-        { std::to_chars(p, p, value, base) } -> std::same_as<std::to_chars_result>;
-};
-
 // Worst case is base 2: one character per value bit, and two more when signed.
-template<detail::integer_or_character I>
+template<class I>
+        requires ((std::integral<I> and not std::same_as<std::remove_cv_t<I>, bool>) or integer<I>)
 inline constexpr auto to_chars_max_size =
         static_cast<std::size_t>(std::numeric_limits<I>::digits) + (is_signed_v<I> ? 2 : 0);
 
-// The standard's own call where it covers I; an ambiguous overload leaves this unsatisfied.
-template<detail::integer_or_character I>
-        requires std_to_chars_covers<I>
+// The standard's own integral domain, other than its deleted bool overload.
+template<std::integral I>
+        requires (not std::same_as<std::remove_cv_t<I>, bool>)
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
 [[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10)
         -> std::to_chars_result
 {
         assert(2 <= base and base <= 36);
-        if constexpr (integer<I>) {
-                return std::to_chars(first, last, value, base);
-        } else {
-                using C = std::conditional_t<is_signed_v<I>, make_signed_t<I>, make_unsigned_t<I>>;
-                return std::to_chars(first, last, static_cast<C>(value), base);
-        }
+        return std::to_chars(first, last, value, base);
 }
 
-// Deleted as the standard deletes it: bool is not a 1-bit integer, and true is no "1".
+// Deleted as in the standard: bool is not formatted as the integer 0 or 1.
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
 auto to_chars(char*, char*, bool, int = 10) -> std::to_chars_result = delete;
 
-// For the types the two above miss; less constrained, so a call prefers the standard's.
-template<detail::integer_or_character I>
+// For xstd integers the standard library does not cover.
+template<integer I>
+        requires (not requires (char* first, char* last, I value, int base) {
+                { std::to_chars(first, last, value, base) } -> std::same_as<std::to_chars_result>;
+        })
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
 [[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10)
         -> std::to_chars_result

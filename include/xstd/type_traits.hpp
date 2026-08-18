@@ -10,7 +10,7 @@
 #include <xstd/type_traits/empty_type.hpp> // IWYU pragma: export; empty_type
 
 // Type properties
-#include <xstd/type_traits/is_character.hpp> // IWYU pragma: export; is_character_v
+#include <xstd/type_traits/is_character.hpp> // IWYU pragma: export; is_character
 #include <xstd/type_traits/is_signed.hpp>    // IWYU pragma: export; is_signed
 #include <xstd/type_traits/is_unsigned.hpp>  // IWYU pragma: export; is_unsigned
 
