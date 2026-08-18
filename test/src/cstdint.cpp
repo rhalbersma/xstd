@@ -19,6 +19,12 @@ BOOST_AUTO_TEST_CASE(Int128)
         static_assert(sizeof(xstd::uint128) == 16);
         static_assert(std::numeric_limits<xstd::int128>::is_signed);
         static_assert(not std::numeric_limits<xstd::uint128>::is_signed);
+        static_assert(xstd::is_signed_v<xstd::int128 const>);
+        static_assert(xstd::is_signed_v<xstd::int128 volatile>);
+        static_assert(xstd::is_signed_v<xstd::int128 const volatile>);
+        static_assert(xstd::is_unsigned_v<xstd::uint128 const>);
+        static_assert(xstd::is_unsigned_v<xstd::uint128 volatile>);
+        static_assert(xstd::is_unsigned_v<xstd::uint128 const volatile>);
         static_assert(std::numeric_limits<xstd::int128>::digits == 127);
         static_assert(std::numeric_limits<xstd::uint128>::digits == 128);
         static_assert(xstd::signed_integer_like<xstd::int128>);
