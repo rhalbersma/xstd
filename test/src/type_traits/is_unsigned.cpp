@@ -4,9 +4,10 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/type_traits/is_unsigned.hpp> // is_unsigned
-#include <xstd/test/constexpr.hpp>          // XSTD_CONSTEXPR_CHECK
-#include <boost/test/unit_test.hpp>         // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
-#include <type_traits>                      // is_signed_v, is_unsigned_v
+#include <xstd/test/constexpr_check.hpp>
+#include <xstd/test/exact_width_types.hpp> // XSTD_CONSTEXPR_CHECK
+#include <boost/test/unit_test.hpp>        // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
+#include <type_traits>                     // is_signed_v, is_unsigned_v
 
 BOOST_AUTO_TEST_SUITE(TypeTraits)
 
@@ -22,6 +23,19 @@ BOOST_AUTO_TEST_CASE(AgreesWithStd)
         XSTD_CONSTEXPR_CHECK(xstd::is_unsigned_v<unsigned> == std::is_unsigned_v<unsigned>);
         XSTD_CONSTEXPR_CHECK(xstd::is_unsigned_v<double> == std::is_unsigned_v<double>);
         XSTD_CONSTEXPR_CHECK(xstd::is_unsigned_v<void> == std::is_unsigned_v<void>);
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(ExactWidthIntegers, T, xstd::test::exact_width_unsigned_integer_types)
+{
+        static_assert(xstd::is_unsigned_v<T>);
+        static_assert(xstd::is_unsigned_v<T const>);
+        BOOST_CHECK(true);
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(OppositeSignExactWidthIntegers, T, xstd::test::exact_width_signed_integer_types)
+{
+        static_assert(not xstd::is_unsigned_v<T>);
+        BOOST_CHECK(true);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

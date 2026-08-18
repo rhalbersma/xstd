@@ -4,12 +4,14 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/type_traits/make_unsigned.hpp> // make_unsigned
-#include <xstd/test/constexpr.hpp>            // XSTD_CONSTEXPR_CHECK
-#include <boost/test/unit_test.hpp>           // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
-#include <complex>                            // complex
-#include <concepts>                           // same_as
-#include <cstdint>                            // exact-width integer types
-#include <type_traits>                        // make_unsigned_t
+#include <xstd/test/constexpr_check.hpp>
+#include <xstd/test/exact_width_types.hpp> // exact-width integer types
+#include <xstd/concepts.hpp>               // signed_integer_like, unsigned_integer_like            // XSTD_CONSTEXPR_CHECK
+#include <boost/test/unit_test.hpp>        // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
+#include <complex>                         // complex
+#include <concepts>                        // same_as
+#include <cstdint>                         // exact-width integer types
+#include <type_traits>                     // make_unsigned_t
 
 BOOST_AUTO_TEST_SUITE(TypeTraits)
 
@@ -44,6 +46,12 @@ BOOST_AUTO_TEST_CASE(MakeUnsignedLike)
         XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_unsigned_t<int volatile>, unsigned volatile>));
         XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_unsigned_t<int const volatile>, unsigned const volatile>));
         XSTD_CONSTEXPR_CHECK(std::is_const_v<xstd::make_unsigned_t<color const>>);
+}
+
+BOOST_AUTO_TEST_CASE_TEMPLATE(ExactWidthIntegers, T, xstd::test::exact_width_signed_integer_types)
+{
+        static_assert(xstd::unsigned_integer_like<xstd::make_unsigned_t<T>>);
+        BOOST_CHECK(true);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

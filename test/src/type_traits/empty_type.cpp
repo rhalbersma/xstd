@@ -4,7 +4,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/type_traits/empty_type.hpp> // empty_type
-#include <xstd/test/constexpr.hpp>         // XSTD_CONSTEXPR_CHECK
+#include <xstd/test/constexpr_check.hpp>   // XSTD_CONSTEXPR_CHECK
 #include <boost/test/unit_test.hpp>        // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <compare>                         // strong_ordering
 #include <concepts>                        // regular, same_as, totally_ordered

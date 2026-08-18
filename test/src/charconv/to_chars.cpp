@@ -5,9 +5,7 @@
 
 #include <xstd/charconv/to_chars.hpp>      // to_chars, to_chars_max_size
 #include <xstd/cstdint.hpp>                // int128, uint128
-#include <xstd/concepts/integer_like.hpp>  // integer_like
-#include <xstd/test/exact_width_types.hpp> // std_signed_types, exact_width_signed_types, exact_width_unsigned_types
-#include <xstd/test/integer_class.hpp>     // conforming_int_class, unpaired_int_class
+#include <xstd/test/exact_width_types.hpp> // std_signed_types, exact_width_signed_integer_types, exact_width_unsigned_integer_types
 #include <boost/test/unit_test.hpp>        // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_CHECK, BOOST_CHECK_EQUAL
 #include <array>                           // array
 #include <charconv>                        // to_chars, to_chars_result
@@ -68,11 +66,8 @@ BOOST_AUTO_TEST_CASE(DelegatesWhereTheStandardLibraryCovers)
         {};
         static_assert(not has_std_to_chars<not_an_integer>);
 
-        // The digits come off the counterpart, which an integer-like type now always has.
-        static_assert(not xstd::integer_like<xstd::test::unpaired_int_class>);
-        static_assert(not has_xstd_to_chars<xstd::test::unpaired_int_class>);
-        static_assert(has_xstd_to_chars<xstd::test::conforming_int_class>);
-        static_assert(has_xstd_to_chars<xstd::test::conforming_signed_int_class>);
+        static_assert(has_xstd_to_chars<xstd::int128>);
+        static_assert(has_xstd_to_chars<xstd::uint128>);
 }
 
 // The load-bearing property: the two paths render byte-identically, at every base.
@@ -88,7 +83,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(DigitsPathMatchesTheStandard, T, xstd::test::std_s
 }
 
 // The worst case is min() in base 2, where a signed type needs two more characters.
-BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCase, T, xstd::test::exact_width_signed_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCase, T, xstd::test::exact_width_signed_integer_types)
 {
         auto buffer = std::array<char, xstd::to_chars_max_size<T>>{};
         auto const min = xstd::to_chars(buffer.data(), buffer.data() + buffer.size(), std::numeric_limits<T>::min(), 2);
@@ -107,7 +102,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCase, T, xstd::test::exact_wid
         BOOST_CHECK(empty.ptr == buffer.data());
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCaseUnsigned, T, xstd::test::exact_width_unsigned_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCaseUnsigned, T, xstd::test::exact_width_unsigned_integer_types)
 {
         auto buffer = std::array<char, xstd::to_chars_max_size<T>>{};
         auto const max = xstd::to_chars(buffer.data(), buffer.data() + buffer.size(), std::numeric_limits<T>::max(), 2);
@@ -124,7 +119,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCaseUnsigned, T, xstd::test::e
 }
 
 // Ground truth built here rather than borrowed, so a fault cannot produce its own expectation.
-BOOST_AUTO_TEST_CASE_TEMPLATE(HexBoundariesMatchGroundTruth, T, xstd::test::exact_width_signed_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(HexBoundariesMatchGroundTruth, T, xstd::test::exact_width_signed_integer_types)
 {
         // digits counts value bits, so the boundaries run that many hex characters past the first.
         constexpr auto rest = static_cast<std::size_t>(std::numeric_limits<T>::digits - 3) / 4;
@@ -140,7 +135,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(HexBoundariesMatchGroundTruth, T, xstd::test::exac
         BOOST_CHECK_EQUAL(rendered(T{+2}, 16), "2");
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(HexBoundariesMatchGroundTruthUnsigned, T, xstd::test::exact_width_unsigned_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(HexBoundariesMatchGroundTruthUnsigned, T, xstd::test::exact_width_unsigned_integer_types)
 {
         // No sign bit, so digits is the width and the answer is f's all the way.
         constexpr auto width = static_cast<std::size_t>(std::numeric_limits<T>::digits) / 4;
@@ -208,14 +203,14 @@ template<class T>
         return result.ec == std::errc{} and result.ptr != buffer.data();
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(UsableInAConstantExpressionPerType, T, xstd::test::exact_width_signed_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(UsableInAConstantExpressionPerType, T, xstd::test::constexpr_exact_width_signed_integer_types)
 {
         static_assert(renders_at_compile_time(std::numeric_limits<T>::min(), 10));
         static_assert(renders_at_compile_time(std::numeric_limits<T>::max(), 16));
         static_assert(renders_at_compile_time(T{0}, 2));
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(UsableInAConstantExpressionPerTypeUnsigned, T, xstd::test::exact_width_unsigned_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(UsableInAConstantExpressionPerTypeUnsigned, T, xstd::test::constexpr_exact_width_unsigned_integer_types)
 {
         static_assert(renders_at_compile_time(std::numeric_limits<T>::max(), 10));
         static_assert(renders_at_compile_time(std::numeric_limits<T>::min(), 36));
