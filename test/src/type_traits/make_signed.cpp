@@ -24,10 +24,13 @@ BOOST_AUTO_TEST_CASE(MakeSignedLike)
         XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_signed_t<std::uint8_t>, std::int8_t>));
         XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_signed_t<unsigned>, int>));
         XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_signed_t<unsigned const>, int const>));
+        XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_signed_t<unsigned volatile>, int volatile>));
+        XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_signed_t<unsigned const volatile>, int const volatile>));
         XSTD_CONSTEXPR_CHECK(not has_make_signed<bool>);
         XSTD_CONSTEXPR_CHECK(not has_make_signed<double>);
         // An enumeration included, the mandated domain being std's to describe and not ours.
         XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_signed_t<color>, std::make_signed_t<color>>));
+        XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_signed_t<color const>, std::make_signed_t<color> const>));
 }
 
 BOOST_AUTO_TEST_SUITE_END()

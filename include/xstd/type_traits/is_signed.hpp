@@ -7,7 +7,7 @@
 #define XSTD_TYPE_TRAITS_IS_SIGNED_HPP
 
 #include <xstd/concepts/integer_class.hpp> // integer_class
-#include <type_traits>                     // bool_constant, is_signed_v
+#include <type_traits>                     // bool_constant, is_signed_v, remove_cv_t
 
 namespace xstd {
 
@@ -16,8 +16,11 @@ template<class T>
 inline constexpr auto is_signed_v = std::is_signed_v<T>;
 
 // Where std stops, asked of the operations alone: -1 lands below zero only where there is room.
-template<integer_class I>
-inline constexpr auto is_signed_v<I> = static_cast<I>(-1) < static_cast<I>(0);
+template<integer_class I_cv>
+inline constexpr auto is_signed_v<I_cv> = []() -> bool {
+        using I = std::remove_cv_t<I_cv>;
+        return static_cast<I>(-1) < static_cast<I>(0);
+}();
 
 template<class T>
 using is_signed = std::bool_constant<is_signed_v<T>>;

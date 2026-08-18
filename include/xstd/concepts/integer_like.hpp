@@ -15,14 +15,14 @@
 namespace xstd {
 
 // [iterator.concept.winc]/1 first, then the pair [basic.fundamental]/2 gives every integer type.
-template<class I>
+template<class T>
 concept integer_like =
-        (not std::same_as<std::remove_cv_t<I>, bool>) and
-        (std::integral<I> or integer_class<I>) and
-        // Asked with the cv off, per /11: a user specializes for the type, not for a const of it.
+        (not std::same_as<std::remove_cv_t<T>, bool>) and
+        (std::integral<T> or integer_class<T>) and
+        // The traits propagate cv from the succinct unqualified user specializations.
         requires {
-                typename make_signed_t<std::remove_cv_t<I>>;
-                typename make_unsigned_t<std::remove_cv_t<I>>;
+                typename make_signed_t<T>;
+                typename make_unsigned_t<T>;
         };
 
 } // namespace xstd

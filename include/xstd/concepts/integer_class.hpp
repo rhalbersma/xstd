@@ -16,71 +16,71 @@
 namespace xstd {
 
 // /2's "behave as integer types do", spelled out; the term alone, the pair being integer_like's.
-template<class T, class I = std::remove_cv_t<T>>
+template<class T_cv, class T = std::remove_cv_t<T_cv>>
 concept integer_class =
-        // I is the parameter's own default; naming it explicitly cannot redirect the question.
-        std::same_as<I, std::remove_cv_t<T>> and
+        // T is the parameter's own default; naming it explicitly cannot redirect the question.
+        std::same_as<T, std::remove_cv_t<T_cv>> and
         // Entailed by /3's width clause; without it int and short get in.
-        (not std::integral<I>) and
-        requires { sizeof(I); } and
+        (not std::integral<T>) and
+        requires { sizeof(T); } and
         // /6 one way: an integral value converts to an integer-class type.
-        std::constructible_from<I, int> and
+        std::constructible_from<T, int> and
         // Then increment, unary, compound assignment and binary operators, in order.
-        requires (I a) {
-                { a++ } -> std::same_as<I>;
-                { a-- } -> std::same_as<I>;
-                { ++a } -> std::same_as<I&>;
-                { --a } -> std::same_as<I&>;
+        requires (T a) {
+                { a++ } -> std::same_as<T>;
+                { a-- } -> std::same_as<T>;
+                { ++a } -> std::same_as<T&>;
+                { --a } -> std::same_as<T&>;
         } and
-        requires (I const a) {
-                // I exactly, per /7.3; a static_cast<I> here would admit an expression template.
-                { +a } -> std::same_as<I>;
-                { -a } -> std::same_as<I>;
-                { ~a } -> std::same_as<I>;
+        requires (T const a) {
+                // T exactly, per /7.3; a static_cast<T> here would admit an expression template.
+                { +a } -> std::same_as<T>;
+                { -a } -> std::same_as<T>;
+                { ~a } -> std::same_as<T>;
                 // bool exactly: /7.3's sentence about `!` alone.
                 { not a } -> std::same_as<bool>;
         } and
-        requires (I a, I const b) {
-                { a *= b } -> std::same_as<I&>;
-                { a /= b } -> std::same_as<I&>;
-                { a %= b } -> std::same_as<I&>;
-                { a += b } -> std::same_as<I&>;
-                { a -= b } -> std::same_as<I&>;
-                { a &= b } -> std::same_as<I&>;
-                { a ^= b } -> std::same_as<I&>;
-                { a |= b } -> std::same_as<I&>;
+        requires (T a, T const b) {
+                { a *= b } -> std::same_as<T&>;
+                { a /= b } -> std::same_as<T&>;
+                { a %= b } -> std::same_as<T&>;
+                { a += b } -> std::same_as<T&>;
+                { a -= b } -> std::same_as<T&>;
+                { a &= b } -> std::same_as<T&>;
+                { a ^= b } -> std::same_as<T&>;
+                { a |= b } -> std::same_as<T&>;
         } and
-        requires (I a, std::size_t const n) {
-                { a <<= n } -> std::same_as<I&>;
-                { a >>= n } -> std::same_as<I&>;
+        requires (T a, std::size_t const n) {
+                { a <<= n } -> std::same_as<T&>;
+                { a >>= n } -> std::same_as<T&>;
         } and
-        // I exactly again, per /7.6.
-        requires (I const a, I const b) {
-                { a * b } -> std::same_as<I>;
-                { a / b } -> std::same_as<I>;
-                { a % b } -> std::same_as<I>;
-                { a + b } -> std::same_as<I>;
-                { a - b } -> std::same_as<I>;
-                { a & b } -> std::same_as<I>;
-                { a ^ b } -> std::same_as<I>;
-                { a | b } -> std::same_as<I>;
+        // T exactly again, per /7.6.
+        requires (T const a, T const b) {
+                { a * b } -> std::same_as<T>;
+                { a / b } -> std::same_as<T>;
+                { a % b } -> std::same_as<T>;
+                { a + b } -> std::same_as<T>;
+                { a - b } -> std::same_as<T>;
+                { a & b } -> std::same_as<T>;
+                { a ^ b } -> std::same_as<T>;
+                { a | b } -> std::same_as<T>;
         } and
-        requires (I const a, std::size_t const n) {
-                { a << n } -> std::same_as<I>;
-                { a >> n } -> std::same_as<I>;
+        requires (T const a, std::size_t const n) {
+                { a << n } -> std::same_as<T>;
+                { a >> n } -> std::same_as<T>;
         } and
         // /8, contextually convertible to bool; the cast stays, /6 making it explicit.
-        requires (I const a) {
+        requires (T const a) {
                 { static_cast<bool>(a) } -> std::same_as<bool>;
         } and
         // /9's two concepts carry the comparisons, boolean-testable rather than bool.
-        std::regular<I> and
-        std::three_way_comparable<I, std::strong_ordering> and
+        std::regular<T> and
+        std::three_way_comparable<T, std::strong_ordering> and
         // /6 the other way, direct-initialization being what a cast does; only size_t a body performs.
-        std::constructible_from<int, I> and
-        std::constructible_from<std::size_t, I> and
-        std::numeric_limits<I>::is_specialized and
-        std::numeric_limits<I>::is_integer;
+        std::constructible_from<int, T> and
+        std::constructible_from<std::size_t, T> and
+        std::numeric_limits<T>::is_specialized and
+        std::numeric_limits<T>::is_integer;
 
 } // namespace xstd
 

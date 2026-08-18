@@ -41,6 +41,8 @@ BOOST_AUTO_TEST_CASE(MakeUnsignedLike)
 
         // cv-qualification is preserved, just as by std::make_unsigned.
         XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_unsigned_t<int const>, unsigned const>));
+        XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_unsigned_t<int volatile>, unsigned volatile>));
+        XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_unsigned_t<int const volatile>, unsigned const volatile>));
         XSTD_CONSTEXPR_CHECK(std::is_const_v<xstd::make_unsigned_t<color const>>);
 }
 
