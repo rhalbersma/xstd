@@ -32,19 +32,10 @@ auto print_integer_like(std::ostream& ostr, I const value) -> void
 
 namespace boost::test_tools::tt_detail {
 
-template<>
-struct print_log_value<xstd::int128>
+template<xstd::integer_like I>
+struct print_log_value<I>
 {
-        auto operator()(std::ostream& ostr, xstd::int128 const value) const -> void
-        {
-                xstd::test::print_integer_like(ostr, value);
-        }
-};
-
-template<>
-struct print_log_value<xstd::uint128>
-{
-        auto operator()(std::ostream& ostr, xstd::uint128 const value) const -> void
+        auto operator()(std::ostream& ostr, I const value) const -> void
         {
                 xstd::test::print_integer_like(ostr, value);
         }

@@ -6,14 +6,15 @@
 #ifndef XSTD_TEST_BIT_PRECISE_HPP
 #define XSTD_TEST_BIT_PRECISE_HPP
 
+// C23's bit-precise integers, which in C++ only Clang has, and whose ceiling it names here.
+#ifdef __BITINT_MAXWIDTH__
+
 #include <xstd/test/bit_integer.hpp>          // bit_integer, storage_limits
 #include <xstd/type_traits/make_signed.hpp>   // make_signed
 #include <xstd/type_traits/make_unsigned.hpp> // make_unsigned
 #include <cstddef>                            // size_t
 #include <type_traits>                        // type_identity
 
-// C23's bit-precise integers, which in C++ only Clang has, and whose ceiling it names here.
-#ifdef __BITINT_MAXWIDTH__
 #define XSTD_TEST_HAS_BIT_PRECISE
 
 // Dividing wider than 64 bits calls compiler-rt, which clang-cl does not link: __udivti3.

@@ -5,7 +5,7 @@
 
 #include <xstd/cstdlib/floored_div.hpp>             // floored_div
 #include <xstd/test/constexpr_check.hpp>            // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
-#include <xstd/test/boost_test_print_log_value.hpp> // Boost.Test rendering for integer-like values
+#include <xstd/test/boost_test_print_log_value.hpp> // NOLINT(misc-include-cleaner): registers Boost.Test printers
 #include <xstd/test/exact_width_types.hpp>          // exact_width_signed_integer_types, exact_width_unsigned_integer_types
 #include <boost/test/unit_test.hpp>                 // Boost.Test
 

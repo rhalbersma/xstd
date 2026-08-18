@@ -4,7 +4,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/cstdlib.hpp>                         // complete arithmetic surface
-#include <xstd/test/boost_test_print_log_value.hpp> // Boost.Test rendering for integer-like values
+#include <xstd/test/boost_test_print_log_value.hpp> // NOLINT(misc-include-cleaner): registers Boost.Test printers
 #include <xstd/test/constexpr_check.hpp>            // XSTD_CONSTEXPR_CHECK_EQUAL
 #include <xstd/test/exact_width_types.hpp>          // exact-width integer type lists
 #include <boost/test/unit_test.hpp>                 // BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE

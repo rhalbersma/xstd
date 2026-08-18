@@ -3,12 +3,11 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/cstdlib/sign.hpp>                    // sign
-#include <xstd/test/constexpr_check.hpp>            // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
-#include <xstd/test/boost_test_print_log_value.hpp> // Boost.Test rendering for integer-like values
-#include <xstd/test/exact_width_types.hpp>          // exact_width_signed_integer_types, exact_width_unsigned_integer_types
-#include <boost/test/unit_test.hpp>                 // Boost.Test
-#include <limits>                                   // numeric_limits
+#include <xstd/cstdlib/sign.hpp>           // sign
+#include <xstd/test/constexpr_check.hpp>   // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
+#include <xstd/test/exact_width_types.hpp> // exact_width_signed_integer_types, exact_width_unsigned_integer_types
+#include <boost/test/unit_test.hpp>        // Boost.Test
+#include <limits>                          // numeric_limits
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
 

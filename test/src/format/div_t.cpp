@@ -13,8 +13,7 @@
 #include <string_view>                     // wstring_view
 
 #ifdef __cpp_lib_constexpr_format
-#include <xstd/test/constexpr_check.hpp>            // XSTD_CONSTEXPR_CHECK_EQUAL
-#include <xstd/test/boost_test_print_log_value.hpp> // Boost.Test rendering for integer-like values
+#include <xstd/test/constexpr_check.hpp> // XSTD_CONSTEXPR_CHECK_EQUAL
 #endif
 
 BOOST_AUTO_TEST_SUITE(FormatDivT)

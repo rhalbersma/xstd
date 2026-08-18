@@ -6,10 +6,10 @@
 #ifndef XSTD_TEST_BIT_INTEGER_HPP
 #define XSTD_TEST_BIT_INTEGER_HPP
 
-#include <compare>                            // strong_ordering
-#include <concepts>                           // same_as
-#include <cstddef>                            // size_t
-#include <limits>                             // numeric_limits
+#include <compare>  // strong_ordering
+#include <concepts> // same_as
+#include <cstddef>  // size_t
+#include <limits>   // numeric_limits
 
 // Adapter support for compiler bit-precise integers.
 namespace xstd::test {
