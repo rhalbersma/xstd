@@ -17,7 +17,7 @@ inline constexpr auto is_signed_v = std::is_signed_v<T>;
 
 // Where std stops, asked of the operations alone: -1 lands below zero only where there is room.
 template<integer_class I_cv>
-inline constexpr auto is_signed_v<I_cv> = [] {
+inline constexpr auto is_signed_v<I_cv> = []() -> bool {
         using I = std::remove_cv_t<I_cv>;
         return static_cast<I>(-1) < static_cast<I>(0);
 }();
