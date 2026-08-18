@@ -17,4 +17,10 @@
         static_assert((a) == (b)); \
         BOOST_CHECK_EQUAL((a), (b))
 
+#define XSTD_CONSTEXPR_CHECK_EQUAL_IF(condition, a, b) \
+        if constexpr (condition) { \
+                static_assert((a) == (b)); \
+        } \
+        BOOST_CHECK_EQUAL((a), (b))
+
 #endif // XSTD_TEST_CONSTEXPR_CHECK_HPP

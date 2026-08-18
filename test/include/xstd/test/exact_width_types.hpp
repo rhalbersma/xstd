@@ -43,6 +43,17 @@ using absl_signed_types = std::tuple<>;
 using absl_unsigned_types = std::tuple<>;
 #endif
 
+// Abseil falls back to non-constexpr division where the compiler has no intrinsic 128-bit type.
+template<class T>
+inline constexpr bool has_constexpr_division = true;
+
+#if defined(XSTD_TEST_HAS_ABSL_INT128) and not defined(ABSL_HAVE_INTRINSIC_INT128)
+template<>
+inline constexpr bool has_constexpr_division<absl_int128> = false;
+template<>
+inline constexpr bool has_constexpr_division<absl_uint128> = false;
+#endif
+
 // The widths no fundamental type names, from the two bits a signed counterpart needs up.
 #ifdef XSTD_TEST_HAS_BIT_PRECISE
 // The widths every implementation of the extension divides without help from a runtime.
@@ -78,6 +89,21 @@ using bit_precise_unsigned_types = decltype(std::tuple_cat(
 using bit_precise_signed_types = std::tuple<>;
 using bit_precise_unsigned_types = std::tuple<>;
 #endif
+
+// Constant-evaluation tests omit only Abseil's fallback implementation.
+#if defined(XSTD_TEST_HAS_ABSL_INT128) and not defined(ABSL_HAVE_INTRINSIC_INT128)
+using constexpr_absl_signed_types = std::tuple<>;
+using constexpr_absl_unsigned_types = std::tuple<>;
+#else
+using constexpr_absl_signed_types = absl_signed_types;
+using constexpr_absl_unsigned_types = absl_unsigned_types;
+#endif
+using constexpr_exact_width_signed_integer_types = decltype(std::tuple_cat(
+        std::declval<std_signed_types>(), std::declval<xstd_signed_types>(), std::declval<boost_signed_types>(),
+        std::declval<constexpr_absl_signed_types>(), std::declval<bit_precise_signed_types>()));
+using constexpr_exact_width_unsigned_integer_types = decltype(std::tuple_cat(
+        std::declval<std_unsigned_types>(), std::declval<xstd_unsigned_types>(), std::declval<boost_unsigned_types>(),
+        std::declval<constexpr_absl_unsigned_types>(), std::declval<bit_precise_unsigned_types>()));
 
 // The authoritative configured test universe. Signed and unsigned subsets remain available
 // because most arithmetic contracts differ at zero or at the signed minimum.

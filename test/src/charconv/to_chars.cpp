@@ -203,14 +203,14 @@ template<class T>
         return result.ec == std::errc{} and result.ptr != buffer.data();
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(UsableInAConstantExpressionPerType, T, xstd::test::exact_width_signed_integer_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(UsableInAConstantExpressionPerType, T, xstd::test::constexpr_exact_width_signed_integer_types)
 {
         static_assert(renders_at_compile_time(std::numeric_limits<T>::min(), 10));
         static_assert(renders_at_compile_time(std::numeric_limits<T>::max(), 16));
         static_assert(renders_at_compile_time(T{0}, 2));
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(UsableInAConstantExpressionPerTypeUnsigned, T, xstd::test::exact_width_unsigned_integer_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(UsableInAConstantExpressionPerTypeUnsigned, T, xstd::test::constexpr_exact_width_unsigned_integer_types)
 {
         static_assert(renders_at_compile_time(std::numeric_limits<T>::max(), 10));
         static_assert(renders_at_compile_time(std::numeric_limits<T>::min(), 36));
