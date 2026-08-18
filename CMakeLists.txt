@@ -45,6 +45,7 @@ target_sources(
         include/xstd/charconv.hpp
         include/xstd/charconv/to_chars.hpp
         include/xstd/cstdint.hpp
+        include/xstd/cstdint/int128.hpp
         include/xstd/cstdlib.hpp
         include/xstd/cstdlib/abs.hpp
         include/xstd/cstdlib/div.hpp
@@ -64,6 +65,7 @@ target_sources(
         include/xstd/type_traits/is_unsigned.hpp
         include/xstd/type_traits/make_signed.hpp
         include/xstd/type_traits/make_unsigned.hpp
+        include/xstd/type_traits/no_unique_address.hpp
         include/xstd/utility.hpp
 )
 
@@ -80,12 +82,6 @@ install(
     TARGETS ${PROJECT_NAME}
     EXPORT ${PROJECT_NAME}Targets
     FILE_SET HEADERS
-)
-# Implementation configuration headers are installed because public headers
-# include them, but are deliberately not part of the public HEADERS file set.
-install(
-    DIRECTORY include/xstd/config
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/xstd
 )
 install(
     EXPORT ${PROJECT_NAME}Targets

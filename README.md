@@ -56,6 +56,11 @@ the same `xstd::xstd` target.
 | `<xstd/type_traits.hpp>` | `XSTD_NO_UNIQUE_ADDRESS` <br> `empty_type` <br> `is_signed` <br> `is_unsigned` <br> `is_specialization_of` <br> `make_signed` <br> `make_unsigned` <br> `conditional_data_member_t` | Portable spelling of `no_unique_address` <br> A tagged empty type <br> `std::is_signed`, opened to integer-class types <br> `std::is_unsigned`, opened to integer-class types <br> Is a type a class template specialization? <br> Open, user-specializable `std::make_signed` <br> Open, user-specializable `std::make_unsigned` <br> A conditionally present member | none <br> none <br> none <br> none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (not adopted) <br> none <br> none <br> none |
 | `<xstd/utility.hpp>` | `to_underlying` | `std::to_underlying`, plus an `std::integral_constant` overload | [p1682r1](https://wg21.link/p1682r1) (`std::to_underlying`) |
 
+The 128-bit aliases and their `make_signed` and `make_unsigned` associations
+are defined together in `<xstd/cstdint/int128.hpp>`; `<xstd/cstdint.hpp>` is its
+umbrella. Similarly, `<xstd/type_traits/no_unique_address.hpp>` defines
+`XSTD_NO_UNIQUE_ADDRESS`, while `<xstd/type_traits.hpp>` exports it.
+
 ## Examples
 
 ```cpp
