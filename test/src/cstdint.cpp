@@ -3,7 +3,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/concepts.hpp>             // signed_integer_like, unsigned_integer_like
+#include <xstd/concepts.hpp>             // signed_integer, unsigned_integer
 #include <xstd/cstdint.hpp>              // int128, uint128
 #include <xstd/test/constexpr_check.hpp> // XSTD_CONSTEXPR_CHECK
 #include <xstd/type_traits.hpp>          // make_signed_t, make_unsigned_t
@@ -27,8 +27,8 @@ BOOST_AUTO_TEST_CASE(Int128)
         static_assert(xstd::is_unsigned_v<xstd::uint128 const volatile>);
         static_assert(std::numeric_limits<xstd::int128>::digits == 127);
         static_assert(std::numeric_limits<xstd::uint128>::digits == 128);
-        static_assert(xstd::signed_integer_like<xstd::int128>);
-        static_assert(xstd::unsigned_integer_like<xstd::uint128>);
+        static_assert(xstd::signed_integer<xstd::int128>);
+        static_assert(xstd::unsigned_integer<xstd::uint128>);
         static_assert(std::same_as<xstd::make_signed_t<xstd::uint128>, xstd::int128>);
         static_assert(std::same_as<xstd::make_unsigned_t<xstd::int128>, xstd::uint128>);
         static_assert(std::same_as<xstd::make_signed_t<xstd::uint128 const>, xstd::int128 const>);

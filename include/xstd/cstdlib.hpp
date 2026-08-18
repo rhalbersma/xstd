@@ -7,14 +7,14 @@
 #define XSTD_CSTDLIB_HPP
 
 // Types
-#include <xstd/cstdlib/div_t.hpp> // IWYU pragma: export; div_t
+#include <xstd/cstdlib/div_result.hpp> // IWYU pragma: export; div_result
 
 // Miscellaneous algorithms and math
 #include <xstd/cstdlib/sign.hpp>          // IWYU pragma: export; sign
 #include <xstd/cstdlib/abs.hpp>           // IWYU pragma: export; abs
 #include <xstd/cstdlib/unsigned_abs.hpp>  // IWYU pragma: export; unsigned_abs
 #include <xstd/cstdlib/div.hpp>           // IWYU pragma: export; div
-#include <xstd/cstdlib/euclidean_div.hpp> // IWYU pragma: export; euclidean_div
-#include <xstd/cstdlib/floored_div.hpp>   // IWYU pragma: export; floored_div
+#include <xstd/cstdlib/div_euclid.hpp>     // IWYU pragma: export; div_euclid
+#include <xstd/cstdlib/div_floor.hpp>      // IWYU pragma: export; div_floor
 
 #endif // XSTD_CSTDLIB_HPP

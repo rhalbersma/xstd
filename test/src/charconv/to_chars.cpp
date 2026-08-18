@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE(DelegatesWhereTheStandardLibraryCovers)
         static_assert(has_std_to_chars<long long>);
         static_assert(has_std_to_chars<unsigned>);
 
-        // cv bool is not integer-like; the deleted overload is kept as the standard keeps it.
+        // cv bool is not integer; the deleted overload is kept as the standard keeps it.
         static_assert(not has_std_to_chars<bool>);
         static_assert(not has_xstd_to_chars<bool>);
         static_assert(has_xstd_to_chars<int>);
@@ -68,6 +68,18 @@ BOOST_AUTO_TEST_CASE(DelegatesWhereTheStandardLibraryCovers)
 
         static_assert(has_xstd_to_chars<xstd::int128>);
         static_assert(has_xstd_to_chars<xstd::uint128>);
+}
+
+BOOST_AUTO_TEST_CASE(CharacterTypesStayInTheConversionDomain)
+{
+        static_assert(not xstd::integer<char>);
+        static_assert(has_xstd_to_chars<char>);
+        static_assert(has_xstd_to_chars<wchar_t>);
+        static_assert(has_xstd_to_chars<char8_t>);
+        static_assert(has_xstd_to_chars<char16_t>);
+        static_assert(has_xstd_to_chars<char32_t>);
+        BOOST_CHECK_EQUAL(rendered(static_cast<wchar_t>(7), 10), "7");
+        BOOST_CHECK_EQUAL(rendered(static_cast<char32_t>(9), 10), "9");
 }
 
 // The load-bearing property: the two paths render byte-identically, at every base.
@@ -173,7 +185,7 @@ BOOST_AUTO_TEST_CASE(Int128Boundaries)
         BOOST_CHECK(truncated.ec == std::errc::value_too_large);
 }
 
-// A constant expression, which is what std::formatter<div_t<I>>::format needs for P3391.
+// A constant expression, which is what std::formatter<div_result<I>>::format needs for P3391.
 template<class T>
 [[nodiscard]] consteval auto rendered_at_compile_time(T value, int base, std::string_view expected)
         -> bool

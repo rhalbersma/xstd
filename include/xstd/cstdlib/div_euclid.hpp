@@ -3,13 +3,13 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_CSTDLIB_EUCLIDEAN_DIV_HPP
-#define XSTD_CSTDLIB_EUCLIDEAN_DIV_HPP
+#ifndef XSTD_CSTDLIB_DIV_EUCLID_HPP
+#define XSTD_CSTDLIB_DIV_EUCLID_HPP
 
-#include <xstd/concepts/integer_like.hpp>              // integer_like
+#include <xstd/concepts/integer.hpp>                   // integer
 #include <xstd/concepts/nothrow_integer_operators.hpp> // nothrow_integer_operators
 #include <xstd/cstdlib/div.hpp>                        // div
-#include <xstd/cstdlib/div_t.hpp>                      // IWYU pragma: export; div_t
+#include <xstd/cstdlib/div_result.hpp>                  // IWYU pragma: export; div_result
 #include <xstd/cstdlib/sign.hpp>                       // sign
 #include <xstd/cstdlib/unsigned_abs.hpp>               // unsigned_abs
 #include <xstd/type_traits/is_unsigned.hpp>            // is_unsigned_v
@@ -18,9 +18,9 @@
 namespace xstd {
 
 // Euclidean division: the remainder is nonnegative.
-template<integer_like I>
-[[nodiscard]] constexpr auto euclidean_div(I numer, I denom) noexcept(nothrow_integer_operators<I>)
-        -> div_t<I>
+template<integer I>
+[[nodiscard]] constexpr auto div_euclid(I numer, I denom) noexcept(nothrow_integer_operators<I>)
+        -> div_result<I>
 {
         assert(denom != static_cast<I>(0));
         // An unsigned truncated remainder is already nonnegative, so it is the answer.
@@ -34,13 +34,13 @@ template<integer_like I>
                 auto const adjust = rT < zero;
                 auto const qE = adjust ? (denom > zero ? static_cast<I>(qT - one) : static_cast<I>(qT + one)) : qT;
                 auto const rE = adjust ? (denom > zero ? static_cast<I>(rT + denom) : static_cast<I>(rT - denom)) : rT;
-                // Said on the counterpart every integer_like type has, |MIN| fitting in no other.
+                // Said on the counterpart every integer type has, |MIN| fitting in no other.
                 assert(xstd::unsigned_abs(rE) < xstd::unsigned_abs(denom));
                 assert(xstd::sign(rE) >= 0);
-                return {.quot = qE, .rem = rE};
+                return {.quotient = qE, .remainder = rE};
         }
 }
 
 } // namespace xstd
 
-#endif // XSTD_CSTDLIB_EUCLIDEAN_DIV_HPP
+#endif // XSTD_CSTDLIB_DIV_EUCLID_HPP

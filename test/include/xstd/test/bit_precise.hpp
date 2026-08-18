@@ -87,7 +87,7 @@ struct storage_limits<signed _BitInt(N)>
         }
 };
 
-// Wrapped rather than used raw: is_integral is false for these, so integer_like refuses them.
+// Wrapped rather than used raw: is_integral is false for these, so integer refuses them.
 template<std::size_t N>
 using bit_uint = bit_integer<unsigned _BitInt(N)>;
 

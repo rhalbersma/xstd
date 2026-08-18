@@ -5,8 +5,8 @@
 
 #include <xstd/test/bit_precise.hpp>          // XSTD_TEST_HAS_BIT_PRECISE, bit_int, bit_uint
 #include <xstd/test/exact_width_types.hpp>    // bit_precise_signed_types, bit_precise_unsigned_types
-#include <xstd/cstdlib.hpp>                   // abs, div, euclidean_div, floored_div, sign, unsigned_abs
-#include <xstd/concepts.hpp>                  // integer_class, integer_like
+#include <xstd/cstdlib.hpp>                   // abs, div, div_euclid, div_floor, sign, unsigned_abs
+#include <xstd/concepts.hpp>                  // integer_class, integer
 #include <xstd/type_traits/make_signed.hpp>   // make_signed_t
 #include <xstd/type_traits/make_unsigned.hpp> // make_unsigned_t
 #include <boost/test/unit_test.hpp>           // Boost.Test
@@ -23,28 +23,28 @@ namespace {
 template<class T>
 auto check_truncated(T numer, T denom) -> void
 {
-        auto const [quot, rem] = xstd::div(numer, denom);
-        BOOST_CHECK((quot * denom) + rem == numer);
-        BOOST_CHECK(xstd::unsigned_abs(rem) < xstd::unsigned_abs(denom));
-        BOOST_CHECK(rem == T(0) or xstd::sign(rem) == xstd::sign(numer));
+        auto const [quotient, remainder] = xstd::div(numer, denom);
+        BOOST_CHECK((quotient * denom) + remainder == numer);
+        BOOST_CHECK(xstd::unsigned_abs(remainder) < xstd::unsigned_abs(denom));
+        BOOST_CHECK(remainder == T(0) or xstd::sign(remainder) == xstd::sign(numer));
 }
 
 // Floored: the same identity, and a nonzero remainder carrying the denominator's sign.
 template<class T>
 auto check_floored(T numer, T denom) -> void
 {
-        auto const [quot, rem] = xstd::floored_div(numer, denom);
-        BOOST_CHECK((quot * denom) + rem == numer);
-        BOOST_CHECK(rem == T(0) or xstd::sign(rem) == xstd::sign(denom));
+        auto const [quotient, remainder] = xstd::div_floor(numer, denom);
+        BOOST_CHECK((quotient * denom) + remainder == numer);
+        BOOST_CHECK(remainder == T(0) or xstd::sign(remainder) == xstd::sign(denom));
 }
 
 // Euclidean: the same identity, and a remainder that is never negative.
 template<class T>
 auto check_euclidean(T numer, T denom) -> void
 {
-        auto const [quot, rem] = xstd::euclidean_div(numer, denom);
-        BOOST_CHECK((quot * denom) + rem == numer);
-        BOOST_CHECK(xstd::sign(rem) >= 0);
+        auto const [quotient, remainder] = xstd::div_euclid(numer, denom);
+        BOOST_CHECK((quotient * denom) + remainder == numer);
+        BOOST_CHECK(xstd::sign(remainder) >= 0);
 }
 
 // Every ordered pair the type can hold, which only a width this narrow makes affordable.
@@ -84,7 +84,7 @@ BOOST_AUTO_TEST_CASE(OneBitUnsignedHasNoPairAndSoNoSurface)
         static_assert(xstd::integer_class<T>);
         static_assert(std::same_as<xstd::make_unsigned_t<T>, T>);
         static_assert(not has_make_signed<T>);
-        static_assert(not xstd::integer_like<T>);
+        static_assert(not xstd::integer<T>);
         static_assert(not has_div<T>);
 
         BOOST_CHECK(true);
@@ -124,7 +124,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedExtremes, T, xstd::test::bit_precise_unsig
         BOOST_CHECK(xstd::sign(limits::max()) == +1);
         BOOST_CHECK(xstd::abs(limits::max()) == limits::max());
         BOOST_CHECK(xstd::unsigned_abs(limits::max()) == limits::max());
-        BOOST_CHECK(xstd::div(limits::max(), limits::max()).quot == T(1));
+        BOOST_CHECK(xstd::div(limits::max(), limits::max()).quotient == T(1));
 }
 
 #else

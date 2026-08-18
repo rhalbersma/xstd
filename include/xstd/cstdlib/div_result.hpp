@@ -3,25 +3,25 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_CSTDLIB_DIV_T_HPP
-#define XSTD_CSTDLIB_DIV_T_HPP
+#ifndef XSTD_CSTDLIB_DIV_RESULT_HPP
+#define XSTD_CSTDLIB_DIV_RESULT_HPP
 
-#include <xstd/concepts/integer_like.hpp> // integer_like
+#include <xstd/concepts/integer.hpp> // integer
 
 namespace xstd {
 
-template<integer_like I>
-struct div_t
+template<integer I>
+struct div_result
 {
-        I quot, rem;
+        I quotient, remainder;
         // Both specifiers are implicit for a defaulted function; [[nodiscard]] is not.
-        [[nodiscard]] friend auto operator==(div_t const&, div_t const&) -> bool = default;
+        [[nodiscard]] friend auto operator==(div_result const&, div_result const&) -> bool = default;
 };
 
 // Explicit to keep -Wctad-maybe-unsupported quiet.
-template<integer_like I>
-div_t(I, I) -> div_t<I>;
+template<integer I>
+div_result(I, I) -> div_result<I>;
 
 } // namespace xstd
 
-#endif // XSTD_CSTDLIB_DIV_T_HPP
+#endif // XSTD_CSTDLIB_DIV_RESULT_HPP

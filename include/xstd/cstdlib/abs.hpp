@@ -6,7 +6,7 @@
 #ifndef XSTD_CSTDLIB_ABS_HPP
 #define XSTD_CSTDLIB_ABS_HPP
 
-#include <xstd/concepts/integer_like.hpp>              // integer_like
+#include <xstd/concepts/integer.hpp>                   // integer
 #include <xstd/concepts/nothrow_integer_operators.hpp> // nothrow_integer_operators
 #include <xstd/type_traits/is_unsigned.hpp>            // is_unsigned_v
 #include <cassert>                                     // assert
@@ -15,7 +15,7 @@
 namespace xstd {
 
 // constexpr generalization of abs/labs/llabs/imaxabs.
-template<integer_like I>
+template<integer I>
 [[nodiscard]] constexpr auto abs(I x) noexcept(nothrow_integer_operators<I>)
         -> I
 {

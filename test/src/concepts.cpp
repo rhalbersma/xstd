@@ -11,27 +11,27 @@ BOOST_AUTO_TEST_SUITE(Concepts)
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(SignedConceptIdentities, T, xstd::test::exact_width_signed_integer_types)
 {
-        static_assert(xstd::signed_integer_like<T>);
-        static_assert(xstd::integer_like<T>);
-        static_assert(not xstd::unsigned_integer_like<T>);
+        static_assert(xstd::signed_integer<T>);
+        static_assert(xstd::integer<T>);
+        static_assert(not xstd::unsigned_integer<T>);
         BOOST_CHECK(true);
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedConceptIdentities, T, xstd::test::exact_width_unsigned_integer_types)
 {
-        static_assert(xstd::unsigned_integer_like<T>);
-        static_assert(xstd::integer_like<T>);
-        static_assert(not xstd::signed_integer_like<T>);
+        static_assert(xstd::unsigned_integer<T>);
+        static_assert(xstd::integer<T>);
+        static_assert(not xstd::signed_integer<T>);
         BOOST_CHECK(true);
 }
 
-// The narrower concept subsumes integer_like in overload resolution.
-template<xstd::integer_like I>
+// The narrower concept subsumes integer in overload resolution.
+template<xstd::integer I>
 [[nodiscard]] constexpr auto which(I) noexcept -> int
 {
         return 1;
 }
-template<xstd::signed_integer_like S>
+template<xstd::signed_integer S>
 [[nodiscard]] constexpr auto which(S) noexcept -> int
 {
         return 2;

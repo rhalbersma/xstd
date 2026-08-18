@@ -7,9 +7,9 @@
 #define XSTD_TEST_BOOST_TEST_PRINT_LOG_VALUE_HPP
 
 #include <xstd/charconv/to_chars.hpp>     // to_chars, to_chars_max_size
-#include <xstd/concepts/integer_like.hpp> // integer_like
+#include <xstd/concepts/integer.hpp> // integer
 #include <xstd/cstdint.hpp>               // int128, uint128
-#include <xstd/cstdlib/div_t.hpp>         // div_t
+#include <xstd/cstdlib/div_result.hpp>         // div_result
 #include <boost/test/unit_test.hpp>       // print_log_value
 #ifdef __BITINT_MAXWIDTH__
 #include <xstd/test/bit_integer.hpp> // bit_integer
@@ -22,8 +22,8 @@
 
 namespace xstd::test {
 
-template<integer_like I>
-auto print_integer_like(std::ostream& ostr, I const value) -> void
+template<integer I>
+auto print_integer(std::ostream& ostr, I const value) -> void
 {
         auto buffer = std::array<char, to_chars_max_size<I>>{};
         auto const result = to_chars(buffer.data(), buffer.data() + buffer.size(), value);
@@ -40,7 +40,7 @@ struct print_log_value<xstd::int128>
 {
         auto operator()(std::ostream& ostr, xstd::int128 const value) const -> void
         {
-                xstd::test::print_integer_like(ostr, value);
+                xstd::test::print_integer(ostr, value);
         }
 };
 
@@ -49,7 +49,7 @@ struct print_log_value<xstd::uint128>
 {
         auto operator()(std::ostream& ostr, xstd::uint128 const value) const -> void
         {
-                xstd::test::print_integer_like(ostr, value);
+                xstd::test::print_integer(ostr, value);
         }
 };
 
@@ -60,21 +60,21 @@ struct print_log_value<xstd::test::bit_integer<Storage>>
 {
         auto operator()(std::ostream& ostr, xstd::test::bit_integer<Storage> const value) const -> void
         {
-                xstd::test::print_integer_like(ostr, value);
+                xstd::test::print_integer(ostr, value);
         }
 };
 
 #endif // __BITINT_MAXWIDTH__
 
-template<xstd::integer_like I>
-struct print_log_value<xstd::div_t<I>>
+template<xstd::integer I>
+struct print_log_value<xstd::div_result<I>>
 {
-        auto operator()(std::ostream& ostr, xstd::div_t<I> const& d) const -> void
+        auto operator()(std::ostream& ostr, xstd::div_result<I> const& d) const -> void
         {
                 ostr << '(';
-                xstd::test::print_integer_like(ostr, d.quot);
+                xstd::test::print_integer(ostr, d.quotient);
                 ostr << ", ";
-                xstd::test::print_integer_like(ostr, d.rem);
+                xstd::test::print_integer(ostr, d.remainder);
                 ostr << ')';
         }
 };

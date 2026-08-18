@@ -188,9 +188,9 @@ jobs:
           {
                   static_assert(xstd::is_specialization_of_v<std::complex<double>, std::complex>);
                   static_assert(decltype(xstd::to_underlying(std::integral_constant<color, color::red>()))::value == 1);
-                  static_assert(xstd::euclidean_div(-8, 3).rem == 1);
+                  static_assert(xstd::div_euclid(-8, 3).remainder == 1);
 
-                  auto const d = xstd::floored_div(-8, 3);
+                  auto const d = xstd::div_floor(-8, 3);
                   return std::format("{}", d) == "(-3, 1)" ? 0 : 1;
           }
           EOF

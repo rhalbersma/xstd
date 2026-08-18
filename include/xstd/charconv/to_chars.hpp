@@ -6,9 +6,9 @@
 #ifndef XSTD_CHARCONV_TO_CHARS_HPP
 #define XSTD_CHARCONV_TO_CHARS_HPP
 
-#include <xstd/concepts/integer_like.hpp>     // integer_like
+#include <xstd/concepts/integer.hpp>          // integer
 #include <xstd/cstdlib/div.hpp>               // div
-#include <xstd/cstdlib/unsigned_abs.hpp>      // unsigned_abs
+#include <xstd/type_traits/is_character.hpp>  // is_character_v
 #include <xstd/type_traits/is_signed.hpp>     // is_signed_v
 #include <xstd/type_traits/make_unsigned.hpp> // make_unsigned_t
 #include <cassert>                            // assert
@@ -18,8 +18,16 @@
 #include <iterator>                           // distance, next
 #include <limits>                             // numeric_limits
 #include <system_error>                       // errc
+#include <type_traits>                        // remove_cv_t
 
 namespace xstd {
+
+namespace detail {
+
+template<class T>
+concept integer_or_character = integer<T> or is_character_v<std::remove_cv_t<T>>;
+
+} // namespace detail
 
 // Named, not written inline, so each requires-clause below stays one line and one conjunction.
 template<class I>
@@ -28,13 +36,13 @@ concept std_to_chars_covers = requires (char* p, I value, int base) {
 };
 
 // Worst case is base 2: one character per value bit, and two more when signed.
-template<integer_like I>
+template<detail::integer_or_character I>
 inline constexpr auto to_chars_max_size =
         static_cast<std::size_t>(std::numeric_limits<I>::digits) + (is_signed_v<I> ? 2 : 0);
 
 // The standard's own call where it covers I; an ambiguous overload leaves this unsatisfied.
-template<integer_like I>
-        requires std_to_chars_covers<I>
+template<detail::integer_or_character I>
+        requires integer<I> and std_to_chars_covers<I>
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
 [[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10)
         -> std::to_chars_result
@@ -48,7 +56,7 @@ template<integer_like I>
 auto to_chars(char*, char*, bool, int = 10) -> std::to_chars_result = delete;
 
 // For the types the two above miss; less constrained, so a call prefers the standard's.
-template<integer_like I>
+template<detail::integer_or_character I>
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
 [[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10)
         -> std::to_chars_result
@@ -64,8 +72,8 @@ template<integer_like I>
 
         // Reduced once here, not per digit; both are well-formed and branchless when unsigned.
         auto const zero = static_cast<I>(0);
-        auto const magnitude = xstd::unsigned_abs(value);
         auto const negative = value < zero;
+        auto const magnitude = negative ? U{} - static_cast<U>(value) : static_cast<U>(value);
 
         // Converted rather than selected: a conditional would be one-sided when unsigned.
         auto const sign_width = static_cast<std::ptrdiff_t>(negative);
@@ -90,9 +98,9 @@ template<integer_like I>
         // One divmod per digit, named by the library's own truncated division.
         auto rest = magnitude;
         while (rest >= radix) {
-                auto const [quot, rem] = xstd::div(rest, radix);
-                *out-- = digits[static_cast<std::size_t>(rem)];
-                rest = quot;
+                auto const [quotient, remainder] = xstd::div(rest, radix);
+                *out-- = digits[static_cast<std::size_t>(remainder)];
+                rest = quotient;
         }
         // The loop leaves a single digit. No decrement: unsigned, it would step below first.
         *out = digits[static_cast<std::size_t>(rest)];
