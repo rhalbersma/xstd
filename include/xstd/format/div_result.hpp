@@ -11,7 +11,7 @@
 #include <xstd/cstdlib/div_result.hpp> // div_result
 #include <array>                       // array
 #include <cassert>                     // assert
-#include <format>                      // formatter
+#include <format>                      // formattable, formatter
 #include <string>                      // basic_string
 #include <string_view>                 // basic_string_view
 #include <system_error>                // errc
