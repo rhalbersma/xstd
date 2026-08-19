@@ -7,6 +7,7 @@
 #include <xstd/test/constexpr_check.hpp>            // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
 #include <xstd/test/boost_test_print_log_value.hpp> // NOLINT(misc-include-cleaner): registers Boost.Test printers
 #include <xstd/test/exact_width_types.hpp>          // exact_width_signed_integer_types, exact_width_unsigned_integer_types
+#include <xstd/limits.hpp>                          // numeric_limits
 #include <boost/test/unit_test.hpp>                 // Boost.Test
 #include <limits>                                   // numeric_limits
 
@@ -20,7 +21,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Abs, T, xstd::test::exact_width_signed_integer_typ
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(T{+1}), T{1});
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(T{+2}), T{2});
 
-        using limits = std::numeric_limits<T>;
+        using limits = xstd::numeric_limits<T>;
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(limits::max()), limits::max());
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(static_cast<T>(limits::min() + 1)), limits::max());
 }
@@ -32,7 +33,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(AbsUnsigned, T, xstd::test::exact_width_unsigned_i
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(T{1}), T{1});
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(T{2}), T{2});
 
-        using limits = std::numeric_limits<T>;
+        using limits = xstd::numeric_limits<T>;
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(limits::min()), limits::min());
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(limits::max()), limits::max());
 }

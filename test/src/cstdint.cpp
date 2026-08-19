@@ -4,7 +4,8 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/concepts.hpp>             // signed_integer, unsigned_integer
-#include <xstd/cstdint.hpp>              // int128, uint128
+#include <xstd/cstdint.hpp>              // XSTD_HAS_BIT_INT, bit_int, bit_uint, int128, uint128
+#include <xstd/limits.hpp>               // numeric_limits
 #include <xstd/test/constexpr_check.hpp> // XSTD_CONSTEXPR_CHECK
 #include <xstd/type_traits.hpp>          // make_signed_t, make_unsigned_t
 #include <boost/test/unit_test.hpp>      // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END
@@ -40,5 +41,27 @@ BOOST_AUTO_TEST_CASE(Int128)
         XSTD_CONSTEXPR_CHECK(xstd::int128{-1} < xstd::int128{0});
         XSTD_CONSTEXPR_CHECK((xstd::uint128{1} << 127) > xstd::uint128{0});
 }
+
+#ifdef XSTD_HAS_BIT_INT
+
+BOOST_AUTO_TEST_CASE(BitPreciseAliases)
+{
+        using S = xstd::bit_int<17>;
+        using U = xstd::bit_uint<17>;
+
+        static_assert(xstd::integer_class<S>);
+        static_assert(xstd::integer_class<U>);
+        static_assert(xstd::signed_integer<S>);
+        static_assert(xstd::unsigned_integer<U>);
+        static_assert(std::same_as<xstd::make_unsigned_t<S>, U>);
+        static_assert(std::same_as<xstd::make_signed_t<U>, S>);
+        static_assert(xstd::numeric_limits<S>::digits == 16);
+        static_assert(xstd::numeric_limits<U>::digits == 17);
+        XSTD_CONSTEXPR_CHECK(xstd::numeric_limits<S>::min() == S{-65536});
+        XSTD_CONSTEXPR_CHECK(xstd::numeric_limits<S>::max() == S{65535});
+        XSTD_CONSTEXPR_CHECK(xstd::numeric_limits<U>::max() == U{131071});
+}
+
+#endif // XSTD_HAS_BIT_INT
 
 BOOST_AUTO_TEST_SUITE_END()

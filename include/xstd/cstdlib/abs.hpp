@@ -8,9 +8,9 @@
 
 #include <xstd/concepts/integer.hpp>                   // integer
 #include <xstd/concepts/nothrow_integer_operators.hpp> // nothrow_integer_operators
+#include <xstd/limits/numeric_limits.hpp>              // numeric_limits
 #include <xstd/type_traits/is_unsigned.hpp>            // is_unsigned_v
 #include <cassert>                                     // assert
-#include <limits>                                      // numeric_limits
 
 namespace xstd {
 
@@ -24,7 +24,7 @@ template<integer I>
                 return x;
         } else {
                 auto const zero = static_cast<I>(0);
-                assert(x != std::numeric_limits<I>::min()); // -x would overflow
+                assert(x != numeric_limits<I>::min()); // -x would overflow
                 return static_cast<I>(x < zero ? -x : x);
         }
 }

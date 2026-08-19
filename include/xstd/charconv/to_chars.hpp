@@ -8,6 +8,7 @@
 
 #include <xstd/concepts/integer.hpp>          // integer
 #include <xstd/cstdlib/div.hpp>               // div
+#include <xstd/limits/numeric_limits.hpp>     // numeric_limits
 #include <xstd/type_traits/is_signed.hpp>     // is_signed_v
 #include <xstd/type_traits/make_unsigned.hpp> // make_unsigned_t
 #include <cassert>                            // assert
@@ -15,7 +16,6 @@
 #include <concepts>                           // integral, same_as
 #include <cstddef>                            // ptrdiff_t, size_t
 #include <iterator>                           // distance, next
-#include <limits>                             // numeric_limits
 #include <system_error>                       // errc
 #include <type_traits>                        // remove_cv_t
 
@@ -25,7 +25,7 @@ namespace xstd {
 template<class I>
         requires ((std::integral<I> and not std::same_as<std::remove_cv_t<I>, bool>) or integer<I>)
 inline constexpr auto to_chars_max_size =
-        static_cast<std::size_t>(std::numeric_limits<I>::digits) + (is_signed_v<I> ? 2 : 0);
+        static_cast<std::size_t>(numeric_limits<I>::digits) + (is_signed_v<I> ? 2 : 0);
 
 // The standard's own integral domain, other than its deleted bool overload.
 template<std::integral I>

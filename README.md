@@ -49,15 +49,19 @@ the same `xstd::xstd` target.
 | :----- | :-------- | :---------- | :-------- |
 | `<xstd/concepts.hpp>` | `integer_class` <br> `integer` <br> `signed_integer` <br> `unsigned_integer` <br> `nothrow_integer_operators` <br> `specialization_of` | The operations [iterator.concept.winc] states of an integer-class type <br> P3701 arithmetic domain, extended to paired integer-class types <br> Open form of `std::signed_integral` <br> Open form of `std::unsigned_integral` <br> Exception specification of the integer functions <br> Constraint form of `is_specialization_of` | [iterator.concept.winc] (integer-class type) <br> [P3701R0](https://wg21.link/P3701R0), [iterator.concept.winc] <br> [iterator.concept.winc] (integer-class types) <br> [iterator.concept.winc] (integer-class types) <br> none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (relationship documented) |
 | `<xstd/charconv.hpp>` | `to_chars` <br> `to_chars_max_size` | `std::to_chars`, widened to xstd integers it does not cover <br> Buffer size that holds any value of `T` at any base | [charconv.to.chars] <br> none |
-| `<xstd/cstdint.hpp>` | `int128` <br> `uint128` | Platform 128-bit signed integer <br> Platform 128-bit unsigned integer | none <br> none |
+| `<xstd/cstdint.hpp>` | `bit_int<N>` <br> `bit_uint<N>` <br> `bit_int_max_width` <br> `int128` <br> `uint128` | Native bit-precise signed integer (when available) <br> Native bit-precise unsigned integer (when available) <br> Maximum native bit-precise width (when available) <br> Platform 128-bit signed integer <br> Platform 128-bit unsigned integer | [P3666R0](https://wg21.link/P3666R0) <br> [P3666R0](https://wg21.link/P3666R0) <br> none <br> none <br> none |
 | `<xstd/cstdlib.hpp>` | `div_result` <br> `sign` <br> `abs` <br> `unsigned_abs` <br> `div` <br> `div_euclid` <br> `div_floor` | Defaulted equality comparison <br> `-1`, `0`, or `1`; `0` or `1` when unsigned <br> `constexpr`, any xstd integer <br> Total `\|x\|`, returning the unsigned counterpart <br> Truncated division, any xstd integer <br> Euclidean division <br> Floored division | none <br> [Boost.Math](https://www.boost.org/doc/libs/1_80_0/libs/math/doc/html/math_toolkit/sign_functions.html) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (reviewed implementation wording) <br> [Rust `unsigned_abs`](https://doc.rust-lang.org/std/primitive.i32.html#method.unsigned_abs) (no C++ equivalent) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (reviewed implementation wording) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) |
 | `<xstd/format.hpp>` | `formatter<div_result>` | `std::format` support for every element type `div_result` accepts | [p3391](https://wg21.link/P3391R3) (reviewed constexpr-format wording) |
+| `<xstd/limits.hpp>` | `numeric_limits` | Open `std::numeric_limits`, specialized for xstd extension types | [numeric.limits] |
 | `<xstd/memory.hpp>` | `aligned_size` | Round a size up to a power-of-two alignment | none |
 | `<xstd/type_traits.hpp>` | `XSTD_NO_UNIQUE_ADDRESS` <br> `is_character` <br> `empty_type` <br> `is_signed` <br> `is_unsigned` <br> `is_specialization_of` <br> `make_signed` <br> `make_unsigned` <br> `conditional_data_member_t` | Portable spelling of `no_unique_address` <br> Identifies the five non-integer character types <br> A tagged empty type <br> `std::is_signed`, opened to integer-class types <br> `std::is_unsigned`, opened to integer-class types <br> Is a type a class template specialization? <br> Open, user-specializable `std::make_signed` <br> Open, user-specializable `std::make_unsigned` <br> A conditionally present member | none <br> [P3701R0](https://wg21.link/P3701R0) <br> none <br> none <br> none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (relationship documented) <br> none <br> none <br> none |
 | `<xstd/utility.hpp>` | `to_underlying` | `std::to_underlying`, plus an `std::integral_constant` overload | [p1682r1](https://wg21.link/p1682r1) (`std::to_underlying`) |
 
-The 128-bit aliases and their `make_signed` and `make_unsigned` associations
-are defined together in `<xstd/cstdint/int128.hpp>`; `<xstd/cstdint.hpp>` is its
+The native bit-precise aliases are available when the compiler defines
+`__BITINT_MAXWIDTH__`; `XSTD_HAS_BIT_INT` detects their public API. Their current
+minimum width is two so every exposed type has a signed or unsigned counterpart.
+The 128-bit aliases and their `make_signed` and `make_unsigned` associations are
+defined together in `<xstd/cstdint/int128.hpp>`; `<xstd/cstdint.hpp>` is their
 umbrella. Similarly, `<xstd/type_traits/no_unique_address.hpp>` defines
 `XSTD_NO_UNIQUE_ADDRESS`, while `<xstd/type_traits.hpp>` exports it.
 
@@ -76,15 +80,22 @@ static_assert(result.quotient == -3);
 static_assert(result.remainder == 1);
 ```
 
-The numeric concepts and traits extend their standard counterparts to
-integer-class types, including the portable 128-bit aliases:
+The numeric concepts, limits, and traits extend their standard counterparts to
+integer-class types, including native bit-precise integers and the portable
+128-bit aliases:
 
 ```cpp
 #include <xstd/concepts.hpp>
 #include <xstd/cstdint.hpp>
+#include <xstd/limits.hpp>
 
 static_assert(xstd::signed_integer<xstd::int128>);
 static_assert(xstd::unsigned_integer<xstd::uint128>);
+
+#ifdef XSTD_HAS_BIT_INT
+static_assert(xstd::signed_integer<xstd::bit_int<24>>);
+static_assert(xstd::numeric_limits<xstd::bit_uint<24>>::digits == 24);
+#endif
 ```
 
 Use `XSTD_NO_UNIQUE_ADDRESS` inside an attribute-specifier. It expands to
