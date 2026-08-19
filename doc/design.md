@@ -14,7 +14,7 @@ across the tested toolchains. Consumers need no third-party dependencies.
   evaluation unless the standard library operation they delegate to prevents it.
 - **Generalize integer support.** The standard integral concepts and traits are
   closed over built-in types; xstd's integer concepts also accept paired
-  integer-class types, based on their behavior and `std::numeric_limits`.
+  integer-class types, based on their behavior and `xstd::numeric_limits`.
 - **Keep metaprogramming small.** `specialization_of`, `empty_type` and
   `conditional_data_member_t` solve local problems without a framework.
 - **Make semantics explicit.** The three division functions name their rounding
@@ -43,6 +43,21 @@ integers.
 Character conversion delegates every non-`bool` standard integral type directly
 to `std::to_chars`, while its fallback accepts only `integer` types the standard
 library does not cover.
+
+`integer_class` follows the requirement order in [iterator.concept.winc], but is
+an open structural concept rather than an implementation-defined set. It admits
+integer types of every width instead of requiring them to be wider than every
+integral type, and it deliberately checks only same-type arithmetic rather than
+mixed-mode operations or common types. Its range metadata comes from the open
+`xstd::numeric_limits`, whose primary template delegates to the standard trait.
+
+When Clang exposes `_BitInt`, `<xstd/cstdint.hpp>` names the native types as
+`bit_int<N>` and `bit_uint<N>`. They are aliases, not wrappers: their ABI,
+conversions, promotions, and operators remain the compiler's. xstd specializes
+its open limits and transformation traits for them, which makes paired widths
+model `integer_class` and `integer` even before the standard library recognizes
+the extension. The public domain currently begins at two because Clang has not
+yet implemented N3747's signed `_BitInt(1)`.
 
 ### Conditional `noexcept`
 

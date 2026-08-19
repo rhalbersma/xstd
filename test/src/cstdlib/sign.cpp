@@ -6,6 +6,7 @@
 #include <xstd/cstdlib/sign.hpp>           // sign
 #include <xstd/test/constexpr_check.hpp>   // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
 #include <xstd/test/exact_width_types.hpp> // exact_width_signed_integer_types, exact_width_unsigned_integer_types
+#include <xstd/limits.hpp>                 // numeric_limits
 #include <boost/test/unit_test.hpp>        // Boost.Test
 #include <limits>                          // numeric_limits
 
@@ -19,7 +20,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Sign, T, xstd::test::exact_width_signed_integer_ty
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(T{+1}), +1);
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(T{+2}), +1);
 
-        using limits = std::numeric_limits<T>;
+        using limits = xstd::numeric_limits<T>;
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(limits::min()), -1);
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(limits::max()), +1);
 }
@@ -31,7 +32,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(SignUnsigned, T, xstd::test::exact_width_unsigned_
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(T{1}), +1);
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(T{2}), +1);
 
-        using limits = std::numeric_limits<T>;
+        using limits = xstd::numeric_limits<T>;
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(limits::min()), 0);
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(limits::max()), +1);
 }

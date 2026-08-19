@@ -6,6 +6,7 @@
 #ifndef XSTD_CSTDINT_HPP
 #define XSTD_CSTDINT_HPP
 
-#include <xstd/cstdint/int128.hpp> // IWYU pragma: export; int128, uint128
+#include <xstd/cstdint/bit_int.hpp> // IWYU pragma: export; bit_int, bit_uint
+#include <xstd/cstdint/int128.hpp>  // IWYU pragma: export; int128, uint128
 
 #endif // XSTD_CSTDINT_HPP

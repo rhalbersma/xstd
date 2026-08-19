@@ -11,14 +11,12 @@
 #include <xstd/cstdint.hpp>            // int128, uint128
 #include <xstd/cstdlib/div_result.hpp> // div_result
 #include <boost/test/unit_test.hpp>    // print_log_value
-#ifdef __BITINT_MAXWIDTH__
-#include <xstd/test/bit_integer.hpp> // bit_integer
-#endif
-#include <array>        // array
-#include <cassert>      // assert
-#include <ostream>      // ostream
-#include <string_view>  // string_view
-#include <system_error> // errc
+#include <array>                       // array
+#include <cassert>                     // assert
+#include <cstddef>                     // size_t
+#include <ostream>                     // ostream
+#include <string_view>                 // string_view
+#include <system_error>                // errc
 
 namespace xstd::test {
 
@@ -53,18 +51,27 @@ struct print_log_value<xstd::uint128>
         }
 };
 
-#ifdef __BITINT_MAXWIDTH__
+#ifdef XSTD_HAS_BIT_INT
 
-template<class Storage>
-struct print_log_value<xstd::test::bit_integer<Storage>>
+template<std::size_t N>
+struct print_log_value<signed _BitInt(N)>
 {
-        auto operator()(std::ostream& ostr, xstd::test::bit_integer<Storage> const value) const -> void
+        auto operator()(std::ostream& ostr, signed _BitInt(N) const value) const -> void
         {
                 xstd::test::print_integer(ostr, value);
         }
 };
 
-#endif // __BITINT_MAXWIDTH__
+template<std::size_t N>
+struct print_log_value<unsigned _BitInt(N)>
+{
+        auto operator()(std::ostream& ostr, unsigned _BitInt(N) const value) const -> void
+        {
+                xstd::test::print_integer(ostr, value);
+        }
+};
+
+#endif // XSTD_HAS_BIT_INT
 
 template<xstd::integer I>
 struct print_log_value<xstd::div_result<I>>

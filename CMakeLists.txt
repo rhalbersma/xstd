@@ -45,6 +45,7 @@ target_sources(
         include/xstd/charconv.hpp
         include/xstd/charconv/to_chars.hpp
         include/xstd/cstdint.hpp
+        include/xstd/cstdint/bit_int.hpp
         include/xstd/cstdint/int128.hpp
         include/xstd/cstdlib.hpp
         include/xstd/cstdlib/abs.hpp
@@ -56,6 +57,8 @@ target_sources(
         include/xstd/cstdlib/unsigned_abs.hpp
         include/xstd/format.hpp
         include/xstd/format/div_result.hpp
+        include/xstd/limits.hpp
+        include/xstd/limits/numeric_limits.hpp
         include/xstd/memory.hpp
         include/xstd/type_traits.hpp
         include/xstd/type_traits/conditional_data_member.hpp
