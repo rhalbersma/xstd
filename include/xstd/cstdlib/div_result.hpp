@@ -14,7 +14,7 @@ template<integer I>
 struct div_result
 {
         I quotient, remainder;
-        
+
         // Both specifiers are implicit for a defaulted function; [[nodiscard]] is not.
         [[nodiscard]] friend auto operator==(div_result const&, div_result const&) -> bool = default;
 };
