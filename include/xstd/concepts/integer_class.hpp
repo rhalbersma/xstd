@@ -6,81 +6,113 @@
 #ifndef XSTD_CONCEPTS_INTEGER_CLASS_HPP
 #define XSTD_CONCEPTS_INTEGER_CLASS_HPP
 
-#include <compare>     // strong_ordering
-#include <concepts>    // constructible_from, integral, regular, same_as, three_way_comparable
-#include <cstddef>     // size_t
-#include <limits>      // numeric_limits
-#include <type_traits> // remove_cv_t
+#include <xstd/limits/numeric_limits.hpp> // numeric_limits
+#include <compare>                        // strong_ordering
+#include <concepts>                       // convertible_to, integral, regular, same_as, three_way_comparable
+#include <cstddef>                        // size_t
+#include <type_traits>                    // remove_cv_t
 
-// [iterator.concept.winc]'s integer-class type, which integer admits alongside integral.
+// [iterator.concept.winc]'s integer-class type, generalized to integers of any width.
 namespace xstd {
 
-// /2's "behave as integer types do", spelled out; the term alone, the pair being integer's.
 template<class T_cv, class T = std::remove_cv_t<T_cv>>
 concept integer_class =
-        // T is the parameter's own default; naming it explicitly cannot redirect the question.
+        // /2: structurally recognize a non-integral type rather than an implementation-defined set.
         std::same_as<T, std::remove_cv_t<T_cv>> and
-        // Entailed by /3's width clause; without it int and short get in.
         (not std::integral<T>) and
-        requires { sizeof(T); } and
-        // /6 one way: an integral value converts to an integer-class type.
-        std::constructible_from<T, int> and
-        // Then increment, unary, compound assignment and binary operators, in order.
+
+        // /3: xstd deliberately omits the requirement that the width exceed every integral type.
+        numeric_limits<T>::is_specialized and
+        numeric_limits<T>::is_integer and
+        (numeric_limits<T>::radix == 2) and
+
+        // /4: integer-like and its signedness refinements are defined from this concept.
+
+        // /5: B(T) is a specification device and has no structural check.
+
+        // /6: representative implicit conversion in and explicit conversions out.
+        std::convertible_to<int, T> and
+        requires (T const value) {
+                static_cast<int>(value);
+                static_cast<std::size_t>(value);
+        } and
+
+        // /7.1: postfix increment and decrement.
         requires (T a) {
                 { a++ } -> std::same_as<T>;
                 { a-- } -> std::same_as<T>;
+        } and
+
+        // /7.2: prefix increment and decrement.
+        requires (T a) {
                 { ++a } -> std::same_as<T&>;
                 { --a } -> std::same_as<T&>;
         } and
+
+        // /7.3: unary operators.
         requires (T const a) {
-                // T exactly, per /7.3; a static_cast<T> here would admit an expression template.
                 { +a } -> std::same_as<T>;
                 { -a } -> std::same_as<T>;
                 { ~a } -> std::same_as<T>;
-                // bool exactly: /7.3's sentence about `!` alone.
                 { not a } -> std::same_as<bool>;
         } and
+
+        // /7.4: xstd does not require mixed integral/integer-class compound assignment.
+
+        // /7.5: same-type compound assignment, grouped by precedence and operand arity.
         requires (T a, T const b) {
                 { a *= b } -> std::same_as<T&>;
                 { a /= b } -> std::same_as<T&>;
                 { a %= b } -> std::same_as<T&>;
                 { a += b } -> std::same_as<T&>;
                 { a -= b } -> std::same_as<T&>;
-                { a &= b } -> std::same_as<T&>;
-                { a ^= b } -> std::same_as<T&>;
-                { a |= b } -> std::same_as<T&>;
         } and
         requires (T a, std::size_t const n) {
                 { a <<= n } -> std::same_as<T&>;
                 { a >>= n } -> std::same_as<T&>;
         } and
-        // T exactly again, per /7.6.
+        requires (T a, T const b) {
+                { a &= b } -> std::same_as<T&>;
+                { a ^= b } -> std::same_as<T&>;
+                { a |= b } -> std::same_as<T&>;
+        } and
+
+        // /7.6: same-type binary operators, grouped by precedence and operand arity.
         requires (T const a, T const b) {
                 { a * b } -> std::same_as<T>;
                 { a / b } -> std::same_as<T>;
                 { a % b } -> std::same_as<T>;
                 { a + b } -> std::same_as<T>;
                 { a - b } -> std::same_as<T>;
-                { a & b } -> std::same_as<T>;
-                { a ^ b } -> std::same_as<T>;
-                { a | b } -> std::same_as<T>;
         } and
         requires (T const a, std::size_t const n) {
                 { a << n } -> std::same_as<T>;
                 { a >> n } -> std::same_as<T>;
         } and
-        // /8, contextually convertible to bool; the cast stays, /6 making it explicit.
+        requires (T const a, T const b) {
+                { a & b } -> std::same_as<T>;
+                { a ^ b } -> std::same_as<T>;
+                { a | b } -> std::same_as<T>;
+        } and
+
+        // /8: contextually convertible to bool; an explicit conversion is sufficient.
         requires (T const a) {
                 { static_cast<bool>(a) } -> std::same_as<bool>;
         } and
-        // /9's two concepts carry the comparisons, boolean-testable rather than bool.
+
+        // /9: regularity and strong ordering.
         std::regular<T> and
         std::three_way_comparable<T, std::strong_ordering> and
-        // /6 the other way, direct-initialization being what a cast does; only size_t a body performs.
-        std::constructible_from<int, T> and
-        std::constructible_from<std::size_t, T> and
-        std::numeric_limits<T>::is_specialized and
-        std::numeric_limits<T>::is_integer;
+
+        // /10: semantic requirement — value initialization produces zero.
+
+        // /11: the integer range functions return T.
+        requires {
+                { numeric_limits<T>::min() } -> std::same_as<T>;
+                { numeric_limits<T>::max() } -> std::same_as<T>;
+        };
+
+// /12: xstd does not require mixed-mode common_type relationships.
 
 } // namespace xstd
 

@@ -7,7 +7,9 @@
 #define XSTD_CHARCONV_TO_CHARS_HPP
 
 #include <xstd/concepts/integer.hpp>          // integer
+#include <xstd/cstdint/int128.hpp>            // uint128
 #include <xstd/cstdlib/div.hpp>               // div
+#include <xstd/limits/numeric_limits.hpp>     // numeric_limits
 #include <xstd/type_traits/is_signed.hpp>     // is_signed_v
 #include <xstd/type_traits/make_unsigned.hpp> // make_unsigned_t
 #include <cassert>                            // assert
@@ -15,21 +17,29 @@
 #include <concepts>                           // integral, same_as
 #include <cstddef>                            // ptrdiff_t, size_t
 #include <iterator>                           // distance, next
-#include <limits>                             // numeric_limits
 #include <system_error>                       // errc
 #include <type_traits>                        // remove_cv_t
 
 namespace xstd {
 
+namespace detail {
+
+// libc++ makes _BitInt integral, so ask the width: std::to_chars stops at its widest type.
+template<class I>
+inline constexpr auto delegates_to_std =
+        std::integral<I> and (numeric_limits<I>::digits <= numeric_limits<uint128>::digits);
+
+} // namespace detail
+
 // Worst case is base 2: one character per value bit, and two more when signed.
 template<class I>
         requires ((std::integral<I> and not std::same_as<std::remove_cv_t<I>, bool>) or integer<I>)
 inline constexpr auto to_chars_max_size =
-        static_cast<std::size_t>(std::numeric_limits<I>::digits) + (is_signed_v<I> ? 2 : 0);
+        static_cast<std::size_t>(numeric_limits<I>::digits) + (is_signed_v<I> ? 2 : 0);
 
 // The standard's own integral domain, other than its deleted bool overload.
 template<std::integral I>
-        requires (not std::same_as<std::remove_cv_t<I>, bool>)
+        requires (not std::same_as<std::remove_cv_t<I>, bool>) and detail::delegates_to_std<I>
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
 [[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10)
         -> std::to_chars_result
@@ -44,9 +54,7 @@ auto to_chars(char*, char*, bool, int = 10) -> std::to_chars_result = delete;
 
 // For xstd integers the standard library does not cover.
 template<integer I>
-        requires (not requires (char* first, char* last, I value, int base) {
-                { std::to_chars(first, last, value, base) } -> std::same_as<std::to_chars_result>;
-        })
+        requires (not detail::delegates_to_std<I>)
 // NOLINTNEXTLINE(readability-magic-numbers): the standard's own default base, see above
 [[nodiscard]] constexpr auto to_chars(char* first, char* last, I value, int base = 10)
         -> std::to_chars_result

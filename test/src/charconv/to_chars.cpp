@@ -7,12 +7,12 @@
 #include <xstd/concepts/integer.hpp>       // integer
 #include <xstd/cstdint.hpp>                // int128, uint128
 #include <xstd/test/exact_width_types.hpp> // std_signed_types, exact_width_signed_integer_types, exact_width_unsigned_integer_types
+#include <xstd/limits.hpp>                 // numeric_limits
 #include <boost/test/unit_test.hpp>        // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_CHECK, BOOST_CHECK_EQUAL
 #include <array>                           // array
 #include <charconv>                        // to_chars, to_chars_result
 #include <concepts>                        // same_as
 #include <cstddef>                         // size_t
-#include <limits>                          // numeric_limits
 #include <string>                          // string
 #include <string_view>                     // string_view
 #include <system_error>                    // errc
@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(DigitsPathMatchesTheStandard, T, xstd::test::std_s
 {
         for (auto base = 2; base <= 36; ++base) {
                 for (auto const value : {T{0}, T{1}, T{-1}, T{7}, T{-7},
-                                         std::numeric_limits<T>::min(), std::numeric_limits<T>::max()}) {
+                                         xstd::numeric_limits<T>::min(), xstd::numeric_limits<T>::max()}) {
                         BOOST_CHECK_EQUAL(rendered(static_cast<xstd::int128>(value), base),
                                           rendered_by_std(value, base));
                 }
@@ -103,18 +103,18 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(DigitsPathMatchesTheStandard, T, xstd::test::std_s
 BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCase, T, xstd::test::exact_width_signed_integer_types)
 {
         auto buffer = std::array<char, xstd::to_chars_max_size<T>>{};
-        auto const min = xstd::to_chars(buffer.data(), buffer.data() + buffer.size(), std::numeric_limits<T>::min(), 2);
+        auto const min = xstd::to_chars(buffer.data(), buffer.data() + buffer.size(), xstd::numeric_limits<T>::min(), 2);
         BOOST_CHECK(min.ec == std::errc{});
-        auto const max = xstd::to_chars(buffer.data(), buffer.data() + buffer.size(), std::numeric_limits<T>::max(), 2);
+        auto const max = xstd::to_chars(buffer.data(), buffer.data() + buffer.size(), xstd::numeric_limits<T>::max(), 2);
         BOOST_CHECK(max.ec == std::errc{});
 
         // And exactly: one character less does not fit. Per type, as gcov records it.
-        auto const short_buffer = xstd::to_chars(buffer.data(), buffer.data() + buffer.size() - 1, std::numeric_limits<T>::min(), 2);
+        auto const short_buffer = xstd::to_chars(buffer.data(), buffer.data() + buffer.size() - 1, xstd::numeric_limits<T>::min(), 2);
         BOOST_CHECK(short_buffer.ec == std::errc::value_too_large);
         BOOST_CHECK(short_buffer.ptr == buffer.data() + buffer.size() - 1);
 
         // No room at all, answered before any digit is counted: the second return.
-        auto const empty = xstd::to_chars(buffer.data(), buffer.data(), std::numeric_limits<T>::min(), 2);
+        auto const empty = xstd::to_chars(buffer.data(), buffer.data(), xstd::numeric_limits<T>::min(), 2);
         BOOST_CHECK(empty.ec == std::errc::value_too_large);
         BOOST_CHECK(empty.ptr == buffer.data());
 }
@@ -122,15 +122,15 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCase, T, xstd::test::exact_wid
 BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCaseUnsigned, T, xstd::test::exact_width_unsigned_integer_types)
 {
         auto buffer = std::array<char, xstd::to_chars_max_size<T>>{};
-        auto const max = xstd::to_chars(buffer.data(), buffer.data() + buffer.size(), std::numeric_limits<T>::max(), 2);
+        auto const max = xstd::to_chars(buffer.data(), buffer.data() + buffer.size(), xstd::numeric_limits<T>::max(), 2);
         BOOST_CHECK(max.ec == std::errc{});
 
-        auto const short_buffer = xstd::to_chars(buffer.data(), buffer.data() + buffer.size() - 1, std::numeric_limits<T>::max(), 2);
+        auto const short_buffer = xstd::to_chars(buffer.data(), buffer.data() + buffer.size() - 1, xstd::numeric_limits<T>::max(), 2);
         BOOST_CHECK(short_buffer.ec == std::errc::value_too_large);
         BOOST_CHECK(short_buffer.ptr == buffer.data() + buffer.size() - 1);
 
         // As above: no room at all, answered before any digit is counted.
-        auto const empty = xstd::to_chars(buffer.data(), buffer.data(), std::numeric_limits<T>::max(), 2);
+        auto const empty = xstd::to_chars(buffer.data(), buffer.data(), xstd::numeric_limits<T>::max(), 2);
         BOOST_CHECK(empty.ec == std::errc::value_too_large);
         BOOST_CHECK(empty.ptr == buffer.data());
 }
@@ -139,10 +139,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(MaxSizeHoldsTheWorstCaseUnsigned, T, xstd::test::e
 BOOST_AUTO_TEST_CASE_TEMPLATE(HexBoundariesMatchGroundTruth, T, xstd::test::exact_width_signed_integer_types)
 {
         // digits counts value bits, so the boundaries run that many hex characters past the first.
-        constexpr auto rest = static_cast<std::size_t>(std::numeric_limits<T>::digits - 3) / 4;
+        constexpr auto rest = static_cast<std::size_t>(xstd::numeric_limits<T>::digits - 3) / 4;
 
-        BOOST_CHECK_EQUAL(rendered(std::numeric_limits<T>::max(), 16), "7" + std::string(rest, 'f'));
-        BOOST_CHECK_EQUAL(rendered(std::numeric_limits<T>::min(), 16), "-8" + std::string(rest, '0'));
+        BOOST_CHECK_EQUAL(rendered(xstd::numeric_limits<T>::max(), 16), "7" + std::string(rest, 'f'));
+        BOOST_CHECK_EQUAL(rendered(xstd::numeric_limits<T>::min(), 16), "-8" + std::string(rest, '0'));
 
         // And either side of zero, where the sign and the one-digit case meet.
         BOOST_CHECK_EQUAL(rendered(T{-2}, 16), "-2");
@@ -155,10 +155,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(HexBoundariesMatchGroundTruth, T, xstd::test::exac
 BOOST_AUTO_TEST_CASE_TEMPLATE(HexBoundariesMatchGroundTruthUnsigned, T, xstd::test::exact_width_unsigned_integer_types)
 {
         // No sign bit, so digits is the width and the answer is f's all the way.
-        constexpr auto width = static_cast<std::size_t>(std::numeric_limits<T>::digits) / 4;
+        constexpr auto width = static_cast<std::size_t>(xstd::numeric_limits<T>::digits) / 4;
 
-        BOOST_CHECK_EQUAL(rendered(std::numeric_limits<T>::max(), 16), std::string(width, 'f'));
-        BOOST_CHECK_EQUAL(rendered(std::numeric_limits<T>::min(), 16), "0");
+        BOOST_CHECK_EQUAL(rendered(xstd::numeric_limits<T>::max(), 16), std::string(width, 'f'));
+        BOOST_CHECK_EQUAL(rendered(xstd::numeric_limits<T>::min(), 16), "0");
 
         BOOST_CHECK_EQUAL(rendered(T{0}, 16), "0");
         BOOST_CHECK_EQUAL(rendered(T{1}, 16), "1");
@@ -167,11 +167,11 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(HexBoundariesMatchGroundTruthUnsigned, T, xstd::te
 
 BOOST_AUTO_TEST_CASE(Int128Boundaries)
 {
-        BOOST_CHECK_EQUAL(rendered(std::numeric_limits<xstd::int128>::min(), 10), "-170141183460469231731687303715884105728");
-        BOOST_CHECK_EQUAL(rendered(std::numeric_limits<xstd::int128>::max(), 10), "170141183460469231731687303715884105727");
-        BOOST_CHECK_EQUAL(rendered(std::numeric_limits<xstd::uint128>::max(), 10), "340282366920938463463374607431768211455");
-        BOOST_CHECK_EQUAL(rendered(std::numeric_limits<xstd::int128>::max(), 16), "7fffffffffffffffffffffffffffffff");
-        BOOST_CHECK_EQUAL(rendered(std::numeric_limits<xstd::uint128>::max(), 2), std::string(128, '1'));
+        BOOST_CHECK_EQUAL(rendered(xstd::numeric_limits<xstd::int128>::min(), 10), "-170141183460469231731687303715884105728");
+        BOOST_CHECK_EQUAL(rendered(xstd::numeric_limits<xstd::int128>::max(), 10), "170141183460469231731687303715884105727");
+        BOOST_CHECK_EQUAL(rendered(xstd::numeric_limits<xstd::uint128>::max(), 10), "340282366920938463463374607431768211455");
+        BOOST_CHECK_EQUAL(rendered(xstd::numeric_limits<xstd::int128>::max(), 16), "7fffffffffffffffffffffffffffffff");
+        BOOST_CHECK_EQUAL(rendered(xstd::numeric_limits<xstd::uint128>::max(), 2), std::string(128, '1'));
         BOOST_CHECK_EQUAL(rendered(xstd::int128{0}, 10), "0");
         BOOST_CHECK_EQUAL(rendered(xstd::int128{-1}, 10), "-1");
         BOOST_CHECK_EQUAL(rendered(xstd::int128{35}, 36), "z");
@@ -186,7 +186,7 @@ BOOST_AUTO_TEST_CASE(Int128Boundaries)
         // The short-buffer return in the unsigned instantiation, counted separately.
         auto buffer = std::array<char, xstd::to_chars_max_size<xstd::uint128>>{};
         auto const truncated = xstd::to_chars(
-                buffer.data(), buffer.data(), std::numeric_limits<xstd::uint128>::max(), 2);
+                buffer.data(), buffer.data(), xstd::numeric_limits<xstd::uint128>::max(), 2);
         BOOST_CHECK(truncated.ec == std::errc::value_too_large);
 }
 
@@ -204,9 +204,9 @@ BOOST_AUTO_TEST_CASE(UsableInAConstantExpression)
 {
         static_assert(rendered_at_compile_time(255, 16, "ff"));
         static_assert(rendered_at_compile_time(-42, 10, "-42"));
-        static_assert(rendered_at_compile_time(std::numeric_limits<xstd::int128>::min(), 10,
+        static_assert(rendered_at_compile_time(xstd::numeric_limits<xstd::int128>::min(), 10,
                                                "-170141183460469231731687303715884105728"));
-        static_assert(rendered_at_compile_time(std::numeric_limits<xstd::uint128>::max(), 16,
+        static_assert(rendered_at_compile_time(xstd::numeric_limits<xstd::uint128>::max(), 16,
                                                "ffffffffffffffffffffffffffffffff"));
 }
 
@@ -222,15 +222,15 @@ template<class T>
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(UsableInAConstantExpressionPerType, T, xstd::test::constexpr_exact_width_signed_integer_types)
 {
-        static_assert(renders_at_compile_time(std::numeric_limits<T>::min(), 10));
-        static_assert(renders_at_compile_time(std::numeric_limits<T>::max(), 16));
+        static_assert(renders_at_compile_time(xstd::numeric_limits<T>::min(), 10));
+        static_assert(renders_at_compile_time(xstd::numeric_limits<T>::max(), 16));
         static_assert(renders_at_compile_time(T{0}, 2));
 }
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(UsableInAConstantExpressionPerTypeUnsigned, T, xstd::test::constexpr_exact_width_unsigned_integer_types)
 {
-        static_assert(renders_at_compile_time(std::numeric_limits<T>::max(), 10));
-        static_assert(renders_at_compile_time(std::numeric_limits<T>::min(), 36));
+        static_assert(renders_at_compile_time(xstd::numeric_limits<T>::max(), 10));
+        static_assert(renders_at_compile_time(xstd::numeric_limits<T>::min(), 36));
 }
 
 // A buffer too small reports value_too_large and leaves ptr at last, not a truncation.
@@ -242,7 +242,7 @@ BOOST_AUTO_TEST_CASE(ShortBuffer)
         BOOST_CHECK(result.ptr == buffer.data() + buffer.size());
 
         // The same in the signed digits instantiation: ptr at last, not into a partial answer.
-        auto const wide = xstd::to_chars(buffer.data(), buffer.data() + buffer.size(), std::numeric_limits<xstd::int128>::min(), 10);
+        auto const wide = xstd::to_chars(buffer.data(), buffer.data() + buffer.size(), xstd::numeric_limits<xstd::int128>::min(), 10);
         BOOST_CHECK(wide.ec == std::errc::value_too_large);
         BOOST_CHECK(wide.ptr == buffer.data() + buffer.size());
 }

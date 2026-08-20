@@ -54,7 +54,7 @@ template<>
 inline constexpr bool has_constexpr_division<absl_uint128> = false;
 #endif
 
-// The widths no fundamental type names, from the two bits a signed counterpart needs up.
+// Native bit-precise widths, from the two bits current Clang's signed type needs up.
 #ifdef XSTD_TEST_HAS_BIT_PRECISE
 // The widths every implementation of the extension divides without help from a runtime.
 using narrow_bit_precise_signed_types =

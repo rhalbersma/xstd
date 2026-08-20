@@ -25,6 +25,11 @@ BOOST_AUTO_TEST_CASE(NothrowIntegerOperators)
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_integer_operators<bool>);
         XSTD_CONSTEXPR_CHECK(xstd::nothrow_integer_operators<xstd::int128> and xstd::nothrow_integer_operators<xstd::uint128>);
 
+#ifdef XSTD_HAS_BIT_INT
+        XSTD_CONSTEXPR_CHECK(xstd::nothrow_integer_operators<xstd::bit_int<17>>);
+        XSTD_CONSTEXPR_CHECK(xstd::nothrow_integer_operators<xstd::bit_uint<17>>);
+#endif
+
         // Admitted by integer and refused here: why the two are separate concepts.
 #ifdef XSTD_TEST_HAS_ABSL_INT128
         XSTD_CONSTEXPR_CHECK(xstd::integer<xstd::test::absl_int128>);
