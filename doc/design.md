@@ -153,8 +153,9 @@ The type utilities intentionally remain narrow:
 - `is_specialization_of` and `specialization_of` recognize specializations of
   class templates whose parameters are types.
 - `is_signed` and `is_unsigned` are open counterparts of the standard traits.
-- `empty_type` and `conditional_data_member_t` support optional
-  `[[no_unique_address]]` storage.
+- `empty_type` stands in wherever a class has nothing to say: absent
+  `[[no_unique_address]]` storage through `conditional_data_member_t`, and the
+  base of `numeric_limits` outside the domain the standard trait can name.
 - `to_underlying` forwards a plain enum and preserves one wrapped in
   `std::integral_constant`.
 - `nothrow_integer_operators` answers whether the conditional `noexcept` holds.
