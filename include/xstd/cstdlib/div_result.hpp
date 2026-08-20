@@ -14,11 +14,12 @@ template<integer I>
 struct div_result
 {
         I quotient, remainder;
+        
         // Both specifiers are implicit for a defaulted function; [[nodiscard]] is not.
         [[nodiscard]] friend auto operator==(div_result const&, div_result const&) -> bool = default;
 };
 
-// Explicit to keep -Wctad-maybe-unsupported quiet.
+// Deduction guide to keep -Wctad-maybe-unsupported quiet.
 template<integer I>
 div_result(I, I) -> div_result<I>;
 
