@@ -133,10 +133,11 @@ format a tuple of it the tuple grammar applies, and otherwise a string one.
 See [the design notes](doc/design.md) for rationale and for customizing an
 integer-class type, and [CONTRIBUTING.md](CONTRIBUTING.md) to build the library itself.
 
-## Continuously tested toolchains
+## Continuous integration
 
-CI covers the stable, qualification, and development channels of the major
-[C++23](https://wg21.link/N4950) compilers and standard libraries:
+We continuously test the stable, qualification, and development branches of the
+major [C++23](https://wg21.link/N4950) toolchains (compilers and standard
+libraries) in both Debug and Release mode:
 
 | Platform | Compiler   | Standard Library | Stable                    | Qualification             | Development                    | CI    |
 | :------- | :--------- | :--------------- | :------------------------ | :------------------------ | :----------------------------- | :---- |
