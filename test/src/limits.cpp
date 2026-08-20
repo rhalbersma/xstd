@@ -23,8 +23,9 @@ BOOST_AUTO_TEST_CASE(DelegatesToTheStandardDomain)
 BOOST_AUTO_TEST_CASE(AnswersTheUnspecializedDefaultsOutsideThatDomain)
 {
         static_assert(not xstd::numeric_limits<void>::is_specialized);
-        static_assert(not xstd::numeric_limits<int[3]>::is_specialized);
         static_assert(not xstd::numeric_limits<int&>::is_specialized);
+        // NOLINTNEXTLINE(modernize-avoid-c-arrays): a built-in array is the type under test, not a container choice
+        static_assert(not xstd::numeric_limits<int[3]>::is_specialized);
         static_assert(not xstd::numeric_limits<void()>::is_specialized);
 }
 
