@@ -13,7 +13,6 @@
 #include <charconv>                        // to_chars, to_chars_result
 #include <concepts>                        // same_as
 #include <cstddef>                         // size_t
-#include <limits>                          // numeric_limits
 #include <string>                          // string
 #include <string_view>                     // string_view
 #include <system_error>                    // errc

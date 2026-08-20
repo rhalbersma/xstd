@@ -10,7 +10,6 @@
 #include <xstd/limits.hpp>                          // numeric_limits
 #include <boost/test/unit_test.hpp>                 // Boost.Test
 #include <concepts>                                 // same_as
-#include <limits>                                   // numeric_limits
 #include <xstd/type_traits.hpp>                     // make_unsigned_t
 
 BOOST_AUTO_TEST_SUITE(CStdLib)

@@ -6,13 +6,9 @@
 #include <xstd/test/bit_precise.hpp>          // XSTD_TEST_HAS_BIT_PRECISE, bit_int, bit_uint
 #include <xstd/test/exact_width_types.hpp>    // bit_precise_signed_types, bit_precise_unsigned_types
 #include <xstd/cstdlib.hpp>                   // abs, div, div_euclid, div_floor, sign, unsigned_abs
-#include <xstd/concepts.hpp>                  // integer_class, integer
-#include <xstd/type_traits/make_signed.hpp>   // make_signed_t
 #include <xstd/type_traits/make_unsigned.hpp> // make_unsigned_t
 #include <xstd/limits.hpp>                    // numeric_limits
 #include <boost/test/unit_test.hpp>           // Boost.Test
-#include <concepts>                           // same_as
-#include <limits>                             // numeric_limits
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
 

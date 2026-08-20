@@ -35,10 +35,8 @@ template<std::size_t N>
         requires (2 <= N and N <= bit_int_max_width)
 using bit_uint = unsigned _BitInt(N);
 
-// Fill only a standard-library gap. If std already specializes the native type,
-// xstd's primary numeric_limits delegates to it instead of selecting these.
+// Not deferred to std: libc++ specializes these, but takes digits from sizeof.
 template<std::size_t N>
-        requires (not std::numeric_limits<signed _BitInt(N)>::is_specialized)
 struct numeric_limits<signed _BitInt(N)> : std::numeric_limits<signed _BitInt(N)>
 {
         using type = signed _BitInt(N);
@@ -70,7 +68,6 @@ struct numeric_limits<signed _BitInt(N)> : std::numeric_limits<signed _BitInt(N)
 };
 
 template<std::size_t N>
-        requires (not std::numeric_limits<unsigned _BitInt(N)>::is_specialized)
 struct numeric_limits<unsigned _BitInt(N)> : std::numeric_limits<unsigned _BitInt(N)>
 {
         using type = unsigned _BitInt(N);

@@ -3,9 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/concepts.hpp>             // signed_integer, unsigned_integer
+#include <xstd/concepts.hpp>             // integer, signed_integer, unsigned_integer
 #include <xstd/cstdint.hpp>              // XSTD_HAS_BIT_INT, bit_int, bit_uint, int128, uint128
-#include <xstd/limits.hpp>               // numeric_limits
 #include <xstd/test/constexpr_check.hpp> // XSTD_CONSTEXPR_CHECK
 #include <xstd/type_traits.hpp>          // make_signed_t, make_unsigned_t
 #include <boost/test/unit_test.hpp>      // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END
@@ -49,8 +48,8 @@ BOOST_AUTO_TEST_CASE(BitPreciseAliases)
         using S = xstd::bit_int<17>;
         using U = xstd::bit_uint<17>;
 
-        static_assert(xstd::integer_class<S>);
-        static_assert(xstd::integer_class<U>);
+        static_assert(xstd::integer<S>);
+        static_assert(xstd::integer<U>);
         static_assert(xstd::signed_integer<S>);
         static_assert(xstd::unsigned_integer<U>);
         static_assert(std::same_as<xstd::make_unsigned_t<S>, U>);

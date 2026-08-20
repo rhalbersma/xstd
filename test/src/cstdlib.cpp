@@ -9,7 +9,6 @@
 #include <xstd/test/exact_width_types.hpp>          // exact-width integer type lists
 #include <xstd/limits.hpp>                          // numeric_limits
 #include <boost/test/unit_test.hpp>                 // BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE
-#include <limits>                                   // numeric_limits
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
