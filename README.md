@@ -13,12 +13,14 @@
 [![Coverage](https://codecov.io/gh/rhalbersma/xstd/branch/main/graph/badge.svg)](https://codecov.io/gh/rhalbersma/xstd)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/rhalbersma/xstd/badge)](https://securityscorecards.dev/viewer/?uri=github.com/rhalbersma/xstd)
 
-xstd is a header-only C++23 library of small, portable standard-library
-extensions. All public APIs are in namespace `xstd`.
+xstd is a header-only collection of small, portable standard-library
+extensions. It is written in [C++23](https://wg21.link/N4950) and targets the
+current [C++29](https://wg21.link/std) draft standard library. All public APIs
+are in namespace `xstd`.
 
 ## Requirements
 
-- A conforming C++23 compiler
+- A conforming [C++23](https://wg21.link/N4950) compiler
 - CMake 3.28 or later when using the supplied CMake project
 - No third-party runtime or library dependencies
 
@@ -131,10 +133,11 @@ format a tuple of it the tuple grammar applies, and otherwise a string one.
 See [the design notes](doc/design.md) for rationale and for customizing an
 integer-class type, and [CONTRIBUTING.md](CONTRIBUTING.md) to build the library itself.
 
-## Continuously tested toolchains
+## Continuous integration
 
-CI covers the stable, qualification, and development channels of the major
-C++23 compilers and standard libraries:
+We continuously test the stable, qualification, and development branches of the
+major [C++23](https://wg21.link/N4950) toolchains (compilers and standard
+libraries) in both Debug and Release mode:
 
 | Platform | Compiler   | Standard Library | Stable                    | Qualification             | Development                    | CI    |
 | :------- | :--------- | :--------------- | :------------------------ | :------------------------ | :----------------------------- | :---- |
@@ -148,6 +151,9 @@ C++23 compilers and standard libraries:
 
 ## License
 
-Copyright Rein Halbersma 2014-2026.
-Distributed under the [Boost Software License, Version 1.0](http://www.boost.org/users/license.html).
-(See accompanying file LICENSE_1_0.txt or copy at [http://www.boost.org/LICENSE_1_0.txt](http://www.boost.org/LICENSE_1_0.txt))
+<pre>
+         Copyright Rein Halbersma 2014-2026.
+Distributed under the <a href="http://www.boost.org/users/license.html">Boost Software License, Version 1.0</a>.
+   (See accompanying file LICENSE_1_0.txt or copy at
+         <a href="http://www.boost.org/LICENSE_1_0.txt">http://www.boost.org/LICENSE_1_0.txt</a>)
+</pre>
