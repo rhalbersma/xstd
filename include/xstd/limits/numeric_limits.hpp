@@ -12,10 +12,7 @@
 
 namespace xstd {
 
-// Open counterpart of std::numeric_limits: the standard domain delegates there,
-// while extension types can specialize this template in namespace xstd.
-// Its members return T by value, so an array or a function type would declare a
-// function returning one; those types get an empty base and no members at all.
+// Open counterpart of std::numeric_limits, whose members an array or a function type cannot return.
 template<class T>
 struct numeric_limits : std::conditional_t<std::is_object_v<T> and not std::is_array_v<T>, std::numeric_limits<T>, empty_type<>>
 {};

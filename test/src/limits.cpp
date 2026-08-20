@@ -20,8 +20,7 @@ BOOST_AUTO_TEST_CASE(DelegatesToTheStandardDomain)
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::numeric_limits<int>::max(), std::numeric_limits<int>::max());
 }
 
-// A named concept, not a bare requires-expression: the trait is empty out there,
-// so naming a member is ill-formed rather than false.
+// A named concept, not a bare requires-expression: naming a member of an empty trait is ill-formed.
 template<class T>
 concept has_limits = requires { xstd::numeric_limits<T>::is_specialized; };
 
