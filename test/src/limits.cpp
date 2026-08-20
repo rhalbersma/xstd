@@ -20,4 +20,12 @@ BOOST_AUTO_TEST_CASE(DelegatesToTheStandardDomain)
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::numeric_limits<int>::max(), std::numeric_limits<int>::max());
 }
 
+BOOST_AUTO_TEST_CASE(AnswersTheUnspecializedDefaultsOutsideThatDomain)
+{
+        static_assert(not xstd::numeric_limits<void>::is_specialized);
+        static_assert(not xstd::numeric_limits<int[3]>::is_specialized);
+        static_assert(not xstd::numeric_limits<int&>::is_specialized);
+        static_assert(not xstd::numeric_limits<void()>::is_specialized);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
