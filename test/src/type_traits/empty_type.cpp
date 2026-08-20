@@ -88,6 +88,12 @@ BOOST_AUTO_TEST_CASE(EmptyInstancesAreEquallyOrdered)
         XSTD_CONSTEXPR_CHECK((empty(0) <=> empty(1)) == std::strong_ordering::equal);
 }
 
+// The default serves the uses with nothing to keep distinct, such as a base class.
+BOOST_AUTO_TEST_CASE(EmptyTypeTagDefaultsToVoid)
+{
+        XSTD_CONSTEXPR_CHECK((std::same_as<xstd::empty_type<>, xstd::empty_type<void>>));
+}
+
 BOOST_AUTO_TEST_CASE(EmptyTypesAreNotEqual)
 {
         using empty1 = xstd::empty_type<struct tag1>;

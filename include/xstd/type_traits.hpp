@@ -8,7 +8,6 @@
 
 // Helper classes
 #include <xstd/type_traits/empty_type.hpp> // IWYU pragma: export; empty_type
-#include <xstd/type_traits/void_type.hpp>  // IWYU pragma: export; void_type
 
 // Type properties
 #include <xstd/type_traits/is_character.hpp> // IWYU pragma: export; is_character
