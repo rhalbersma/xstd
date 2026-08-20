@@ -12,7 +12,9 @@
 
 namespace xstd {
 
-template<class Tag>
+// The tag keeps two of these distinct where they are data members sharing a
+// layout; it defaults to void for the uses that need no such distinction.
+template<class Tag = void>
 struct empty_type
 {
         // Both specifiers are implicit for a defaulted function; [[nodiscard]] is not.

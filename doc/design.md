@@ -154,7 +154,9 @@ The type utilities intentionally remain narrow:
   class templates whose parameters are types.
 - `is_signed` and `is_unsigned` are open counterparts of the standard traits.
 - `empty_type` and `conditional_data_member_t` support optional
-  `[[no_unique_address]]` storage.
+  `[[no_unique_address]]` storage. Its tag defaults to `void`, so `empty_type<>`
+  also serves the uses with nothing to keep distinct, such as the base
+  `numeric_limits` inherits outside the domain the standard trait can name.
 - `to_underlying` forwards a plain enum and preserves one wrapped in
   `std::integral_constant`.
 - `nothrow_integer_operators` answers whether the conditional `noexcept` holds.
