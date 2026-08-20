@@ -13,7 +13,7 @@
 [![Coverage](https://codecov.io/gh/rhalbersma/xstd/branch/main/graph/badge.svg)](https://codecov.io/gh/rhalbersma/xstd)
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/rhalbersma/xstd/badge)](https://securityscorecards.dev/viewer/?uri=github.com/rhalbersma/xstd)
 
-xstd is a header-only collection of small, portable standard-library
+xstd is a collection of small, portable, header-only standard-library
 extensions. It is written in [C++23](https://wg21.link/N4950) and targets the
 current [C++29](https://wg21.link/std) draft standard library. All public APIs
 are in namespace `xstd`.
