@@ -15,8 +15,8 @@
 
 xstd is a header-only collection of small, portable standard-library
 extensions. It is written in [C++23](https://wg21.link/N4950) and targets the
-current draft for [C++29](https://wg21.link/std). All public APIs are in
-namespace `xstd`.
+current [C++29](https://wg21.link/std) draft standard library. All public APIs
+are in namespace `xstd`.
 
 ## Requirements
 
