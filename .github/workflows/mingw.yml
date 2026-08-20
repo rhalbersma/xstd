@@ -164,8 +164,17 @@ jobs:
         if: steps.winlibs.outputs.found == 'true'
         run: choco install ninja -y
 
-      # Explicit: Ninja is single-config and vcpkg defaults to Debug, whose
-      # Boost.Test DLL the release-only z-applocal step never deploys.
+      # Explicit: Ninja is single-config and vcpkg defaults to Debug, so the
+      # build type has to be named for the Test step to put the matching
+      # Boost.Test DLL on PATH.
+      #
+      # VCPKG_APPLOCAL_DEPS=OFF, because the toolchain otherwise appends a
+      # "vcpkg z-applocal" command to the link edge of every test executable.
+      # Each one reopens the .exe ninja has just written and copies the same
+      # DLLs next to it; run concurrently, against a virus scanner that opens
+      # new executables too, one eventually loses the race and the build dies
+      # with a sharing violation. The Test step puts those DLLs on PATH
+      # instead, which deploys nothing and cannot race.
       - name: Configure
         if: steps.winlibs.outputs.found == 'true'
         run: >
@@ -175,11 +184,20 @@ jobs:
           -DCMAKE_CXX_COMPILER=g++
           "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
           -DVCPKG_TARGET_TRIPLET=x64-mingw-dynamic
+          -DVCPKG_APPLOCAL_DEPS=OFF
 
       - name: Build
         if: steps.winlibs.outputs.found == 'true'
         run: cmake --build build -v
 
+      # vcpkg keeps the debug DLLs in their own subdirectory, and the two
+      # sets share file names, so only the one matching the build type may go
+      # on PATH.
       - name: Test
         if: steps.winlibs.outputs.found == 'true'
-        run: ctest --test-dir build --output-on-failure
+        run: |
+          $bin = if ("${{ matrix.build_type }}" -eq "Debug") { "debug\bin" } else { "bin" }
+          $dlls = Join-Path $env:GITHUB_WORKSPACE "build\vcpkg_installed\x64-mingw-dynamic\$bin"
+          if (-not (Test-Path $dlls)) { throw "No vcpkg bin directory at $dlls" }
+          $env:PATH = "$dlls;$env:PATH"
+          ctest --test-dir build --output-on-failure
