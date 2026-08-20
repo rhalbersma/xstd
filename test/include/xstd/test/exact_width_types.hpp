@@ -105,8 +105,7 @@ using constexpr_exact_width_unsigned_integer_types = decltype(std::tuple_cat(
         std::declval<std_unsigned_types>(), std::declval<xstd_unsigned_types>(), std::declval<boost_unsigned_types>(),
         std::declval<constexpr_absl_unsigned_types>(), std::declval<bit_precise_unsigned_types>()));
 
-// The authoritative configured test universe. Signed and unsigned subsets remain available
-// because most arithmetic contracts differ at zero or at the signed minimum.
+// The authoritative configured test universe; subsets remain for contracts that differ by sign.
 using exact_width_signed_integer_types = decltype(std::tuple_cat(
         std::declval<std_signed_types>(), std::declval<xstd_signed_types>(), std::declval<boost_signed_types>(),
         std::declval<absl_signed_types>(), std::declval<bit_precise_signed_types>()));

@@ -12,8 +12,7 @@
 
 namespace xstd {
 
-// The tag keeps two of these distinct where they are data members sharing a
-// layout; it defaults to void for the uses that need no such distinction.
+// The tag keeps two empty data members distinct in a layout; a base needs no such distinction.
 template<class Tag = void>
 struct empty_type
 {
