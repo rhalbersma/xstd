@@ -5,7 +5,7 @@
 xstd is a header-only collection of small C++ standard-library extensions.
 There is no single proposal behind it: it collects facilities suggested by
 existing practice that can be implemented portably, with a standard-library
-interface. The baseline is C++23, and may move to C++26 once that is common
+interface. The baseline is [C++23](https://wg21.link/N4950), and may move to C++26 once that is common
 across the tested toolchains. Consumers need no third-party dependencies.
 
 ## Principles
@@ -20,7 +20,7 @@ across the tested toolchains. Consumers need no third-party dependencies.
 - **Make semantics explicit.** The three division functions name their rounding
   convention rather than hiding it behind `/` and `%`.
 - **Stay modular and dependency-free.** Linking `xstd::xstd` adds include paths
-  and the C++23 requirement, but no runtime library or transitive package.
+  and the [C++23](https://wg21.link/N4950) requirement, but no runtime library or transitive package.
 
 ## API shape
 
@@ -97,7 +97,7 @@ proposed against exactly this shape of problem —
 [N3207](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2010/n3207.htm)
 (2010), still open as
 [P3166R0](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2024/p3166r0.html)
-(2024) — and C++23 has no such thing. The manual `noexcept(noexcept(e))` reaches
+(2024) — and [C++23](https://wg21.link/N4950) has no such thing. The manual `noexcept(noexcept(e))` reaches
 only a single-expression function, which these are not.
 
 A `= default` function needs no stand-in and gets neither specifier: defaulted on
@@ -183,7 +183,7 @@ motivated `to_underlying` with scoped enums used as named tuple and array
 indices. Rein Halbersma developed the idea and initial usage evidence with
 Walter E. Brown; JeanHeyd Meneide then authored
 [P1682R1](https://wg21.link/P1682R1) and carried `std::to_underlying` through
-WG21 for C++23. P1682's acknowledgements record those roles. The xstd overload
+WG21 for [C++23](https://wg21.link/N4950). P1682's acknowledgements record those roles. The xstd overload
 complements it: given an enum value wrapped in `std::integral_constant`, it
 returns an `integral_constant` of the underlying type, preserving the value at
 the type level.
@@ -339,7 +339,7 @@ integer-class types; for unsigned types all three conventions coincide.
 
 ## Requirements and evolution
 
-xstd requires a conforming C++23 compiler, and the CMake project CMake 3.28 or
+xstd requires a conforming [C++23](https://wg21.link/N4950) compiler, and the CMake project CMake 3.28 or
 later, exporting the header-only `xstd::xstd` target. Consumers build neither the
 tests nor their dependencies. New facilities should stay small, portable and
 motivated by current practice; one that enters the standard library can be
