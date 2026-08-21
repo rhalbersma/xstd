@@ -9,3 +9,9 @@ updates:
     directory: /
     schedule:
       interval: monthly
+
+  # .github/requirements.txt, the coverage job's pinned gcovr.
+  - package-ecosystem: pip
+    directory: /.github
+    schedule:
+      interval: monthly

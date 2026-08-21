@@ -36,12 +36,17 @@ jobs:
       - name: Make apt retry transient download failures
         run: echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/99-retries > /dev/null
 
+      # The key and suite directly, as in clang.yml: llvm.sh is an unversioned
+      # script fetched over the wire and run as root, which nothing can pin.
+      # clang-tidy-22 carries run-clang-tidy-22; clang-22 is the Configure step's.
       - name: Install Clang 22 and clang-tidy 22
         run: |
-          wget --tries=3 --waitretry=5 --retry-on-http-error=429,500,502,503,504 https://apt.llvm.org/llvm.sh
-          chmod +x llvm.sh
-          sudo ./llvm.sh 22
-          sudo apt-get install -y clang-tidy-22
+          wget -qO- --tries=3 --waitretry=5 --retry-on-http-error=429,500,502,503,504 https://apt.llvm.org/llvm-snapshot.gpg.key \
+            | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc > /dev/null
+          codename=$(lsb_release -cs)
+          sudo add-apt-repository -y "deb https://apt.llvm.org/${codename}/ llvm-toolchain-${codename}-22 main"
+          sudo apt-get update
+          sudo apt-get install -y clang-22 clang-tidy-22
 
       # A known-good g++ purely for its libstdc++, the div_result formatter needing
       # std::formatter<tuple>; Clang picks up the newest one it finds.

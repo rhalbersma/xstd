@@ -77,6 +77,10 @@ jobs:
         if: matrix.trunk
         run: |
           wget -q --tries=3 --waitretry=5 --retry-on-http-error=429,500,502,503,504 https://kayari.org/gcc-latest/gcc-latest.deb -O gcc-latest.deb
+          # Deliberately the moving URL, so this leg keeps tracking trunk; upstream
+          # publishes neither checksums nor signatures, so record what arrived.
+          dpkg-deb -f gcc-latest.deb Package Version
+          sha256sum gcc-latest.deb
           sudo dpkg -i gcc-latest.deb || sudo apt-get install -f -y
           sudo ln -sf /opt/gcc-latest/bin/gcc        /usr/bin/${{ matrix.cc }}
           sudo ln -sf /opt/gcc-latest/bin/g++        /usr/bin/${{ matrix.cxx }}
