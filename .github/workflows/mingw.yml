@@ -159,10 +159,21 @@ jobs:
           key: ${{ env.VCPKG_CACHE_KEY }}${{ hashFiles('vcpkg-cache/**') }}
 
       # Ninja rather than "MinGW Makefiles", which wants a mingw32-make.exe
-      # WinLibs does not bundle; not preinstalled either, hence the choco.
+      # WinLibs does not bundle; not preinstalled either. Straight from the
+      # upstream release rather than Chocolatey, so the one artifact this step
+      # trusts is a fixed tag's, and its hash is checked before it runs.
+      #
+      # utf8NoBOM for the reason given at the WinLibs PATH step above.
       - name: Install Ninja
         if: steps.winlibs.outputs.found == 'true'
-        run: choco install ninja -y
+        run: |
+          $url = 'https://github.com/ninja-build/ninja/releases/download/v1.13.2/ninja-win.zip'
+          $want = '07fc8261b42b20e71d1720b39068c2e14ffcee6396b76fb7a795fb460b78dc65'
+          Invoke-WebRequest -Uri $url -OutFile ninja.zip -MaximumRetryCount 3 -RetryIntervalSec 5
+          $got = (Get-FileHash ninja.zip -Algorithm SHA256).Hash.ToLower()
+          if ($got -ne $want) { throw "ninja-win.zip sha256 $got, expected $want" }
+          Expand-Archive ninja.zip -DestinationPath C:\ninja
+          echo "C:\ninja" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8NoBOM -Append
 
       # Explicit: Ninja is single-config and vcpkg defaults to Debug, so the
       # build type has to be named for the Test step to put the matching
