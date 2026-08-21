@@ -9,6 +9,13 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    # One PR per cycle. Not just for quiet: github/codeql-action's init and
+    # analyze are separate dependencies that must move together, and a PR
+    # bumping either alone fails with a configuration-version mismatch.
+    groups:
+      actions:
+        patterns:
+          - "*"
 
   # .github/requirements.txt, the coverage job's pinned gcovr.
   - package-ecosystem: pip
