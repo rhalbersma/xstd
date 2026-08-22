@@ -6,20 +6,20 @@
 #ifndef XSTD_CSTDLIB_DIV_FLOOR_HPP
 #define XSTD_CSTDLIB_DIV_FLOOR_HPP
 
-#include <xstd/concepts/integer.hpp>                   // integer
-#include <xstd/concepts/nothrow_integer_operators.hpp> // nothrow_integer_operators
-#include <xstd/cstdlib/div.hpp>                        // div
-#include <xstd/cstdlib/div_result.hpp>                 // IWYU pragma: export; div_result
-#include <xstd/cstdlib/sign.hpp>                       // sign
-#include <xstd/cstdlib/unsigned_abs.hpp>               // unsigned_abs
-#include <xstd/type_traits/is_unsigned.hpp>            // is_unsigned_v
-#include <cassert>                                     // assert
+#include <xstd/concepts/integer.hpp>                 // integer
+#include <xstd/concepts/nothrow_const_operators.hpp> // nothrow_const_operators
+#include <xstd/cstdlib/div.hpp>                      // div
+#include <xstd/cstdlib/div_result.hpp>               // IWYU pragma: export; div_result
+#include <xstd/cstdlib/sign.hpp>                     // sign
+#include <xstd/cstdlib/unsigned_abs.hpp>             // unsigned_abs
+#include <xstd/type_traits/is_unsigned.hpp>          // is_unsigned_v
+#include <cassert>                                   // assert
 
 namespace xstd {
 
 // Floored division: a nonzero remainder has the denominator's sign.
 template<integer I>
-[[nodiscard]] constexpr auto div_floor(I numer, I denom) noexcept(nothrow_integer_operators<I>)
+[[nodiscard]] constexpr auto div_floor(I numer, I denom) noexcept(nothrow_const_operators<I>)
         -> div_result<I>
 {
         assert(denom != static_cast<I>(0));

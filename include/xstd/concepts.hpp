@@ -14,6 +14,6 @@
 #include <xstd/concepts/specialization_of.hpp> // IWYU pragma: export; specialization_of
 
 // Domain and exception specification of the integer functions
-#include <xstd/concepts/nothrow_integer_operators.hpp> // IWYU pragma: export; nothrow_integer_operators
+#include <xstd/concepts/nothrow_const_operators.hpp> // IWYU pragma: export; nothrow_const_operators
 
 #endif // XSTD_CONCEPTS_HPP

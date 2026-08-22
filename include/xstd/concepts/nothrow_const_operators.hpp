@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_CONCEPTS_NOTHROW_INTEGER_OPERATORS_HPP
-#define XSTD_CONCEPTS_NOTHROW_INTEGER_OPERATORS_HPP
+#ifndef XSTD_CONCEPTS_NOTHROW_CONST_OPERATORS_HPP
+#define XSTD_CONCEPTS_NOTHROW_CONST_OPERATORS_HPP
 
 #include <xstd/concepts/integer.hpp> // integer
 #include <concepts>                  // same_as
@@ -15,7 +15,7 @@ namespace xstd {
 
 // Whether a type's const operations all carry noexcept, asked of T with the cv stripped.
 template<class T_cv, class T = std::remove_cv_t<T_cv>>
-concept nothrow_integer_operators =
+concept nothrow_const_operators =
         // T is the parameter's own default; naming it explicitly cannot redirect the question.
         std::same_as<T, std::remove_cv_t<T_cv>> and
         integer<T> and
@@ -28,8 +28,8 @@ concept nothrow_integer_operators =
                 // Asked as written: /7.3 and /7.6 give the result type already, so a cast adds nothing.
                 { +a } noexcept;
                 { -a } noexcept;
+                { !a } noexcept;
                 { ~a } noexcept;
-                { not a } noexcept;
         } and
         requires (T const a, T const b) {
                 { a * b } noexcept;
@@ -57,4 +57,4 @@ concept nothrow_integer_operators =
 
 } // namespace xstd
 
-#endif // XSTD_CONCEPTS_NOTHROW_INTEGER_OPERATORS_HPP
+#endif // XSTD_CONCEPTS_NOTHROW_CONST_OPERATORS_HPP

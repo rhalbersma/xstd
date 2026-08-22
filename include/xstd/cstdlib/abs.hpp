@@ -6,17 +6,17 @@
 #ifndef XSTD_CSTDLIB_ABS_HPP
 #define XSTD_CSTDLIB_ABS_HPP
 
-#include <xstd/concepts/integer.hpp>                   // integer
-#include <xstd/concepts/nothrow_integer_operators.hpp> // nothrow_integer_operators
-#include <xstd/limits/numeric_limits.hpp>              // numeric_limits
-#include <xstd/type_traits/is_unsigned.hpp>            // is_unsigned_v
-#include <cassert>                                     // assert
+#include <xstd/concepts/integer.hpp>                 // integer
+#include <xstd/concepts/nothrow_const_operators.hpp> // nothrow_const_operators
+#include <xstd/limits/numeric_limits.hpp>            // numeric_limits
+#include <xstd/type_traits/is_unsigned.hpp>          // is_unsigned_v
+#include <cassert>                                   // assert
 
 namespace xstd {
 
 // constexpr generalization of abs/labs/llabs/imaxabs.
 template<integer I>
-[[nodiscard]] constexpr auto abs(I x) noexcept(nothrow_integer_operators<I>)
+[[nodiscard]] constexpr auto abs(I x) noexcept(nothrow_const_operators<I>)
         -> I
 {
         // An unsigned value is its own magnitude, and its min() is 0.
