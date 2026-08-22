@@ -53,7 +53,7 @@ concept integer_class =
         requires (T const a) {
                 { +a } -> std::same_as<T>;
                 { -a } -> std::same_as<T>;
-                { !a } -> std::same_as<bool>;
+                { not a } -> std::same_as<bool>;
                 { ~a } -> std::same_as<T>;
         } and
 

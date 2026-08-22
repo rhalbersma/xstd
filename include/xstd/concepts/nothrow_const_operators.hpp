@@ -28,7 +28,7 @@ concept nothrow_const_operators =
                 // Asked as written: /7.3 and /7.6 give the result type already, so a cast adds nothing.
                 { +a } noexcept;
                 { -a } noexcept;
-                { !a } noexcept;
+                { not a } noexcept;
                 { ~a } noexcept;
         } and
         requires (T const a, T const b) {
