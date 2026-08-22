@@ -19,10 +19,9 @@ concept nothrow_const_operators =
         // T is the parameter's own default; naming it explicitly cannot redirect the question.
         std::same_as<T, std::remove_cv_t<T_cv>> and
         integer<T> and
-        // /6, where integer_class asks it: the conversion in, then the two out.
-        requires {
-                { static_cast<T>(0) } noexcept;
-        } and
+        // /6, where integer_class asks it: the two conversions in, then the two out.
+        std::is_nothrow_constructible_v<T, int> and
+        std::is_nothrow_constructible_v<T, std::size_t> and
         std::is_nothrow_constructible_v<int, T> and
         std::is_nothrow_constructible_v<std::size_t, T> and
         requires (T const a) {
