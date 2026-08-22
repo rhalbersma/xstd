@@ -9,7 +9,7 @@
 #include <xstd/concepts/integer.hpp> // integer
 #include <concepts>                  // same_as
 #include <cstddef>                   // size_t
-#include <type_traits>               // remove_cv_t
+#include <type_traits>               // is_nothrow_constructible_v, remove_cv_t
 
 namespace xstd {
 
@@ -19,12 +19,12 @@ concept nothrow_const_operators =
         // T is the parameter's own default; naming it explicitly cannot redirect the question.
         std::same_as<T, std::remove_cv_t<T_cv>> and
         integer<T> and
-        // The conversions themselves: /6 and /8 make both explicit, so the cast is the expression.
-        requires {
-                { static_cast<T>(0) } noexcept;
-        } and
+        // /6, where integer_class asks it: the two conversions in, then the two out.
+        std::is_nothrow_constructible_v<T, int> and
+        std::is_nothrow_constructible_v<T, std::size_t> and
+        std::is_nothrow_constructible_v<int, T> and
+        std::is_nothrow_constructible_v<std::size_t, T> and
         requires (T const a) {
-                { static_cast<bool>(a) } noexcept;
                 // Asked as written: /7.3 and /7.6 give the result type already, so a cast adds nothing.
                 { +a } noexcept;
                 { -a } noexcept;
@@ -53,7 +53,10 @@ concept nothrow_const_operators =
                 { a & b } noexcept;
                 { a ^ b } noexcept;
                 { a | b } noexcept;
-        };
+        } and
+
+        // /8, likewise: the contextual conversion to bool, after the operators.
+        std::is_nothrow_constructible_v<bool, T>;
 
 } // namespace xstd
 
