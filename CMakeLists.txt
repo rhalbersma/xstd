@@ -55,6 +55,10 @@ target_sources(
         include/xstd/cstdlib/div_floor.hpp
         include/xstd/cstdlib/sign.hpp
         include/xstd/cstdlib/unsigned_abs.hpp
+        include/xstd/ext/absl.hpp
+        include/xstd/ext/absl/int128.hpp
+        include/xstd/ext/boost.hpp
+        include/xstd/ext/boost/int128.hpp
         include/xstd/format.hpp
         include/xstd/format/div_result.hpp
         include/xstd/limits.hpp

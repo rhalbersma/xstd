@@ -22,9 +22,11 @@ are in namespace `xstd`.
 
 - A conforming [C++23](https://wg21.link/N4950) compiler
 - CMake 3.28 or later when using the supplied CMake project
-- No third-party runtime or library dependencies
+- No third-party runtime or library dependencies outside `<xstd/ext/>`
 
-`<xstd/format.hpp>` is the only header that depends on `<format>`.
+`<xstd/format.hpp>` is the only header that depends on `<format>`. The
+`<xstd/ext/>` headers are the only ones that include a third-party library, and
+no other header includes them: an adapted library is reached by naming it.
 
 ## Add xstd to a project
 
@@ -53,6 +55,8 @@ the same `xstd::xstd` target.
 | `<xstd/charconv.hpp>` | `to_chars` <br> `to_chars_max_size` | `std::to_chars`, widened to xstd integers it does not cover <br> Buffer size that holds any value of `T` at any base | [charconv.to.chars] <br> none |
 | `<xstd/cstdint.hpp>` | `bit_int<N>` <br> `bit_uint<N>` <br> `bit_int_max_width` <br> `int128` <br> `uint128` | Native bit-precise signed integer (when available) <br> Native bit-precise unsigned integer (when available) <br> Maximum native bit-precise width (when available) <br> Platform 128-bit signed integer <br> Platform 128-bit unsigned integer | [P3666R0](https://wg21.link/P3666R0) <br> [P3666R0](https://wg21.link/P3666R0) <br> none <br> none <br> none |
 | `<xstd/cstdlib.hpp>` | `div_result` <br> `sign` <br> `abs` <br> `unsigned_abs` <br> `div` <br> `div_euclid` <br> `div_floor` | Defaulted equality comparison <br> `-1`, `0`, or `1`; `0` or `1` when unsigned <br> `constexpr`, any xstd integer <br> Total `\|x\|`, returning the unsigned counterpart <br> Truncated division, any xstd integer <br> Euclidean division <br> Floored division | none <br> [Boost.Math](https://www.boost.org/doc/libs/1_80_0/libs/math/doc/html/math_toolkit/sign_functions.html) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (reviewed implementation wording) <br> [Rust `unsigned_abs`](https://doc.rust-lang.org/std/primitive.i32.html#method.unsigned_abs) (no C++ equivalent) <br> [p0533r9](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2021/p0533r9.pdf) (reviewed implementation wording) <br> [Euclidean division](https://en.wikipedia.org/wiki/Euclidean_division) <br> [Floored division](http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf) |
+| `<xstd/ext/absl.hpp>` | `make_unsigned<absl::int128>` <br> `make_signed<absl::uint128>` | Pairs Abseil's two integer-class types, so each models `integer` | none <br> none |
+| `<xstd/ext/boost.hpp>` | `make_unsigned<boost::int128::int128>` <br> `make_signed<boost::int128::uint128>` | Pairs Boost.Int128's two integer-class types, so each models `integer` | none <br> none |
 | `<xstd/format.hpp>` | `formatter<div_result>` | `std::format` support for every element type `div_result` accepts | [p3391](https://wg21.link/P3391R3) (reviewed constexpr-format wording) |
 | `<xstd/limits.hpp>` | `numeric_limits` | Open `std::numeric_limits`, specialized for xstd extension types | [numeric.limits] |
 | `<xstd/memory.hpp>` | `aligned_size` | Round a size up to a power-of-two alignment | none |
@@ -65,7 +69,10 @@ minimum width is two so every exposed type has a signed or unsigned counterpart.
 The 128-bit aliases and their `make_signed` and `make_unsigned` associations are
 defined together in `<xstd/cstdint/int128.hpp>`; `<xstd/cstdint.hpp>` is their
 umbrella. Similarly, `<xstd/type_traits/no_unique_address.hpp>` defines
-`XSTD_NO_UNIQUE_ADDRESS`, while `<xstd/type_traits.hpp>` exports it.
+`XSTD_NO_UNIQUE_ADDRESS`, while `<xstd/type_traits.hpp>` exports it. The two
+`<xstd/ext/>` umbrellas export `<xstd/ext/absl/int128.hpp>` and
+`<xstd/ext/boost/int128.hpp>`, and each needs the library it adapts on the
+include path; nothing above them exports either.
 
 ## Examples
 
