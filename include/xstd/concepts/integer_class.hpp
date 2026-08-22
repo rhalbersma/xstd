@@ -32,10 +32,8 @@ concept integer_class =
 
         // /6: representative implicit conversion in and explicit conversions out.
         std::convertible_to<int, T> and
-        requires (T const value) {
-                static_cast<int>(value);
-                static_cast<std::size_t>(value);
-        } and
+        std::constructible_from<int, T> and
+        std::constructible_from<std::size_t, T> and
 
         // /7.1: postfix increment and decrement.
         requires (T a) {
