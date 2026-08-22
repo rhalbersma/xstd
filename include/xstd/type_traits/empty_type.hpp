@@ -12,14 +12,13 @@
 
 namespace xstd {
 
-// The tag keeps two empty data members distinct in a layout; a base needs no such distinction.
+// The tag keeps two empty data members distinct in a layout.
 template<class Tag = void>
 struct empty_type
 {
-        // Both specifiers are implicit for a defaulted function; [[nodiscard]] is not.
         [[nodiscard]] empty_type() = default;
 
-        // Constructible like any alternative member, without hijacking copy or move.
+        // Lets an enclosing class construct this member, without hijacking copy or move construction.
         template<class... Args>
                 requires ((not std::same_as<std::remove_cvref_t<Args>, empty_type>) and ...)
         [[nodiscard]] constexpr explicit empty_type(Args&&...) noexcept
