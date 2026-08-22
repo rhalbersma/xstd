@@ -37,9 +37,6 @@ concept nothrow_const_operators =
                 { a % b } noexcept;
                 { a + b } noexcept;
                 { a - b } noexcept;
-                { a & b } noexcept;
-                { a ^ b } noexcept;
-                { a | b } noexcept;
         } and
         requires (T const a, std::size_t const n) {
                 { a << n } noexcept;
@@ -53,6 +50,9 @@ concept nothrow_const_operators =
                 { a >= b } noexcept;
                 { a == b } noexcept;
                 { a != b } noexcept;
+                { a & b } noexcept;
+                { a ^ b } noexcept;
+                { a | b } noexcept;
         };
 
 } // namespace xstd
