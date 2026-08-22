@@ -30,8 +30,9 @@ concept integer_class =
 
         // /5: B(T) is a specification device and has no structural check.
 
-        // /6: representative implicit conversion in and explicit conversions out.
+        // /6: representative implicit conversions in and explicit conversions out.
         std::convertible_to<int, T> and
+        std::convertible_to<std::size_t, T> and
         std::constructible_from<int, T> and
         std::constructible_from<std::size_t, T> and
 
