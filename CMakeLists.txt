@@ -38,7 +38,7 @@ target_sources(
         include/xstd/concepts.hpp
         include/xstd/concepts/integer_class.hpp
         include/xstd/concepts/integer.hpp
-        include/xstd/concepts/nothrow_integer_operators.hpp
+        include/xstd/concepts/nothrow_const_operators.hpp
         include/xstd/concepts/signed_integer.hpp
         include/xstd/concepts/specialization_of.hpp
         include/xstd/concepts/unsigned_integer.hpp

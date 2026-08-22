@@ -8,7 +8,7 @@
 
 #include <xstd/limits/numeric_limits.hpp> // numeric_limits
 #include <compare>                        // strong_ordering
-#include <concepts>                       // convertible_to, integral, regular, same_as, three_way_comparable
+#include <concepts>                       // constructible_from, convertible_to, integral, regular, same_as, three_way_comparable
 #include <cstddef>                        // size_t
 #include <type_traits>                    // remove_cv_t
 
@@ -30,12 +30,11 @@ concept integer_class =
 
         // /5: B(T) is a specification device and has no structural check.
 
-        // /6: representative implicit conversion in and explicit conversions out.
+        // /6: representative implicit conversions in and explicit conversions out.
         std::convertible_to<int, T> and
-        requires (T const value) {
-                static_cast<int>(value);
-                static_cast<std::size_t>(value);
-        } and
+        std::convertible_to<std::size_t, T> and
+        std::constructible_from<int, T> and
+        std::constructible_from<std::size_t, T> and
 
         // /7.1: postfix increment and decrement.
         requires (T a) {
@@ -53,8 +52,8 @@ concept integer_class =
         requires (T const a) {
                 { +a } -> std::same_as<T>;
                 { -a } -> std::same_as<T>;
-                { ~a } -> std::same_as<T>;
                 { not a } -> std::same_as<bool>;
+                { ~a } -> std::same_as<T>;
         } and
 
         // /7.4: xstd does not require mixed integral/integer-class compound assignment.
@@ -96,9 +95,7 @@ concept integer_class =
         } and
 
         // /8: contextually convertible to bool; an explicit conversion is sufficient.
-        requires (T const a) {
-                { static_cast<bool>(a) } -> std::same_as<bool>;
-        } and
+        std::constructible_from<bool, T> and
 
         // /9: regularity and strong ordering.
         std::regular<T> and

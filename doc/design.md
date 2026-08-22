@@ -136,7 +136,7 @@ a user has to write. Both dependencies are optional; see
 
 The two are not interchangeable, which is why both are here. Boost annotates its
 operations and Abseil annotates none, so they land on opposite sides of
-`nothrow_integer_operators`. They differ once more: `absl::int128`'s `operator/`
+`nothrow_const_operators`. They differ once more: `absl::int128`'s `operator/`
 and `operator%` are `constexpr` only where a 128-bit intrinsic backs them, and
 out-of-line otherwise. That is the one place these tests assert something about
 the target rather than the type. The whole-surface battery in
@@ -159,10 +159,10 @@ The type utilities intentionally remain narrow:
   `numeric_limits` inherits outside the domain the standard trait can name.
 - `to_underlying` forwards a plain enum and preserves one wrapped in
   `std::integral_constant`.
-- `nothrow_integer_operators` answers whether the conditional `noexcept` holds.
+- `nothrow_const_operators` answers whether the conditional `noexcept` holds.
 
 A concept spelling is provided when the standard library has an analogous
-concept; otherwise the trait is the interface. `nothrow_integer_operators` is
+concept; otherwise the trait is the interface. `nothrow_const_operators` is
 the one concept with no trait beside it, having no standard trait to mirror, and
 is spelled the way a caller writes it: inside a `noexcept`.
 
