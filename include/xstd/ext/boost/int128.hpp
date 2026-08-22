@@ -8,7 +8,7 @@
 
 #include <xstd/type_traits/make_signed.hpp>   // make_signed
 #include <xstd/type_traits/make_unsigned.hpp> // make_unsigned
-#include <boost/int128/int128.hpp>            // IWYU pragma: export; int128, uint128
+#include <boost/int128.hpp>                   // IWYU pragma: export; int128, uint128
 #include <type_traits>                        // type_identity
 
 // Boost.Int128 introduces the pair and cannot name xstd's traits, so the associations are made here.

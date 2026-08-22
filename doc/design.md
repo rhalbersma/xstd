@@ -169,9 +169,10 @@ including `<xstd/ext/absl/int128.hpp>` has `absl::int128` and `absl::uint128`
 with it, and include-cleaner over that unit asks for nothing further. The pragma
 reaches as far as the adapted library lets it. Abseil declares both types in the
 header it advertises, so it reaches them. Boost.Int128 declares its pair in
-`detail/int128_imp.hpp` and `detail/uint128_imp.hpp`, which no public header of
-its own re-exports, so the chain stops one header short and a consumer running
-include-cleaner is asked for a header it should not name. That is upstream's to
+`detail/int128_imp.hpp` and `detail/uint128_imp.hpp`, and neither
+`<boost/int128.hpp>` nor the narrower `<boost/int128/int128.hpp>` re-exports
+them, so the chain stops short there and a consumer running include-cleaner is
+asked for a header it should not name. That is upstream's to
 fix; the two `NOLINT`s inside `<xstd/ext/boost/int128.hpp>` are the same gap
 seen from within, and `test/.clang-tidy` already carries the identical
 workaround for Boost.Test's private implementation headers.
