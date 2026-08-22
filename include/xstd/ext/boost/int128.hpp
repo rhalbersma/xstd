@@ -8,7 +8,7 @@
 
 #include <xstd/type_traits/make_signed.hpp>   // make_signed
 #include <xstd/type_traits/make_unsigned.hpp> // make_unsigned
-#include <boost/int128.hpp>                   // int128, uint128
+#include <boost/int128/int128.hpp>            // NOLINT(misc-include-cleaner): the public header of a pair declared in a detail one
 #include <type_traits>                        // type_identity
 
 // Boost.Int128 introduces the pair and cannot name xstd's traits, so the associations are made here.
@@ -16,10 +16,12 @@ namespace xstd {
 
 // Spelled without the _t suffix upstream dropped after its last release tag.
 template<>
+// NOLINTNEXTLINE(misc-include-cleaner): reached through the public header above, as its own is a detail one
 struct make_unsigned<boost::int128::int128> : std::type_identity<boost::int128::uint128>
 {};
 
 template<>
+// NOLINTNEXTLINE(misc-include-cleaner): reached through the public header above, as its own is a detail one
 struct make_signed<boost::int128::uint128> : std::type_identity<boost::int128::int128>
 {};
 

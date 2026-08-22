@@ -113,9 +113,18 @@ jobs:
 
       # Each header as the primary input too, so misc-include-cleaner can tell
       # a direct include from a transitive one. Aggregates carry IWYU pragmas.
+      # The ext/ headers are self-sufficient at the library each adapts, which
+      # Configure fetched above; the search paths are inert for every other
+      # header, which needs nothing but include/.
       - name: Check direct header dependencies
         shell: bash
         run: |
+          adapted=()
+          for dir in build/_deps/absl_int128-src build/_deps/boost_int128-src/include; do
+            if [ -d "$dir" ]; then
+              adapted+=(-isystem "$dir")
+            fi
+          done
           mapfile -d '' headers < <(
             find include/xstd -type f -name '*.hpp' \
               ! -path 'include/xstd/config/*' \
@@ -123,7 +132,7 @@ jobs:
           )
           for header in "${headers[@]}"; do
             clang-tidy-22 "$header" -- \
-              -x c++-header -std=c++23 -Iinclude
+              -x c++-header -std=c++23 -Iinclude "${adapted[@]}"
           done 2>&1 | tee -a clang-tidy-report.txt
 
       # The test sources, under test/.clang-tidy. A separate pass so a finding
