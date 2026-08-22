@@ -8,7 +8,7 @@
 
 #include <xstd/type_traits/make_signed.hpp>   // make_signed
 #include <xstd/type_traits/make_unsigned.hpp> // make_unsigned
-#include <absl/numeric/int128.h>              // int128, uint128
+#include <absl/numeric/int128.h>              // IWYU pragma: export; int128, uint128
 #include <type_traits>                        // type_identity
 
 // Abseil introduces the pair and cannot name xstd's traits, so the associations are made here.

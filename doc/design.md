@@ -164,6 +164,18 @@ so an adapted library is asked for by name and `<xstd/cstdint.hpp>` never drags
 in Abseil. Each hard-includes the library it adapts, leaving the `__has_include`
 probe to the consumer, which is what `test/include/xstd/test/` still does.
 
+That include is exported, so one is all a consumer writes: a translation unit
+including `<xstd/ext/absl/int128.hpp>` has `absl::int128` and `absl::uint128`
+with it, and include-cleaner over that unit asks for nothing further. The pragma
+reaches as far as the adapted library lets it. Abseil declares both types in the
+header it advertises, so it reaches them. Boost.Int128 declares its pair in
+`detail/int128_imp.hpp` and `detail/uint128_imp.hpp`, which no public header of
+its own re-exports, so the chain stops one header short and a consumer running
+include-cleaner is asked for a header it should not name. That is upstream's to
+fix; the two `NOLINT`s inside `<xstd/ext/boost/int128.hpp>` are the same gap
+seen from within, and `test/.clang-tidy` already carries the identical
+workaround for Boost.Test's private implementation headers.
+
 ### Traits and concepts
 
 The type utilities intentionally remain narrow:

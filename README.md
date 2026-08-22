@@ -72,7 +72,9 @@ umbrella. Similarly, `<xstd/type_traits/no_unique_address.hpp>` defines
 `XSTD_NO_UNIQUE_ADDRESS`, while `<xstd/type_traits.hpp>` exports it. The two
 `<xstd/ext/>` umbrellas export `<xstd/ext/absl/int128.hpp>` and
 `<xstd/ext/boost/int128.hpp>`, and each needs the library it adapts on the
-include path; nothing above them exports either.
+include path; nothing above them exports either. Each adapted header is
+exported in turn, so including one is enough: `<xstd/ext/absl/int128.hpp>`
+brings `absl::int128` and `absl::uint128` with it.
 
 ## Examples
 
