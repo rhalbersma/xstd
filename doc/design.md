@@ -172,10 +172,14 @@ header it advertises, so it reaches them. Boost.Int128 declares its pair in
 `detail/int128_imp.hpp` and `detail/uint128_imp.hpp`, and neither
 `<boost/int128.hpp>` nor the narrower `<boost/int128/int128.hpp>` re-exports
 them, so the chain stops short there and a consumer running include-cleaner is
-asked for a header it should not name. That is upstream's to
-fix; the two `NOLINT`s inside `<xstd/ext/boost/int128.hpp>` are the same gap
-seen from within, and `test/.clang-tidy` already carries the identical
-workaround for Boost.Test's private implementation headers.
+asked for a header it should not name. So the guarantee holds for
+Abseil and not, yet, for Boost.Int128, and it is not xstd's to close: Abseil
+carries `IWYU pragma: export` on its own two includes and Boost ships the
+pragmas nowhere at all, in this library or any other. Seen from inside, that
+same gap is why the root `.clang-tidy` does not ask `misc-include-cleaner`
+about `boost/.*`: Boost.Test's public header reaches its declarations through
+macro expansion for the reason Boost.Int128's reaches its pair through
+`detail/`, and neither can be attributed to a header a consumer may name.
 
 ### Traits and concepts
 

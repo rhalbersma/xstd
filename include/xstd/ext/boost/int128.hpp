@@ -16,12 +16,10 @@ namespace xstd {
 
 // Spelled without the _t suffix upstream dropped after its last release tag.
 template<>
-// NOLINTNEXTLINE(misc-include-cleaner): reached through the public header above, as its own is a detail one
 struct make_unsigned<boost::int128::int128> : std::type_identity<boost::int128::uint128>
 {};
 
 template<>
-// NOLINTNEXTLINE(misc-include-cleaner): reached through the public header above, as its own is a detail one
 struct make_signed<boost::int128::uint128> : std::type_identity<boost::int128::int128>
 {};
 

@@ -47,6 +47,3 @@ Checks: >
   -modernize-use-designated-initializers,
   -performance-enum-size,
   -readability-magic-numbers
-CheckOptions:
-  # Boost.Test's public header expands macros through private implementation headers.
-  misc-include-cleaner.IgnoreHeaders: 'boost/.*'
