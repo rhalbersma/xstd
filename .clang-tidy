@@ -5,7 +5,7 @@
 
 ---
 # Static analysis for the public headers, over the generated self-sufficiency units.
-# test/.clang-tidy inherits this and drops the four checks that only misfire on fixtures.
+# test/.clang-tidy inherits this and drops the three checks that only misfire on fixtures.
 Checks: >
   bugprone-*,
   clang-analyzer-*,

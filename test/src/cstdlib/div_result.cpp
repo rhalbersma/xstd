@@ -7,6 +7,7 @@
 #include <xstd/test/exact_width_types.hpp> // std_signed_types, std_unsigned_types
 #include <boost/test/unit_test.hpp>        // Boost.Test
 #include <concepts>                        // same_as
+#include <cstddef>                         // size_t
 #include <cstdint>                         // int8_t, uint8_t
 #include <utility>                         // declval
 
@@ -17,10 +18,16 @@ BOOST_AUTO_TEST_CASE(DeducedDivResult)
 {
         static_assert(std::same_as<decltype(xstd::div_result{1, 2}), xstd::div_result<int>>);
         static_assert(std::same_as<decltype(xstd::div_result{1L, 2L}), xstd::div_result<long>>);
-        static_assert(std::same_as<decltype(xstd::div_result{std::int8_t{1}, std::int8_t{2}}), xstd::div_result<std::int8_t>>);
+        static_assert(std::same_as<decltype(xstd::div_result{1LL, 2LL}), xstd::div_result<long long>>);
 
         // And at an unsigned width, div_result being open to every integer element type.
         static_assert(std::same_as<decltype(xstd::div_result{1U, 2U}), xstd::div_result<unsigned>>);
+        static_assert(std::same_as<decltype(xstd::div_result{1UL, 2UL}), xstd::div_result<unsigned long>>);
+        static_assert(std::same_as<decltype(xstd::div_result{1ULL, 2ULL}), xstd::div_result<unsigned long long>>);
+        static_assert(std::same_as<decltype(xstd::div_result{1UZ, 2UZ}), xstd::div_result<std::size_t>>);
+
+        // And at the two widths no literal suffix reaches.
+        static_assert(std::same_as<decltype(xstd::div_result{std::int8_t{1}, std::int8_t{2}}), xstd::div_result<std::int8_t>>);
         static_assert(std::same_as<decltype(xstd::div_result{std::uint8_t{1}, std::uint8_t{2}}), xstd::div_result<std::uint8_t>>);
 
         BOOST_CHECK(true);
@@ -33,10 +40,7 @@ BOOST_AUTO_TEST_CASE(AggregateMembersAndStructuredBindings)
         static_assert(result.remainder == 1);
         auto const [quotient, remainder] = result;
         BOOST_CHECK(quotient == -3 and remainder == 1);
-        auto const [q, r] = result;
-        BOOST_CHECK(q == -3 and r == 1);
         static_assert(result == xstd::div_result{-3, 1});
-        BOOST_CHECK(true);
 }
 
 // The computed exception specification is the element's; a written one would need keeping.
