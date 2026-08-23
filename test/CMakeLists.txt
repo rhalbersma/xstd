@@ -119,8 +119,7 @@ file(
     ${public_header_dir}/xstd/*.hpp
 )
 
-# Every header but those under ext/, which adapt an optional dependency and
-# cannot be compiled before it is resolved; each is added once its own has been.
+# Every header but those under ext/, which cannot compile before their optional dependency resolves.
 list(FILTER public_headers EXCLUDE REGEX "^xstd/ext/")
 
 foreach(h ${public_headers})
@@ -208,8 +207,7 @@ else()
     set(xstd_test_absl_int128)
 endif()
 
-# The headers held back above, each self-sufficient only where the library it
-# adapts is there to adapt, and not compiled at all where it is not.
+# The headers held back above, each compiled only where the library it adapts is there to adapt.
 if(TARGET Boost::int128)
     xstd_add_header_self_sufficiency_test(xstd/ext/boost.hpp ${xstd_test_boost_int128})
     xstd_add_header_self_sufficiency_test(xstd/ext/boost/int128.hpp ${xstd_test_boost_int128})

@@ -6,6 +6,8 @@
 #ifndef XSTD_EXT_ABSL_HPP
 #define XSTD_EXT_ABSL_HPP
 
+// IWYU pragma: always_keep
+
 // Abseil's pairs, and no umbrella above this one: an adapted library is asked for by name.
 #include <xstd/ext/absl/int128.hpp> // IWYU pragma: export; make_signed, make_unsigned
 

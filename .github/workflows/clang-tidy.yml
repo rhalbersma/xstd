@@ -113,9 +113,7 @@ jobs:
 
       # Each header as the primary input too, so misc-include-cleaner can tell
       # a direct include from a transitive one. Aggregates carry IWYU pragmas.
-      # The ext/ headers are self-sufficient at the library each adapts, which
-      # Configure fetched above; the search paths are inert for every other
-      # header, which needs nothing but include/.
+      # The ext/ headers need the library each adapts, which Configure fetched; inert for the rest.
       - name: Check direct header dependencies
         shell: bash
         run: |

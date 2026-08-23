@@ -12,9 +12,7 @@
 #include <tuple>                     // tuple, tuple_cat
 #include <utility>                   // declval
 
-// The optional pairs are reached the way any consumer reaches them, through the shipped
-// adapter, which hard-includes what it adapts and carries the associations with it. The
-// probe is the consumer's to write, which is the whole of what these tests are here to be.
+// The optional pairs reached the way any consumer reaches them: the probe here, the associations in the adapter.
 #if __has_include(<boost/int128.hpp>)
 #define XSTD_TEST_HAS_BOOST_INT128
 #include <xstd/ext/boost/int128.hpp> // int128, uint128

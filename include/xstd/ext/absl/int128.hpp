@@ -6,6 +6,8 @@
 #ifndef XSTD_EXT_ABSL_INT128_HPP
 #define XSTD_EXT_ABSL_INT128_HPP
 
+// IWYU pragma: always_keep
+
 #include <xstd/type_traits/make_signed.hpp>   // make_signed
 #include <xstd/type_traits/make_unsigned.hpp> // make_unsigned
 #include <absl/numeric/int128.h>              // IWYU pragma: export; int128, uint128

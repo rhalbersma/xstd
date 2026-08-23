@@ -76,6 +76,18 @@ include path; nothing above them exports either. Each adapted header is
 exported in turn, so including one is enough: `<xstd/ext/absl/int128.hpp>`
 brings `absl::int128` and `absl::uint128` with it.
 
+If you lint with `clang-tidy` and use any Boost library, `misc-include-cleaner`
+will report that nothing provides the Boost names you write, here and anywhere
+else you use Boost: no Boost library ships the IWYU pragmas the check reads, and
+its public headers reach their declarations through private implementation ones.
+The answer is one line in your own `.clang-tidy`, which no library can supply for
+you:
+
+```yaml
+CheckOptions:
+  misc-include-cleaner.IgnoreHeaders: 'boost/.*'
+```
+
 ## Examples
 
 ```cpp

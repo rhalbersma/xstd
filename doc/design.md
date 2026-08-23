@@ -171,23 +171,33 @@ including `<xstd/ext/absl/int128.hpp>` has `absl::int128` and `absl::uint128`
 with it, and include-cleaner over that unit asks for nothing further, under a
 configuration that inherits nothing from this repository.
 
-Reaching that for Boost.Int128 costs two more includes. Abseil declares both
-types in the header it advertises and carries `IWYU pragma: export` on its own
-two includes, so exporting `<absl/numeric/int128.h>` is the whole of it.
-Boost.Int128 declares its pair in `detail/int128_imp.hpp` and
-`detail/uint128_imp.hpp`, and no public header of its own re-exports them, so
-`<xstd/ext/boost/int128.hpp>` names those two as well. Naming another library's
-`detail/` is a liability — upstream may rename or split either file, and a
-pinned CI would not see it — and it is taken deliberately, because the
-alternative puts the cost on every consumer instead, in a configuration this
-library cannot reach. The two includes retire the day Boost.Int128 carries the
-pragmas itself.
+Each adapter also carries `IWYU pragma: always_keep`, both the pair headers and
+the two umbrellas, which do not inherit it. A header included for its
+specializations is used in a way no reference to a name can show, and without
+the pragma a translation unit that includes one to register the pair and then
+names nothing from it is told the include is unused.
 
-What no adapter can reach is Boost.Test, whose macros expand through private
-implementation headers, so `BOOST_AUTO_TEST_CASE` and its neighbours have no
-provider a test source may include. That, and only that, is what
-`test/.clang-tidy` exempts; the production tree asks `misc-include-cleaner`
-about `boost/.*` like anything else and answers for itself.
+That is the whole of it for Abseil, which declares both types in the header it
+advertises and carries `IWYU pragma: export` on its own two includes. Boost
+declares this pair in `detail/int128_imp.hpp` and `detail/uint128_imp.hpp` and
+re-exports them from no public header, so the chain stops one hop short and a
+consumer naming `boost::int128::uint128` is told nothing provides it. Nothing
+this library ships can close that. An `export` pragma attaches to an include
+directive, so reaching the declaration means naming Boost's `detail/` — a
+liability, since upstream may rename or split either file and a pinned CI would
+not see it. `always_keep` answers the half that is ours, and the half that is
+left is a true statement about the consumer's own code.
+
+So the answer is the linter's configuration rather than a header:
+`misc-include-cleaner` is not asked about `boost/.*` at all, in the root
+`.clang-tidy` and so in the test tree that inherits it. This is not a
+Boost.Int128 workaround. No Boost library ships IWYU pragmas — Boost.Hana has
+none across 450 headers — and Boost.Test's macros expand through private
+implementation headers for the same reason, which is why the test tree carried
+this option long before these adapters existed. Any project including any Boost
+library and linting its own sources needs the same line, and no library can
+supply it on their behalf: the option belongs to the linter, and CMake carries
+no usage requirement that could propagate one.
 
 ### Traits and concepts
 
