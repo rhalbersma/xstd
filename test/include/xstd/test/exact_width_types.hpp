@@ -6,13 +6,24 @@
 #ifndef XSTD_TEST_EXACT_WIDTH_TYPES_HPP
 #define XSTD_TEST_EXACT_WIDTH_TYPES_HPP
 
-#include <xstd/test/absl_int128.hpp>  // XSTD_TEST_HAS_ABSL_INT128
-#include <xstd/test/bit_precise.hpp>  // XSTD_TEST_HAS_BIT_PRECISE, bit_int, bit_uint
-#include <xstd/test/boost_int128.hpp> // XSTD_TEST_HAS_BOOST_INT128
-#include <xstd/cstdint.hpp>           // int128, uint128
-#include <cstdint>                    // exact-width integer types
-#include <tuple>                      // tuple, tuple_cat
-#include <utility>                    // declval
+#include <xstd/test/bit_precise.hpp> // XSTD_TEST_HAS_BIT_PRECISE, bit_int, bit_uint
+#include <xstd/cstdint.hpp>          // int128, uint128
+#include <cstdint>                   // exact-width integer types
+#include <tuple>                     // tuple, tuple_cat
+#include <utility>                   // declval
+
+// The optional pairs are reached the way any consumer reaches them, through the shipped
+// adapter, which hard-includes what it adapts and carries the associations with it. The
+// probe is the consumer's to write, which is the whole of what these tests are here to be.
+#if __has_include(<boost/int128.hpp>)
+#define XSTD_TEST_HAS_BOOST_INT128
+#include <xstd/ext/boost/int128.hpp> // int128, uint128
+#endif
+
+#if __has_include(<absl/numeric/int128.h>)
+#define XSTD_TEST_HAS_ABSL_INT128
+#include <xstd/ext/absl/int128.hpp> // int128, uint128
+#endif
 
 // The exact-width lists, one per library, so a case can name just the widths it can use.
 namespace xstd::test {
@@ -27,8 +38,8 @@ using xstd_unsigned_types = std::tuple<uint128>;
 
 // And a 128-bit type from outside the library, when the build has one.
 #ifdef XSTD_TEST_HAS_BOOST_INT128
-using boost_signed_types = std::tuple<boost_int128>;
-using boost_unsigned_types = std::tuple<boost_uint128>;
+using boost_signed_types = std::tuple<boost::int128::int128>;
+using boost_unsigned_types = std::tuple<boost::int128::uint128>;
 #else
 using boost_signed_types = std::tuple<>;
 using boost_unsigned_types = std::tuple<>;
@@ -36,8 +47,8 @@ using boost_unsigned_types = std::tuple<>;
 
 // A second, conditional on an intrinsic: without one its operator/ is not constexpr.
 #ifdef XSTD_TEST_HAS_ABSL_INT128
-using absl_signed_types = std::tuple<absl_int128>;
-using absl_unsigned_types = std::tuple<absl_uint128>;
+using absl_signed_types = std::tuple<absl::int128>;
+using absl_unsigned_types = std::tuple<absl::uint128>;
 #else
 using absl_signed_types = std::tuple<>;
 using absl_unsigned_types = std::tuple<>;
@@ -49,9 +60,9 @@ inline constexpr bool has_constexpr_division = true;
 
 #if defined(XSTD_TEST_HAS_ABSL_INT128) and not defined(ABSL_HAVE_INTRINSIC_INT128)
 template<>
-inline constexpr bool has_constexpr_division<absl_int128> = false;
+inline constexpr bool has_constexpr_division<absl::int128> = false;
 template<>
-inline constexpr bool has_constexpr_division<absl_uint128> = false;
+inline constexpr bool has_constexpr_division<absl::uint128> = false;
 #endif
 
 // Native bit-precise widths, from the two bits current Clang's signed type needs up.

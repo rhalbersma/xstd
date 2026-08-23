@@ -162,24 +162,32 @@ would collide silently on the first `-I`. Nothing under `include/xstd/` includes
 them and no umbrella sits above `<xstd/ext/absl.hpp>` and `<xstd/ext/boost.hpp>`,
 so an adapted library is asked for by name and `<xstd/cstdint.hpp>` never drags
 in Abseil. Each hard-includes the library it adapts, leaving the `__has_include`
-probe to the consumer, which is what `test/include/xstd/test/` still does.
+probe to the consumer — which the test suite writes for itself, having no
+fixture headers for these two and reaching them through the shipped adapter the
+way anyone else would.
 
-That include is exported, so one is all a consumer writes: a translation unit
+Those includes are exported, so one is all a consumer writes: a translation unit
 including `<xstd/ext/absl/int128.hpp>` has `absl::int128` and `absl::uint128`
-with it, and include-cleaner over that unit asks for nothing further. The pragma
-reaches as far as the adapted library lets it. Abseil declares both types in the
-header it advertises, so it reaches them. Boost.Int128 declares its pair in
-`detail/int128_imp.hpp` and `detail/uint128_imp.hpp`, and neither
-`<boost/int128.hpp>` nor the narrower `<boost/int128/int128.hpp>` re-exports
-them, so the chain stops short there and a consumer running include-cleaner is
-asked for a header it should not name. So the guarantee holds for
-Abseil and not, yet, for Boost.Int128, and it is not xstd's to close: Abseil
-carries `IWYU pragma: export` on its own two includes and Boost ships the
-pragmas nowhere at all, in this library or any other. Seen from inside, that
-same gap is why the root `.clang-tidy` does not ask `misc-include-cleaner`
-about `boost/.*`: Boost.Test's public header reaches its declarations through
-macro expansion for the reason Boost.Int128's reaches its pair through
-`detail/`, and neither can be attributed to a header a consumer may name.
+with it, and include-cleaner over that unit asks for nothing further, under a
+configuration that inherits nothing from this repository.
+
+Reaching that for Boost.Int128 costs two more includes. Abseil declares both
+types in the header it advertises and carries `IWYU pragma: export` on its own
+two includes, so exporting `<absl/numeric/int128.h>` is the whole of it.
+Boost.Int128 declares its pair in `detail/int128_imp.hpp` and
+`detail/uint128_imp.hpp`, and no public header of its own re-exports them, so
+`<xstd/ext/boost/int128.hpp>` names those two as well. Naming another library's
+`detail/` is a liability — upstream may rename or split either file, and a
+pinned CI would not see it — and it is taken deliberately, because the
+alternative puts the cost on every consumer instead, in a configuration this
+library cannot reach. The two includes retire the day Boost.Int128 carries the
+pragmas itself.
+
+What no adapter can reach is Boost.Test, whose macros expand through private
+implementation headers, so `BOOST_AUTO_TEST_CASE` and its neighbours have no
+provider a test source may include. That, and only that, is what
+`test/.clang-tidy` exempts; the production tree asks `misc-include-cleaner`
+about `boost/.*` like anything else and answers for itself.
 
 ### Traits and concepts
 

@@ -41,9 +41,17 @@
 # family only had while src/multiprecision.cpp instantiated it at 256, 512 and
 # 1024 bits. Every type the suite instantiates it at now is 128 bits - exactly
 # the threshold, not past it - so there is nothing left here for it to report.
+#
+# The one CheckOption here is not inherited: Boost.Test's public header expands
+# its macros through private implementation headers, so BOOST_AUTO_TEST_CASE and
+# its neighbours have no provider a test source may include. The production tree
+# needs no such exemption - <xstd/ext/boost/int128.hpp> names the two headers
+# Boost.Int128 declares its pair in, so it answers for itself.
 InheritParentConfig: true
 Checks: >
   -misc-use-internal-linkage,
   -modernize-use-designated-initializers,
   -performance-enum-size,
   -readability-magic-numbers
+CheckOptions:
+  misc-include-cleaner.IgnoreHeaders: 'boost/.*'

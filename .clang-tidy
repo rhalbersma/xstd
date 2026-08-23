@@ -28,10 +28,3 @@ FormatStyle: none
 CheckOptions:
   # Prefer alternative tokens for logical operators.
   readability-operators-representation.BinaryOperators: 'not;and;or'
-  # No Boost library ships IWYU pragmas, and its public headers reach their
-  # declarations through private implementation ones - Boost.Test's through
-  # macro expansion, Boost.Int128's through detail/int128_imp.hpp and
-  # detail/uint128_imp.hpp. Neither can be attributed to a header a consumer
-  # may name, so the check is not asked about any of them here. Abseil, which
-  # does carry the pragmas on its own includes, answers for itself.
-  misc-include-cleaner.IgnoreHeaders: 'boost/.*'

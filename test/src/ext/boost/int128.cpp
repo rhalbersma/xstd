@@ -4,19 +4,24 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/concepts.hpp>             // signed_integer, unsigned_integer
-#include <xstd/test/boost_int128.hpp>    // NOLINT(misc-include-cleaner): conditionally supplies the optional fixtures
 #include <xstd/test/constexpr_check.hpp> // XSTD_CONSTEXPR_CHECK
 #include <xstd/type_traits.hpp>          // make_signed, make_unsigned
 #include <boost/test/unit_test.hpp>      // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_CHECK
 #include <concepts>                      // same_as
+
+// Reached the way a consumer reaches it: the probe here, the pair inside the adapter.
+#if __has_include(<boost/int128.hpp>)
+#define XSTD_TEST_HAS_BOOST_INT128
+#include <xstd/ext/boost/int128.hpp> // int128, uint128
+#endif
 
 BOOST_AUTO_TEST_SUITE(ExtBoostInt128)
 
 BOOST_AUTO_TEST_CASE(AssociationsPairTheTwoHalves)
 {
 #ifdef XSTD_TEST_HAS_BOOST_INT128
-        using S = xstd::test::boost_int128;
-        using U = xstd::test::boost_uint128;
+        using S = boost::int128::int128;
+        using U = boost::int128::uint128;
 
         XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_unsigned_t<S>, U>));
         XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_signed_t<U>, S>));
@@ -34,8 +39,8 @@ BOOST_AUTO_TEST_CASE(AssociationsPairTheTwoHalves)
 BOOST_AUTO_TEST_CASE(WhichIsWhatCarriesThePairIntoTheConcepts)
 {
 #ifdef XSTD_TEST_HAS_BOOST_INT128
-        XSTD_CONSTEXPR_CHECK(xstd::signed_integer<xstd::test::boost_int128>);
-        XSTD_CONSTEXPR_CHECK(xstd::unsigned_integer<xstd::test::boost_uint128>);
+        XSTD_CONSTEXPR_CHECK(xstd::signed_integer<boost::int128::int128>);
+        XSTD_CONSTEXPR_CHECK(xstd::unsigned_integer<boost::int128::uint128>);
 #endif
         BOOST_CHECK(true);
 }
