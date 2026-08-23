@@ -122,17 +122,14 @@ the two spellings collide. Boost.Int128 renamed the same way during its review.
 
 Their two associations live in `<xstd/cstdint/int128.hpp>`, beside the aliases
 and not inside the traits; `<xstd/cstdint.hpp>` is the umbrella that exports
-them. This is where `test/include/xstd/test/` puts Abseil's and
-Boost.Int128's: the header that introduces a pair registers it, so whoever can
-name the type has the specializations in scope and cannot reach the type through
-a translation unit that would answer differently. It also leaves `make_signed`
-and `make_unsigned` knowing about no type in particular. What the aliases still
-cannot do is demonstrate the widening on their own, being specialized for by a
-header of this library's; the exact-width test lists therefore also carry
-Boost.Int128 and `absl::int128`, which no shipped header names, and the two
-associations written for each in `test/include/xstd/test/` are the whole of what
-a user has to write. Both dependencies are optional; see
-[CONTRIBUTING.md](../CONTRIBUTING.md).
+them. The header that introduces a pair registers it, so whoever can name the
+type has the specializations in scope and cannot reach the type through a
+translation unit that would answer differently. It also leaves `make_signed` and
+`make_unsigned` knowing about no type in particular. What the aliases cannot do
+is demonstrate the widening on their own, being specialized for by a header of
+this library's; the exact-width test lists therefore also carry Boost.Int128 and
+`absl::int128`, whose pairs no library of ours defines. Both dependencies are
+optional; see [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 The two are not interchangeable, which is why both are here. Boost annotates its
 operations and Abseil annotates none, so they land on opposite sides of
@@ -145,6 +142,62 @@ intrinsic is there and checked at run time where it is not; its place in the
 exact-width lists is conditional on `ABSL_HAVE_INTRINSIC_INT128` instead, those
 cases constant-evaluating everything. Only the three divisions object at all, and
 those are exactly what the battery covers.
+
+### External pairs
+
+Abseil and Boost.Int128 each introduce an integer-class pair, and neither can
+name `xstd::make_signed`. Their associations are the two lines nobody can
+derive, identical for every consumer, so `<xstd/ext/absl/int128.hpp>` and
+`<xstd/ext/boost/int128.hpp>` ship them rather than leaving each user to write
+the same specializations. Because they are explicit specializations, shipping
+them later would have been the breaking change, not shipping them now: a user
+who had written their own would meet a redefinition.
+
+The layout is Boost.Hana's `boost/hana/ext/`, one directory per adapted library
+and one header per upstream header, contents in this library's namespace rather
+than the adapted one's. The prefix is load-bearing where Hana's is: these
+headers are installed, and an unprefixed top-level `ext/` would put a generic
+directory in a shared include namespace, where two libraries that both did it
+would collide silently on the first `-I`. Nothing under `include/xstd/` includes
+them and no umbrella sits above `<xstd/ext/absl.hpp>` and `<xstd/ext/boost.hpp>`,
+so an adapted library is asked for by name and `<xstd/cstdint.hpp>` never drags
+in Abseil. Each hard-includes the library it adapts, leaving the `__has_include`
+probe to the consumer — which the test suite writes for itself, having no
+fixture headers for these two and reaching them through the shipped adapter the
+way anyone else would.
+
+Those includes are exported, so one is all a consumer writes: a translation unit
+including `<xstd/ext/absl/int128.hpp>` has `absl::int128` and `absl::uint128`
+with it, and include-cleaner over that unit asks for nothing further, under a
+configuration that inherits nothing from this repository.
+
+Each adapter also carries `IWYU pragma: always_keep`, both the pair headers and
+the two umbrellas, which do not inherit it. A header included for its
+specializations is used in a way no reference to a name can show, and without
+the pragma a translation unit that includes one to register the pair and then
+names nothing from it is told the include is unused.
+
+That is the whole of it for Abseil, which declares both types in the header it
+advertises and carries `IWYU pragma: export` on its own two includes. Boost
+declares this pair in `detail/int128_imp.hpp` and `detail/uint128_imp.hpp` and
+re-exports them from no public header, so the chain stops one hop short and a
+consumer naming `boost::int128::uint128` is told nothing provides it. Nothing
+this library ships can close that. An `export` pragma attaches to an include
+directive, so reaching the declaration means naming Boost's `detail/` — a
+liability, since upstream may rename or split either file and a pinned CI would
+not see it. `always_keep` answers the half that is ours, and the half that is
+left is a true statement about the consumer's own code.
+
+So the answer is the linter's configuration rather than a header:
+`misc-include-cleaner` is not asked about `boost/.*` at all, in the root
+`.clang-tidy` and so in the test tree that inherits it. This is not a
+Boost.Int128 workaround. No Boost library ships IWYU pragmas — Boost.Hana has
+none across 450 headers — and Boost.Test's macros expand through private
+implementation headers for the same reason, which is why the test tree carried
+this option long before these adapters existed. Any project including any Boost
+library and linting its own sources needs the same line, and no library can
+supply it on their behalf: the option belongs to the linter, and CMake carries
+no usage requirement that could propagate one.
 
 ### Traits and concepts
 

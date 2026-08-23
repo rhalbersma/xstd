@@ -4,11 +4,8 @@
 #          http://www.boost.org/LICENSE_1_0.txt)
 
 ---
-# Static analysis for the public headers, run by the Clang-Tidy workflow
-# over the generated header self-sufficiency translation units. The
-# Boost.Test sources are analyzed by the same workflow under test/.clang-tidy,
-# which inherits everything here and drops the two checks that only misfire
-# on fixtures.
+# Static analysis for the public headers, over the generated self-sufficiency units.
+# test/.clang-tidy inherits this and drops the four checks that only misfire on fixtures.
 Checks: >
   bugprone-*,
   clang-analyzer-*,
@@ -28,3 +25,6 @@ FormatStyle: none
 CheckOptions:
   # Prefer alternative tokens for logical operators.
   readability-operators-representation.BinaryOperators: 'not;and;or'
+  # No Boost library ships IWYU pragmas, so nothing there is attributable to a header a consumer names.
+  # Any project including a Boost library needs this line of its own; see README.md and doc/design.md.
+  misc-include-cleaner.IgnoreHeaders: 'boost/.*'

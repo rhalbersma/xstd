@@ -87,16 +87,11 @@ target_include_directories(
 
 # Each public header is compiled as its own translation unit (linked against
 # the same warning flags as the unit tests), proving it is self-sufficient.
+# Any target named after the header is one it needs to be self-sufficient against.
 set(public_header_dir ${PROJECT_SOURCE_DIR}/include)
-file(
-    GLOB_RECURSE public_headers
-    CONFIGURE_DEPENDS
-    RELATIVE ${public_header_dir}
-    ${public_header_dir}/xstd/*.hpp
-)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/header_self_sufficiency)
 
-foreach(h ${public_headers})
+function(xstd_add_header_self_sufficiency_test h)
     string(REPLACE "/" "." header_test_id ${h})
     string(REGEX REPLACE "[.]hpp$" "" header_test_id ${header_test_id})
     set(header_test_source ${CMAKE_CURRENT_BINARY_DIR}/header_self_sufficiency/${header_test_id}.cpp)
@@ -111,9 +106,24 @@ foreach(h ${public_headers})
     target_link_libraries(
         header.${header_test_id} PRIVATE
         ${PROJECT_NAME}::${PROJECT_NAME}
+        ${ARGN}
         xstd_test_options
     )
     add_test(NAME header.${header_test_id} COMMAND header.${header_test_id})
+endfunction()
+
+file(
+    GLOB_RECURSE public_headers
+    CONFIGURE_DEPENDS
+    RELATIVE ${public_header_dir}
+    ${public_header_dir}/xstd/*.hpp
+)
+
+# Every header but those under ext/, which cannot compile before their optional dependency resolves.
+list(FILTER public_headers EXCLUDE REGEX "^xstd/ext/")
+
+foreach(h ${public_headers})
+    xstd_add_header_self_sufficiency_test(${h})
 endforeach()
 
 if(NOT DEFINED Boost_USE_STATIC_LIBS)
@@ -195,6 +205,16 @@ if(TARGET absl::int128)
     set(xstd_test_absl_int128 absl::int128)
 else()
     set(xstd_test_absl_int128)
+endif()
+
+# The headers held back above, each compiled only where the library it adapts is there to adapt.
+if(TARGET Boost::int128)
+    xstd_add_header_self_sufficiency_test(xstd/ext/boost.hpp ${xstd_test_boost_int128})
+    xstd_add_header_self_sufficiency_test(xstd/ext/boost/int128.hpp ${xstd_test_boost_int128})
+endif()
+if(TARGET absl::int128)
+    xstd_add_header_self_sufficiency_test(xstd/ext/absl.hpp ${xstd_test_absl_int128})
+    xstd_add_header_self_sufficiency_test(xstd/ext/absl/int128.hpp ${xstd_test_absl_int128})
 endif()
 
 set(current_source_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)
