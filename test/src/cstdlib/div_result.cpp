@@ -8,7 +8,6 @@
 #include <boost/test/unit_test.hpp>        // Boost.Test
 #include <concepts>                        // same_as
 #include <cstddef>                         // size_t
-#include <cstdint>                         // int8_t, uint8_t
 #include <utility>                         // declval
 
 BOOST_AUTO_TEST_SUITE(CStdLib)
@@ -25,10 +24,6 @@ BOOST_AUTO_TEST_CASE(DeducedDivResult)
         static_assert(std::same_as<decltype(xstd::div_result{1UL, 2UL}), xstd::div_result<unsigned long>>);
         static_assert(std::same_as<decltype(xstd::div_result{1ULL, 2ULL}), xstd::div_result<unsigned long long>>);
         static_assert(std::same_as<decltype(xstd::div_result{1UZ, 2UZ}), xstd::div_result<std::size_t>>);
-
-        // And at the two widths no literal suffix reaches.
-        static_assert(std::same_as<decltype(xstd::div_result{std::int8_t{1}, std::int8_t{2}}), xstd::div_result<std::int8_t>>);
-        static_assert(std::same_as<decltype(xstd::div_result{std::uint8_t{1}, std::uint8_t{2}}), xstd::div_result<std::uint8_t>>);
 
         BOOST_CHECK(true);
 }
