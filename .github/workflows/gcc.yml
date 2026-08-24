@@ -25,4 +25,4 @@ jobs:
   # No inputs: this library builds on every rung of the ladder, which is what
   # the shared workflow defaults to.
   gcc:
-    uses: rhalbersma/cpp-ci/.github/workflows/gcc.yml@46e4bc5e3707756ec9ffc13ae1299709c4ac8579 # cpp-ci gcc
+    uses: rhalbersma/cpp-ci/.github/workflows/gcc.yml@48dd64300ec85ba2a1b14e0da51e715784fba516 # cpp-ci gcc
