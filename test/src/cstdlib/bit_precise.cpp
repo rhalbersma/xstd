@@ -16,12 +16,24 @@ BOOST_AUTO_TEST_SUITE(CStdLib)
 
 namespace {
 
+// The division identity, reconstructed in int rather than in T. It holds
+// mathematically at every width, but the product alone can leave a range this
+// narrow while the sum stays inside it: div_floor(1, -2) is a quotient of -1,
+// and -1 * -2 is 2, which _BitInt(2) cannot represent. Widening to int -- what
+// the sweep below already counts in -- checks the identity that is meant,
+// rather than the one the type can hold.
+template<class T>
+auto reconstructs(T quotient, T denom, T remainder, T numer) -> bool
+{
+        return (static_cast<int>(quotient) * static_cast<int>(denom)) + static_cast<int>(remainder) == static_cast<int>(numer);
+}
+
 // Truncated: the quotient identity, the remainder bound, and the numerator's sign.
 template<class T>
 auto check_truncated(T numer, T denom) -> void
 {
         auto const [quotient, remainder] = xstd::div(numer, denom);
-        BOOST_CHECK((quotient * denom) + remainder == numer);
+        BOOST_CHECK(reconstructs(quotient, denom, remainder, numer));
         BOOST_CHECK(xstd::unsigned_abs(remainder) < xstd::unsigned_abs(denom));
         BOOST_CHECK(remainder == T(0) or xstd::sign(remainder) == xstd::sign(numer));
 }
@@ -31,7 +43,7 @@ template<class T>
 auto check_floored(T numer, T denom) -> void
 {
         auto const [quotient, remainder] = xstd::div_floor(numer, denom);
-        BOOST_CHECK((quotient * denom) + remainder == numer);
+        BOOST_CHECK(reconstructs(quotient, denom, remainder, numer));
         BOOST_CHECK(remainder == T(0) or xstd::sign(remainder) == xstd::sign(denom));
 }
 
@@ -40,7 +52,7 @@ template<class T>
 auto check_euclidean(T numer, T denom) -> void
 {
         auto const [quotient, remainder] = xstd::div_euclid(numer, denom);
-        BOOST_CHECK((quotient * denom) + remainder == numer);
+        BOOST_CHECK(reconstructs(quotient, denom, remainder, numer));
         BOOST_CHECK(xstd::sign(remainder) >= 0);
 }
 
