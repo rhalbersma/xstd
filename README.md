@@ -11,7 +11,7 @@
 [![Clang-CL](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/clang-cl.yml)
 [![MSVC](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml/badge.svg)](https://github.com/rhalbersma/xstd/actions/workflows/msvc.yml)
 [![Coverage](https://codecov.io/gh/rhalbersma/xstd/branch/main/graph/badge.svg)](https://codecov.io/gh/rhalbersma/xstd)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/rhalbersma/xstd/badge)](https://securityscorecards.dev/viewer/?uri=github.com/rhalbersma/xstd)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/rhalbersma/xstd/badge)](https://scorecard.dev/viewer/?uri=github.com/rhalbersma/xstd)
 
 xstd is a collection of small, portable, header-only standard-library
 extensions. It relies on the [C++23](https://wg21.link/N4950) standard and targets the
