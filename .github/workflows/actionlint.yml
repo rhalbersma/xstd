@@ -20,23 +20,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  lint:
-    name: actionlint
-    runs-on: ubuntu-24.04
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Set up Go
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version: '1.25.1'
-          cache: false
-
-      - name: Install actionlint
-        run: go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.11
-
-      - name: Lint workflows
-        # Keep this workflow focused on GitHub Actions syntax and expressions;
-        # ShellCheck policy is managed independently.
-        run: actionlint -shellcheck='' .github/workflows/*.yml
+  # No inputs: the defaults are the policy this repository already had.
+  actionlint:
+    uses: rhalbersma/cpp-ci/.github/workflows/actionlint.yml@315b379e58eb5682c260fe519d60527adc507c54 # cpp-ci actionlint
