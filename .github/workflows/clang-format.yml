@@ -20,32 +20,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  format:
-    name: clang-format 22
-    runs-on: ubuntu-24.04
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      # The runner image writes APT::Acquire::Retries, which apt does not read;
-      # this is the key it consults, so a transient 5xx retries.
-      - name: Make apt retry transient download failures
-        run: echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/99-retries > /dev/null
-
-      # The key and suite directly, as in clang.yml: llvm.sh is an unversioned
-      # script fetched over the wire and run as root, which nothing can pin.
-      - name: Install Clang-Format 22
-        run: |
-          wget -qO- --tries=3 --waitretry=5 --retry-on-http-error=429,500,502,503,504 https://apt.llvm.org/llvm-snapshot.gpg.key \
-            | sudo tee /etc/apt/trusted.gpg.d/apt.llvm.org.asc > /dev/null
-          codename=$(lsb_release -cs)
-          sudo add-apt-repository -y "deb https://apt.llvm.org/${codename}/ llvm-toolchain-${codename}-22 main"
-          sudo apt-get update
-          sudo apt-get install -y clang-format-22
-
-      # --dry-run --Werror turns a reformatting diff into a failure rather
-      # than rewriting files; the diff shows up in this job's log.
-      - name: Check formatting of all headers and sources
-        run: |
-          find include test -regex '.*\.\(hpp\|cpp\)' -print0 \
-            | xargs -0 clang-format-22 --dry-run --Werror
+  # Its own tier, deliberately left at stable: a formatter release reformats
+  # the code base, which is not something a compiler bump should decide.
+  clang_format:
+    uses: rhalbersma/cpp-ci/.github/workflows/clang-format.yml@81f93380c65e49fff3d7e041676986ff6efa5d9d # cpp-ci clang-format

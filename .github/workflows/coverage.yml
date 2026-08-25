@@ -5,9 +5,11 @@
 
 name: Coverage
 
+# id-token for Codecov's tokenless upload; the shared workflow cannot exceed
+# what is granted here.
 permissions:
   contents: read
-  id-token: write   # tokenless Codecov upload via GitHub OIDC
+  id-token: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -25,143 +27,6 @@ on:
   workflow_dispatch:
 
 jobs:
+  # No inputs: one hundred percent of include/, which is the shared default.
   coverage:
-    name: GCC 15 gcovr
-    runs-on: ubuntu-24.04
-    env:
-      VCPKG_BINARY_SOURCES: "clear;default,readwrite"
-      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-cache
-      VCPKG_CACHE_KEY: vcpkg-coverage-
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      # The runner image writes APT::Acquire::Retries, which apt does not read;
-      # this is the key it consults, so a transient 5xx retries.
-      - name: Make apt retry transient download failures
-        run: echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/99-retries > /dev/null
-
-      - name: Install GCC 15 and gcovr
-        run: |
-          # Retried for the reason given in gcc.yml: the ppa: shorthand goes
-          # through Launchpad's web API, which Acquire::Retries does not cover.
-          for i in 1 2 3; do
-            if sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; then break; fi
-            if [ "$i" -eq 3 ]; then exit 1; fi
-            sleep $((i * 5))
-          done
-          sudo apt-get update
-          sudo apt-get install -y g++-15 python3-pip
-          python3 -m pip install --user --require-hashes -r .github/requirements.txt
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-
-      - name: Report toolchain versions
-        run: |
-          gcc-15 --version
-          g++-15 --version
-          gcov-15 --version
-          gcovr --version
-          cmake --version
-
-      # vcpkg's own x-gha backend was removed, so cache its binary packages
-      # with actions/cache; the archives are named by ABI hash.
-      - name: Restore vcpkg binary cache
-        id: vcpkg-cache
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
-        with:
-          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
-          key: ${{ env.VCPKG_CACHE_KEY }}
-          restore-keys: ${{ env.VCPKG_CACHE_KEY }}
-
-      - name: Install Boost.Test
-        run: |
-          mkdir -p "$VCPKG_DEFAULT_BINARY_CACHE"
-          vcpkg install --triplet x64-linux
-
-      # Keyed on the archives' contents: an unconditional save would add an
-      # entry per run and evict this repo's other caches.
-      - name: Save vcpkg binary cache
-        if: >-
-          hashFiles('vcpkg-cache/**') != '' &&
-          steps.vcpkg-cache.outputs.cache-matched-key !=
-          format('{0}{1}', env.VCPKG_CACHE_KEY, hashFiles('vcpkg-cache/**'))
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
-        with:
-          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
-          key: ${{ env.VCPKG_CACHE_KEY }}${{ hashFiles('vcpkg-cache/**') }}
-
-      - name: Configure
-        run: >
-          cmake -S . -B build
-          -DCMAKE_BUILD_TYPE=Debug
-          -DCMAKE_C_COMPILER=gcc-15
-          -DCMAKE_CXX_COMPILER=g++-15
-          -DCMAKE_CXX_FLAGS="--coverage -O0 -g"
-          -DCMAKE_EXE_LINKER_FLAGS="--coverage"
-          -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
-
-      - name: Build
-        run: cmake --build build -v
-
-      - name: Test
-        run: ctest --test-dir build --output-on-failure
-
-      # Full line coverage of include/, less assert(...) and "= default;", and
-      # less the branches gcov synthesizes that no test can take.
-      #
-      # --merge-lines because the question this gate asks is whether a line of
-      # a template is ever run, not whether every emitted copy of it is. Without
-      # it gcov's records stay per instantiation and per translation unit, so a
-      # header line reads as uncovered in a unit that instantiates it and takes
-      # another route - which the same line, run in the unit next door, does not
-      # redeem. That is not a gap in the tests, and closing it means re-running
-      # identical code once per caller.
-      - name: Generate coverage report
-        run: >
-          gcovr --root .
-          --gcov-executable gcov-15
-          --merge-lines
-          --exclude 'test/.*'
-          --exclude 'build/.*'
-          --exclude-lines-by-pattern '^\s*assert\('
-          --exclude-lines-by-pattern '=\s*default;'
-          --exclude-branches-by-pattern '^\s*assert\('
-          --exclude-branches-by-pattern '^\s*.*=\s*default;'
-          --exclude-throw-branches
-          --exclude-unreachable-branches
-          --print-summary
-          --fail-under-line 100
-          --fail-under-branch 100
-          --txt coverage.txt
-          --xml-pretty --xml coverage.xml
-
-      - name: Publish coverage summary
-        if: always()
-        run: |
-          {
-            echo '### Line coverage (gcovr, include/ only)'
-            echo '```'
-            cat coverage.txt
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
-
-      # Without these the CLI's own gcov plugin blends an unfiltered second
-      # pass in alongside coverage.xml, undoing the exclusions above.
-      - name: Upload to Codecov
-        if: always()
-        uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7
-        with:
-          files: coverage.xml
-          plugins: noop
-          disable_search: true
-          use_oidc: true
-          # Fail loudly on a rejected upload rather than leaving a green job
-          # with no coverage; a later drop is what the daily run is for.
-          fail_ci_if_error: true
-
-      - name: Upload coverage report
-        if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: coverage-xml
-          path: coverage.xml
+    uses: rhalbersma/cpp-ci/.github/workflows/coverage.yml@81f93380c65e49fff3d7e041676986ff6efa5d9d # cpp-ci coverage

@@ -1,9 +1,0 @@
-#          Copyright Rein Halbersma 2014-2026.
-# Distributed under the Boost Software License, Version 1.0.
-#    (See accompanying file LICENSE_1_0.txt or copy at
-#          http://www.boost.org/LICENSE_1_0.txt)
-
-# The coverage job's only Python dependency. Compiled, with the hashes of its
-# whole transitive closure, into requirements.txt next door. Both are bumped by
-# Dependabot; regenerate by hand with the command that file records.
-gcovr==8.6

@@ -7,6 +7,7 @@ name: CodeQL
 
 permissions:
   contents: read
+  security-events: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -22,86 +23,5 @@ on:
   workflow_dispatch:
 
 jobs:
-  analyze:
-    name: Analyze (C++)
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      security-events: write
-    env:
-      VCPKG_BINARY_SOURCES: "clear;default,readwrite"
-      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-cache
-      VCPKG_CACHE_KEY: vcpkg-codeql-
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      # The runner image writes APT::Acquire::Retries, which apt does not read;
-      # this is the key it consults, so a transient 5xx retries.
-      - name: Make apt retry transient download failures
-        run: echo 'Acquire::Retries "5";' | sudo tee /etc/apt/apt.conf.d/99-retries > /dev/null
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
-        with:
-          languages: c-cpp
-          queries: security-extended
-
-      # The div_result formatter needs libstdc++'s std::formatter<tuple>, which the
-      # image's default GCC 13 does not fully provide.
-      - name: Install a <format>-capable GCC
-        run: |
-          # Retried for the reason given in gcc.yml: the ppa: shorthand goes
-          # through Launchpad's web API, which Acquire::Retries does not cover.
-          for i in 1 2 3; do
-            if sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test; then break; fi
-            if [ "$i" -eq 3 ]; then exit 1; fi
-            sleep $((i * 5))
-          done
-          sudo apt-get update
-          sudo apt-get install -y g++-15
-
-      # vcpkg's own x-gha backend was removed, so cache its binary packages
-      # with actions/cache; the archives are named by ABI hash.
-      - name: Restore vcpkg binary cache
-        id: vcpkg-cache
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
-        with:
-          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
-          key: ${{ env.VCPKG_CACHE_KEY }}
-          restore-keys: ${{ env.VCPKG_CACHE_KEY }}
-
-      - name: Install Boost.Test
-        run: |
-          mkdir -p "$VCPKG_DEFAULT_BINARY_CACHE"
-          vcpkg install --triplet x64-linux
-
-      # Keyed on the archives' contents: an unconditional save would add an
-      # entry per run and evict this repo's other caches.
-      - name: Save vcpkg binary cache
-        if: >-
-          hashFiles('vcpkg-cache/**') != '' &&
-          steps.vcpkg-cache.outputs.cache-matched-key !=
-          format('{0}{1}', env.VCPKG_CACHE_KEY, hashFiles('vcpkg-cache/**'))
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
-        with:
-          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
-          key: ${{ env.VCPKG_CACHE_KEY }}${{ hashFiles('vcpkg-cache/**') }}
-
-      # Debug rather than unset, so NDEBUG stays undefined on purpose: -DNDEBUG
-      # rewrites every assert before the extractor, which runs front-end side.
-      - name: Configure
-        run: >
-          cmake -S . -B build
-          -DCMAKE_BUILD_TYPE=Debug
-          -DCMAKE_C_COMPILER=gcc-15
-          -DCMAKE_CXX_COMPILER=g++-15
-          -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
-
-      - name: Build
-        run: cmake --build build -v
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@ff2f1c621b7f889edc0d3c761ac2e6a3f8cdb0dd # v4.37.7
-        with:
-          category: "/language:c-cpp"
+  codeql:
+    uses: rhalbersma/cpp-ci/.github/workflows/codeql.yml@81f93380c65e49fff3d7e041676986ff6efa5d9d # cpp-ci codeql
