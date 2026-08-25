@@ -24,4 +24,4 @@ on:
 jobs:
   # No inputs: the shared workflow defaults to the MSVC toolset.
   msvc:
-    uses: rhalbersma/cpp-ci/.github/workflows/visual-studio.yml@760aecc5d633fba821eeeb095ab8c10e87e22dc4 # cpp-ci visual-studio
+    uses: rhalbersma/cpp-ci/.github/workflows/visual-studio.yml@a5d0e5f923e523202505a3f6fc4c7b6d1d66bb8a # cpp-ci visual-studio
