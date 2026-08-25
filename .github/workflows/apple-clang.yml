@@ -18,79 +18,11 @@ on:
   pull_request:
     branches: [ main ]
   workflow_dispatch:
+  # canary.yml calls this weekly, so the stub stays callable itself.
   workflow_call:
 
 jobs:
-  build:
-    # Apple does not publish an open-source Apple Clang trunk/nightly. Test
-    # the latest stable Xcode release from each of the two supported series.
-    name: Apple Clang ${{ matrix.label }} ${{ matrix.build_type }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        build_type: [Release, Debug]
-        label: ["Xcode 16.4", "Xcode 26.6"]
-        include:
-          - label: Xcode 16.4
-            os: macos-15
-            developer_dir: /Applications/Xcode_16.4.app/Contents/Developer
-          - label: Xcode 26.6
-            os: macos-26
-            developer_dir: /Applications/Xcode_26.6.app/Contents/Developer
-    env:
-      DEVELOPER_DIR: ${{ matrix.developer_dir }}
-      VCPKG_BINARY_SOURCES: "clear;default,readwrite"
-      VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-cache
-      VCPKG_CACHE_KEY: vcpkg-apple-clang-${{ matrix.os }}-
-
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Report toolchain versions
-        run: |
-          xcodebuild -version
-          clang++ --version
-          cmake --version
-
-      # vcpkg's own x-gha backend was removed, so cache its binary packages
-      # with actions/cache; the archives are named by ABI hash.
-      - name: Restore vcpkg binary cache
-        id: vcpkg-cache
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
-        with:
-          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
-          key: ${{ env.VCPKG_CACHE_KEY }}
-          restore-keys: ${{ env.VCPKG_CACHE_KEY }}
-
-      # arm64-osx builds Boost.Test with the selected Xcode, so its libc++
-      # ABI matches the compiler under test.
-      - name: Install Boost.Test
-        run: |
-          mkdir -p "$VCPKG_DEFAULT_BINARY_CACHE"
-          vcpkg install --triplet arm64-osx
-
-      # Keyed on the archives' contents: an unconditional save would add an
-      # entry per run and evict this repo's other caches.
-      - name: Save vcpkg binary cache
-        if: >-
-          hashFiles('vcpkg-cache/**') != '' &&
-          steps.vcpkg-cache.outputs.cache-matched-key !=
-          format('{0}{1}', env.VCPKG_CACHE_KEY, hashFiles('vcpkg-cache/**'))
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6
-        with:
-          path: ${{ env.VCPKG_DEFAULT_BINARY_CACHE }}
-          key: ${{ env.VCPKG_CACHE_KEY }}${{ hashFiles('vcpkg-cache/**') }}
-
-      - name: Configure
-        run: >
-          cmake -S . -B build
-          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-          -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake
-          -DVCPKG_TARGET_TRIPLET=arm64-osx
-
-      - name: Build
-        run: cmake --build build -v
-
-      - name: Test
-        run: ctest --test-dir build --output-on-failure
+  # Two rungs, not three: Apple publishes no Clang trunk, and the shared
+  # workflow drops the development rung with a notice rather than failing.
+  apple_clang:
+    uses: rhalbersma/cpp-ci/.github/workflows/apple-clang.yml@760aecc5d633fba821eeeb095ab8c10e87e22dc4 # cpp-ci apple-clang
