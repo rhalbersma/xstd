@@ -25,4 +25,4 @@ jobs:
   # No inputs: this library builds on every rung of the ladder, which is what
   # the shared workflow defaults to.
   mingw:
-    uses: rhalbersma/cpp-ci/.github/workflows/mingw.yml@a5d0e5f923e523202505a3f6fc4c7b6d1d66bb8a # cpp-ci mingw
+    uses: rhalbersma/cpp-ci/.github/workflows/mingw.yml@1fa5b7073c07ef598bb619652a422c821ee18ca0 # v0.2.0

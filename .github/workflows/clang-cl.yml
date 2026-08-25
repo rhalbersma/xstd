@@ -26,7 +26,7 @@ jobs:
   # MSVC STL instead of cl. Its own cache prefix, since the two callers build
   # the dependencies with different compilers.
   clang_cl:
-    uses: rhalbersma/cpp-ci/.github/workflows/visual-studio.yml@a5d0e5f923e523202505a3f6fc4c7b6d1d66bb8a # cpp-ci visual-studio
+    uses: rhalbersma/cpp-ci/.github/workflows/visual-studio.yml@1fa5b7073c07ef598bb619652a422c821ee18ca0 # v0.2.0
     with:
       toolset: ClangCL,host=x64
       preview_toolset_prefix: "ClangCL,"

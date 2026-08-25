@@ -22,4 +22,4 @@ on:
 jobs:
   # No inputs: the defaults are the policy this repository already had.
   actionlint:
-    uses: rhalbersma/cpp-ci/.github/workflows/actionlint.yml@315b379e58eb5682c260fe519d60527adc507c54 # cpp-ci actionlint
+    uses: rhalbersma/cpp-ci/.github/workflows/actionlint.yml@1fa5b7073c07ef598bb619652a422c821ee18ca0 # v0.2.0

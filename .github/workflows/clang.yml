@@ -25,4 +25,4 @@ jobs:
   # No inputs: this library builds on every rung of the ladder, which is what
   # the shared workflow defaults to.
   clang:
-    uses: rhalbersma/cpp-ci/.github/workflows/clang.yml@3b42fc5783648f6aa9ad177e2a430270875cfe2f # cpp-ci Clang
+    uses: rhalbersma/cpp-ci/.github/workflows/clang.yml@1fa5b7073c07ef598bb619652a422c821ee18ca0 # v0.2.0

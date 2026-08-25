@@ -24,4 +24,4 @@ on:
 
 jobs:
   codeql:
-    uses: rhalbersma/cpp-ci/.github/workflows/codeql.yml@81f93380c65e49fff3d7e041676986ff6efa5d9d # cpp-ci codeql
+    uses: rhalbersma/cpp-ci/.github/workflows/codeql.yml@1fa5b7073c07ef598bb619652a422c821ee18ca0 # v0.2.0
