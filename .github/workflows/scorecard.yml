@@ -25,4 +25,4 @@ on:
 
 jobs:
   scorecard:
-    uses: rhalbersma/cpp-ci/.github/workflows/scorecard.yml@81f93380c65e49fff3d7e041676986ff6efa5d9d # cpp-ci scorecard
+    uses: rhalbersma/cpp-ci/.github/workflows/scorecard.yml@0061e0a7dcc5197821232597043379f5a09cbff9 # v0.2.0
