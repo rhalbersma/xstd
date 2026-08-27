@@ -7,9 +7,6 @@ name: Scorecard
 
 permissions:
   contents: read
-  security-events: write
-  id-token: write
-  actions: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,5 +21,15 @@ on:
   workflow_dispatch:
 
 jobs:
+  # scorecard-action refuses to publish results from a workflow whose top-level
+  # permissions grant write: the token that signs them must be scoped to the job
+  # that needs it. A workflow-level grant fails the upload with HTTP 400 while
+  # the job still reports success, so the badge silently stops moving. See
+  # https://github.com/ossf/scorecard-action#workflow-restrictions
   scorecard:
+    permissions:
+      contents: read
+      security-events: write
+      id-token: write
+      actions: read
     uses: rhalbersma/cpp-ci/.github/workflows/scorecard.yml@1fa5b7073c07ef598bb619652a422c821ee18ca0 # v0.2.0
