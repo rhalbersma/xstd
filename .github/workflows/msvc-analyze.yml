@@ -20,9 +20,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  # MSVC's /analyze, in the role Clang-Tidy fills on the other side. No inputs
-  # yet: the shared workflow already defaults to the qualification rung in
-  # Debug, which is what Clang-Tidy runs, and the C++ Core Guidelines checkers
-  # stay off until there is a reason to turn them on.
+  # MSVC's /analyze, in the role Clang-Tidy fills on the other side. Still no
+  # inputs, but the default underneath moved: v0.7.0 runs all three MSVC rungs
+  # rather than the qualification one alone, which is what Clang-Tidy has done
+  # since v0.6.0. The C++ Core Guidelines checkers stay off until there is a
+  # reason to turn them on.
   msvc_analyze:
-    uses: rhalbersma/cpp-ci/.github/workflows/msvc-analyze.yml@847e9ccde5651430e1dbe2cef53c85c1d3df0b90 # v0.6.1
+    uses: rhalbersma/cpp-ci/.github/workflows/msvc-analyze.yml@294abf16aee51dbea70891b75eb1512f2b396e28 # v0.7.0
