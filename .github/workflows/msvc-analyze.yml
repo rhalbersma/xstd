@@ -25,4 +25,4 @@ jobs:
   # Debug, which is what Clang-Tidy runs, and the C++ Core Guidelines checkers
   # stay off until there is a reason to turn them on.
   msvc_analyze:
-    uses: rhalbersma/cpp-ci/.github/workflows/msvc-analyze.yml@faf42547c77c52a77525e3e6da65209f1017bf04 # v0.6.0
+    uses: rhalbersma/cpp-ci/.github/workflows/msvc-analyze.yml@847e9ccde5651430e1dbe2cef53c85c1d3df0b90 # v0.6.1

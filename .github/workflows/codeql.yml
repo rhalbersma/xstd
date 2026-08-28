@@ -32,4 +32,4 @@ jobs:
     permissions:
       contents: read
       security-events: write
-    uses: rhalbersma/cpp-ci/.github/workflows/codeql.yml@faf42547c77c52a77525e3e6da65209f1017bf04 # v0.6.0
+    uses: rhalbersma/cpp-ci/.github/workflows/codeql.yml@847e9ccde5651430e1dbe2cef53c85c1d3df0b90 # v0.6.1
