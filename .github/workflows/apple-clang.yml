@@ -25,4 +25,4 @@ jobs:
   # Two rungs, not three: Apple publishes no Clang trunk, and the shared
   # workflow drops the development rung with a notice rather than failing.
   apple_clang:
-    uses: rhalbersma/cpp-ci/.github/workflows/apple-clang.yml@294abf16aee51dbea70891b75eb1512f2b396e28 # v0.7.0
+    uses: rhalbersma/cpp-ci/.github/workflows/apple-clang.yml@31ad36893e66a2083531e64427fdf734665d8aa1 # v0.7.1

@@ -24,4 +24,4 @@ jobs:
   # what the shared workflow defaults to. A repository needing a newer compiler
   # names the rung instead of the version, and this one may yet.
   sanitizers:
-    uses: rhalbersma/cpp-ci/.github/workflows/sanitizers.yml@294abf16aee51dbea70891b75eb1512f2b396e28 # v0.7.0
+    uses: rhalbersma/cpp-ci/.github/workflows/sanitizers.yml@31ad36893e66a2083531e64427fdf734665d8aa1 # v0.7.1
