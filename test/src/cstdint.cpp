@@ -38,7 +38,7 @@ BOOST_AUTO_TEST_CASE(Int128)
         static_assert(std::same_as<xstd::make_unsigned_t<xstd::int128 volatile>, xstd::uint128 volatile>);
         static_assert(std::same_as<xstd::make_unsigned_t<xstd::int128 const volatile>, xstd::uint128 const volatile>);
         XSTD_CONSTEXPR_CHECK(xstd::int128{-1} < xstd::int128{0});
-        XSTD_CONSTEXPR_CHECK((xstd::uint128{1} << 127) > xstd::uint128{0});
+        XSTD_CONSTEXPR_CHECK((xstd::uint128{1} << 127U) > xstd::uint128{0});
 }
 
 #ifdef XSTD_HAS_BIT_INT

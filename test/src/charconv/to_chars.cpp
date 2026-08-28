@@ -91,8 +91,15 @@ BOOST_AUTO_TEST_CASE(StandardIntegralTypesDelegate)
 BOOST_AUTO_TEST_CASE_TEMPLATE(DigitsPathMatchesTheStandard, T, xstd::test::std_signed_types)
 {
         for (auto base = 2; base <= 36; ++base) {
-                for (auto const value : {T{0}, T{1}, T{-1}, T{7}, T{-7},
-                                         xstd::numeric_limits<T>::min(), xstd::numeric_limits<T>::max()}) {
+                for (auto const value : {
+                             T{0},
+                             T{1},
+                             T{-1},
+                             T{7},
+                             T{-7},
+                             xstd::numeric_limits<T>::min(),
+                             xstd::numeric_limits<T>::max(),
+                     }) {
                         BOOST_CHECK_EQUAL(rendered(static_cast<xstd::int128>(value), base),
                                           rendered_by_std(value, base));
                 }
