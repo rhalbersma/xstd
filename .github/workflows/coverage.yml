@@ -29,4 +29,4 @@ on:
 jobs:
   # No inputs: one hundred percent of include/, which is the shared default.
   coverage:
-    uses: rhalbersma/cpp-ci/.github/workflows/coverage.yml@31ad36893e66a2083531e64427fdf734665d8aa1 # v0.7.1
+    uses: rhalbersma/cpp-ci/.github/workflows/coverage.yml@676e6fb7abc784e54a227998bf3e9c39790e63cf # v0.8.0
