@@ -21,7 +21,7 @@ concept integer_class =
         // /2: structurally recognize the set; its note disclaims class-ness, so built-ins are eligible.
         std::same_as<T, std::remove_cv_t<T_cv>> and
 
-        // /3: xstd deliberately omits the requirement that the width exceed every integral type.
+        // /3: the width requirement is deliberately omitted; its range half the tests check.
         numeric_limits<T>::is_specialized and
         numeric_limits<T>::is_integer and
         (numeric_limits<T>::radix == 2) and

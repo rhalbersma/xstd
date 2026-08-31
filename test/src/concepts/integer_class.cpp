@@ -3,9 +3,12 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/concepts/integer_class.hpp> // integer_class
-#include <xstd/test/exact_width_types.hpp> // exact_width_integer_types
-#include <boost/test/unit_test.hpp>        // Boost.Test
+#include <xstd/concepts/integer_class.hpp>    // integer_class
+#include <xstd/limits/numeric_limits.hpp>     // numeric_limits
+#include <xstd/test/exact_width_types.hpp>    // exact_width_integer_types
+#include <xstd/type_traits/make_signed.hpp>   // make_signed_t
+#include <xstd/type_traits/make_unsigned.hpp> // make_unsigned_t
+#include <boost/test/unit_test.hpp>           // Boost.Test
 
 BOOST_AUTO_TEST_SUITE(Concepts)
 
@@ -41,6 +44,25 @@ BOOST_AUTO_TEST_CASE(StandardIntegral)
 
         // C++17 removed bool's ++ and --, which /7.1 and /7.2 ask for.
         static_assert(not xstd::integer_class<bool>);
+        BOOST_CHECK(true);
+}
+
+// /3's other half, which xstd does check: the range is -2^(N-1) to 2^(N-1)-1
+// signed and 0 to 2^N-1 unsigned. Read through the pair, so that no expression
+// here has to survive integral promotion or overflow at the widest type - and
+// over the signed list alone, since naming T's pair reaches every type once.
+BOOST_AUTO_TEST_CASE_TEMPLATE(RepresentableRange, T, xstd::test::constexpr_exact_width_signed_integer_types)
+{
+        using S = xstd::make_signed_t<T>;
+        using U = xstd::make_unsigned_t<T>;
+
+        // min is -(max + 1), the asymmetry that -2^(N-1) to 2^(N-1)-1 states.
+        static_assert(xstd::numeric_limits<S>::min() + xstd::numeric_limits<S>::max() == -1);
+        static_assert(xstd::numeric_limits<U>::min() == 0);
+
+        // The unsigned half spends on magnitude the bit the signed half spends on sign.
+        static_assert(xstd::numeric_limits<U>::digits == xstd::numeric_limits<S>::digits + 1);
+        static_assert((static_cast<U>(xstd::numeric_limits<S>::max()) * 2) + 1 == xstd::numeric_limits<U>::max());
         BOOST_CHECK(true);
 }
 

@@ -67,7 +67,6 @@ target_sources(
         include/xstd/type_traits.hpp
         include/xstd/type_traits/conditional_data_member.hpp
         include/xstd/type_traits/empty_type.hpp
-        include/xstd/type_traits/is_character.hpp
         include/xstd/type_traits/is_signed.hpp
         include/xstd/type_traits/is_specialization_of.hpp
         include/xstd/type_traits/is_unsigned.hpp

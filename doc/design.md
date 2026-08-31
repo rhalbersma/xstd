@@ -36,11 +36,16 @@ remain supported where they are aliases of those types.
 Unlike the paper's closed standard-library domain, xstd also admits types that
 model `integer_class`, and reaches the built-ins through that concept too: since
 it admits them, a `std::integral` disjunct would only restate what it already
-grants, and `bool` is excluded by failing it rather than by name. Every accepted
-type must have valid `make_signed_t` and `make_unsigned_t` transformations; this
-deliberately rejects an unpaired integer-class type. The refinements use xstd's
-open signedness traits, preserving concept subsumption across built-in,
-extended, bit-precise, and paired class integers.
+grants, and `bool` is excluded by failing it rather than by name. The rest of
+the boundary is drawn the same way, by behaviour rather than by a list. Every
+accepted type must have valid `make_signed_t` and `make_unsigned_t`
+transformations, which rejects an unpaired integer-class type; those
+transformations must compose back, each settled by signedness alone; and the
+type must be one of its own pair. A character type is not -
+`make_signed_t<char>` is `signed char`, a third type beside it - which is what
+excludes the five of them without naming any. The refinements use xstd's open
+signedness traits, preserving concept subsumption across built-in, extended,
+bit-precise, and paired class integers.
 
 Character conversion delegates a non-`bool` standard integral type to
 `std::to_chars` when it is no wider than `uint128`, which is where both standard
