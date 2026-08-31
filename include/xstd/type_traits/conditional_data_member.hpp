@@ -8,13 +8,16 @@
 
 #include <xstd/type_traits/empty_type.hpp>        // IWYU pragma: export; empty_type
 #include <xstd/type_traits/no_unique_address.hpp> // IWYU pragma: export; XSTD_NO_UNIQUE_ADDRESS
-#include <type_traits>                            // conditional_t
+#include <type_traits>                            // conditional
 
 namespace xstd {
 
 // Tag keeps multiple absent [[XSTD_NO_UNIQUE_ADDRESS]] data members distinct.
 template<bool Condition, class Type, class Tag>
-using conditional_data_member_t = std::conditional_t<Condition, Type, empty_type<Tag>>;
+using conditional_data_member = std::conditional<Condition, Type, empty_type<Tag>>;
+
+template<bool Condition, class Type, class Tag>
+using conditional_data_member_t = conditional_data_member<Condition, Type, Tag>::type;
 
 } // namespace xstd
 

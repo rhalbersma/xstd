@@ -42,6 +42,10 @@ BOOST_AUTO_TEST_CASE(ConditionalDataMember)
                               xstd::conditional_data_member_t<true, tag1, struct member1_tag>,
                               xstd::conditional_data_member_t<true, tag1, struct member2_tag>>));
 
+        // the trait form that _t extracts from
+        XSTD_CONSTEXPR_CHECK((std::same_as<xstd::conditional_data_member<true, tag1, tag2>::type, tag1>));
+        XSTD_CONSTEXPR_CHECK((std::same_as<xstd::conditional_data_member<false, tag1, tag2>::type, xstd::empty_type<tag2>>));
+
         // an absent member never needs its tag defined
         XSTD_CONSTEXPR_CHECK((std::is_empty_v<xstd::conditional_data_member_t<false, tag1, struct undefined_tag>>));
 }
