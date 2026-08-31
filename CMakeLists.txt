@@ -74,6 +74,7 @@ target_sources(
         include/xstd/type_traits/make_signed.hpp
         include/xstd/type_traits/make_unsigned.hpp
         include/xstd/type_traits/no_unique_address.hpp
+        include/xstd/type_traits/promoted.hpp
         include/xstd/utility.hpp
 )
 

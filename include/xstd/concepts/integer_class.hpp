@@ -78,7 +78,7 @@ concept integer_class =
 
         // /7.6: same-type binary operators, against promoted_t for the reason /7.3 is.
         requires (T const a, T const b) {
-                { a* b } -> std::same_as<promoted_t<T>>;
+                { a * b } -> std::same_as<promoted_t<T>>;
                 { a / b } -> std::same_as<promoted_t<T>>;
                 { a % b } -> std::same_as<promoted_t<T>>;
                 { a + b } -> std::same_as<promoted_t<T>>;
@@ -89,7 +89,7 @@ concept integer_class =
                 { a >> n } -> std::same_as<promoted_t<T>>;
         } and
         requires (T const a, T const b) {
-                { a& b } -> std::same_as<promoted_t<T>>;
+                { a & b } -> std::same_as<promoted_t<T>>;
                 { a ^ b } -> std::same_as<promoted_t<T>>;
                 { a | b } -> std::same_as<promoted_t<T>>;
         } and
