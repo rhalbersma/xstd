@@ -49,8 +49,9 @@ BOOST_AUTO_TEST_CASE(StandardIntegral)
 
 // /3's other half, which xstd does check: the range is -2^(N-1) to 2^(N-1)-1
 // signed and 0 to 2^N-1 unsigned. Read through the pair, so that no expression
-// here has to survive integral promotion or overflow at the widest type.
-BOOST_AUTO_TEST_CASE_TEMPLATE(RepresentableRange, T, xstd::test::exact_width_integer_types)
+// here has to survive integral promotion or overflow at the widest type - and
+// over the signed list alone, since naming T's pair reaches every type once.
+BOOST_AUTO_TEST_CASE_TEMPLATE(RepresentableRange, T, xstd::test::constexpr_exact_width_signed_integer_types)
 {
         using S = xstd::make_signed_t<T>;
         using U = xstd::make_unsigned_t<T>;
