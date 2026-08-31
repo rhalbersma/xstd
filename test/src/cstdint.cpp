@@ -59,6 +59,11 @@ BOOST_AUTO_TEST_CASE(BitPreciseAliases)
         XSTD_CONSTEXPR_CHECK(xstd::numeric_limits<S>::min() == S{-65536});
         XSTD_CONSTEXPR_CHECK(xstd::numeric_limits<S>::max() == S{65535});
         XSTD_CONSTEXPR_CHECK(xstd::numeric_limits<U>::max() == U{131071});
+
+        // [iterator.concept.winc]/3's range, stated without naming the width.
+        XSTD_CONSTEXPR_CHECK(xstd::numeric_limits<S>::min() + xstd::numeric_limits<S>::max() == -1);
+        XSTD_CONSTEXPR_CHECK(xstd::numeric_limits<U>::min() == 0);
+        XSTD_CONSTEXPR_CHECK(static_cast<U>(xstd::numeric_limits<S>::max()) * 2 + 1 == xstd::numeric_limits<U>::max());
 }
 
 #endif // XSTD_HAS_BIT_INT
