@@ -136,6 +136,7 @@ endif()
 
 find_package(
     Boost 1.70 CONFIG REQUIRED COMPONENTS
+    align
     unit_test_framework
 )
 
