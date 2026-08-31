@@ -7,23 +7,31 @@
 #define XSTD_CONCEPTS_INTEGER_HPP
 
 #include <xstd/concepts/integer_class.hpp>    // integer_class
-#include <xstd/type_traits/is_character.hpp>  // is_character
 #include <xstd/type_traits/make_signed.hpp>   // make_signed_t
 #include <xstd/type_traits/make_unsigned.hpp> // make_unsigned_t
-#include <type_traits>                        // remove_cv_t
+#include <concepts>                           // same_as
 
 namespace xstd {
 
 // P3701R0's arithmetic boundary, extended with xstd's paired integer-class types.
-// Every standard and extended integer models integer_class, bool alone excepted.
+// A character type transforms out of its own pair, which is what excludes the five
+// of them here: signed char is not char.
 template<class T>
 concept integer =
-        (not is_character_v<std::remove_cv_t<T>>) and
         integer_class<T> and
+
+        // The pair exists, which already rejects an unpaired integer-class type.
         requires {
                 typename make_signed_t<T>;
                 typename make_unsigned_t<T>;
-        };
+        } and
+
+        // Each transformation is settled by signedness alone, not by the road taken.
+        std::same_as<make_signed_t<make_unsigned_t<T>>, make_signed_t<T>> and
+        std::same_as<make_unsigned_t<make_signed_t<T>>, make_unsigned_t<T>> and
+
+        // T is one of its own pair rather than a third type beside it.
+        (std::same_as<T, make_signed_t<T>> or std::same_as<T, make_unsigned_t<T>>);
 
 } // namespace xstd
 

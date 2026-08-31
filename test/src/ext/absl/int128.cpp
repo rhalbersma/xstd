@@ -26,6 +26,10 @@ BOOST_AUTO_TEST_CASE(AssociationsPairTheTwoHalves)
         XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_unsigned_t<S>, U>));
         XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_signed_t<U>, S>));
 
+        // Each half is its own, which is how integer tells a pair from a third type beside one.
+        XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_signed_t<S>, S>));
+        XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_unsigned_t<U>, U>));
+
         // Each half reached from the other and back, and the cv qualifiers carried along.
         XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_signed_t<xstd::make_unsigned_t<S>>, S>));
         XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_unsigned_t<xstd::make_signed_t<U>>, U>));
