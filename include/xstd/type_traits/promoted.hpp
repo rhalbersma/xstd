@@ -14,10 +14,8 @@ namespace xstd {
 
 // Held apart because std::conditional forms both type arguments before selecting one.
 template<class T>
-struct integral_promoted
-{
-        using type = decltype(+std::declval<T const&>());
-};
+struct integral_promoted : std::type_identity<decltype(+std::declval<T const&>())>
+{};
 
 // What T's own operators yield: [conv.prom] for a built-in, T itself otherwise.
 template<class T>
