@@ -35,7 +35,6 @@ target_sources(
     FILE_SET HEADERS
     BASE_DIRS include
     FILES
-        include/xstd/concepts.hpp
         include/xstd/concepts/integer_class.hpp
         include/xstd/concepts/integer.hpp
         include/xstd/concepts/nothrow_const_operators.hpp
@@ -64,7 +63,6 @@ target_sources(
         include/xstd/limits.hpp
         include/xstd/limits/numeric_limits.hpp
         include/xstd/memory.hpp
-        include/xstd/type_traits.hpp
         include/xstd/type_traits/conditional_data_member.hpp
         include/xstd/type_traits/empty_type.hpp
         include/xstd/type_traits/is_signed.hpp

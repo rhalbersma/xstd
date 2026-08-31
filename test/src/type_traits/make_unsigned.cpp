@@ -4,14 +4,14 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/type_traits/make_unsigned.hpp> // make_unsigned
-#include <xstd/test/constexpr_check.hpp>
-#include <xstd/test/exact_width_types.hpp> // exact-width integer types
-#include <xstd/concepts.hpp>               // signed_integer, unsigned_integer            // XSTD_CONSTEXPR_CHECK
-#include <boost/test/unit_test.hpp>        // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
-#include <complex>                         // complex
-#include <concepts>                        // same_as
-#include <cstdint>                         // exact-width integer types
-#include <type_traits>                     // make_unsigned_t
+#include <xstd/test/constexpr_check.hpp>      // XSTD_CONSTEXPR_CHECK
+#include <xstd/test/exact_width_types.hpp>    // exact-width integer types
+#include <xstd/concepts/unsigned_integer.hpp> // unsigned_integer
+#include <boost/test/unit_test.hpp>           // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
+#include <complex>                            // complex
+#include <concepts>                           // same_as
+#include <cstdint>                            // exact-width integer types
+#include <type_traits>                        // make_unsigned_t
 
 BOOST_AUTO_TEST_SUITE(TypeTraits)
 

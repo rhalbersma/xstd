@@ -3,12 +3,14 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/concepts.hpp>             // signed_integer, unsigned_integer
-#include <xstd/limits.hpp>               // numeric_limits
-#include <xstd/test/constexpr_check.hpp> // XSTD_CONSTEXPR_CHECK
-#include <xstd/type_traits.hpp>          // make_signed, make_unsigned
-#include <boost/test/unit_test.hpp>      // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_CHECK
-#include <concepts>                      // same_as
+#include <xstd/concepts/signed_integer.hpp>   // signed_integer
+#include <xstd/concepts/unsigned_integer.hpp> // unsigned_integer
+#include <xstd/limits.hpp>                    // numeric_limits
+#include <xstd/test/constexpr_check.hpp>      // XSTD_CONSTEXPR_CHECK
+#include <xstd/type_traits/make_signed.hpp>   // make_signed
+#include <xstd/type_traits/make_unsigned.hpp> // make_unsigned
+#include <boost/test/unit_test.hpp>           // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE, BOOST_CHECK
+#include <concepts>                           // same_as
 
 // Reached the way a consumer reaches it: the probe here, the pair inside the adapter.
 #if __has_include(<absl/numeric/int128.h>)
