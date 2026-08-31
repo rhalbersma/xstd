@@ -19,7 +19,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(IntegerClass, T, xstd::test::exact_width_integer_t
 }
 
 // The requirements hold of the types they were modelled on, which the old
-// (not std::integral) clause made unaskable rather than false.
+// (not std::integral) clause made unaskable rather than false. `integer` now
+// rests on this: it dropped its std::integral disjunct as redundant.
 BOOST_AUTO_TEST_CASE(StandardIntegral)
 {
         static_assert(xstd::integer_class<char>);
