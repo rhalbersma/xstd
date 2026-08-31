@@ -18,12 +18,12 @@ BOOST_AUTO_TEST_SUITE(Memory)
 BOOST_AUTO_TEST_CASE(AlignUp)
 {
         // clang-format off
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up( 0uz, 8),  0uz);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up( 1uz, 8),  8uz);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up( 8uz, 8),  8uz);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up( 9uz, 8), 16uz);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up(64uz, 8), 64uz);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up(65uz, 8), 72uz);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up( 0UZ, 8),  0UZ);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up( 1UZ, 8),  8UZ);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up( 8UZ, 8),  8UZ);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up( 9UZ, 8), 16UZ);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up(64UZ, 8), 64UZ);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up(65UZ, 8), 72UZ);
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up(std::numeric_limits<std::size_t>::max() - 7, 8), std::numeric_limits<std::size_t>::max() - 7);
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up(std::numeric_limits<std::size_t>::max() - 8, 8), std::numeric_limits<std::size_t>::max() - 7);
         // clang-format on
@@ -32,12 +32,12 @@ BOOST_AUTO_TEST_CASE(AlignUp)
 BOOST_AUTO_TEST_CASE(AlignDown)
 {
         // clang-format off
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_down( 0uz, 8),  0uz);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_down( 1uz, 8),  0uz);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_down( 8uz, 8),  8uz);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_down( 9uz, 8),  8uz);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_down(64uz, 8), 64uz);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_down(65uz, 8), 64uz);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_down( 0UZ, 8),  0UZ);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_down( 1UZ, 8),  0UZ);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_down( 8UZ, 8),  8UZ);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_down( 9UZ, 8),  8UZ);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_down(64UZ, 8), 64UZ);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_down(65UZ, 8), 64UZ);
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_down(std::numeric_limits<std::size_t>::max(), 8), std::numeric_limits<std::size_t>::max() - 7);
         // clang-format on
 }
@@ -56,14 +56,14 @@ BOOST_AUTO_TEST_CASE(ReturnType)
 BOOST_AUTO_TEST_CASE(BoostAlign)
 {
         // clang-format off
-        XSTD_CONSTEXPR_CHECK(xstd::align_up  ( 0uz, 8) == boost::alignment::align_up  ( 0uz, 8));
-        XSTD_CONSTEXPR_CHECK(xstd::align_up  ( 1uz, 8) == boost::alignment::align_up  ( 1uz, 8));
-        XSTD_CONSTEXPR_CHECK(xstd::align_up  ( 9uz, 8) == boost::alignment::align_up  ( 9uz, 8));
-        XSTD_CONSTEXPR_CHECK(xstd::align_up  (65uz, 8) == boost::alignment::align_up  (65uz, 8));
-        XSTD_CONSTEXPR_CHECK(xstd::align_down( 0uz, 8) == boost::alignment::align_down( 0uz, 8));
-        XSTD_CONSTEXPR_CHECK(xstd::align_down( 1uz, 8) == boost::alignment::align_down( 1uz, 8));
-        XSTD_CONSTEXPR_CHECK(xstd::align_down( 9uz, 8) == boost::alignment::align_down( 9uz, 8));
-        XSTD_CONSTEXPR_CHECK(xstd::align_down(65uz, 8) == boost::alignment::align_down(65uz, 8));
+        XSTD_CONSTEXPR_CHECK(xstd::align_up  ( 0UZ, 8) == boost::alignment::align_up  ( 0UZ, 8));
+        XSTD_CONSTEXPR_CHECK(xstd::align_up  ( 1UZ, 8) == boost::alignment::align_up  ( 1UZ, 8));
+        XSTD_CONSTEXPR_CHECK(xstd::align_up  ( 9UZ, 8) == boost::alignment::align_up  ( 9UZ, 8));
+        XSTD_CONSTEXPR_CHECK(xstd::align_up  (65UZ, 8) == boost::alignment::align_up  (65UZ, 8));
+        XSTD_CONSTEXPR_CHECK(xstd::align_down( 0UZ, 8) == boost::alignment::align_down( 0UZ, 8));
+        XSTD_CONSTEXPR_CHECK(xstd::align_down( 1UZ, 8) == boost::alignment::align_down( 1UZ, 8));
+        XSTD_CONSTEXPR_CHECK(xstd::align_down( 9UZ, 8) == boost::alignment::align_down( 9UZ, 8));
+        XSTD_CONSTEXPR_CHECK(xstd::align_down(65UZ, 8) == boost::alignment::align_down(65UZ, 8));
         // clang-format on
 }
 
@@ -71,8 +71,8 @@ BOOST_AUTO_TEST_CASE(BoostAlign)
 template<class I>
 auto agrees_with_boost_align() -> void
 {
-        for (auto alignment = 1uz; alignment <= 16uz; alignment *= 2uz) {
-                for (auto value = 0uz; value < 48uz; ++value) {
+        for (auto alignment = 1UZ; alignment <= 16UZ; alignment *= 2UZ) {
+                for (auto value = 0UZ; value < 48UZ; ++value) {
                         auto const x = static_cast<I>(value);
                         BOOST_CHECK_EQUAL(static_cast<std::size_t>(xstd::align_up(x, alignment)),
                                           static_cast<std::size_t>(boost::alignment::align_up(x, alignment)));
