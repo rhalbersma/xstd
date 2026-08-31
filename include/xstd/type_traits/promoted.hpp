@@ -19,8 +19,7 @@ struct integral_promoted : std::type_identity<decltype(+std::declval<T const&>()
 
 // What T's own operators yield: [conv.prom] for a built-in, T itself otherwise.
 template<class T>
-struct promoted : std::conditional_t<std::integral<T>, integral_promoted<T>, std::type_identity<T>>
-{};
+using promoted = std::conditional_t<std::integral<T>, integral_promoted<T>, std::type_identity<T>>;
 
 template<class T>
 using promoted_t = promoted<T>::type;
