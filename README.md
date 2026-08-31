@@ -142,9 +142,10 @@ integer functions return the argument type rather than a promoted one. Following
 char` and `unsigned char` remain integers, preserving exact-width 8-bit aliases.
 xstd extends the paper's built-in boundary with paired `integer_class` types and
 requires both signed and unsigned transformations. `integer_class` itself admits
-the built-in integers too, so its requirements can be asserted of the types they
-were modelled on; `bool` is the one that fails, C++17 having removed its `++`. Character conversion delegates
-the standard integral domain directly to `std::to_chars`.
+the built-in integers too, so `integer` is defined over it alone rather than
+disjoined with `std::integral`; `bool` is the one built-in that fails it, C++17
+having removed its `++`, so it needs no exclusion of its own. Character
+conversion delegates the standard integral domain directly to `std::to_chars`.
 
 `div_result` is the common quotient/remainder result for truncating `div`,
 Euclidean `div_euclid`, and floored `div_floor`. Their vocabulary and relevant

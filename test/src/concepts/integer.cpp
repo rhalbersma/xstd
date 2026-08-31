@@ -33,6 +33,7 @@ BOOST_AUTO_TEST_CASE(RejectsNonIntegers)
         static_assert(cv_rejected_integer<char8_t>);
         static_assert(cv_rejected_integer<char16_t>);
         static_assert(cv_rejected_integer<char32_t>);
+        // Excluded by integer_class alone, C++17 having removed bool's ++ and --.
         static_assert(cv_rejected_integer<bool>);
         static_assert(not xstd::integer<double>);
         static_assert(not xstd::integer<void>);
