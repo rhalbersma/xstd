@@ -61,7 +61,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(RepresentableRange, T, xstd::test::exact_width_int
 
         // The unsigned half spends on magnitude the bit the signed half spends on sign.
         static_assert(xstd::numeric_limits<U>::digits == xstd::numeric_limits<S>::digits + 1);
-        static_assert(static_cast<U>(xstd::numeric_limits<S>::max()) * 2 + 1 == xstd::numeric_limits<U>::max());
+        static_assert((static_cast<U>(xstd::numeric_limits<S>::max()) * 2) + 1 == xstd::numeric_limits<U>::max());
         BOOST_CHECK(true);
 }
 
