@@ -51,6 +51,26 @@ integral type, and it deliberately checks only same-type arithmetic rather than
 mixed-mode operations or common types. Its range metadata comes from the open
 `xstd::numeric_limits`, whose primary template delegates to the standard trait.
 
+It does not exclude the built-in integers. The subclause's own note says an
+integer-class type need not be a class type, so excluding them was xstd's
+addition rather than the standard's, and it made the requirements unaskable of
+the types they were modelled on instead of merely false for them. The closure
+requirements in /7.3 and /7.6 are therefore stated against `promoted_t` rather
+than `T`: identity for a class type, and for a built-in whatever [conv.prom]
+yields, which is what the same requirement means once promotion is in scope.
+Asked that way every standard integer satisfies the concept except `bool`, whose
+`++` and `--` C++17 removed. `promoted_t` asks the language — `decltype(+a)` —
+rather than modelling the rules, and only where the language decides: a
+non-integral type is its own, so a user-defined `operator+` cannot define its
+own reference type into compliance.
+
+That widening moves one boundary rather than removing it. `is_signed`,
+`is_unsigned`, `make_signed` and `make_unsigned` each pair a standard-library
+specialization with an `integer_class` one, and the two were disjoint only
+because the concept excluded built-ins. Each now says `not std::integral` where
+it means it — the "where std stops" line belongs to the trait that draws it, not
+to the concept.
+
 When Clang exposes `_BitInt`, `<xstd/cstdint.hpp>` names the native types as
 `bit_int<N>` and `bit_uint<N>`. They are aliases, not wrappers: their ABI,
 conversions, promotions, and operators remain the compiler's. xstd specializes
@@ -346,6 +366,19 @@ stream inserter either — a built-in has no associated namespace for ADL, and a
 standard-library type's is one no program may add to. Boost.Test, the only
 consumer that needed it, asks through `print_log_value`, which the tests
 specialize directly.
+
+### Alignment
+
+`align_up` and `align_down` round an unsigned value to a power-of-two alignment,
+spelled as Boost.Align, LLVM's `alignTo`/`alignDown` and the kernel's `ALIGN`
+macros all spell it: value first, alignment second. The power-of-two
+precondition is what buys the mask form over a division, which matters most for
+an `integer_class` type, where `%` is a call. They are templates over
+`unsigned_integer` rather than functions of `std::size_t`, so a narrow or
+128-bit value keeps its own type instead of promoting; overflow of `align_up` is
+a precondition, asserted rather than saturated. `std::align` is the closest
+standard facility and does something else: it fits a block inside a buffer,
+adjusting a pointer, not a size.
 
 ## Integer division
 

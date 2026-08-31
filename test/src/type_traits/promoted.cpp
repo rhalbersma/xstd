@@ -1,0 +1,39 @@
+//          Copyright Rein Halbersma 2014-2026.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
+#include <xstd/type_traits/empty_type.hpp> // empty_type
+#include <xstd/type_traits/promoted.hpp>   // promoted_t
+#include <boost/test/unit_test.hpp>        // Boost.Test
+#include <concepts>                        // same_as
+
+BOOST_AUTO_TEST_SUITE(TypeTraits)
+
+BOOST_AUTO_TEST_CASE(Promoted)
+{
+        // Narrower than int promotes; int and wider are already their own.
+        static_assert(std::same_as<xstd::promoted_t<char>, int>);
+        static_assert(std::same_as<xstd::promoted_t<signed char>, int>);
+        static_assert(std::same_as<xstd::promoted_t<unsigned char>, int>);
+        static_assert(std::same_as<xstd::promoted_t<short>, int>);
+        static_assert(std::same_as<xstd::promoted_t<int>, int>);
+        static_assert(std::same_as<xstd::promoted_t<unsigned int>, unsigned int>);
+        static_assert(std::same_as<xstd::promoted_t<long>, long>);
+        static_assert(std::same_as<xstd::promoted_t<unsigned long>, unsigned long>);
+        static_assert(std::same_as<xstd::promoted_t<long long>, long long>);
+        static_assert(std::same_as<xstd::promoted_t<unsigned long long>, unsigned long long>);
+
+        // Which of int and unsigned int a narrow unsigned type promotes to is
+        // the platform's call, so assert only that it is one of them.
+        static_assert(std::same_as<xstd::promoted_t<unsigned short>, int> or
+                      std::same_as<xstd::promoted_t<unsigned short>, unsigned int>);
+        static_assert(std::same_as<xstd::promoted_t<char32_t>, int> or
+                      std::same_as<xstd::promoted_t<char32_t>, unsigned int>);
+
+        // A non-integral type is its own, and is never asked for a unary operator+.
+        static_assert(std::same_as<xstd::promoted_t<xstd::empty_type<>>, xstd::empty_type<>>);
+        BOOST_CHECK(true);
+}
+
+BOOST_AUTO_TEST_SUITE_END()

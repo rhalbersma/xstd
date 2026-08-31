@@ -59,8 +59,8 @@ the same `xstd::xstd` target.
 | `<xstd/ext/boost.hpp>` | `make_unsigned<boost::int128::int128>` <br> `make_signed<boost::int128::uint128>` | Pairs Boost.Int128's two integer-class types, so each models `integer` | none <br> none |
 | `<xstd/format.hpp>` | `formatter<div_result>` | `std::format` support for every element type `div_result` accepts | [p3391](https://wg21.link/P3391R3) (reviewed constexpr-format wording) |
 | `<xstd/limits.hpp>` | `numeric_limits` | Open `std::numeric_limits`, specialized for xstd extension types | [numeric.limits] |
-| `<xstd/memory.hpp>` | `aligned_size` | Round a size up to a power-of-two alignment | none |
-| `<xstd/type_traits.hpp>` | `XSTD_NO_UNIQUE_ADDRESS` <br> `is_character` <br> `empty_type` <br> `is_signed` <br> `is_unsigned` <br> `is_specialization_of` <br> `make_signed` <br> `make_unsigned` <br> `conditional_data_member_t` | Portable spelling of `no_unique_address` <br> Identifies the five non-integer character types <br> A tagged empty type <br> `std::is_signed`, opened to integer-class types <br> `std::is_unsigned`, opened to integer-class types <br> Is a type a class template specialization? <br> Open, user-specializable `std::make_signed` <br> Open, user-specializable `std::make_unsigned` <br> A conditionally present member | none <br> [P3701R0](https://wg21.link/P3701R0) <br> none <br> none <br> none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (relationship documented) <br> none <br> none <br> none |
+| `<xstd/memory.hpp>` | `align_up` <br> `align_down` | Round a value up to a power-of-two alignment, any xstd unsigned integer <br> Round a value down to a power-of-two alignment | [Boost.Align](https://www.boost.org/doc/libs/release/doc/html/align.html) (`align_up`), [LLVM `alignTo`](https://llvm.org/doxygen/namespacellvm.html) <br> [Boost.Align](https://www.boost.org/doc/libs/release/doc/html/align.html) (`align_down`), [LLVM `alignDown`](https://llvm.org/doxygen/namespacellvm.html) |
+| `<xstd/type_traits.hpp>` | `XSTD_NO_UNIQUE_ADDRESS` <br> `is_character` <br> `empty_type` <br> `is_signed` <br> `is_unsigned` <br> `is_specialization_of` <br> `make_signed` <br> `make_unsigned` <br> `conditional_data_member_t` <br> `promoted_t` | Portable spelling of `no_unique_address` <br> Identifies the five non-integer character types <br> A tagged empty type <br> `std::is_signed`, opened to integer-class types <br> `std::is_unsigned`, opened to integer-class types <br> Is a type a class template specialization? <br> Open, user-specializable `std::make_signed` <br> Open, user-specializable `std::make_unsigned` <br> A conditionally present member <br> What a type's own operators yield: [conv.prom] for a built-in, the type itself otherwise | none <br> [P3701R0](https://wg21.link/P3701R0) <br> none <br> none <br> none <br> [p2098r1](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2020/p2098r1.pdf) (relationship documented) <br> none <br> none <br> none <br> [conv.prom] |
 | `<xstd/utility.hpp>` | `to_underlying` | `std::to_underlying`, plus an `std::integral_constant` overload | [p1682r1](https://wg21.link/p1682r1) (`std::to_underlying`) |
 
 The native bit-precise aliases are available when the compiler defines
@@ -96,7 +96,8 @@ CheckOptions:
 #include <xstd/memory.hpp>
 
 static_assert(xstd::unsigned_abs(INT_MIN) == static_cast<unsigned>(INT_MAX) + 1u);
-static_assert(xstd::aligned_size(64, 100) == 128);
+static_assert(xstd::align_up(100uz, 64) == 128);
+static_assert(xstd::align_down(100uz, 64) == 64);
 
 constexpr auto result = xstd::div_euclid(-8, 3);
 static_assert(result.quotient == -3);
@@ -140,7 +141,9 @@ integer functions return the argument type rather than a promoted one. Following
 `char`, `wchar_t`, `char8_t`, `char16_t`, and `char32_t` are excluded. `signed
 char` and `unsigned char` remain integers, preserving exact-width 8-bit aliases.
 xstd extends the paper's built-in boundary with paired `integer_class` types and
-requires both signed and unsigned transformations. Character conversion delegates
+requires both signed and unsigned transformations. `integer_class` itself admits
+the built-in integers too, so its requirements can be asserted of the types they
+were modelled on; `bool` is the one that fails, C++17 having removed its `++`. Character conversion delegates
 the standard integral domain directly to `std::to_chars`.
 
 `div_result` is the common quotient/remainder result for truncating `div`,

@@ -26,5 +26,6 @@
 
 // Miscellaneous transformations
 #include <xstd/type_traits/conditional_data_member.hpp> // IWYU pragma: export; conditional_data_member_t
+#include <xstd/type_traits/promoted.hpp>                // IWYU pragma: export; promoted, promoted_t
 
 #endif // XSTD_TYPE_TRAITS_HPP

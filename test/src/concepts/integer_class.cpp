@@ -6,16 +6,40 @@
 #include <xstd/concepts/integer_class.hpp> // integer_class
 #include <xstd/test/exact_width_types.hpp> // exact_width_integer_types
 #include <boost/test/unit_test.hpp>        // Boost.Test
-#include <concepts>                        // integral
 
 BOOST_AUTO_TEST_SUITE(Concepts)
 
 BOOST_AUTO_TEST_CASE_TEMPLATE(IntegerClass, T, xstd::test::exact_width_integer_types)
 {
-        static_assert(xstd::integer_class<T> == (not std::integral<T>));
-        static_assert(xstd::integer_class<T const> == (not std::integral<T>));
-        static_assert(xstd::integer_class<T volatile> == (not std::integral<T>));
-        static_assert(xstd::integer_class<T const volatile> == (not std::integral<T>));
+        static_assert(xstd::integer_class<T>);
+        static_assert(xstd::integer_class<T const>);
+        static_assert(xstd::integer_class<T volatile>);
+        static_assert(xstd::integer_class<T const volatile>);
+        BOOST_CHECK(true);
+}
+
+// The requirements hold of the types they were modelled on, which the old
+// (not std::integral) clause made unaskable rather than false.
+BOOST_AUTO_TEST_CASE(StandardIntegral)
+{
+        static_assert(xstd::integer_class<char>);
+        static_assert(xstd::integer_class<signed char>);
+        static_assert(xstd::integer_class<unsigned char>);
+        static_assert(xstd::integer_class<char8_t>);
+        static_assert(xstd::integer_class<char16_t>);
+        static_assert(xstd::integer_class<char32_t>);
+        static_assert(xstd::integer_class<wchar_t>);
+        static_assert(xstd::integer_class<short>);
+        static_assert(xstd::integer_class<unsigned short>);
+        static_assert(xstd::integer_class<int>);
+        static_assert(xstd::integer_class<unsigned int>);
+        static_assert(xstd::integer_class<long>);
+        static_assert(xstd::integer_class<unsigned long>);
+        static_assert(xstd::integer_class<long long>);
+        static_assert(xstd::integer_class<unsigned long long>);
+
+        // C++17 removed bool's ++ and --, which /7.1 and /7.2 ask for.
+        static_assert(not xstd::integer_class<bool>);
         BOOST_CHECK(true);
 }
 

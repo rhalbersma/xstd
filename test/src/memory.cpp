@@ -3,26 +3,92 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/memory.hpp>               // aligned_size
-#include <xstd/test/constexpr_check.hpp> // XSTD_CONSTEXPR_CHECK_EQUAL
+#include <xstd/memory.hpp>               // align_down, align_up
+#include <xstd/test/constexpr_check.hpp> // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
+#include <boost/align/align_down.hpp>    // align_down
+#include <boost/align/align_up.hpp>      // align_up
 #include <boost/test/unit_test.hpp>      // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
+#include <concepts>                      // same_as
 #include <cstddef>                       // size_t
+#include <cstdint>                       // uint8_t, uint16_t, uint32_t, uint64_t
 #include <limits>                        // numeric_limits
 
 BOOST_AUTO_TEST_SUITE(Memory)
 
-BOOST_AUTO_TEST_CASE(AlignedSize)
+BOOST_AUTO_TEST_CASE(AlignUp)
 {
         // clang-format off
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size(8,  0),  0);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size(8,  1),  8);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size(8,  8),  8);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size(8,  9), 16);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size(8, 64), 64);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size(8, 65), 72);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size(8, std::numeric_limits<std::size_t>::max() - 7), std::numeric_limits<std::size_t>::max() - 7);
-        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::aligned_size(8, std::numeric_limits<std::size_t>::max() - 8), std::numeric_limits<std::size_t>::max() - 7);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up( 0uz, 8),  0uz);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up( 1uz, 8),  8uz);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up( 8uz, 8),  8uz);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up( 9uz, 8), 16uz);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up(64uz, 8), 64uz);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up(65uz, 8), 72uz);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up(std::numeric_limits<std::size_t>::max() - 7, 8), std::numeric_limits<std::size_t>::max() - 7);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up(std::numeric_limits<std::size_t>::max() - 8, 8), std::numeric_limits<std::size_t>::max() - 7);
         // clang-format on
+}
+
+BOOST_AUTO_TEST_CASE(AlignDown)
+{
+        // clang-format off
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_down( 0uz, 8),  0uz);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_down( 1uz, 8),  0uz);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_down( 8uz, 8),  8uz);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_down( 9uz, 8),  8uz);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_down(64uz, 8), 64uz);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_down(65uz, 8), 64uz);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_down(std::numeric_limits<std::size_t>::max(), 8), std::numeric_limits<std::size_t>::max() - 7);
+        // clang-format on
+}
+
+// The narrow types stay themselves, where the operands alone would promote.
+BOOST_AUTO_TEST_CASE(ReturnType)
+{
+        static_assert(std::same_as<decltype(xstd::align_up(std::uint8_t{}, 4)), std::uint8_t>);
+        static_assert(std::same_as<decltype(xstd::align_down(std::uint8_t{}, 4)), std::uint8_t>);
+        static_assert(std::same_as<decltype(xstd::align_up(std::uint16_t{}, 4)), std::uint16_t>);
+        static_assert(std::same_as<decltype(xstd::align_down(std::uint16_t{}, 4)), std::uint16_t>);
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_up(std::uint8_t{5}, 4), std::uint8_t{8});
+        XSTD_CONSTEXPR_CHECK_EQUAL(xstd::align_down(std::uint8_t{5}, 4), std::uint8_t{4});
+}
+
+BOOST_AUTO_TEST_CASE(BoostAlign)
+{
+        // clang-format off
+        XSTD_CONSTEXPR_CHECK(xstd::align_up  ( 0uz, 8) == boost::alignment::align_up  ( 0uz, 8));
+        XSTD_CONSTEXPR_CHECK(xstd::align_up  ( 1uz, 8) == boost::alignment::align_up  ( 1uz, 8));
+        XSTD_CONSTEXPR_CHECK(xstd::align_up  ( 9uz, 8) == boost::alignment::align_up  ( 9uz, 8));
+        XSTD_CONSTEXPR_CHECK(xstd::align_up  (65uz, 8) == boost::alignment::align_up  (65uz, 8));
+        XSTD_CONSTEXPR_CHECK(xstd::align_down( 0uz, 8) == boost::alignment::align_down( 0uz, 8));
+        XSTD_CONSTEXPR_CHECK(xstd::align_down( 1uz, 8) == boost::alignment::align_down( 1uz, 8));
+        XSTD_CONSTEXPR_CHECK(xstd::align_down( 9uz, 8) == boost::alignment::align_down( 9uz, 8));
+        XSTD_CONSTEXPR_CHECK(xstd::align_down(65uz, 8) == boost::alignment::align_down(65uz, 8));
+        // clang-format on
+}
+
+// Every value and power-of-two alignment below the width where a result still fits.
+template<class I>
+auto agrees_with_boost_align() -> void
+{
+        for (auto alignment = 1uz; alignment <= 16uz; alignment *= 2uz) {
+                for (auto value = 0uz; value < 48uz; ++value) {
+                        auto const x = static_cast<I>(value);
+                        BOOST_CHECK_EQUAL(static_cast<std::size_t>(xstd::align_up(x, alignment)),
+                                          static_cast<std::size_t>(boost::alignment::align_up(x, alignment)));
+                        BOOST_CHECK_EQUAL(static_cast<std::size_t>(xstd::align_down(x, alignment)),
+                                          static_cast<std::size_t>(boost::alignment::align_down(x, alignment)));
+                }
+        }
+}
+
+BOOST_AUTO_TEST_CASE(BoostAlignExhaustive)
+{
+        agrees_with_boost_align<std::uint8_t>();
+        agrees_with_boost_align<std::uint16_t>();
+        agrees_with_boost_align<std::uint32_t>();
+        agrees_with_boost_align<std::uint64_t>();
+        agrees_with_boost_align<std::size_t>();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

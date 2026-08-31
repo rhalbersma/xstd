@@ -29,7 +29,7 @@ struct make_unsigned<T> : std::make_unsigned<T>
 
 // Where std stops: its own counterpart, the other half of the pair being the user's to say.
 template<integer_class I>
-        requires is_unsigned_v<I>
+        requires (not std::integral<I>) and is_unsigned_v<I>
 struct make_unsigned<I> : std::type_identity<I>
 {};
 

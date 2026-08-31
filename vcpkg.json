@@ -11,6 +11,7 @@
     "test": {
       "description": "Build the Boost.Test-based unit tests",
       "dependencies": [
+        "boost-align",
         "boost-test"
       ]
     }

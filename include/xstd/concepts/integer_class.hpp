@@ -7,8 +7,9 @@
 #define XSTD_CONCEPTS_INTEGER_CLASS_HPP
 
 #include <xstd/limits/numeric_limits.hpp> // numeric_limits
+#include <xstd/type_traits/promoted.hpp>  // promoted_t
 #include <compare>                        // strong_ordering
-#include <concepts>                       // constructible_from, convertible_to, integral, regular, same_as, three_way_comparable
+#include <concepts>                       // constructible_from, convertible_to, regular, same_as, three_way_comparable
 #include <cstddef>                        // size_t
 #include <type_traits>                    // remove_cv_t
 
@@ -17,9 +18,8 @@ namespace xstd {
 
 template<class T_cv, class T = std::remove_cv_t<T_cv>>
 concept integer_class =
-        // /2: structurally recognize a non-integral type rather than an implementation-defined set.
+        // /2: structurally recognize the set; its note disclaims class-ness, so built-ins are eligible.
         std::same_as<T, std::remove_cv_t<T_cv>> and
-        (not std::integral<T>) and
 
         // /3: xstd deliberately omits the requirement that the width exceed every integral type.
         numeric_limits<T>::is_specialized and
@@ -48,12 +48,12 @@ concept integer_class =
                 { --a } -> std::same_as<T&>;
         } and
 
-        // /7.3: unary operators.
+        // /7.3: unary operators, against promoted_t so a built-in subject to [conv.prom] still qualifies.
         requires (T const a) {
-                { +a } -> std::same_as<T>;
-                { -a } -> std::same_as<T>;
+                { +a } -> std::same_as<promoted_t<T>>;
+                { -a } -> std::same_as<promoted_t<T>>;
                 { not a } -> std::same_as<bool>;
-                { ~a } -> std::same_as<T>;
+                { ~a } -> std::same_as<promoted_t<T>>;
         } and
 
         // /7.4: xstd does not require mixed integral/integer-class compound assignment.
@@ -76,22 +76,22 @@ concept integer_class =
                 { a |= b } -> std::same_as<T&>;
         } and
 
-        // /7.6: same-type binary operators, grouped by precedence and operand arity.
+        // /7.6: same-type binary operators, against promoted_t for the reason /7.3 is.
         requires (T const a, T const b) {
-                { a * b } -> std::same_as<T>;
-                { a / b } -> std::same_as<T>;
-                { a % b } -> std::same_as<T>;
-                { a + b } -> std::same_as<T>;
-                { a - b } -> std::same_as<T>;
+                { a* b } -> std::same_as<promoted_t<T>>;
+                { a / b } -> std::same_as<promoted_t<T>>;
+                { a % b } -> std::same_as<promoted_t<T>>;
+                { a + b } -> std::same_as<promoted_t<T>>;
+                { a - b } -> std::same_as<promoted_t<T>>;
         } and
         requires (T const a, std::size_t const n) {
-                { a << n } -> std::same_as<T>;
-                { a >> n } -> std::same_as<T>;
+                { a << n } -> std::same_as<promoted_t<T>>;
+                { a >> n } -> std::same_as<promoted_t<T>>;
         } and
         requires (T const a, T const b) {
-                { a & b } -> std::same_as<T>;
-                { a ^ b } -> std::same_as<T>;
-                { a | b } -> std::same_as<T>;
+                { a& b } -> std::same_as<promoted_t<T>>;
+                { a ^ b } -> std::same_as<promoted_t<T>>;
+                { a | b } -> std::same_as<promoted_t<T>>;
         } and
 
         // /8: contextually convertible to bool; an explicit conversion is sufficient.
