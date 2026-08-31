@@ -25,7 +25,7 @@ struct promoted : std::conditional_t<std::integral<T>, integral_promoted<T>, std
 {};
 
 template<class T>
-using promoted_t = typename promoted<T>::type;
+using promoted_t = promoted<T>::type;
 
 } // namespace xstd
 
