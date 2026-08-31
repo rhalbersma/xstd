@@ -25,7 +25,7 @@
 #include <xstd/type_traits/make_unsigned.hpp> // IWYU pragma: export; make_unsigned
 
 // Miscellaneous transformations
-#include <xstd/type_traits/conditional_data_member.hpp> // IWYU pragma: export; conditional_data_member, conditional_data_member_t
-#include <xstd/type_traits/promoted.hpp>                // IWYU pragma: export; promoted, promoted_t
+#include <xstd/type_traits/conditional_data_member.hpp> // IWYU pragma: export; conditional_data_member
+#include <xstd/type_traits/promoted.hpp>                // IWYU pragma: export; promoted
 
 #endif // XSTD_TYPE_TRAITS_HPP
