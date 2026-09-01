@@ -7,7 +7,6 @@
 #define XSTD_CORE_HPP
 
 #include <xstd/core/concepts.hpp>    // IWYU pragma: export; specialization_of
-#include <xstd/core/memory.hpp>      // IWYU pragma: export; align_up, align_down
 #include <xstd/core/type_traits.hpp> // IWYU pragma: export; the storage utilities and is_specialization_of
 #include <xstd/core/utility.hpp>     // IWYU pragma: export; to_underlying
 

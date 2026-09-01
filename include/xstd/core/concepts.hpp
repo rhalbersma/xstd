@@ -6,7 +6,6 @@
 #ifndef XSTD_CORE_CONCEPTS_HPP
 #define XSTD_CORE_CONCEPTS_HPP
 
-#include <xstd/core/concepts/alignable.hpp>         // IWYU pragma: export; alignable, nothrow_alignable
 #include <xstd/core/concepts/specialization_of.hpp> // IWYU pragma: export; specialization_of
 
 #endif // XSTD_CORE_CONCEPTS_HPP
