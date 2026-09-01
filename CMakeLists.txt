@@ -73,6 +73,7 @@ target_sources(
         include/xstd/type_traits/no_unique_address.hpp
         include/xstd/type_traits/promoted.hpp
         include/xstd/utility.hpp
+        include/xstd/utility/to_underlying.hpp
 )
 
 # Tests and their Boost.Test dependency only exist when xstd is being
