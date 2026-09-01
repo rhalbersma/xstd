@@ -4,6 +4,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/ints/concepts/alignable.hpp>        // alignable, nothrow_alignable
+#include <xstd/ints/cstdint/int128.hpp>            // int128, uint128
 #include <xstd/ints/concepts/signed_integer.hpp>   // signed_integer
 #include <xstd/ints/concepts/unsigned_integer.hpp> // unsigned_integer
 #include <boost/test/unit_test.hpp>                // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
@@ -12,10 +13,6 @@
 #include <cstddef>                                 // size_t
 #include <cstdint>                                 // exact-width integer types, uintptr_t
 #include <limits>                                  // numeric_limits
-
-#ifdef __SIZEOF_INT128__
-#define XSTD_TEST_HAS_INT128
-#endif
 
 #if __has_include(<absl/numeric/int128.h>)
 #define XSTD_TEST_HAS_ABSL_INT128
@@ -90,9 +87,7 @@ BOOST_AUTO_TEST_CASE(AlignableAdmitsTheUnsignedIntegers)
         static_assert(xstd::alignable<std::uintptr_t>);
         static_assert(xstd::alignable<std::uint8_t>);
         static_assert(xstd::alignable<std::uint64_t>);
-#ifdef XSTD_TEST_HAS_INT128
-        static_assert(xstd::alignable<__uint128_t>);
-#endif
+        static_assert(xstd::alignable<xstd::uint128>);
 #ifdef __BITINT_MAXWIDTH__
         static_assert(xstd::alignable<unsigned _BitInt(8)>);
         static_assert(xstd::alignable<unsigned _BitInt(24)>);
@@ -109,9 +104,7 @@ BOOST_AUTO_TEST_CASE(AndRejectsTheRestOnTheirMerits)
         static_assert(not xstd::alignable<short>);
         static_assert(not xstd::alignable<int>);
         static_assert(not xstd::alignable<long long>);
-#ifdef XSTD_TEST_HAS_INT128
-        static_assert(not xstd::alignable<__int128_t>);
-#endif
+        static_assert(not xstd::alignable<xstd::int128>);
 #ifdef __BITINT_MAXWIDTH__
         static_assert(not xstd::alignable<signed _BitInt(24)>);
 #endif
@@ -141,10 +134,8 @@ BOOST_AUTO_TEST_CASE(IsIntegerLight)
         static_assert(refines_alignable<signed char>);
         static_assert(refines_alignable<int>);
         static_assert(refines_alignable<bool>);
-#ifdef XSTD_TEST_HAS_INT128
-        static_assert(refines_alignable<__uint128_t>);
-        static_assert(refines_alignable<__int128_t>);
-#endif
+        static_assert(refines_alignable<xstd::uint128>);
+        static_assert(refines_alignable<xstd::int128>);
 #ifdef __BITINT_MAXWIDTH__
         static_assert(refines_alignable<unsigned _BitInt(24)>);
         static_assert(refines_alignable<signed _BitInt(24)>);
@@ -167,9 +158,6 @@ BOOST_AUTO_TEST_CASE(NothrowAlignableRefinesIt)
 {
         static_assert(xstd::nothrow_alignable<unsigned char>);
         static_assert(xstd::nothrow_alignable<std::size_t>);
-#ifdef XSTD_TEST_HAS_INT128
-        static_assert(xstd::nothrow_alignable<__uint128_t>);
-#endif
 #ifdef XSTD_TEST_HAS_ABSL_INT128
         static_assert(xstd::alignable<absl::uint128>);
         static_assert(not xstd::nothrow_alignable<absl::uint128>);
