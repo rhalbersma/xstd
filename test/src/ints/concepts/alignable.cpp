@@ -72,11 +72,71 @@ constexpr auto refines_alignable =
 
 } // namespace
 
+// The devious shape: ==, <, and the three relations derived from them, and no <=>
+// anywhere. totally_ordered admits it; the /9 clause integer_class states its ordering
+// with does not, so alignable no longer does either.
+struct no_spaceship
+{
+        std::size_t v = 0;
+
+        constexpr no_spaceship() = default;
+        // NOLINTNEXTLINE(misc-explicit-constructor, google-explicit-constructor)
+        constexpr no_spaceship(std::size_t n) noexcept
+            : v(n)
+        {}
+
+        [[nodiscard]] explicit constexpr operator std::size_t() const noexcept
+        {
+                return v;
+        }
+
+        [[nodiscard]] constexpr auto operator==(no_spaceship const&) const noexcept -> bool = default;
+
+        [[nodiscard]] constexpr auto operator<(no_spaceship const& other) const noexcept -> bool
+        {
+                return v < other.v;
+        }
+
+        [[nodiscard]] constexpr auto operator>(no_spaceship const& other) const noexcept -> bool
+        {
+                return other.v < v;
+        }
+
+        [[nodiscard]] constexpr auto operator<=(no_spaceship const& other) const noexcept -> bool
+        {
+                return not(other.v < v);
+        }
+
+        [[nodiscard]] constexpr auto operator>=(no_spaceship const& other) const noexcept -> bool
+        {
+                return not(v < other.v);
+        }
+
+        [[nodiscard]] constexpr auto operator+(no_spaceship other) const noexcept -> no_spaceship
+        {
+                return {v + other.v};
+        }
+
+        [[nodiscard]] constexpr auto operator-(no_spaceship other) const noexcept -> no_spaceship
+        {
+                return {v - other.v};
+        }
+
+        [[nodiscard]] constexpr auto operator&(no_spaceship other) const noexcept -> no_spaceship
+        {
+                return {v & other.v};
+        }
+};
+
 namespace xstd {
 
 // What alignable asks of the type, borrowed whole from the integer it is a thin wrapper over.
 template<>
 struct numeric_limits<light> : std::numeric_limits<std::size_t>
+{};
+
+template<>
+struct numeric_limits<no_spaceship> : std::numeric_limits<std::size_t>
 {};
 
 } // namespace xstd
@@ -129,6 +189,22 @@ BOOST_AUTO_TEST_CASE(AndRejectsTheRestOnTheirMerits)
         {};
         static_assert(not xstd::alignable<udt>);
         static_assert(not xstd::alignable<void>);
+        BOOST_CHECK(true);
+}
+
+// /9 is stated with three_way_comparable, so alignable asks for it too rather than for
+// the weaker totally_ordered: a type can carry ==, < and the relations derived from
+// them without ever declaring <=>, and that shape is admitted by the one and not the
+// other. Excluding it is what keeps this concept a prefix of integer_class.
+BOOST_AUTO_TEST_CASE(TheOrderingIsTheOneIntegerClassAsksFor)
+{
+        static_assert(std::totally_ordered<no_spaceship>);
+        static_assert(not std::three_way_comparable<no_spaceship, std::strong_ordering>);
+        static_assert(not xstd::alignable<no_spaceship>);
+
+        // light has a defaulted <=>, which is why it stays in.
+        static_assert(std::three_way_comparable<light, std::strong_ordering>);
+        static_assert(xstd::alignable<light>);
         BOOST_CHECK(true);
 }
 
@@ -198,11 +274,12 @@ BOOST_AUTO_TEST_CASE(TheNothrowRefinementCoversWhatTheCallSpends)
         BOOST_CHECK(true);
 }
 
-// All six relations totally_ordered offers, not the two the functions happen to reach
-// for: the concept is the exception specification a caller reads, so any relation it
-// leaves unasked is one that could still throw under a noexcept promise.
+// Every comparison /9 gives, not the two the functions happen to reach for: the concept
+// is the exception specification a caller reads, so any relation it leaves unasked is
+// one that could still throw under a noexcept promise.
 BOOST_AUTO_TEST_CASE(TheNothrowRefinementCoversEveryRelation)
 {
+        static_assert(noexcept(std::declval<std::size_t const&>() <=> std::declval<std::size_t const&>()));
         static_assert(noexcept(std::declval<std::size_t const&>() == std::declval<std::size_t const&>()));
         static_assert(noexcept(std::declval<std::size_t const&>() != std::declval<std::size_t const&>()));
         static_assert(noexcept(std::declval<std::size_t const&>() < std::declval<std::size_t const&>()));

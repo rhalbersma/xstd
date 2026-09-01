@@ -8,7 +8,8 @@
 
 #include <xstd/ints/cstdint/bit_int.hpp>       // IWYU pragma: keep; the _BitInt numeric_limits specializations
 #include <xstd/ints/limits/numeric_limits.hpp> // numeric_limits
-#include <concepts>                            // constructible_from, convertible_to, same_as, totally_ordered
+#include <compare>                             // strong_ordering
+#include <concepts>                            // constructible_from, convertible_to, same_as, three_way_comparable
 #include <cstddef>                             // size_t
 #include <type_traits>                         // is_nothrow_constructible_v, remove_cv_t
 
@@ -39,8 +40,11 @@ concept alignable =
         std::convertible_to<std::size_t, T> and
         std::constructible_from<std::size_t, T> and
 
-        // /9, the comparison align_up's overflow precondition is stated with.
-        std::totally_ordered<T> and
+        // /9's ordering half, in the clause integer_class states it with rather than a
+        // near neighbour of it: this concept is a prefix of that one, so it asks the
+        // same question. Stronger than the totally_ordered it asked before, <=>
+        // subsuming the six relations and pinning the category besides.
+        std::three_way_comparable<T, std::strong_ordering> and
 
         // The arithmetic itself: alignment is addition modulo a power of two.
         requires (T x) {
@@ -70,12 +74,11 @@ concept nothrow_alignable =
                 { static_cast<T>(x & x) } noexcept;
         } and
 
-        // totally_ordered in full, the way nothrow_const_operators asks it of the
-        // comparisons integer_class requires. The concept is the whole exception
-        // specification, so a relation left unasked is one a caller can still reach
-        // and have throw. Not <=>, which alignable does not ask for: totally_ordered
-        // is where its ordering comes from, and three_way_comparable is not.
+        // Every comparison /9 gives, the way nothrow_const_operators asks them. The
+        // concept is the whole exception specification, so a relation left unasked is
+        // one a caller can still reach and have throw.
         requires (T const a, T const b) {
+                { a <=> b } noexcept;
                 { a == b } noexcept;
                 { a != b } noexcept;
                 { a < b } noexcept;
