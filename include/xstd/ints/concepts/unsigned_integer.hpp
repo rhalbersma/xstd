@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_CONCEPTS_UNSIGNED_INTEGER_HPP
-#define XSTD_CONCEPTS_UNSIGNED_INTEGER_HPP
+#ifndef XSTD_INTS_CONCEPTS_UNSIGNED_INTEGER_HPP
+#define XSTD_INTS_CONCEPTS_UNSIGNED_INTEGER_HPP
 
 #include <xstd/ints/concepts/integer.hpp>        // integer
 #include <xstd/ints/type_traits/is_unsigned.hpp> // is_unsigned_v
@@ -17,4 +17,4 @@ concept unsigned_integer = integer<T> and is_unsigned_v<T>;
 
 } // namespace xstd
 
-#endif // XSTD_CONCEPTS_UNSIGNED_INTEGER_HPP
+#endif // XSTD_INTS_CONCEPTS_UNSIGNED_INTEGER_HPP

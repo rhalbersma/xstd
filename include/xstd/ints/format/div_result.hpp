@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_FORMAT_DIV_RESULT_HPP
-#define XSTD_FORMAT_DIV_RESULT_HPP
+#ifndef XSTD_INTS_FORMAT_DIV_RESULT_HPP
+#define XSTD_INTS_FORMAT_DIV_RESULT_HPP
 
 #include <xstd/ints/charconv/to_chars.hpp>  // to_chars, to_chars_max_size
 #include <xstd/ints/concepts/integer.hpp>   // integer
@@ -75,4 +75,4 @@ struct std::formatter<xstd::div_result<I>, CharT> : std::formatter<std::tuple<I 
 
 #undef XSTD_CONSTEXPR_FORMAT
 
-#endif // XSTD_FORMAT_DIV_RESULT_HPP
+#endif // XSTD_INTS_FORMAT_DIV_RESULT_HPP

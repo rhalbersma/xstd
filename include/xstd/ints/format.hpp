@@ -3,9 +3,9 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_FORMAT_HPP
-#define XSTD_FORMAT_HPP
+#ifndef XSTD_INTS_FORMAT_HPP
+#define XSTD_INTS_FORMAT_HPP
 
 #include <xstd/ints/format/div_result.hpp> // IWYU pragma: export; formatter<div_result>
 
-#endif // XSTD_FORMAT_HPP
+#endif // XSTD_INTS_FORMAT_HPP

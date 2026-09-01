@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_CONCEPTS_NOTHROW_CONST_OPERATORS_HPP
-#define XSTD_CONCEPTS_NOTHROW_CONST_OPERATORS_HPP
+#ifndef XSTD_INTS_CONCEPTS_NOTHROW_CONST_OPERATORS_HPP
+#define XSTD_INTS_CONCEPTS_NOTHROW_CONST_OPERATORS_HPP
 
 #include <xstd/ints/concepts/integer.hpp> // integer
 #include <concepts>                       // same_as
@@ -60,4 +60,4 @@ concept nothrow_const_operators =
 
 } // namespace xstd
 
-#endif // XSTD_CONCEPTS_NOTHROW_CONST_OPERATORS_HPP
+#endif // XSTD_INTS_CONCEPTS_NOTHROW_CONST_OPERATORS_HPP

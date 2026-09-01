@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_TYPE_TRAITS_CONDITIONAL_DATA_MEMBER_HPP
-#define XSTD_TYPE_TRAITS_CONDITIONAL_DATA_MEMBER_HPP
+#ifndef XSTD_CORE_TYPE_TRAITS_CONDITIONAL_DATA_MEMBER_HPP
+#define XSTD_CORE_TYPE_TRAITS_CONDITIONAL_DATA_MEMBER_HPP
 
 #include <xstd/core/type_traits/empty_type.hpp>        // IWYU pragma: export; empty_type
 #include <xstd/core/type_traits/no_unique_address.hpp> // IWYU pragma: export; XSTD_NO_UNIQUE_ADDRESS
@@ -21,4 +21,4 @@ using conditional_data_member_t = conditional_data_member<Condition, Type, Tag>:
 
 } // namespace xstd
 
-#endif // XSTD_TYPE_TRAITS_CONDITIONAL_DATA_MEMBER_HPP
+#endif // XSTD_CORE_TYPE_TRAITS_CONDITIONAL_DATA_MEMBER_HPP

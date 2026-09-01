@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_CSTDINT_BIT_INT_HPP
-#define XSTD_CSTDINT_BIT_INT_HPP
+#ifndef XSTD_INTS_CSTDINT_BIT_INT_HPP
+#define XSTD_INTS_CSTDINT_BIT_INT_HPP
 
 #include <xstd/ints/limits/numeric_limits.hpp>     // numeric_limits
 #include <xstd/ints/type_traits/make_signed.hpp>   // make_signed
@@ -113,4 +113,4 @@ struct make_signed<unsigned _BitInt(N)> : std::type_identity<signed _BitInt(N)>
 
 #endif // __BITINT_MAXWIDTH__
 
-#endif // XSTD_CSTDINT_BIT_INT_HPP
+#endif // XSTD_INTS_CSTDINT_BIT_INT_HPP

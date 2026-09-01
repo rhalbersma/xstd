@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_CONCEPTS_INTEGER_HPP
-#define XSTD_CONCEPTS_INTEGER_HPP
+#ifndef XSTD_INTS_CONCEPTS_INTEGER_HPP
+#define XSTD_INTS_CONCEPTS_INTEGER_HPP
 
 #include <xstd/ints/concepts/integer_class.hpp>    // integer_class
 #include <xstd/ints/type_traits/make_signed.hpp>   // make_signed_t
@@ -35,4 +35,4 @@ concept integer =
 
 } // namespace xstd
 
-#endif // XSTD_CONCEPTS_INTEGER_HPP
+#endif // XSTD_INTS_CONCEPTS_INTEGER_HPP

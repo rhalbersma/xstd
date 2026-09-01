@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_LIMITS_NUMERIC_LIMITS_HPP
-#define XSTD_LIMITS_NUMERIC_LIMITS_HPP
+#ifndef XSTD_INTS_LIMITS_NUMERIC_LIMITS_HPP
+#define XSTD_INTS_LIMITS_NUMERIC_LIMITS_HPP
 
 #include <limits>      // numeric_limits
 #include <type_traits> // is_array_v, is_object_v
@@ -37,4 +37,4 @@ struct numeric_limits<T const volatile> : numeric_limits<T>
 
 } // namespace xstd
 
-#endif // XSTD_LIMITS_NUMERIC_LIMITS_HPP
+#endif // XSTD_INTS_LIMITS_NUMERIC_LIMITS_HPP

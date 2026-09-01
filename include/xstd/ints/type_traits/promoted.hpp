@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_TYPE_TRAITS_PROMOTED_HPP
-#define XSTD_TYPE_TRAITS_PROMOTED_HPP
+#ifndef XSTD_INTS_TYPE_TRAITS_PROMOTED_HPP
+#define XSTD_INTS_TYPE_TRAITS_PROMOTED_HPP
 
 #include <concepts>    // integral
 #include <type_traits> // conditional_t, type_identity
@@ -26,4 +26,4 @@ using promoted_t = promoted<T>::type;
 
 } // namespace xstd
 
-#endif // XSTD_TYPE_TRAITS_PROMOTED_HPP
+#endif // XSTD_INTS_TYPE_TRAITS_PROMOTED_HPP

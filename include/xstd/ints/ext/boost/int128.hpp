@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_EXT_BOOST_INT128_HPP
-#define XSTD_EXT_BOOST_INT128_HPP
+#ifndef XSTD_INTS_EXT_BOOST_INT128_HPP
+#define XSTD_INTS_EXT_BOOST_INT128_HPP
 
 // IWYU pragma: always_keep
 
@@ -29,4 +29,4 @@ struct make_signed<boost::int128::uint128> : std::type_identity<boost::int128::i
 
 } // namespace xstd
 
-#endif // XSTD_EXT_BOOST_INT128_HPP
+#endif // XSTD_INTS_EXT_BOOST_INT128_HPP

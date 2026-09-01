@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_EXT_ABSL_INT128_HPP
-#define XSTD_EXT_ABSL_INT128_HPP
+#ifndef XSTD_INTS_EXT_ABSL_INT128_HPP
+#define XSTD_INTS_EXT_ABSL_INT128_HPP
 
 // IWYU pragma: always_keep
 
@@ -26,4 +26,4 @@ struct make_signed<absl::uint128> : std::type_identity<absl::int128>
 
 } // namespace xstd
 
-#endif // XSTD_EXT_ABSL_INT128_HPP
+#endif // XSTD_INTS_EXT_ABSL_INT128_HPP

@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_CONCEPTS_SPECIALIZATION_OF_HPP
-#define XSTD_CONCEPTS_SPECIALIZATION_OF_HPP
+#ifndef XSTD_CORE_CONCEPTS_SPECIALIZATION_OF_HPP
+#define XSTD_CORE_CONCEPTS_SPECIALIZATION_OF_HPP
 
 #include <xstd/core/type_traits/is_specialization_of.hpp> // is_specialization_of_v
 
@@ -16,4 +16,4 @@ concept specialization_of = is_specialization_of_v<T, Primary>;
 
 } // namespace xstd
 
-#endif // XSTD_CONCEPTS_SPECIALIZATION_OF_HPP
+#endif // XSTD_CORE_CONCEPTS_SPECIALIZATION_OF_HPP

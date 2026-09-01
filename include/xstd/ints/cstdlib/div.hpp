@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_CSTDLIB_DIV_HPP
-#define XSTD_CSTDLIB_DIV_HPP
+#ifndef XSTD_INTS_CSTDLIB_DIV_HPP
+#define XSTD_INTS_CSTDLIB_DIV_HPP
 
 #include <xstd/ints/concepts/integer.hpp>                 // integer
 #include <xstd/ints/concepts/nothrow_const_operators.hpp> // nothrow_const_operators
@@ -38,4 +38,4 @@ template<integer I>
 
 } // namespace xstd
 
-#endif // XSTD_CSTDLIB_DIV_HPP
+#endif // XSTD_INTS_CSTDLIB_DIV_HPP

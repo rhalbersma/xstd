@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_CSTDLIB_HPP
-#define XSTD_CSTDLIB_HPP
+#ifndef XSTD_INTS_CSTDLIB_HPP
+#define XSTD_INTS_CSTDLIB_HPP
 
 // Types
 #include <xstd/ints/cstdlib/div_result.hpp> // IWYU pragma: export; div_result
@@ -17,4 +17,4 @@
 #include <xstd/ints/cstdlib/div_euclid.hpp>   // IWYU pragma: export; div_euclid
 #include <xstd/ints/cstdlib/div_floor.hpp>    // IWYU pragma: export; div_floor
 
-#endif // XSTD_CSTDLIB_HPP
+#endif // XSTD_INTS_CSTDLIB_HPP

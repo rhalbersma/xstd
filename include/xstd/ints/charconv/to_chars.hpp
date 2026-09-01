@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_CHARCONV_TO_CHARS_HPP
-#define XSTD_CHARCONV_TO_CHARS_HPP
+#ifndef XSTD_INTS_CHARCONV_TO_CHARS_HPP
+#define XSTD_INTS_CHARCONV_TO_CHARS_HPP
 
 #include <xstd/ints/concepts/integer.hpp>          // integer
 #include <xstd/ints/cstdint/int128.hpp>            // uint128
@@ -114,4 +114,4 @@ template<integer I>
 
 } // namespace xstd
 
-#endif // XSTD_CHARCONV_TO_CHARS_HPP
+#endif // XSTD_INTS_CHARCONV_TO_CHARS_HPP

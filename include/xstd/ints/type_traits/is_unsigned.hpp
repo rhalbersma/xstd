@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_TYPE_TRAITS_IS_UNSIGNED_HPP
-#define XSTD_TYPE_TRAITS_IS_UNSIGNED_HPP
+#ifndef XSTD_INTS_TYPE_TRAITS_IS_UNSIGNED_HPP
+#define XSTD_INTS_TYPE_TRAITS_IS_UNSIGNED_HPP
 
 #include <xstd/ints/concepts/integer_class.hpp> // integer_class
 #include <concepts>                             // integral
@@ -29,4 +29,4 @@ using is_unsigned = std::bool_constant<is_unsigned_v<T>>;
 
 } // namespace xstd
 
-#endif // XSTD_TYPE_TRAITS_IS_UNSIGNED_HPP
+#endif // XSTD_INTS_TYPE_TRAITS_IS_UNSIGNED_HPP

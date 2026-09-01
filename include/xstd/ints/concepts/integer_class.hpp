@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_CONCEPTS_INTEGER_CLASS_HPP
-#define XSTD_CONCEPTS_INTEGER_CLASS_HPP
+#ifndef XSTD_INTS_CONCEPTS_INTEGER_CLASS_HPP
+#define XSTD_INTS_CONCEPTS_INTEGER_CLASS_HPP
 
 #include <xstd/ints/limits/numeric_limits.hpp> // numeric_limits
 #include <xstd/ints/type_traits/promoted.hpp>  // promoted_t
@@ -113,4 +113,4 @@ concept integer_class =
 
 } // namespace xstd
 
-#endif // XSTD_CONCEPTS_INTEGER_CLASS_HPP
+#endif // XSTD_INTS_CONCEPTS_INTEGER_CLASS_HPP

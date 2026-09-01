@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_CSTDLIB_DIV_RESULT_HPP
-#define XSTD_CSTDLIB_DIV_RESULT_HPP
+#ifndef XSTD_INTS_CSTDLIB_DIV_RESULT_HPP
+#define XSTD_INTS_CSTDLIB_DIV_RESULT_HPP
 
 #include <xstd/ints/concepts/integer.hpp> // integer
 
@@ -25,4 +25,4 @@ div_result(I, I) -> div_result<I>;
 
 } // namespace xstd
 
-#endif // XSTD_CSTDLIB_DIV_RESULT_HPP
+#endif // XSTD_INTS_CSTDLIB_DIV_RESULT_HPP

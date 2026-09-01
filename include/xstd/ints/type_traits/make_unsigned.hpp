@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_TYPE_TRAITS_MAKE_UNSIGNED_HPP
-#define XSTD_TYPE_TRAITS_MAKE_UNSIGNED_HPP
+#ifndef XSTD_INTS_TYPE_TRAITS_MAKE_UNSIGNED_HPP
+#define XSTD_INTS_TYPE_TRAITS_MAKE_UNSIGNED_HPP
 
 #include <xstd/ints/concepts/integer_class.hpp>  // integer_class
 #include <xstd/ints/type_traits/is_unsigned.hpp> // is_unsigned_v
@@ -50,4 +50,4 @@ struct make_unsigned<T const volatile> : std::type_identity<std::add_cv_t<make_u
 
 } // namespace xstd
 
-#endif // XSTD_TYPE_TRAITS_MAKE_UNSIGNED_HPP
+#endif // XSTD_INTS_TYPE_TRAITS_MAKE_UNSIGNED_HPP

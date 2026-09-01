@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_CONCEPTS_SIGNED_INTEGER_HPP
-#define XSTD_CONCEPTS_SIGNED_INTEGER_HPP
+#ifndef XSTD_INTS_CONCEPTS_SIGNED_INTEGER_HPP
+#define XSTD_INTS_CONCEPTS_SIGNED_INTEGER_HPP
 
 #include <xstd/ints/concepts/integer.hpp>      // integer
 #include <xstd/ints/type_traits/is_signed.hpp> // is_signed_v
@@ -17,4 +17,4 @@ concept signed_integer = integer<T> and is_signed_v<T>;
 
 } // namespace xstd
 
-#endif // XSTD_CONCEPTS_SIGNED_INTEGER_HPP
+#endif // XSTD_INTS_CONCEPTS_SIGNED_INTEGER_HPP

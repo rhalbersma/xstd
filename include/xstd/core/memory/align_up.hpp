@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_MEMORY_ALIGN_UP_HPP
-#define XSTD_MEMORY_ALIGN_UP_HPP
+#ifndef XSTD_CORE_MEMORY_ALIGN_UP_HPP
+#define XSTD_CORE_MEMORY_ALIGN_UP_HPP
 
 #include <xstd/ints/concepts/nothrow_const_operators.hpp> // nothrow_const_operators
 #include <xstd/ints/concepts/unsigned_integer.hpp>        // unsigned_integer
@@ -28,4 +28,4 @@ template<unsigned_integer I>
 
 } // namespace xstd
 
-#endif // XSTD_MEMORY_ALIGN_UP_HPP
+#endif // XSTD_CORE_MEMORY_ALIGN_UP_HPP

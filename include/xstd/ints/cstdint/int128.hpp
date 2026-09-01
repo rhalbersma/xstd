@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_CSTDINT_INT128_HPP
-#define XSTD_CSTDINT_INT128_HPP
+#ifndef XSTD_INTS_CSTDINT_INT128_HPP
+#define XSTD_INTS_CSTDINT_INT128_HPP
 
 #include <xstd/ints/type_traits/make_signed.hpp>   // make_signed
 #include <xstd/ints/type_traits/make_unsigned.hpp> // make_unsigned
@@ -59,4 +59,4 @@ struct make_signed<uint128> : std::type_identity<int128>
 
 } // namespace xstd
 
-#endif // XSTD_CSTDINT_INT128_HPP
+#endif // XSTD_INTS_CSTDINT_INT128_HPP
