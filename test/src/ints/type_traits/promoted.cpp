@@ -8,9 +8,11 @@
 #include <boost/test/unit_test.hpp>             // Boost.Test
 #include <concepts>                             // same_as
 
+BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(TypeTraits)
+BOOST_AUTO_TEST_SUITE(Promoted)
 
-BOOST_AUTO_TEST_CASE(Promoted)
+BOOST_AUTO_TEST_CASE(MatchesTheIntegralPromotions)
 {
         // Narrower than int promotes; int and wider are already their own.
         static_assert(std::same_as<xstd::promoted_t<char>, int>);
@@ -36,4 +38,6 @@ BOOST_AUTO_TEST_CASE(Promoted)
         BOOST_CHECK(true);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

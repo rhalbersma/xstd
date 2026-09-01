@@ -9,7 +9,9 @@
 #include <complex>                                  // complex
 #include <tuple>                                    // tuple
 
+BOOST_AUTO_TEST_SUITE(Core)
 BOOST_AUTO_TEST_SUITE(Concepts)
+BOOST_AUTO_TEST_SUITE(SpecializationOf)
 
 // the partial application a type-constraint needs: the primary template alone
 template<xstd::specialization_of<std::complex> T>
@@ -22,7 +24,7 @@ template<xstd::specialization_of<std::complex> T>
 template<class T>
 concept has_as_complex = requires (T t) { as_complex(t); };
 
-BOOST_AUTO_TEST_CASE(SpecializationOf)
+BOOST_AUTO_TEST_CASE(ConstrainsToSpecializationsOfAPrimaryTemplate)
 {
         XSTD_CONSTEXPR_CHECK((xstd::specialization_of<std::complex<int>, std::complex>));
         XSTD_CONSTEXPR_CHECK((xstd::specialization_of<std::tuple<int, char>, std::tuple>));
@@ -40,4 +42,6 @@ BOOST_AUTO_TEST_CASE(SpecializationOf)
         XSTD_CONSTEXPR_CHECK_EQUAL((as_complex(std::complex<double>{1.0, 2.0})), (std::complex<double>{1.0, 2.0}));
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

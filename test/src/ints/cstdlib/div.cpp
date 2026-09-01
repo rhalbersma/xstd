@@ -10,11 +10,13 @@
 #include <xstd/ints/limits.hpp>                     // numeric_limits
 #include <boost/test/unit_test.hpp>                 // Boost.Test
 
+BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(CStdLib)
+BOOST_AUTO_TEST_SUITE(Div)
 
 // http://research.microsoft.com/pubs/151917/divmodnote-letter.pdf
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(TruncatedDiv, T, xstd::test::exact_width_signed_integer_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(TruncatesTowardZero, T, xstd::test::exact_width_signed_integer_types)
 {
         XSTD_CONSTEXPR_CHECK_EQUAL_IF(xstd::test::has_constexpr_division<T>, (xstd::div(T{+8}, T{+3})), (xstd::div_result<T>{+2, +2}));
         XSTD_CONSTEXPR_CHECK_EQUAL_IF(xstd::test::has_constexpr_division<T>, (xstd::div(T{+8}, T{-3})), (xstd::div_result<T>{-2, +2}));
@@ -26,7 +28,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(TruncatedDiv, T, xstd::test::exact_width_signed_in
         XSTD_CONSTEXPR_CHECK_EQUAL_IF(xstd::test::has_constexpr_division<T>, (xstd::div(T{-1}, T{-2})), (xstd::div_result<T>{0, -1}));
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(TruncatedDivUnsigned, T, xstd::test::exact_width_unsigned_integer_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(TruncatesTowardZeroOnUnsigned, T, xstd::test::exact_width_unsigned_integer_types)
 {
         XSTD_CONSTEXPR_CHECK_EQUAL_IF(xstd::test::has_constexpr_division<T>, (xstd::div(T{8}, T{3})), (xstd::div_result<T>{2, 2}));
         XSTD_CONSTEXPR_CHECK_EQUAL_IF(xstd::test::has_constexpr_division<T>, (xstd::div(T{1}, T{2})), (xstd::div_result<T>{0, 1}));
@@ -38,4 +40,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(TruncatedDivUnsigned, T, xstd::test::exact_width_u
         XSTD_CONSTEXPR_CHECK_EQUAL_IF(xstd::test::has_constexpr_division<T>, (xstd::div(limits::max(), limits::max())), (xstd::div_result<T>{1, 0}));
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

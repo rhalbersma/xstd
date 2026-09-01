@@ -18,7 +18,10 @@
 #include <xstd/ints/ext/boost/int128.hpp> // int128, uint128
 #endif
 
-BOOST_AUTO_TEST_SUITE(ExtBoostInt128)
+BOOST_AUTO_TEST_SUITE(Ints)
+BOOST_AUTO_TEST_SUITE(Ext)
+BOOST_AUTO_TEST_SUITE(Boost)
+BOOST_AUTO_TEST_SUITE(Int128)
 
 BOOST_AUTO_TEST_CASE(AssociationsPairTheTwoHalves)
 {
@@ -57,4 +60,7 @@ BOOST_AUTO_TEST_CASE(WhichIsWhatCarriesThePairIntoTheConcepts)
         BOOST_CHECK(true);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

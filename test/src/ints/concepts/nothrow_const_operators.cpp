@@ -11,6 +11,7 @@
 #include <xstd/test/constexpr_check.hpp>                  // XSTD_CONSTEXPR_CHECK
 #include <boost/test/unit_test.hpp>                       // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <complex>                                        // complex
+#include <type_traits>                                    // is_nothrow_..._v
 
 // Reached the way a consumer reaches it: the probe here, the pair inside the adapter.
 #if __has_include(<absl/numeric/int128.h>)
@@ -18,9 +19,11 @@
 #include <xstd/ints/ext/absl/int128.hpp> // int128, uint128
 #endif
 
+BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(Concepts)
+BOOST_AUTO_TEST_SUITE(NothrowConstOperators)
 
-BOOST_AUTO_TEST_CASE(NothrowConstOperators)
+BOOST_AUTO_TEST_CASE(HoldsForTheTypesThatDeclareIt)
 {
         // The built-in widths and the 128-bit type the library names all carry it.
         XSTD_CONSTEXPR_CHECK(xstd::nothrow_const_operators<int>);
@@ -43,8 +46,25 @@ BOOST_AUTO_TEST_CASE(NothrowConstOperators)
 #endif
 }
 
+// The operators were never the whole cost. Every function specified with this
+// concept takes its operands by value and returns by value, so /9's copy, move and
+// destructor are spent on each call even though no line of the source names one.
+BOOST_AUTO_TEST_CASE(IncludesWhatPassingAndReturningCosts)
+{
+        XSTD_CONSTEXPR_CHECK(std::is_nothrow_destructible_v<int>);
+        XSTD_CONSTEXPR_CHECK(std::is_nothrow_move_constructible_v<xstd::int128>);
+        XSTD_CONSTEXPR_CHECK(std::is_nothrow_copy_constructible_v<xstd::uint128>);
+
+        // Which the concept now answers for, over the types this file already names.
+        XSTD_CONSTEXPR_CHECK(not xstd::nothrow_const_operators<int> or std::is_nothrow_copy_constructible_v<int>);
+#ifdef XSTD_TEST_HAS_ABSL_INT128
+        using T = absl::int128;
+        XSTD_CONSTEXPR_CHECK(not xstd::nothrow_const_operators<T> or std::is_nothrow_copy_constructible_v<T>);
+#endif
+}
+
 // Cv-transparent on both branches; volatile is the one that takes the stripping.
-BOOST_AUTO_TEST_CASE(NothrowConstOperatorsIsCvTransparentOnBothBranches)
+BOOST_AUTO_TEST_CASE(IsCvTransparentOnBothBranches)
 {
         XSTD_CONSTEXPR_CHECK(xstd::nothrow_const_operators<int const>);
         XSTD_CONSTEXPR_CHECK(xstd::nothrow_const_operators<int volatile>);
@@ -65,7 +85,7 @@ BOOST_AUTO_TEST_CASE(NothrowConstOperatorsIsCvTransparentOnBothBranches)
 }
 
 // Total: the conjunction short-circuits on integer before any operator is named.
-BOOST_AUTO_TEST_CASE(NothrowConstOperatorsIsTotal)
+BOOST_AUTO_TEST_CASE(IsTotal)
 {
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_const_operators<void>);
         // remove_cv_t, not remove_cvref_t: a reference is not an integer type.
@@ -80,7 +100,7 @@ BOOST_AUTO_TEST_CASE(NothrowConstOperatorsIsTotal)
 }
 
 // The concept is the exception specification, so the two must agree for every type.
-BOOST_AUTO_TEST_CASE(NothrowConstOperatorsIsTheExceptionSpecification)
+BOOST_AUTO_TEST_CASE(IsTheExceptionSpecification)
 {
         XSTD_CONSTEXPR_CHECK(noexcept(xstd::abs(1)) == xstd::nothrow_const_operators<int>);
         XSTD_CONSTEXPR_CHECK(noexcept(xstd::div(1, 1)) == xstd::nothrow_const_operators<int>);
@@ -92,4 +112,6 @@ BOOST_AUTO_TEST_CASE(NothrowConstOperatorsIsTheExceptionSpecification)
 #endif
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

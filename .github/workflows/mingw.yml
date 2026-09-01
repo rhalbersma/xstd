@@ -22,7 +22,8 @@ on:
   workflow_call:
 
 jobs:
-  # No inputs: this library builds on every rung of the ladder, which is what
-  # the shared workflow defaults to.
+  # No inputs: this library builds on every rung the shared workflow offers,
+  # which for MinGW is two -- it drops the development rung with a notice
+  # rather than failing, as it does for Apple Clang.
   mingw:
     uses: rhalbersma/cpp-ci/.github/workflows/mingw.yml@e2886b13f6fcd1eceb231652f816b016de41be1d # v0.8.1

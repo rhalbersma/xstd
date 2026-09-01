@@ -17,7 +17,9 @@
 #include <string_view>                     // string_view
 #include <system_error>                    // errc
 
-BOOST_AUTO_TEST_SUITE(CharConvToChars)
+BOOST_AUTO_TEST_SUITE(Ints)
+BOOST_AUTO_TEST_SUITE(CharConv)
+BOOST_AUTO_TEST_SUITE(ToChars)
 
 // Named concepts, not bare requires-expressions: a deleted call is non-dependently ill-formed.
 template<class T>
@@ -254,4 +256,6 @@ BOOST_AUTO_TEST_CASE(ShortBuffer)
         BOOST_CHECK(wide.ptr == buffer.data() + buffer.size());
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

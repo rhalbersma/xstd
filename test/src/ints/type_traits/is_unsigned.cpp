@@ -9,7 +9,9 @@
 #include <boost/test/unit_test.hpp>        // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <type_traits>                     // is_signed_v, is_unsigned_v
 
+BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(TypeTraits)
+BOOST_AUTO_TEST_SUITE(IsUnsigned)
 
 // An incomplete class type is answered, not hard-errored, as the widened traits are.
 BOOST_AUTO_TEST_CASE(AnswersForIncompleteTypes)
@@ -38,4 +40,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(OppositeSignExactWidthIntegers, T, xstd::test::exa
         BOOST_CHECK(true);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

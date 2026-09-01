@@ -19,6 +19,13 @@ concept nothrow_const_operators =
         // T is the parameter's own default; naming it explicitly cannot redirect the question.
         std::same_as<T, std::remove_cv_t<T_cv>> and
         integer<T> and
+        // /9's regularity gives these; the div_ family spends them on every call, taking
+        // its operands by value and handing back a div_result of two more. Assignment,
+        // swap and default initialization regularity also gives are not asked for here,
+        // because nothing in the family performs one.
+        std::is_nothrow_destructible_v<T> and
+        std::is_nothrow_move_constructible_v<T> and
+        std::is_nothrow_copy_constructible_v<T> and
         // /6, where integer_class asks it: the two conversions in, then the two out.
         std::is_nothrow_constructible_v<T, int> and
         std::is_nothrow_constructible_v<T, std::size_t> and

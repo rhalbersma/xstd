@@ -147,6 +147,38 @@ foreach(h ${public_headers})
     xstd_add_header_self_sufficiency_test(${h})
 endforeach()
 
+# The test tree mirrors the header tree: every public header is answered by exactly
+# one test source at the same path. A reviewer reading include/xstd/ints/cstdlib/abs.hpp
+# knows where its tests are without looking. Enforced here so it cannot drift -- the
+# glob above already lists every header, and ext/ is back in, its tests compiling
+# against whichever of the two optional libraries is present.
+file(
+    GLOB_RECURSE all_public_headers
+    CONFIGURE_DEPENDS
+    RELATIVE ${public_header_dir}
+    ${public_header_dir}/xstd/*.hpp
+)
+
+set(unmirrored_headers)
+foreach(h ${all_public_headers})
+    # xstd/ints/cstdlib/abs.hpp is answered by test/src/ints/cstdlib/abs.cpp.
+    string(REGEX REPLACE "^xstd/" "" mirrored ${h})
+    string(REGEX REPLACE "[.]hpp$" ".cpp" mirrored ${mirrored})
+    if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/src/${mirrored})
+        list(APPEND unmirrored_headers "    include/${h}\n      -> expected test/src/${mirrored}")
+    endif()
+endforeach()
+
+if(unmirrored_headers)
+    list(JOIN unmirrored_headers "\n" unmirrored_report)
+    message(
+        FATAL_ERROR
+        "These headers have no mirrored test source:\n${unmirrored_report}\n"
+        "Every public header is mirrored by exactly one test source; add it, "
+        "or the mirror is no longer a rule."
+    )
+endif()
+
 if(NOT DEFINED Boost_USE_STATIC_LIBS)
     set(Boost_USE_STATIC_LIBS ON)
 endif()

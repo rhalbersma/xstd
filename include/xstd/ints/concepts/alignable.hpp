@@ -8,15 +8,23 @@
 
 #include <xstd/ints/cstdint/bit_int.hpp>       // IWYU pragma: keep; the _BitInt numeric_limits specializations
 #include <xstd/ints/limits/numeric_limits.hpp> // numeric_limits
-#include <concepts>                            // constructible_from, convertible_to, totally_ordered
+#include <compare>                             // strong_ordering
+#include <concepts>                            // constructible_from, convertible_to, same_as, three_way_comparable
 #include <cstddef>                             // size_t
-#include <type_traits>                         // is_nothrow_constructible_v
+#include <type_traits>                         // is_nothrow_constructible_v, remove_cv_t
 
 namespace xstd {
 
 // A prefix of integer_class: what alignment needs of a type, and nothing beyond it.
-template<class T>
+// Asked of T with the cv stripped, as integer_class and its refinements are: a
+// qualified built-in loses its qualifiers to the lvalue-to-rvalue conversion on the
+// way to operator+, and a qualified class type would otherwise have no operator at
+// all, so the answer would turn on whether an implementation made the type a class.
+template<class T_cv, class T = std::remove_cv_t<T_cv>>
 concept alignable =
+        // T is the parameter's own default; naming it explicitly cannot redirect the question.
+        std::same_as<T, std::remove_cv_t<T_cv>> and
+
         // /2-/3, where integer_class asks it; radix 2 is what licenses & for the remainder.
         numeric_limits<T>::is_specialized and
         numeric_limits<T>::is_integer and
@@ -32,8 +40,11 @@ concept alignable =
         std::convertible_to<std::size_t, T> and
         std::constructible_from<std::size_t, T> and
 
-        // /9, the comparison align_up's overflow precondition is stated with.
-        std::totally_ordered<T> and
+        // /9's ordering half, in the clause integer_class states it with rather than a
+        // near neighbour of it: this concept is a prefix of that one, so it asks the
+        // same question. Stronger than the totally_ordered it asked before, <=>
+        // subsuming the six relations and pinning the category besides.
+        std::three_way_comparable<T, std::strong_ordering> and
 
         // The arithmetic itself: alignment is addition modulo a power of two.
         requires (T x) {
@@ -43,17 +54,37 @@ concept alignable =
         };
 
 // Whether those operations carry noexcept, which Abseil's 128-bit types do not, being alignable all the same.
-template<class T>
+template<class T_cv, class T = std::remove_cv_t<T_cv>>
 concept nothrow_alignable =
+        std::same_as<T, std::remove_cv_t<T_cv>> and
         alignable<T> and
+
+        // What the three functions spend on every call: a by-value operand in and a T
+        // out, neither of which any line of theirs names. Not default initialization,
+        // assignment or swap, which none of them performs.
+        std::is_nothrow_destructible_v<T> and
+        std::is_nothrow_move_constructible_v<T> and
+        std::is_nothrow_copy_constructible_v<T> and
+
         std::is_nothrow_constructible_v<T, std::size_t> and
         std::is_nothrow_constructible_v<std::size_t, T> and
         requires (T x) {
                 { static_cast<T>(x + x) } noexcept;
                 { static_cast<T>(x - x) } noexcept;
                 { static_cast<T>(x & x) } noexcept;
-                { x == x } noexcept;
-                { x >= x } noexcept;
+        } and
+
+        // Every comparison /9 gives, the way nothrow_const_operators asks them. The
+        // concept is the whole exception specification, so a relation left unasked is
+        // one a caller can still reach and have throw.
+        requires (T const a, T const b) {
+                { a <=> b } noexcept;
+                { a == b } noexcept;
+                { a != b } noexcept;
+                { a < b } noexcept;
+                { a > b } noexcept;
+                { a <= b } noexcept;
+                { a >= b } noexcept;
         };
 
 } // namespace xstd

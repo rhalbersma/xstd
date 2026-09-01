@@ -14,6 +14,8 @@
 #include <cstddef>                                 // size_t
 #include <cstdint>                                 // exact-width integer types, uintptr_t
 #include <limits>                                  // numeric_limits
+#include <type_traits>                             // is_nothrow_..._v
+#include <utility>                                 // declval
 
 #if __has_include(<absl/numeric/int128.h>)
 #define XSTD_TEST_HAS_ABSL_INT128
@@ -30,7 +32,8 @@ struct light
         constexpr light() = default;
         // Implicit on purpose: alignable asks convertible_to<size_t, T>, which an explicit one would fail.
         // NOLINTNEXTLINE(misc-explicit-constructor, google-explicit-constructor)
-        constexpr light(std::size_t n) : v(n) {}
+        constexpr light(std::size_t n)
+            : v(n) {}
 
         // Explicit is enough the other way, alignable asking only constructible_from<size_t, T> there.
         [[nodiscard]] explicit constexpr operator std::size_t() const
@@ -69,6 +72,62 @@ constexpr auto refines_alignable =
 
 } // namespace
 
+// The devious shape: ==, <, and the three relations derived from them, and no <=>
+// anywhere. totally_ordered admits it; the /9 clause integer_class states its ordering
+// with does not, so alignable no longer does either.
+struct no_spaceship
+{
+        std::size_t v = 0;
+
+        constexpr no_spaceship() = default;
+        // NOLINTNEXTLINE(misc-explicit-constructor, google-explicit-constructor)
+        constexpr no_spaceship(std::size_t n) noexcept
+            : v(n)
+        {}
+
+        [[nodiscard]] explicit constexpr operator std::size_t() const noexcept
+        {
+                return v;
+        }
+
+        [[nodiscard]] constexpr auto operator==(no_spaceship const&) const noexcept -> bool = default;
+
+        [[nodiscard]] constexpr auto operator<(no_spaceship const& other) const noexcept -> bool
+        {
+                return v < other.v;
+        }
+
+        [[nodiscard]] constexpr auto operator>(no_spaceship const& other) const noexcept -> bool
+        {
+                return other.v < v;
+        }
+
+        [[nodiscard]] constexpr auto operator<=(no_spaceship const& other) const noexcept -> bool
+        {
+                return not(other.v < v);
+        }
+
+        [[nodiscard]] constexpr auto operator>=(no_spaceship const& other) const noexcept -> bool
+        {
+                return not(v < other.v);
+        }
+
+        [[nodiscard]] constexpr auto operator+(no_spaceship other) const noexcept -> no_spaceship
+        {
+                return {v + other.v};
+        }
+
+        [[nodiscard]] constexpr auto operator-(no_spaceship other) const noexcept -> no_spaceship
+        {
+                return {v - other.v};
+        }
+
+        [[nodiscard]] constexpr auto operator&(no_spaceship other) const noexcept -> no_spaceship
+        {
+                return {v & other.v};
+        }
+};
+
 namespace xstd {
 
 // What alignable asks of the type, borrowed whole from the integer it is a thin wrapper over.
@@ -76,11 +135,17 @@ template<>
 struct numeric_limits<light> : std::numeric_limits<std::size_t>
 {};
 
+template<>
+struct numeric_limits<no_spaceship> : std::numeric_limits<std::size_t>
+{};
+
 } // namespace xstd
 
+BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(Concepts)
+BOOST_AUTO_TEST_SUITE(Alignable)
 
-BOOST_AUTO_TEST_CASE(AlignableAdmitsTheUnsignedIntegers)
+BOOST_AUTO_TEST_CASE(AdmitsTheUnsignedIntegers)
 {
         static_assert(xstd::alignable<unsigned char>);
         static_assert(xstd::alignable<unsigned short>);
@@ -127,6 +192,22 @@ BOOST_AUTO_TEST_CASE(AndRejectsTheRestOnTheirMerits)
         BOOST_CHECK(true);
 }
 
+// /9 is stated with three_way_comparable, so alignable asks for it too rather than for
+// the weaker totally_ordered: a type can carry ==, < and the relations derived from
+// them without ever declaring <=>, and that shape is admitted by the one and not the
+// other. Excluding it is what keeps this concept a prefix of integer_class.
+BOOST_AUTO_TEST_CASE(TheOrderingIsTheOneIntegerClassAsksFor)
+{
+        static_assert(std::totally_ordered<no_spaceship>);
+        static_assert(not std::three_way_comparable<no_spaceship, std::strong_ordering>);
+        static_assert(not xstd::alignable<no_spaceship>);
+
+        // light has a defaulted <=>, which is why it stays in.
+        static_assert(std::three_way_comparable<light, std::strong_ordering>);
+        static_assert(xstd::alignable<light>);
+        BOOST_CHECK(true);
+}
+
 // The point of the concept: it is integer_class's opening clauses and then it stops.
 BOOST_AUTO_TEST_CASE(IsIntegerLight)
 {
@@ -157,8 +238,70 @@ BOOST_AUTO_TEST_CASE(IsIntegerLight)
         BOOST_CHECK(true);
 }
 
+// Cv-transparent, as integer_class and its refinements are. Without the stripping the
+// answer would turn on whether an implementation spelled its 128-bit type as a class:
+// a qualified built-in reaches operator+ through the lvalue-to-rvalue conversion, and a
+// qualified class object has no operator to reach at all.
+BOOST_AUTO_TEST_CASE(IsCvTransparent)
+{
+        static_assert(xstd::alignable<unsigned const>);
+        static_assert(xstd::alignable<unsigned volatile>);
+        static_assert(xstd::alignable<unsigned const volatile>);
+        static_assert(xstd::alignable<std::size_t const volatile>);
+        static_assert(xstd::alignable<xstd::uint128 const volatile>);
+        static_assert(xstd::alignable<light const volatile>);
+
+        // And a qualifier turns no answer into a yes: the signed half stays out.
+        static_assert(not xstd::alignable<int const volatile>);
+        static_assert(not xstd::alignable<xstd::int128 const volatile>);
+        static_assert(not xstd::alignable<bool const volatile>);
+
+        static_assert(xstd::nothrow_alignable<unsigned const volatile>);
+        static_assert(xstd::nothrow_alignable<std::size_t const>);
+        BOOST_CHECK(true);
+}
+
+// align_up, align_down and is_aligned each take a T by value and hand one back; no line
+// of the three names a special member, and all three spend them. The nothrow refinement
+// answers for that, not only for the operators.
+BOOST_AUTO_TEST_CASE(TheNothrowRefinementCoversWhatTheCallSpends)
+{
+        static_assert(std::is_nothrow_destructible_v<std::size_t>);
+        static_assert(std::is_nothrow_copy_constructible_v<xstd::uint128>);
+
+        static_assert(not xstd::nothrow_alignable<light> or std::is_nothrow_move_constructible_v<light>);
+        static_assert(not xstd::nothrow_alignable<std::size_t> or std::is_nothrow_destructible_v<std::size_t>);
+        BOOST_CHECK(true);
+}
+
+// Every comparison /9 gives, not the two the functions happen to reach for: the concept
+// is the exception specification a caller reads, so any relation it leaves unasked is
+// one that could still throw under a noexcept promise.
+BOOST_AUTO_TEST_CASE(TheNothrowRefinementCoversEveryRelation)
+{
+        static_assert(noexcept(std::declval<std::size_t const&>() <=> std::declval<std::size_t const&>()));
+        static_assert(noexcept(std::declval<std::size_t const&>() == std::declval<std::size_t const&>()));
+        static_assert(noexcept(std::declval<std::size_t const&>() != std::declval<std::size_t const&>()));
+        static_assert(noexcept(std::declval<std::size_t const&>() < std::declval<std::size_t const&>()));
+        static_assert(noexcept(std::declval<std::size_t const&>() > std::declval<std::size_t const&>()));
+        static_assert(noexcept(std::declval<std::size_t const&>() <= std::declval<std::size_t const&>()));
+        static_assert(noexcept(std::declval<std::size_t const&>() >= std::declval<std::size_t const&>()));
+
+        // And of the types the concept does hold of, over which every one of the six
+        // has to be noexcept for the functions' specification to mean anything.
+        static_assert(xstd::nothrow_alignable<std::size_t>);
+        static_assert(xstd::nothrow_alignable<unsigned>);
+        static_assert(xstd::nothrow_alignable<xstd::uint128>);
+
+        // light is alignable and not nothrow_alignable: its size_t constructor carries
+        // no noexcept, so the refinement turns it away before any relation is asked.
+        static_assert(xstd::alignable<light>);
+        static_assert(not xstd::nothrow_alignable<light>);
+        BOOST_CHECK(true);
+}
+
 // Only visible on a class type without noexcept, which Abseil is: it declares noexcept nowhere.
-BOOST_AUTO_TEST_CASE(NothrowAlignableRefinesIt)
+BOOST_AUTO_TEST_CASE(TheNothrowRefinementNarrowsIt)
 {
         static_assert(xstd::nothrow_alignable<unsigned char>);
         static_assert(xstd::nothrow_alignable<std::size_t>);
@@ -171,4 +314,6 @@ BOOST_AUTO_TEST_CASE(NothrowAlignableRefinesIt)
         BOOST_CHECK(true);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
