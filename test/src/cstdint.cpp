@@ -3,13 +3,18 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/concepts.hpp>             // integer, signed_integer, unsigned_integer
-#include <xstd/cstdint.hpp>              // XSTD_HAS_BIT_INT, bit_int, bit_uint, int128, uint128
-#include <xstd/test/constexpr_check.hpp> // XSTD_CONSTEXPR_CHECK
-#include <xstd/type_traits.hpp>          // make_signed_t, make_unsigned_t
-#include <boost/test/unit_test.hpp>      // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END
-#include <concepts>                      // same_as
-#include <limits>                        // numeric_limits
+#include <xstd/concepts/integer.hpp>          // integer
+#include <xstd/concepts/signed_integer.hpp>   // signed_integer
+#include <xstd/concepts/unsigned_integer.hpp> // unsigned_integer
+#include <xstd/cstdint.hpp>                   // XSTD_HAS_BIT_INT, bit_int, bit_uint, int128, uint128
+#include <xstd/test/constexpr_check.hpp>      // XSTD_CONSTEXPR_CHECK
+#include <xstd/type_traits/is_signed.hpp>     // is_signed_v
+#include <xstd/type_traits/is_unsigned.hpp>   // is_unsigned_v
+#include <xstd/type_traits/make_signed.hpp>   // make_signed_t
+#include <xstd/type_traits/make_unsigned.hpp> // make_unsigned_t
+#include <boost/test/unit_test.hpp>           // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END
+#include <concepts>                           // same_as
+#include <limits>                             // numeric_limits
 
 BOOST_AUTO_TEST_SUITE(Cstdint)
 
