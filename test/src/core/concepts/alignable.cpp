@@ -9,7 +9,7 @@
 #include <cstdint>                          // exact-width integer types
 
 // The wide types by their built-in spelling, so this stays clear of xstd::ints.
-#if defined(__SIZEOF_INT128__)
+#ifdef __SIZEOF_INT128__
 #define XSTD_TEST_HAS_INT128
 #endif
 
