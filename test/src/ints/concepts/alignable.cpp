@@ -11,6 +11,7 @@
 #include <concepts>                                // constructible_from
 #include <cstddef>                                 // size_t
 #include <cstdint>                                 // exact-width integer types, uintptr_t
+#include <limits>                                  // numeric_limits
 
 #ifdef __SIZEOF_INT128__
 #define XSTD_TEST_HAS_INT128
@@ -20,6 +21,54 @@
 #define XSTD_TEST_HAS_ABSL_INT128
 #include <absl/numeric/int128.h> // uint128
 #endif
+
+namespace {
+
+// Alignable without being an integer: no division, no increments, no compound assignment.
+struct light
+{
+        std::uint64_t v = 0;
+
+        constexpr light() = default;
+        constexpr light(std::size_t n) : v(n) {}
+
+        [[nodiscard]] constexpr operator std::size_t() const
+        {
+                return v;
+        }
+
+        [[nodiscard]] constexpr auto operator<=>(light const&) const -> std::strong_ordering = default;
+        [[nodiscard]] constexpr auto operator==(light const&) const -> bool = default;
+
+        [[nodiscard]] constexpr auto operator+(light o) const
+                -> light
+        {
+                return light(v + o.v);
+        }
+
+        [[nodiscard]] constexpr auto operator-(light o) const
+                -> light
+        {
+                return light(v - o.v);
+        }
+
+        [[nodiscard]] constexpr auto operator&(light o) const
+                -> light
+        {
+                return light(v & o.v);
+        }
+};
+
+} // namespace
+
+namespace xstd {
+
+// What alignable asks of the type, borrowed whole from the integer it is a thin wrapper over.
+template<>
+struct numeric_limits<light> : std::numeric_limits<std::uint64_t>
+{};
+
+} // namespace xstd
 
 BOOST_AUTO_TEST_SUITE(Concepts)
 
@@ -100,40 +149,14 @@ BOOST_AUTO_TEST_CASE(IsIntegerLight)
 #undef XSTD_TEST_REFINES
 
         // And the converse fails, which is what makes it light rather than a synonym for unsigned_integer.
-        struct light
-        {
-                std::uint64_t v = 0;
-
-                constexpr light() = default;
-                constexpr light(std::size_t n) : v(n) {}
-
-                [[nodiscard]] constexpr operator std::size_t() const
-                {
-                        return v;
-                }
-
-                [[nodiscard]] constexpr auto operator<=>(light const&) const -> std::strong_ordering = default;
-                [[nodiscard]] constexpr auto operator==(light const&) const -> bool = default;
-
-                [[nodiscard]] constexpr auto operator+(light o) const
-                        -> light
-                {
-                        return light(v + o.v);
-                }
-
-                [[nodiscard]] constexpr auto operator-(light o) const
-                        -> light
-                {
-                        return light(v - o.v);
-                }
-
-                [[nodiscard]] constexpr auto operator&(light o) const
-                        -> light
-                {
-                        return light(v & o.v);
-                }
-        };
+        static_assert(xstd::alignable<light>);
         static_assert(not xstd::unsigned_integer<light>);
+        BOOST_CHECK(light{} == light{0});
+        BOOST_CHECK((light{6} + light{1}) == light{7});
+        BOOST_CHECK((light{6} - light{1}) == light{5});
+        BOOST_CHECK((light{6} & light{3}) == light{2});
+        BOOST_CHECK(light{6} >= light{5});
+        BOOST_CHECK_EQUAL(static_cast<std::size_t>(light{6}), 6UZ);
         BOOST_CHECK(true);
 }
 
