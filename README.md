@@ -70,9 +70,10 @@ The 128-bit aliases and their `make_signed` and `make_unsigned` associations are
 defined together in `<xstd/cstdint/int128.hpp>`; `<xstd/cstdint.hpp>` is their
 umbrella. The two `<xstd/ext/>` umbrellas export `<xstd/ext/absl/int128.hpp>` and
 `<xstd/ext/boost/int128.hpp>`, and each needs the library it adapts on the
-include path; nothing above them exports either. Each adapted header is
-exported in turn, so including one is enough: `<xstd/ext/absl/int128.hpp>`
-brings `absl::int128` and `absl::uint128` with it.
+include path. Above them, `<xstd/ext.hpp>` probes for both and brings whichever
+the build has, so it alone is safe to include unconditionally. Each adapted
+header is exported in turn, so including one is enough:
+`<xstd/ext/absl/int128.hpp>` brings `absl::int128` and `absl::uint128` with it.
 
 If you lint with `clang-tidy` and use any Boost library, `misc-include-cleaner`
 will report that nothing provides the Boost names you write, here and anywhere

@@ -187,12 +187,12 @@ than the adapted one's. The prefix is load-bearing where Hana's is: these
 headers are installed, and an unprefixed top-level `ext/` would put a generic
 directory in a shared include namespace, where two libraries that both did it
 would collide silently on the first `-I`. Nothing under `include/xstd/` includes
-them and no umbrella sits above `<xstd/ext/absl.hpp>` and `<xstd/ext/boost.hpp>`,
-so an adapted library is asked for by name and `<xstd/cstdint.hpp>` never drags
-in Abseil. Each hard-includes the library it adapts, leaving the `__has_include`
-probe to the consumer — which the test suite writes for itself, having no
-fixture headers for these two and reaching them through the shipped adapter the
-way anyone else would.
+them, and the sole umbrella above `<xstd/ext/absl.hpp>` and `<xstd/ext/boost.hpp>`
+probes rather than requires, so an adapted library is still asked for by name and
+`<xstd/cstdint.hpp>` never drags in Abseil. Each hard-includes the library it
+adapts, leaving the `__has_include` probe to `<xstd/ext.hpp>` or to the consumer
+— which the test suite writes for itself, having no fixture headers for these
+two and reaching them through the shipped adapter the way anyone else would.
 
 Those includes are exported, so one is all a consumer writes: a translation unit
 including `<xstd/ext/absl/int128.hpp>` has `absl::int128` and `absl::uint128`

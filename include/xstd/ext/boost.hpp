@@ -8,7 +8,8 @@
 
 // IWYU pragma: always_keep
 
-// Boost's pairs, and no umbrella above this one: an adapted library is asked for by name.
+// Boost's pairs. <xstd/ext.hpp> gathers this and its counterpart behind a probe;
+// reached directly, an adapted library is asked for by name and must be present.
 #include <xstd/ext/boost/int128.hpp> // IWYU pragma: export; make_signed, make_unsigned
 
 #endif // XSTD_EXT_BOOST_HPP
