@@ -8,15 +8,22 @@
 
 #include <xstd/ints/cstdint/bit_int.hpp>       // IWYU pragma: keep; the _BitInt numeric_limits specializations
 #include <xstd/ints/limits/numeric_limits.hpp> // numeric_limits
-#include <concepts>                            // constructible_from, convertible_to, totally_ordered
+#include <concepts>                            // constructible_from, convertible_to, same_as, totally_ordered
 #include <cstddef>                             // size_t
-#include <type_traits>                         // is_nothrow_constructible_v
+#include <type_traits>                         // is_nothrow_constructible_v, remove_cv_t
 
 namespace xstd {
 
 // A prefix of integer_class: what alignment needs of a type, and nothing beyond it.
-template<class T>
+// Asked of T with the cv stripped, as integer_class and its refinements are: a
+// qualified built-in loses its qualifiers to the lvalue-to-rvalue conversion on the
+// way to operator+, and a qualified class type would otherwise have no operator at
+// all, so the answer would turn on whether an implementation made the type a class.
+template<class T_cv, class T = std::remove_cv_t<T_cv>>
 concept alignable =
+        // T is the parameter's own default; naming it explicitly cannot redirect the question.
+        std::same_as<T, std::remove_cv_t<T_cv>> and
+
         // /2-/3, where integer_class asks it; radix 2 is what licenses & for the remainder.
         numeric_limits<T>::is_specialized and
         numeric_limits<T>::is_integer and
@@ -43,8 +50,9 @@ concept alignable =
         };
 
 // Whether those operations carry noexcept, which Abseil's 128-bit types do not, being alignable all the same.
-template<class T>
+template<class T_cv, class T = std::remove_cv_t<T_cv>>
 concept nothrow_alignable =
+        std::same_as<T, std::remove_cv_t<T_cv>> and
         alignable<T> and
         std::is_nothrow_constructible_v<T, std::size_t> and
         std::is_nothrow_constructible_v<std::size_t, T> and

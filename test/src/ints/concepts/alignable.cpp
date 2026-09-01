@@ -30,7 +30,8 @@ struct light
         constexpr light() = default;
         // Implicit on purpose: alignable asks convertible_to<size_t, T>, which an explicit one would fail.
         // NOLINTNEXTLINE(misc-explicit-constructor, google-explicit-constructor)
-        constexpr light(std::size_t n) : v(n) {}
+        constexpr light(std::size_t n)
+            : v(n) {}
 
         // Explicit is enough the other way, alignable asking only constructible_from<size_t, T> there.
         [[nodiscard]] explicit constexpr operator std::size_t() const
@@ -156,6 +157,29 @@ BOOST_AUTO_TEST_CASE(IsIntegerLight)
         BOOST_CHECK((light{6} & light{3}) == light{2});
         BOOST_CHECK(light{6} >= light{5});
         BOOST_CHECK_EQUAL(static_cast<std::size_t>(light{6}), 6UZ);
+        BOOST_CHECK(true);
+}
+
+// Cv-transparent, as integer_class and its refinements are. Without the stripping the
+// answer would turn on whether an implementation spelled its 128-bit type as a class:
+// a qualified built-in reaches operator+ through the lvalue-to-rvalue conversion, and a
+// qualified class object has no operator to reach at all.
+BOOST_AUTO_TEST_CASE(IsCvTransparent)
+{
+        static_assert(xstd::alignable<unsigned const>);
+        static_assert(xstd::alignable<unsigned volatile>);
+        static_assert(xstd::alignable<unsigned const volatile>);
+        static_assert(xstd::alignable<std::size_t const volatile>);
+        static_assert(xstd::alignable<xstd::uint128 const volatile>);
+        static_assert(xstd::alignable<light const volatile>);
+
+        // And a qualifier turns no answer into a yes: the signed half stays out.
+        static_assert(not xstd::alignable<int const volatile>);
+        static_assert(not xstd::alignable<xstd::int128 const volatile>);
+        static_assert(not xstd::alignable<bool const volatile>);
+
+        static_assert(xstd::nothrow_alignable<unsigned const volatile>);
+        static_assert(xstd::nothrow_alignable<std::size_t const>);
         BOOST_CHECK(true);
 }
 
