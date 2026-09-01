@@ -21,8 +21,7 @@ template<alignable I>
         assert(std::has_single_bit(alignment));
         auto const mask = static_cast<I>(static_cast<I>(alignment) - static_cast<I>(1));
         auto const sum = static_cast<I>(value + mask);
-        // The result is representable, said as the addition not having wrapped: computing
-        // the wrapped sum is well defined for a modular type, so it can be asked afterwards.
+        // The result is representable, said as the addition not having wrapped, which a modular type may ask after.
         assert(sum >= value);
         return static_cast<I>(sum & static_cast<I>(~mask));
 }

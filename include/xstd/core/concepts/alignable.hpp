@@ -11,9 +11,7 @@
 
 namespace xstd {
 
-// The operations align_up and align_down perform, and the wraparound they rely on.
-// Boost.Align asks only that the type not be a pointer; naming the operations says
-// the same about pointers, since ~p does not compile, and more about everything else.
+// The operations align_up and align_down perform, and the wraparound they rely on; pointers fail on ~p.
 template<class I>
 concept alignable =
         std::totally_ordered<I> and
@@ -24,14 +22,12 @@ concept alignable =
                 { static_cast<I>(x & x) } -> std::same_as<I>;
                 { static_cast<I>(~x) } -> std::same_as<I>;
         } and
-        // Modular: zero decremented is the largest value, so nothing lies below zero to
-        // align into. Said in I, because the narrow types promote out of themselves first.
+        // Modular: zero decremented is the largest value, said in I because the narrow types promote out of it.
         static_cast<I>(I{} - I{1}) > I{} and
         // And it counts, rather than saturating: bool's one plus one is still one.
         static_cast<I>(I{1} + I{1}) > I{1};
 
-// Whether those same operations carry noexcept, which a class type need not: Abseil's
-// 128-bit types declare it nowhere, and are alignable all the same.
+// Whether those operations carry noexcept, which Abseil's 128-bit types do not, being alignable all the same.
 template<class I>
 concept nothrow_alignable =
         alignable<I> and

@@ -126,9 +126,7 @@ file(
 # Every header but those under ext/, which cannot compile before their optional dependency resolves.
 list(FILTER public_headers EXCLUDE REGEX "^xstd/ints/ext/")
 
-# The libraries are leaves: neither may include the other, or splitting them into
-# separate repositories would produce a cycle or a chain. Checked here rather than
-# left to review, because an include is one line and the consequence is structural.
+# The libraries are leaves: neither may include the other, or the split would make a chain of them.
 foreach(lib core ints)
     if(lib STREQUAL core)
         set(forbidden ints)

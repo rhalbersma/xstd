@@ -70,9 +70,7 @@ BOOST_AUTO_TEST_CASE(AndRejectsTheRestOnTheirMerits)
         BOOST_CHECK(true);
 }
 
-// The built-in types carry noexcept throughout, so the refinement is only visible on a
-// class type that does not. Abseil's is the one to hand and declares noexcept nowhere,
-// which is why the integer functions have a conditional exception specification at all.
+// Only visible on a class type without noexcept, which Abseil is: it declares noexcept nowhere.
 BOOST_AUTO_TEST_CASE(NothrowAlignableRefinesIt)
 {
         static_assert(xstd::nothrow_alignable<unsigned char>);
