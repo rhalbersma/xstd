@@ -4,9 +4,10 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/ints/concepts/alignable.hpp>        // alignable, nothrow_alignable
-#include <xstd/ints/cstdint/int128.hpp>            // int128, uint128
 #include <xstd/ints/concepts/signed_integer.hpp>   // signed_integer
 #include <xstd/ints/concepts/unsigned_integer.hpp> // unsigned_integer
+#include <xstd/ints/cstdint/int128.hpp>            // int128, uint128
+#include <xstd/ints/limits/numeric_limits.hpp>     // numeric_limits
 #include <boost/test/unit_test.hpp>                // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <compare>                                 // strong_ordering
 #include <concepts>                                // constructible_from
