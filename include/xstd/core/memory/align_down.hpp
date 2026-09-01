@@ -14,13 +14,13 @@
 namespace xstd {
 
 // Rounds value down to the previous multiple of a power-of-two alignment.
-template<alignable I>
-[[nodiscard]] constexpr auto align_down(I value, std::size_t alignment) noexcept(nothrow_alignable<I>)
-        -> I
+template<alignable T>
+[[nodiscard]] constexpr auto align_down(T value, std::size_t alignment) noexcept(nothrow_alignable<T>)
+        -> T
 {
         assert(std::has_single_bit(alignment));
-        auto const mask = static_cast<I>(static_cast<I>(alignment) - static_cast<I>(1));
-        return static_cast<I>(value & static_cast<I>(~mask));
+        auto const mask = static_cast<T>(static_cast<T>(alignment) - static_cast<T>(1));
+        return static_cast<T>(value & static_cast<T>(~mask));
 }
 
 } // namespace xstd
