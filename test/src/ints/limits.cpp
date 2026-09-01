@@ -5,6 +5,7 @@
 
 #include <xstd/ints/limits.hpp>     // numeric_limits
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END
+#include <concepts>                 // derived_from
 #include <limits>                   // numeric_limits
 
 BOOST_AUTO_TEST_SUITE(Ints)
@@ -14,7 +15,8 @@ BOOST_AUTO_TEST_SUITE(Limits)
 // arrives through the umbrella at all is what the umbrella is answerable for.
 BOOST_AUTO_TEST_CASE(TheTraitArrivesThroughTheUmbrella)
 {
-        static_assert(xstd::numeric_limits<int>::max() == std::numeric_limits<int>::max());
+        static_assert(std::derived_from<xstd::numeric_limits<int>, std::numeric_limits<int>>);
+        static_assert(xstd::numeric_limits<int>::is_specialized);
         BOOST_CHECK(true);
 }
 

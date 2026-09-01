@@ -6,11 +6,10 @@
 #ifndef XSTD_TEST_EXACT_WIDTH_TYPES_HPP
 #define XSTD_TEST_EXACT_WIDTH_TYPES_HPP
 
-#include <xstd/test/bit_precise.hpp> // XSTD_TEST_HAS_BIT_PRECISE, bit_int, bit_uint
-#include <xstd/ints/cstdint.hpp>     // int128, uint128
-#include <cstdint>                   // exact-width integer types
-#include <tuple>                     // tuple, tuple_cat
-#include <utility>                   // declval
+#include <xstd/ints/cstdint.hpp> // XSTD_HAS_BIT_INT, bit_int, bit_uint, int128, uint128
+#include <cstdint>               // exact-width integer types
+#include <tuple>                 // tuple, tuple_cat
+#include <utility>               // declval
 
 // The optional pairs reached the way any consumer reaches them: the probe here, the associations in the adapter.
 #if __has_include(<boost/int128.hpp>)
@@ -64,25 +63,36 @@ inline constexpr bool has_constexpr_division<absl::uint128> = false;
 #endif
 
 // Native bit-precise widths, from the two bits current Clang's signed type needs up.
-#ifdef XSTD_TEST_HAS_BIT_PRECISE
+#ifdef XSTD_HAS_BIT_INT
+
+// How wide the lists may go, which is a property of the build rather than of the library:
+// dividing wider than 64 bits calls compiler-rt, which clang-cl does not link (__udivti3).
+#ifdef _MSC_VER
+#define XSTD_TEST_BIT_PRECISE_MAX 64
+#elif __BITINT_MAXWIDTH__ >= 256
+#define XSTD_TEST_BIT_PRECISE_MAX 256
+#else
+#define XSTD_TEST_BIT_PRECISE_MAX 128
+#endif
+
 // The widths every implementation of the extension divides without help from a runtime.
 using narrow_bit_precise_signed_types =
-        std::tuple<bit_int<8>, bit_int<16>, bit_int<32>, bit_int<64>>;
+        std::tuple<xstd::bit_int<8>, xstd::bit_int<16>, xstd::bit_int<32>, xstd::bit_int<64>>;
 using narrow_bit_precise_unsigned_types =
-        std::tuple<bit_uint<8>, bit_uint<16>, bit_uint<32>, bit_uint<64>>;
+        std::tuple<xstd::bit_uint<8>, xstd::bit_uint<16>, xstd::bit_uint<32>, xstd::bit_uint<64>>;
 
 // And the two above them, each asking the ceiling rather than assuming one.
 #if XSTD_TEST_BIT_PRECISE_MAX >= 128
-using wide_bit_precise_signed_types = std::tuple<bit_int<128>>;
-using wide_bit_precise_unsigned_types = std::tuple<bit_uint<128>>;
+using wide_bit_precise_signed_types = std::tuple<xstd::bit_int<128>>;
+using wide_bit_precise_unsigned_types = std::tuple<xstd::bit_uint<128>>;
 #else
 using wide_bit_precise_signed_types = std::tuple<>;
 using wide_bit_precise_unsigned_types = std::tuple<>;
 #endif
 
 #if XSTD_TEST_BIT_PRECISE_MAX >= 256
-using widest_bit_precise_signed_types = std::tuple<bit_int<256>>;
-using widest_bit_precise_unsigned_types = std::tuple<bit_uint<256>>;
+using widest_bit_precise_signed_types = std::tuple<xstd::bit_int<256>>;
+using widest_bit_precise_unsigned_types = std::tuple<xstd::bit_uint<256>>;
 #else
 using widest_bit_precise_signed_types = std::tuple<>;
 using widest_bit_precise_unsigned_types = std::tuple<>;

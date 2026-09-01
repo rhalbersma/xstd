@@ -4,14 +4,13 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/ints/cstdlib.hpp>                    // complete arithmetic surface
+#include <xstd/ints/cstdint.hpp>                    // XSTD_HAS_BIT_INT, bit_int, bit_uint
 #include <xstd/ints/limits.hpp>                     // numeric_limits
 #include <xstd/ints/type_traits/make_unsigned.hpp>  // make_unsigned_t
-#include <xstd/test/bit_precise.hpp>                // XSTD_TEST_HAS_BIT_PRECISE, bit_int, bit_uint
 #include <xstd/test/boost_test_print_log_value.hpp> // NOLINT(misc-include-cleaner): registers Boost.Test printers
 #include <xstd/test/constexpr_check.hpp>            // XSTD_CONSTEXPR_CHECK_EQUAL
 #include <xstd/test/exact_width_types.hpp>          // exact-width integer type lists, bit-precise type lists
 #include <boost/test/unit_test.hpp>                 // BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE
-#include <tuple>                                    // tuple_size_v
 
 BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(CStdLib)
@@ -40,7 +39,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(ExactDivisionConventionsAgree, T, xstd::test::exac
 
 // The postconditions of all six over every value a narrow width can hold: the one
 // place the whole surface can be swept, and no header's own test can reach it.
-#ifdef XSTD_TEST_HAS_BIT_PRECISE
+#ifdef XSTD_HAS_BIT_INT
 
 namespace {
 
@@ -109,12 +108,12 @@ auto sweep() -> void
 // What no other width affords: the postconditions over the complete value space, not a sample.
 BOOST_AUTO_TEST_CASE(DivisionOverEveryPair)
 {
-        sweep<xstd::test::bit_uint<2>>();
-        sweep<xstd::test::bit_uint<3>>();
-        sweep<xstd::test::bit_uint<4>>();
-        sweep<xstd::test::bit_int<2>>();
-        sweep<xstd::test::bit_int<3>>();
-        sweep<xstd::test::bit_int<4>>();
+        sweep<xstd::bit_uint<2>>();
+        sweep<xstd::bit_uint<3>>();
+        sweep<xstd::bit_uint<4>>();
+        sweep<xstd::bit_int<2>>();
+        sweep<xstd::bit_int<3>>();
+        sweep<xstd::bit_int<4>>();
 }
 
 // And at every width in the list, the values a sweep of 256 bits could never reach.
@@ -151,7 +150,7 @@ BOOST_AUTO_TEST_CASE(AbsentWithoutCompilerSupport)
         BOOST_CHECK(std::tuple_size_v<xstd::test::bit_precise_signed_types> == 0);
 }
 
-#endif // XSTD_TEST_HAS_BIT_PRECISE
+#endif // XSTD_HAS_BIT_INT
 
 BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

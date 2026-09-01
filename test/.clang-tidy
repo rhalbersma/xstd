@@ -8,7 +8,7 @@
 # The generated header self-sufficiency units live under the build directory and resolve to the root.
 # Four checks are dropped, none of them saying anything true about a fixture:
 # - misc-use-internal-linkage: BOOST_AUTO_TEST_CASE expands to a struct at namespace scope.
-# - modernize-use-designated-initializers: div_result{q, r}'s positional spelling is what DeducedDivResult pins.
+# - modernize-use-designated-initializers: div_result{q, r}'s positional spelling is what DeducesItsElementTypeFromTheArguments pins.
 # - performance-enum-size: the underlying type is the thing under test, not a size to minimize.
 # - readability-magic-numbers: a table of inputs and expected results is nothing but literals.
 # performance-unnecessary-value-param stays: it fires past two pointer widths, and nothing here is wider.

@@ -7,7 +7,6 @@
 #include <xstd/test/constexpr_check.hpp>   // XSTD_CONSTEXPR_CHECK
 #include <boost/test/unit_test.hpp>        // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <concepts>                        // same_as
-#include <cstddef>                         // size_t
 #include <cstdint>                         // uint8_t
 
 BOOST_AUTO_TEST_SUITE(Ints)

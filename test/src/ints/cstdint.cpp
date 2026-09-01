@@ -4,6 +4,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/ints/cstdint.hpp>                   // XSTD_HAS_BIT_INT, bit_int, bit_uint, int128, uint128
+#include <xstd/ints/limits/numeric_limits.hpp>     // numeric_limits
 #include <xstd/ints/type_traits/make_signed.hpp>   // make_signed_t
 #include <xstd/ints/type_traits/make_unsigned.hpp> // make_unsigned_t
 #include <boost/test/unit_test.hpp>                // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END
