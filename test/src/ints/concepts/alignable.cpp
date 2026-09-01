@@ -15,6 +15,7 @@
 #include <cstdint>                                 // exact-width integer types, uintptr_t
 #include <limits>                                  // numeric_limits
 #include <type_traits>                             // is_nothrow_..._v
+#include <utility>                                 // declval
 
 #if __has_include(<absl/numeric/int128.h>)
 #define XSTD_TEST_HAS_ABSL_INT128
@@ -194,6 +195,31 @@ BOOST_AUTO_TEST_CASE(TheNothrowRefinementCoversWhatTheCallSpends)
 
         static_assert(not xstd::nothrow_alignable<light> or std::is_nothrow_move_constructible_v<light>);
         static_assert(not xstd::nothrow_alignable<std::size_t> or std::is_nothrow_destructible_v<std::size_t>);
+        BOOST_CHECK(true);
+}
+
+// All six relations totally_ordered offers, not the two the functions happen to reach
+// for: the concept is the exception specification a caller reads, so any relation it
+// leaves unasked is one that could still throw under a noexcept promise.
+BOOST_AUTO_TEST_CASE(TheNothrowRefinementCoversEveryRelation)
+{
+        static_assert(noexcept(std::declval<std::size_t const&>() == std::declval<std::size_t const&>()));
+        static_assert(noexcept(std::declval<std::size_t const&>() != std::declval<std::size_t const&>()));
+        static_assert(noexcept(std::declval<std::size_t const&>() < std::declval<std::size_t const&>()));
+        static_assert(noexcept(std::declval<std::size_t const&>() > std::declval<std::size_t const&>()));
+        static_assert(noexcept(std::declval<std::size_t const&>() <= std::declval<std::size_t const&>()));
+        static_assert(noexcept(std::declval<std::size_t const&>() >= std::declval<std::size_t const&>()));
+
+        // And of the types the concept does hold of, over which every one of the six
+        // has to be noexcept for the functions' specification to mean anything.
+        static_assert(xstd::nothrow_alignable<std::size_t>);
+        static_assert(xstd::nothrow_alignable<unsigned>);
+        static_assert(xstd::nothrow_alignable<xstd::uint128>);
+
+        // light is alignable and not nothrow_alignable: its size_t constructor carries
+        // no noexcept, so the refinement turns it away before any relation is asked.
+        static_assert(xstd::alignable<light>);
+        static_assert(not xstd::nothrow_alignable<light>);
         BOOST_CHECK(true);
 }
 

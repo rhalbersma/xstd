@@ -68,10 +68,20 @@ concept nothrow_alignable =
                 { static_cast<T>(x + x) } noexcept;
                 { static_cast<T>(x - x) } noexcept;
                 { static_cast<T>(x & x) } noexcept;
-                // is_aligned's question, and align_up's overflow precondition: the two
-                // relations the functions reach for, not all six totally_ordered offers.
-                { x == x } noexcept;
-                { x >= x } noexcept;
+        } and
+
+        // totally_ordered in full, the way nothrow_const_operators asks it of the
+        // comparisons integer_class requires. The concept is the whole exception
+        // specification, so a relation left unasked is one a caller can still reach
+        // and have throw. Not <=>, which alignable does not ask for: totally_ordered
+        // is where its ordering comes from, and three_way_comparable is not.
+        requires (T const a, T const b) {
+                { a == b } noexcept;
+                { a != b } noexcept;
+                { a < b } noexcept;
+                { a > b } noexcept;
+                { a <= b } noexcept;
+                { a >= b } noexcept;
         };
 
 } // namespace xstd
