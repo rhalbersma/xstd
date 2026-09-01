@@ -35,10 +35,14 @@ target_sources(
     FILE_SET HEADERS
     BASE_DIRS include
     FILES
+        include/xstd/ints.hpp
+        include/xstd/ints/concepts.hpp
         include/xstd/ints/concepts/integer_class.hpp
         include/xstd/ints/concepts/integer.hpp
         include/xstd/ints/concepts/nothrow_const_operators.hpp
         include/xstd/ints/concepts/signed_integer.hpp
+        include/xstd/core.hpp
+        include/xstd/core/concepts.hpp
         include/xstd/core/concepts/specialization_of.hpp
         include/xstd/ints/concepts/unsigned_integer.hpp
         include/xstd/ints/charconv.hpp
@@ -65,8 +69,10 @@ target_sources(
         include/xstd/core/memory.hpp
         include/xstd/core/memory/align_up.hpp
         include/xstd/core/memory/align_down.hpp
+        include/xstd/core/type_traits.hpp
         include/xstd/core/type_traits/conditional_data_member.hpp
         include/xstd/core/type_traits/empty_type.hpp
+        include/xstd/ints/type_traits.hpp
         include/xstd/ints/type_traits/is_signed.hpp
         include/xstd/core/type_traits/is_specialization_of.hpp
         include/xstd/ints/type_traits/is_unsigned.hpp
