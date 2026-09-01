@@ -43,6 +43,7 @@ target_sources(
         include/xstd/ints/concepts/signed_integer.hpp
         include/xstd/core.hpp
         include/xstd/core/concepts.hpp
+        include/xstd/core/concepts/alignable.hpp
         include/xstd/core/concepts/specialization_of.hpp
         include/xstd/ints/concepts/unsigned_integer.hpp
         include/xstd/ints/charconv.hpp

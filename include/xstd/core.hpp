@@ -10,4 +10,5 @@
 #include <xstd/core/memory.hpp>      // IWYU pragma: export; align_up, align_down
 #include <xstd/core/type_traits.hpp> // IWYU pragma: export; the storage utilities and is_specialization_of
 #include <xstd/core/utility.hpp>     // IWYU pragma: export; to_underlying
-#endif                               // XSTD_CORE_HPP
+
+#endif // XSTD_CORE_HPP

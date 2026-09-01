@@ -381,11 +381,15 @@ spelled as Boost.Align, LLVM's `alignTo`/`alignDown` and the kernel's `ALIGN`
 macros all spell it: value first, alignment second. The power-of-two
 precondition is what buys the mask form over a division, which matters most for
 an `integer_class` type, where `%` is a call. They are templates over
-`unsigned_integer` rather than functions of `std::size_t`, so a narrow or
-128-bit value keeps its own type instead of promoting; overflow of `align_up` is
-a precondition, asserted rather than saturated. `std::align` is the closest
-standard facility and does something else: it fits a block inside a buffer,
-adjusting a pointer, not a size.
+`alignable` rather than functions of `std::size_t`, so a narrow or 128-bit value
+keeps its own type instead of promoting; overflow of `align_up` is a
+precondition, asserted rather than saturated. `alignable` names the operations
+the two perform and the modular wraparound they rely on, which admits the
+unsigned types and rejects the signed ones, `bool`, and pointers on their own
+merits; asking that rather than `unsigned_integer` is what keeps alignment in
+`xstd/core`, off `xstd/ints`. `std::align` is the closest standard facility and
+does something else: it fits a block inside a buffer, adjusting a pointer, not a
+size.
 
 ## Integer division
 
