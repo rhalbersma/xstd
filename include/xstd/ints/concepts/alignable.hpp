@@ -54,14 +54,29 @@ template<class T_cv, class T = std::remove_cv_t<T_cv>>
 concept nothrow_alignable =
         std::same_as<T, std::remove_cv_t<T_cv>> and
         alignable<T> and
+
+        // The way out of every by-value return, which the casts below do not reach.
+        // Not regularity: alignable asks totally_ordered and no more, so its nothrow
+        // refinement asks noexcept of exactly that and adds no requirement of its own.
+        std::is_nothrow_destructible_v<T> and
+
         std::is_nothrow_constructible_v<T, std::size_t> and
         std::is_nothrow_constructible_v<std::size_t, T> and
         requires (T x) {
                 { static_cast<T>(x + x) } noexcept;
                 { static_cast<T>(x - x) } noexcept;
                 { static_cast<T>(x & x) } noexcept;
-                { x == x } noexcept;
-                { x >= x } noexcept;
+        } and
+
+        // totally_ordered in full: the equality pair and all four relations, where
+        // only == and >= were asked before.
+        requires (T const a, T const b) {
+                { a == b } noexcept;
+                { a != b } noexcept;
+                { a < b } noexcept;
+                { a > b } noexcept;
+                { a <= b } noexcept;
+                { a >= b } noexcept;
         };
 
 } // namespace xstd

@@ -6,10 +6,11 @@
 #ifndef XSTD_INTS_CONCEPTS_NOTHROW_CONST_OPERATORS_HPP
 #define XSTD_INTS_CONCEPTS_NOTHROW_CONST_OPERATORS_HPP
 
-#include <xstd/ints/concepts/integer.hpp> // integer
-#include <concepts>                       // same_as
-#include <cstddef>                        // size_t
-#include <type_traits>                    // is_nothrow_constructible_v, remove_cv_t
+#include <xstd/ints/concepts/integer.hpp>         // integer
+#include <xstd/ints/concepts/nothrow_regular.hpp> // nothrow_regular
+#include <concepts>                               // same_as
+#include <cstddef>                                // size_t
+#include <type_traits>                            // is_nothrow_constructible_v, remove_cv_t
 
 namespace xstd {
 
@@ -19,6 +20,8 @@ concept nothrow_const_operators =
         // T is the parameter's own default; naming it explicitly cannot redirect the question.
         std::same_as<T, std::remove_cv_t<T_cv>> and
         integer<T> and
+        // /9's regularity, which integer_class asks for and nothing here asked to be free.
+        nothrow_regular<T> and
         // /6, where integer_class asks it: the two conversions in, then the two out.
         std::is_nothrow_constructible_v<T, int> and
         std::is_nothrow_constructible_v<T, std::size_t> and
@@ -33,7 +36,7 @@ concept nothrow_const_operators =
                 { ~a } noexcept;
         } and
         requires (T const a, T const b) {
-                { a * b } noexcept;
+                { a* b } noexcept;
                 { a / b } noexcept;
                 { a % b } noexcept;
                 { a + b } noexcept;
@@ -51,7 +54,7 @@ concept nothrow_const_operators =
                 { a >= b } noexcept;
                 { a == b } noexcept;
                 { a != b } noexcept;
-                { a & b } noexcept;
+                { a& b } noexcept;
                 { a ^ b } noexcept;
                 { a | b } noexcept;
         } and

@@ -5,6 +5,7 @@
 
 #include <xstd/ints/concepts/integer.hpp>                 // NOLINT(misc-include-cleaner): used with optional Abseil fixtures
 #include <xstd/ints/concepts/nothrow_const_operators.hpp> // nothrow_const_operators
+#include <xstd/ints/concepts/nothrow_regular.hpp>         // nothrow_regular
 #include <xstd/ints/cstdint.hpp>                          // int128, uint128
 #include <xstd/ints/cstdlib/abs.hpp>                      // abs
 #include <xstd/ints/cstdlib/div.hpp>                      // div
@@ -42,6 +43,21 @@ BOOST_AUTO_TEST_CASE(HoldsForTheTypesThatDeclareIt)
         XSTD_CONSTEXPR_CHECK(xstd::integer<absl::int128>);
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_const_operators<absl::int128>);
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_const_operators<absl::uint128>);
+#endif
+}
+
+// The operators were never the whole cost: /9's regularity has to be free too.
+BOOST_AUTO_TEST_CASE(IncludesTheCostOfRegularity)
+{
+        XSTD_CONSTEXPR_CHECK(xstd::nothrow_regular<int>);
+        XSTD_CONSTEXPR_CHECK(xstd::nothrow_regular<xstd::int128>);
+        XSTD_CONSTEXPR_CHECK(xstd::nothrow_regular<xstd::uint128>);
+
+        // The refinement, over the types this file already names.
+        XSTD_CONSTEXPR_CHECK(not xstd::nothrow_const_operators<double> or xstd::nothrow_regular<double>);
+        XSTD_CONSTEXPR_CHECK(not xstd::nothrow_const_operators<int> or xstd::nothrow_regular<int>);
+#ifdef XSTD_TEST_HAS_ABSL_INT128
+        XSTD_CONSTEXPR_CHECK(not xstd::nothrow_const_operators<absl::int128> or xstd::nothrow_regular<absl::int128>);
 #endif
 }
 
