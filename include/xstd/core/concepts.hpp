@@ -8,4 +8,5 @@
 
 #include <xstd/core/concepts/alignable.hpp>         // IWYU pragma: export; alignable, nothrow_alignable
 #include <xstd/core/concepts/specialization_of.hpp> // IWYU pragma: export; specialization_of
-#endif                                              // XSTD_CORE_CONCEPTS_HPP
+
+#endif // XSTD_CORE_CONCEPTS_HPP

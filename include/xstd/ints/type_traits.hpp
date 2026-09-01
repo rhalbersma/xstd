@@ -11,4 +11,5 @@
 #include <xstd/ints/type_traits/make_signed.hpp>   // IWYU pragma: export; make_signed
 #include <xstd/ints/type_traits/make_unsigned.hpp> // IWYU pragma: export; make_unsigned
 #include <xstd/ints/type_traits/promoted.hpp>      // IWYU pragma: export; promoted
-#endif                                             // XSTD_INTS_TYPE_TRAITS_HPP
+
+#endif // XSTD_INTS_TYPE_TRAITS_HPP

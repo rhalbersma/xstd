@@ -11,4 +11,5 @@
 #include <xstd/ints/concepts/signed_integer.hpp>          // IWYU pragma: export; signed_integer
 #include <xstd/ints/concepts/unsigned_integer.hpp>        // IWYU pragma: export; unsigned_integer
 #include <xstd/ints/concepts/nothrow_const_operators.hpp> // IWYU pragma: export; nothrow_const_operators
-#endif                                                    // XSTD_INTS_CONCEPTS_HPP
+
+#endif // XSTD_INTS_CONCEPTS_HPP

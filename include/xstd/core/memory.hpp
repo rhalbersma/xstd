@@ -6,7 +6,7 @@
 #ifndef XSTD_CORE_MEMORY_HPP
 #define XSTD_CORE_MEMORY_HPP
 
-#include <xstd/core/memory/align_up.hpp>   // IWYU pragma: export; align_up
 #include <xstd/core/memory/align_down.hpp> // IWYU pragma: export; align_down
+#include <xstd/core/memory/align_up.hpp>   // IWYU pragma: export; align_up
 
 #endif // XSTD_CORE_MEMORY_HPP

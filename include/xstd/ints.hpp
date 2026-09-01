@@ -15,4 +15,5 @@
 #include <xstd/ints/format.hpp>      // IWYU pragma: export; formatter<div_result>
 #include <xstd/ints/limits.hpp>      // IWYU pragma: export; numeric_limits
 #include <xstd/ints/type_traits.hpp> // IWYU pragma: export; the sign traits and modifiers
-#endif                               // XSTD_INTS_HPP
+
+#endif // XSTD_INTS_HPP
