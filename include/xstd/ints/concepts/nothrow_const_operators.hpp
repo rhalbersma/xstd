@@ -36,7 +36,7 @@ concept nothrow_const_operators =
                 { ~a } noexcept;
         } and
         requires (T const a, T const b) {
-                { a* b } noexcept;
+                { a * b } noexcept;
                 { a / b } noexcept;
                 { a % b } noexcept;
                 { a + b } noexcept;
@@ -54,7 +54,7 @@ concept nothrow_const_operators =
                 { a >= b } noexcept;
                 { a == b } noexcept;
                 { a != b } noexcept;
-                { a& b } noexcept;
+                { a & b } noexcept;
                 { a ^ b } noexcept;
                 { a | b } noexcept;
         } and
