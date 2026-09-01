@@ -126,6 +126,25 @@ file(
 # Every header but those under ext/, which cannot compile before their optional dependency resolves.
 list(FILTER public_headers EXCLUDE REGEX "^xstd/ints/ext/")
 
+# The libraries are leaves: neither may include the other, or splitting them into
+# separate repositories would produce a cycle or a chain. Checked here rather than
+# left to review, because an include is one line and the consequence is structural.
+foreach(lib core ints)
+    if(lib STREQUAL core)
+        set(forbidden ints)
+    else()
+        set(forbidden core)
+    endif()
+    file(GLOB_RECURSE lib_headers CONFIGURE_DEPENDS ${public_header_dir}/xstd/${lib}/*.hpp)
+    list(APPEND lib_headers ${public_header_dir}/xstd/${lib}.hpp)
+    foreach(h ${lib_headers})
+        file(STRINGS ${h} offending REGEX "#include[ \t]*<xstd/${forbidden}/")
+        if(offending)
+            message(FATAL_ERROR "${h} includes <xstd/${forbidden}/...>: xstd/${lib} and xstd/${forbidden} must stay leaves.\n  ${offending}")
+        endif()
+    endforeach()
+endforeach()
+
 foreach(h ${public_headers})
     xstd_add_header_self_sufficiency_test(${h})
 endforeach()

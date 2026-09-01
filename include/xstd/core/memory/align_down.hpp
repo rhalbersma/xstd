@@ -6,17 +6,16 @@
 #ifndef XSTD_CORE_MEMORY_ALIGN_DOWN_HPP
 #define XSTD_CORE_MEMORY_ALIGN_DOWN_HPP
 
-#include <xstd/ints/concepts/nothrow_const_operators.hpp> // nothrow_const_operators
-#include <xstd/ints/concepts/unsigned_integer.hpp>        // unsigned_integer
-#include <bit>                                            // has_single_bit
-#include <cassert>                                        // assert
-#include <cstddef>                                        // size_t
+#include <xstd/core/concepts/alignable.hpp> // alignable, nothrow_alignable
+#include <bit>                              // has_single_bit
+#include <cassert>                          // assert
+#include <cstddef>                          // size_t
 
 namespace xstd {
 
 // Rounds value down to the previous multiple of a power-of-two alignment.
-template<unsigned_integer I>
-[[nodiscard]] constexpr auto align_down(I value, std::size_t alignment) noexcept(nothrow_const_operators<I>)
+template<alignable I>
+[[nodiscard]] constexpr auto align_down(I value, std::size_t alignment) noexcept(nothrow_alignable<I>)
         -> I
 {
         assert(std::has_single_bit(alignment));
