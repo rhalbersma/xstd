@@ -5,13 +5,13 @@
 
 #include <xstd/ints/concepts/integer.hpp>                 // NOLINT(misc-include-cleaner): used with optional Abseil fixtures
 #include <xstd/ints/concepts/nothrow_const_operators.hpp> // nothrow_const_operators
-#include <xstd/ints/concepts/nothrow_regular.hpp>         // nothrow_regular
 #include <xstd/ints/cstdint.hpp>                          // int128, uint128
 #include <xstd/ints/cstdlib/abs.hpp>                      // abs
 #include <xstd/ints/cstdlib/div.hpp>                      // div
 #include <xstd/test/constexpr_check.hpp>                  // XSTD_CONSTEXPR_CHECK
 #include <boost/test/unit_test.hpp>                       // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <complex>                                        // complex
+#include <type_traits>                                    // is_nothrow_..._v
 
 // Reached the way a consumer reaches it: the probe here, the pair inside the adapter.
 #if __has_include(<absl/numeric/int128.h>)
@@ -46,18 +46,20 @@ BOOST_AUTO_TEST_CASE(HoldsForTheTypesThatDeclareIt)
 #endif
 }
 
-// The operators were never the whole cost: /9's regularity has to be free too.
-BOOST_AUTO_TEST_CASE(IncludesTheCostOfRegularity)
+// The operators were never the whole cost. Every function specified with this
+// concept takes its operands by value and returns by value, so /9's copy, move and
+// destructor are spent on each call even though no line of the source names one.
+BOOST_AUTO_TEST_CASE(IncludesWhatPassingAndReturningCosts)
 {
-        XSTD_CONSTEXPR_CHECK(xstd::nothrow_regular<int>);
-        XSTD_CONSTEXPR_CHECK(xstd::nothrow_regular<xstd::int128>);
-        XSTD_CONSTEXPR_CHECK(xstd::nothrow_regular<xstd::uint128>);
+        XSTD_CONSTEXPR_CHECK(std::is_nothrow_destructible_v<int>);
+        XSTD_CONSTEXPR_CHECK(std::is_nothrow_move_constructible_v<xstd::int128>);
+        XSTD_CONSTEXPR_CHECK(std::is_nothrow_copy_constructible_v<xstd::uint128>);
 
-        // The refinement, over the types this file already names.
-        XSTD_CONSTEXPR_CHECK(not xstd::nothrow_const_operators<double> or xstd::nothrow_regular<double>);
-        XSTD_CONSTEXPR_CHECK(not xstd::nothrow_const_operators<int> or xstd::nothrow_regular<int>);
+        // Which the concept now answers for, over the types this file already names.
+        XSTD_CONSTEXPR_CHECK(not xstd::nothrow_const_operators<int> or std::is_nothrow_copy_constructible_v<int>);
 #ifdef XSTD_TEST_HAS_ABSL_INT128
-        XSTD_CONSTEXPR_CHECK(not xstd::nothrow_const_operators<absl::int128> or xstd::nothrow_regular<absl::int128>);
+        using T = absl::int128;
+        XSTD_CONSTEXPR_CHECK(not xstd::nothrow_const_operators<T> or std::is_nothrow_copy_constructible_v<T>);
 #endif
 }
 

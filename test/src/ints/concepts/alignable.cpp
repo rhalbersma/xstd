@@ -14,6 +14,7 @@
 #include <cstddef>                                 // size_t
 #include <cstdint>                                 // exact-width integer types, uintptr_t
 #include <limits>                                  // numeric_limits
+#include <type_traits>                             // is_nothrow_..._v
 
 #if __has_include(<absl/numeric/int128.h>)
 #define XSTD_TEST_HAS_ABSL_INT128
@@ -180,6 +181,19 @@ BOOST_AUTO_TEST_CASE(IsCvTransparent)
 
         static_assert(xstd::nothrow_alignable<unsigned const volatile>);
         static_assert(xstd::nothrow_alignable<std::size_t const>);
+        BOOST_CHECK(true);
+}
+
+// align_up, align_down and is_aligned each take a T by value and hand one back; no line
+// of the three names a special member, and all three spend them. The nothrow refinement
+// answers for that, not only for the operators.
+BOOST_AUTO_TEST_CASE(TheNothrowRefinementCoversWhatTheCallSpends)
+{
+        static_assert(std::is_nothrow_destructible_v<std::size_t>);
+        static_assert(std::is_nothrow_copy_constructible_v<xstd::uint128>);
+
+        static_assert(not xstd::nothrow_alignable<light> or std::is_nothrow_move_constructible_v<light>);
+        static_assert(not xstd::nothrow_alignable<std::size_t> or std::is_nothrow_destructible_v<std::size_t>);
         BOOST_CHECK(true);
 }
 

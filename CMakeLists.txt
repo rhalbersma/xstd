@@ -41,7 +41,6 @@ target_sources(
         include/xstd/ints/concepts/integer_class.hpp
         include/xstd/ints/concepts/integer.hpp
         include/xstd/ints/concepts/nothrow_const_operators.hpp
-        include/xstd/ints/concepts/nothrow_regular.hpp
         include/xstd/ints/concepts/signed_integer.hpp
         include/xstd/core.hpp
         include/xstd/core/concepts.hpp

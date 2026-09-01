@@ -24,8 +24,6 @@ concept lattice =
         (not xstd::integer<T> or xstd::integer_class<T>) and
         // nothrow_const_operators opens on integer too, and adds only the specification.
         (not xstd::nothrow_const_operators<T> or xstd::integer<T>) and
-        // including regularity's share of it, which integer_class asks for at /9.
-        (not xstd::nothrow_const_operators<T> or xstd::nothrow_regular<T>) and
         // alignable admits the unsigned half and refuses the signed one.
         (not xstd::unsigned_integer<T> or xstd::alignable<T>) and
         (not xstd::signed_integer<T> or not xstd::alignable<T>) and
