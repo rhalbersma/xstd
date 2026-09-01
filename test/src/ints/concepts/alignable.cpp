@@ -27,7 +27,7 @@ namespace {
 // Alignable without being an integer: no division, no increments, no compound assignment.
 struct light
 {
-        std::uint64_t v = 0;
+        std::size_t v = 0;
 
         constexpr light() = default;
         constexpr light(std::size_t n) : v(n) {}
@@ -43,21 +43,28 @@ struct light
         [[nodiscard]] constexpr auto operator+(light o) const
                 -> light
         {
-                return light(v + o.v);
+                return {v + o.v};
         }
 
         [[nodiscard]] constexpr auto operator-(light o) const
                 -> light
         {
-                return light(v - o.v);
+                return {v - o.v};
         }
 
         [[nodiscard]] constexpr auto operator&(light o) const
                 -> light
         {
-                return light(v & o.v);
+                return {v & o.v};
         }
 };
+
+// Every unsigned_integer is alignable, no signed_integer is, and alignable carries the way back to size_t.
+template<class T>
+constexpr auto refines_alignable =
+        (not xstd::unsigned_integer<T> or xstd::alignable<T>) and
+        (not xstd::signed_integer<T> or not xstd::alignable<T>) and
+        (not xstd::alignable<T> or std::constructible_from<std::size_t, T>);
 
 } // namespace
 
@@ -65,7 +72,7 @@ namespace xstd {
 
 // What alignable asks of the type, borrowed whole from the integer it is a thin wrapper over.
 template<>
-struct numeric_limits<light> : std::numeric_limits<std::uint64_t>
+struct numeric_limits<light> : std::numeric_limits<std::size_t>
 {};
 
 } // namespace xstd
@@ -126,27 +133,22 @@ BOOST_AUTO_TEST_CASE(AndRejectsTheRestOnTheirMerits)
 // The point of the concept: it is integer_class's opening clauses and then it stops.
 BOOST_AUTO_TEST_CASE(IsIntegerLight)
 {
-#define XSTD_TEST_REFINES(T) \
-        static_assert(not xstd::unsigned_integer<T> or xstd::alignable<T>); \
-        static_assert(not xstd::signed_integer<T> or not xstd::alignable<T>); \
-        static_assert(not xstd::alignable<T> or std::constructible_from<std::size_t, T>)
-        XSTD_TEST_REFINES(unsigned char);
-        XSTD_TEST_REFINES(unsigned);
-        XSTD_TEST_REFINES(unsigned long long);
-        XSTD_TEST_REFINES(std::size_t);
-        XSTD_TEST_REFINES(std::uint8_t);
-        XSTD_TEST_REFINES(signed char);
-        XSTD_TEST_REFINES(int);
-        XSTD_TEST_REFINES(bool);
+        static_assert(refines_alignable<unsigned char>);
+        static_assert(refines_alignable<unsigned>);
+        static_assert(refines_alignable<unsigned long long>);
+        static_assert(refines_alignable<std::size_t>);
+        static_assert(refines_alignable<std::uint8_t>);
+        static_assert(refines_alignable<signed char>);
+        static_assert(refines_alignable<int>);
+        static_assert(refines_alignable<bool>);
 #ifdef XSTD_TEST_HAS_INT128
-        XSTD_TEST_REFINES(__uint128_t);
-        XSTD_TEST_REFINES(__int128_t);
+        static_assert(refines_alignable<__uint128_t>);
+        static_assert(refines_alignable<__int128_t>);
 #endif
 #ifdef __BITINT_MAXWIDTH__
-        XSTD_TEST_REFINES(unsigned _BitInt(24));
-        XSTD_TEST_REFINES(signed _BitInt(24));
+        static_assert(refines_alignable<unsigned _BitInt(24)>);
+        static_assert(refines_alignable<signed _BitInt(24)>);
 #endif
-#undef XSTD_TEST_REFINES
 
         // And the converse fails, which is what makes it light rather than a synonym for unsigned_integer.
         static_assert(xstd::alignable<light>);

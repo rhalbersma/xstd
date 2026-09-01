@@ -30,6 +30,7 @@ template<class T>
 [[nodiscard]] auto align_down(T* pointer, std::size_t alignment) noexcept
         -> T*
 {
+        // NOLINTNEXTLINE(performance-no-int-to-ptr): the address is what was aligned, and it has to become a pointer again
         return reinterpret_cast<T*>(align_down(reinterpret_cast<std::uintptr_t>(pointer), alignment));
 }
 

@@ -9,6 +9,7 @@
 #include <boost/align/is_aligned.hpp>    // is_aligned
 #include <boost/align/align_up.hpp>      // align_up
 #include <boost/test/unit_test.hpp>      // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
+#include <array>                         // array
 #include <concepts>                      // same_as
 #include <cstddef>                       // size_t
 #include <cstdint>                       // uint8_t, uint16_t, uint32_t, uint64_t, uintptr_t
@@ -107,31 +108,48 @@ BOOST_AUTO_TEST_CASE(IsAligned)
 }
 
 // What align_up and align_down leave behind is aligned, and what they are given is left alone once it is.
+namespace {
+
+auto agrees_with_the_other_two(std::size_t value, std::size_t alignment) -> void
+{
+        BOOST_CHECK(xstd::is_aligned(xstd::align_up(value, alignment), alignment));
+        BOOST_CHECK(xstd::is_aligned(xstd::align_down(value, alignment), alignment));
+        BOOST_CHECK_EQUAL(xstd::is_aligned(value, alignment), xstd::align_down(value, alignment) == value);
+        BOOST_CHECK_EQUAL(xstd::is_aligned(value, alignment), boost::alignment::is_aligned(value, alignment));
+}
+
+} // namespace
+
 BOOST_AUTO_TEST_CASE(IsAlignedAgreesWithTheOtherTwo)
 {
         for (auto alignment = 1UZ; alignment <= 64UZ; alignment *= 2UZ) {
                 for (auto value = 0UZ; value < 256UZ; ++value) {
-                        BOOST_CHECK(xstd::is_aligned(xstd::align_up(value, alignment), alignment));
-                        BOOST_CHECK(xstd::is_aligned(xstd::align_down(value, alignment), alignment));
-                        BOOST_CHECK_EQUAL(xstd::is_aligned(value, alignment), xstd::align_down(value, alignment) == value);
-                        BOOST_CHECK_EQUAL(xstd::is_aligned(value, alignment), boost::alignment::is_aligned(value, alignment));
+                        agrees_with_the_other_two(value, alignment);
                 }
         }
 }
 
+namespace {
+
+auto agrees_with_boost_pointers(char* p, std::size_t alignment) -> void
+{
+        BOOST_CHECK_EQUAL(static_cast<void*>(xstd::align_up(p, alignment)),
+                          boost::alignment::align_up(static_cast<void*>(p), alignment));
+        BOOST_CHECK_EQUAL(static_cast<void*>(xstd::align_down(p, alignment)),
+                          boost::alignment::align_down(static_cast<void*>(p), alignment));
+        BOOST_CHECK_EQUAL(xstd::is_aligned(p, alignment),
+                          boost::alignment::is_aligned(static_cast<void const*>(p), alignment));
+}
+
+} // namespace
+
 // The pointer overloads are the same arithmetic in the address space, so they answer as Boost's do.
 BOOST_AUTO_TEST_CASE(Pointers)
 {
-        alignas(4096) static char buffer[8192];
+        alignas(4096) static std::array<char, 8192> buffer;
         for (auto offset = 0UZ; offset < 512UZ; ++offset) {
                 for (auto alignment = 1UZ; alignment <= 256UZ; alignment *= 2UZ) {
-                        auto* const p = buffer + offset;
-                        BOOST_CHECK_EQUAL(static_cast<void*>(xstd::align_up(p, alignment)),
-                                          boost::alignment::align_up(static_cast<void*>(p), alignment));
-                        BOOST_CHECK_EQUAL(static_cast<void*>(xstd::align_down(p, alignment)),
-                                          boost::alignment::align_down(static_cast<void*>(p), alignment));
-                        BOOST_CHECK_EQUAL(xstd::is_aligned(p, alignment),
-                                          boost::alignment::is_aligned(static_cast<void const*>(p), alignment));
+                        agrees_with_boost_pointers(buffer.data() + offset, alignment);
                 }
         }
 }
@@ -139,13 +157,13 @@ BOOST_AUTO_TEST_CASE(Pointers)
 // The pointee type survives, where Boost hands back void* and leaves the cast to the caller.
 BOOST_AUTO_TEST_CASE(PointerReturnType)
 {
-        alignas(64) static int buffer[16];
-        static_assert(std::same_as<decltype(xstd::align_up(buffer, 64)), int*>);
-        static_assert(std::same_as<decltype(xstd::align_down(buffer, 64)), int*>);
-        static_assert(std::same_as<decltype(xstd::is_aligned(buffer, 64)), bool>);
-        BOOST_CHECK(xstd::is_aligned(buffer, 64));
-        BOOST_CHECK_EQUAL(xstd::align_up(buffer, 64), buffer);
-        BOOST_CHECK_EQUAL(xstd::align_down(buffer, 64), buffer);
+        alignas(64) static std::array<int, 16> buffer;
+        static_assert(std::same_as<decltype(xstd::align_up(buffer.data(), 64)), int*>);
+        static_assert(std::same_as<decltype(xstd::align_down(buffer.data(), 64)), int*>);
+        static_assert(std::same_as<decltype(xstd::is_aligned(buffer.data(), 64)), bool>);
+        BOOST_CHECK(xstd::is_aligned(buffer.data(), 64));
+        BOOST_CHECK_EQUAL(xstd::align_up(buffer.data(), 64), buffer.data());
+        BOOST_CHECK_EQUAL(xstd::align_down(buffer.data(), 64), buffer.data());
 }
 
 BOOST_AUTO_TEST_SUITE_END()
