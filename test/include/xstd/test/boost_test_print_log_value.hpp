@@ -6,17 +6,17 @@
 #ifndef XSTD_TEST_BOOST_TEST_PRINT_LOG_VALUE_HPP
 #define XSTD_TEST_BOOST_TEST_PRINT_LOG_VALUE_HPP
 
-#include <xstd/charconv/to_chars.hpp>  // to_chars, to_chars_max_size
-#include <xstd/concepts/integer.hpp>   // integer
-#include <xstd/cstdint.hpp>            // int128, uint128
-#include <xstd/cstdlib/div_result.hpp> // div_result
-#include <boost/test/unit_test.hpp>    // print_log_value
-#include <array>                       // array
-#include <cassert>                     // assert
-#include <cstddef>                     // size_t
-#include <ostream>                     // ostream
-#include <string_view>                 // string_view
-#include <system_error>                // errc
+#include <xstd/ints/charconv/to_chars.hpp>  // to_chars, to_chars_max_size
+#include <xstd/ints/concepts/integer.hpp>   // integer
+#include <xstd/ints/cstdint.hpp>            // int128, uint128
+#include <xstd/ints/cstdlib/div_result.hpp> // div_result
+#include <boost/test/unit_test.hpp>         // print_log_value
+#include <array>                            // array
+#include <cassert>                          // assert
+#include <cstddef>                          // size_t
+#include <ostream>                          // ostream
+#include <string_view>                      // string_view
+#include <system_error>                     // errc
 
 namespace xstd::test {
 
