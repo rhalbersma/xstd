@@ -6,36 +6,7 @@
 #ifndef XSTD_MEMORY_HPP
 #define XSTD_MEMORY_HPP
 
-#include <xstd/concepts/nothrow_const_operators.hpp> // nothrow_const_operators
-#include <xstd/concepts/unsigned_integer.hpp>        // unsigned_integer
-#include <xstd/limits/numeric_limits.hpp>            // numeric_limits
-#include <bit>                                       // has_single_bit
-#include <cassert>                                   // assert
-#include <cstddef>                                   // size_t
-
-namespace xstd {
-
-// Rounds value up to the next multiple of a power-of-two alignment.
-template<unsigned_integer I>
-[[nodiscard]] constexpr auto align_up(I value, std::size_t alignment) noexcept(nothrow_const_operators<I>)
-        -> I
-{
-        assert(std::has_single_bit(alignment));
-        auto const mask = static_cast<I>(static_cast<I>(alignment) - static_cast<I>(1));
-        assert(value <= static_cast<I>(numeric_limits<I>::max() - mask));
-        return static_cast<I>(static_cast<I>(value + mask) & static_cast<I>(~mask));
-}
-
-// Rounds value down to the previous multiple of a power-of-two alignment.
-template<unsigned_integer I>
-[[nodiscard]] constexpr auto align_down(I value, std::size_t alignment) noexcept(nothrow_const_operators<I>)
-        -> I
-{
-        assert(std::has_single_bit(alignment));
-        auto const mask = static_cast<I>(static_cast<I>(alignment) - static_cast<I>(1));
-        return static_cast<I>(value & static_cast<I>(~mask));
-}
-
-} // namespace xstd
+#include <xstd/memory/align_up.hpp>   // IWYU pragma: export; align_up
+#include <xstd/memory/align_down.hpp> // IWYU pragma: export; align_down
 
 #endif // XSTD_MEMORY_HPP
