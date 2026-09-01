@@ -6,7 +6,7 @@
 #ifndef XSTD_TEST_BIT_PRECISE_HPP
 #define XSTD_TEST_BIT_PRECISE_HPP
 
-#include <xstd/cstdint/bit_int.hpp> // XSTD_HAS_BIT_INT, bit_int, bit_uint
+#include <xstd/ints/cstdint/bit_int.hpp> // XSTD_HAS_BIT_INT, bit_int, bit_uint
 
 #ifdef XSTD_HAS_BIT_INT
 

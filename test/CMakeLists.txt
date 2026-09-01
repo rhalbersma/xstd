@@ -124,7 +124,7 @@ file(
 )
 
 # Every header but those under ext/, which cannot compile before their optional dependency resolves.
-list(FILTER public_headers EXCLUDE REGEX "^xstd/ext/")
+list(FILTER public_headers EXCLUDE REGEX "^xstd/ints/ext/")
 
 foreach(h ${public_headers})
     xstd_add_header_self_sufficiency_test(${h})
@@ -214,12 +214,12 @@ endif()
 
 # The headers held back above, each compiled only where the library it adapts is there to adapt.
 if(TARGET Boost::int128)
-    xstd_add_header_self_sufficiency_test(xstd/ext/boost.hpp ${xstd_test_boost_int128})
-    xstd_add_header_self_sufficiency_test(xstd/ext/boost/int128.hpp ${xstd_test_boost_int128})
+    xstd_add_header_self_sufficiency_test(xstd/ints/ext/boost.hpp ${xstd_test_boost_int128})
+    xstd_add_header_self_sufficiency_test(xstd/ints/ext/boost/int128.hpp ${xstd_test_boost_int128})
 endif()
 if(TARGET absl::int128)
-    xstd_add_header_self_sufficiency_test(xstd/ext/absl.hpp ${xstd_test_absl_int128})
-    xstd_add_header_self_sufficiency_test(xstd/ext/absl/int128.hpp ${xstd_test_absl_int128})
+    xstd_add_header_self_sufficiency_test(xstd/ints/ext/absl.hpp ${xstd_test_absl_int128})
+    xstd_add_header_self_sufficiency_test(xstd/ints/ext/absl/int128.hpp ${xstd_test_absl_int128})
 endif()
 
 set(current_source_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)

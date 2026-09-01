@@ -78,7 +78,7 @@ because the concept excluded built-ins. Each now says `not std::integral` where
 it means it — the "where std stops" line belongs to the trait that draws it, not
 to the concept.
 
-When Clang exposes `_BitInt`, `<xstd/cstdint.hpp>` names the native types as
+When Clang exposes `_BitInt`, `<xstd/ints/cstdint.hpp>` names the native types as
 `bit_int<N>` and `bit_uint<N>`. They are aliases, not wrappers: their ABI,
 conversions, promotions, and operators remain the compiler's. xstd specializes
 its open limits and transformation traits for them, which makes paired widths
@@ -144,12 +144,12 @@ expression needs it, while
 They are spelled `int128` and `uint128`, without the `_t` that `<cstdint>`'s
 exact-width names carry. C reserves typedef names beginning with `int` or `uint`
 and ending in `_t` for future additions to `<stdint.h>`. The reservation does not
-reach into a user-defined namespace, but `<xstd/cstdint.hpp>` exists precisely
+reach into a user-defined namespace, but `<xstd/ints/cstdint.hpp>` exists precisely
 because the standard header lacks the type, so the day it gains one is the day
 the two spellings collide. Boost.Int128 renamed the same way during its review.
 
-Their two associations live in `<xstd/cstdint/int128.hpp>`, beside the aliases
-and not inside the traits; `<xstd/cstdint.hpp>` is the umbrella that exports
+Their two associations live in `<xstd/ints/cstdint/int128.hpp>`, beside the aliases
+and not inside the traits; `<xstd/ints/cstdint.hpp>` is the umbrella that exports
 them. The header that introduces a pair registers it, so whoever can name the
 type has the specializations in scope and cannot reach the type through a
 translation unit that would answer differently. It also leaves `make_signed` and
@@ -175,8 +175,8 @@ those are exactly what the battery covers.
 
 Abseil and Boost.Int128 each introduce an integer-class pair, and neither can
 name `xstd::make_signed`. Their associations are the two lines nobody can
-derive, identical for every consumer, so `<xstd/ext/absl/int128.hpp>` and
-`<xstd/ext/boost/int128.hpp>` ship them rather than leaving each user to write
+derive, identical for every consumer, so `<xstd/ints/ext/absl/int128.hpp>` and
+`<xstd/ints/ext/boost/int128.hpp>` ship them rather than leaving each user to write
 the same specializations. Because they are explicit specializations, shipping
 them later would have been the breaking change, not shipping them now: a user
 who had written their own would meet a redefinition.
@@ -187,15 +187,15 @@ than the adapted one's. The prefix is load-bearing where Hana's is: these
 headers are installed, and an unprefixed top-level `ext/` would put a generic
 directory in a shared include namespace, where two libraries that both did it
 would collide silently on the first `-I`. Nothing under `include/xstd/` includes
-them and no umbrella sits above `<xstd/ext/absl.hpp>` and `<xstd/ext/boost.hpp>`,
-so an adapted library is asked for by name and `<xstd/cstdint.hpp>` never drags
+them and no umbrella sits above `<xstd/ints/ext/absl.hpp>` and `<xstd/ints/ext/boost.hpp>`,
+so an adapted library is asked for by name and `<xstd/ints/cstdint.hpp>` never drags
 in Abseil. Each hard-includes the library it adapts, leaving the `__has_include`
 probe to the consumer — which the test suite writes for itself, having no
 fixture headers for these two and reaching them through the shipped adapter the
 way anyone else would.
 
 Those includes are exported, so one is all a consumer writes: a translation unit
-including `<xstd/ext/absl/int128.hpp>` has `absl::int128` and `absl::uint128`
+including `<xstd/ints/ext/absl/int128.hpp>` has `absl::int128` and `absl::uint128`
 with it, and include-cleaner over that unit asks for nothing further, under a
 configuration that inherits nothing from this repository.
 
@@ -344,7 +344,7 @@ the strict dialect, `<charconv>` only outside it, and `<ostream>` in neither.
 
 ### Formatting
 
-`<xstd/format.hpp>` formats a `div_result` as `(quotient, remainder)`, through two partial
+`<xstd/ints/format.hpp>` formats a `div_result` as `(quotient, remainder)`, through two partial
 specializations of `std::formatter`. `div_result` is tuple-like, so where the standard
 library can format a tuple of the element type the specialization to use inherits
 `std::formatter<std::tuple<I const&, I const&>>` and hands it `std::tie` — the

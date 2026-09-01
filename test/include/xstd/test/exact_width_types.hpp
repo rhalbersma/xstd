@@ -7,7 +7,7 @@
 #define XSTD_TEST_EXACT_WIDTH_TYPES_HPP
 
 #include <xstd/test/bit_precise.hpp> // XSTD_TEST_HAS_BIT_PRECISE, bit_int, bit_uint
-#include <xstd/cstdint.hpp>          // int128, uint128
+#include <xstd/ints/cstdint.hpp>     // int128, uint128
 #include <cstdint>                   // exact-width integer types
 #include <tuple>                     // tuple, tuple_cat
 #include <utility>                   // declval
@@ -15,12 +15,12 @@
 // The optional pairs reached the way any consumer reaches them: the probe here, the associations in the adapter.
 #if __has_include(<boost/int128.hpp>)
 #define XSTD_TEST_HAS_BOOST_INT128
-#include <xstd/ext/boost/int128.hpp> // int128, uint128
+#include <xstd/ints/ext/boost/int128.hpp> // int128, uint128
 #endif
 
 #if __has_include(<absl/numeric/int128.h>)
 #define XSTD_TEST_HAS_ABSL_INT128
-#include <xstd/ext/absl/int128.hpp> // int128, uint128
+#include <xstd/ints/ext/absl/int128.hpp> // int128, uint128
 #endif
 
 // The exact-width lists, one per library, so a case can name just the widths it can use.

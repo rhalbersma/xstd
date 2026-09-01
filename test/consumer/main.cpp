@@ -3,11 +3,11 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/concepts/integer.hpp>
-#include <xstd/cstdlib.hpp>
-#include <xstd/format.hpp>
-#include <xstd/type_traits/is_specialization_of.hpp>
-#include <xstd/utility.hpp>
+#include <xstd/ints/concepts/integer.hpp>
+#include <xstd/ints/cstdlib.hpp>
+#include <xstd/ints/format.hpp>
+#include <xstd/core/type_traits/is_specialization_of.hpp>
+#include <xstd/core/utility.hpp>
 #include <complex>
 #include <format>
 #include <type_traits>
