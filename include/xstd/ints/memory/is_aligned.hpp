@@ -27,12 +27,15 @@ template<alignable T>
         return static_cast<T>(value & mask) == static_cast<T>(0UZ);
 }
 
-// The same question in the address space, which is why it delegates rather than repeating the mask work.
+// The same question in the address space, which is why it delegates rather than repeating
+// the mask work. Qualified, as the cstdlib family is: uintptr_t brings no associated namespace
+// along, so nothing can be found here today, but the delegation says which overload it means
+// rather than leaving that to a lookup that a later overload or argument type could redirect.
 template<class T>
 [[nodiscard]] auto is_aligned(T* pointer, std::size_t alignment) noexcept
         -> bool
 {
-        return is_aligned(reinterpret_cast<std::uintptr_t>(pointer), alignment);
+        return xstd::is_aligned(reinterpret_cast<std::uintptr_t>(pointer), alignment);
 }
 
 } // namespace xstd

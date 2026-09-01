@@ -25,13 +25,16 @@ template<alignable T>
         return static_cast<T>(value - static_cast<T>(value & mask));
 }
 
-// The same arithmetic in the address space, which is why it delegates rather than repeating the mask work.
+// The same arithmetic in the address space, which is why it delegates rather than repeating
+// the mask work. Qualified, as the cstdlib family is: uintptr_t brings no associated namespace
+// along, so nothing can be found here today, but the delegation says which overload it means
+// rather than leaving that to a lookup that a later overload or argument type could redirect.
 template<class T>
 [[nodiscard]] auto align_down(T* pointer, std::size_t alignment) noexcept
         -> T*
 {
         // NOLINTNEXTLINE(performance-no-int-to-ptr): the address is what was aligned, and it has to become a pointer again
-        return reinterpret_cast<T*>(align_down(reinterpret_cast<std::uintptr_t>(pointer), alignment));
+        return reinterpret_cast<T*>(xstd::align_down(reinterpret_cast<std::uintptr_t>(pointer), alignment));
 }
 
 } // namespace xstd
