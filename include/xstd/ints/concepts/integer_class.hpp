@@ -52,7 +52,8 @@ concept integer_class =
         requires (T const a) {
                 { +a } -> std::same_as<promoted_t<T>>;
                 { -a } -> std::same_as<promoted_t<T>>;
-                { not a } -> std::same_as<bool>;
+                // NOLINTNEXTLINE(readability-operators-representation): /7.3 spells this one !
+                { !a } -> std::same_as<bool>;
                 { ~a } -> std::same_as<promoted_t<T>>;
         } and
 
