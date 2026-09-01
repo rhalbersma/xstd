@@ -16,8 +16,10 @@ concept cv_rejected_integer =
         not xstd::integer<T> and not xstd::integer<T const> and not xstd::integer<T volatile> and
         not xstd::integer<T const volatile>;
 
+BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(Concepts)
-BOOST_AUTO_TEST_CASE_TEMPLATE(Integer, T, xstd::test::exact_width_integer_types)
+BOOST_AUTO_TEST_SUITE(Integer)
+BOOST_AUTO_TEST_CASE_TEMPLATE(AdmitsTheExactWidthTypesThroughCv, T, xstd::test::exact_width_integer_types)
 {
         static_assert(xstd::integer<T>);
         static_assert(xstd::integer<T const>);
@@ -25,7 +27,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Integer, T, xstd::test::exact_width_integer_types)
         static_assert(xstd::integer<T const volatile>);
         BOOST_CHECK(true);
 }
-BOOST_AUTO_TEST_CASE(RejectsNonIntegers)
+BOOST_AUTO_TEST_CASE(RejectsTheCharacterAndNonIntegralTypes)
 {
         static_assert(xstd::integer<signed char>);
         static_assert(xstd::integer<unsigned char>);
@@ -83,4 +85,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedRoundTrip, T, xstd::test::exact_width_unsi
         BOOST_CHECK(true);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

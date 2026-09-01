@@ -16,7 +16,9 @@
 #include <xstd/test/constexpr_check.hpp> // XSTD_CONSTEXPR_CHECK_EQUAL
 #endif
 
-BOOST_AUTO_TEST_SUITE(FormatDivT)
+BOOST_AUTO_TEST_SUITE(Ints)
+BOOST_AUTO_TEST_SUITE(Format)
+BOOST_AUTO_TEST_SUITE(DivResult)
 
 // Which specialization runs is the library's and the element type's, so no test names one.
 
@@ -51,4 +53,6 @@ BOOST_AUTO_TEST_CASE(WideFormatter)
         BOOST_CHECK(std::format(L"{}", xstd::div_result<int>{1, -2}) == std::wstring_view{L"(1, -2)"});
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

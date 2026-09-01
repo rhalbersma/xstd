@@ -10,6 +10,7 @@
 #include <xstd/ints/limits.hpp>                     // numeric_limits
 #include <boost/test/unit_test.hpp>                 // BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE
 
+BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
 // Without negative values, truncated, floored and Euclidean division are the same operation.
@@ -34,4 +35,5 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(ExactDivisionConventionsAgree, T, xstd::test::exac
         XSTD_CONSTEXPR_CHECK_EQUAL_IF(xstd::test::has_constexpr_division<T>, (xstd::div(T{-6}, T{3})), (xstd::div_floor(T{-6}, T{3})));
 }
 
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

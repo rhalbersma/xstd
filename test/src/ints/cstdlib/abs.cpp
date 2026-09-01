@@ -10,9 +10,11 @@
 #include <xstd/ints/limits.hpp>                     // numeric_limits
 #include <boost/test/unit_test.hpp>                 // Boost.Test
 
+BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(CStdLib)
+BOOST_AUTO_TEST_SUITE(Abs)
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(Abs, T, xstd::test::exact_width_signed_integer_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(ReturnsTheMagnitude, T, xstd::test::exact_width_signed_integer_types)
 {
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(T{-2}), T{2});
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(T{-1}), T{1});
@@ -26,7 +28,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(Abs, T, xstd::test::exact_width_signed_integer_typ
 }
 
 // The identity, and total where the signed case is not: min() is 0, its own magnitude.
-BOOST_AUTO_TEST_CASE_TEMPLATE(AbsUnsigned, T, xstd::test::exact_width_unsigned_integer_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(IsTheIdentityOnUnsigned, T, xstd::test::exact_width_unsigned_integer_types)
 {
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(T{0}), T{0});
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(T{1}), T{1});
@@ -37,4 +39,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(AbsUnsigned, T, xstd::test::exact_width_unsigned_i
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::abs(limits::max()), limits::max());
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

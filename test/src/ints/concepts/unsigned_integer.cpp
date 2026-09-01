@@ -7,8 +7,10 @@
 #include <xstd/test/exact_width_types.hpp>         // exact-width integer types
 #include <boost/test/unit_test.hpp>                // Boost.Test
 
+BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(Concepts)
-BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedInteger, T, xstd::test::exact_width_unsigned_integer_types)
+BOOST_AUTO_TEST_SUITE(UnsignedInteger)
+BOOST_AUTO_TEST_CASE_TEMPLATE(AdmitsTheExactWidthTypesThroughCv, T, xstd::test::exact_width_unsigned_integer_types)
 {
         static_assert(xstd::unsigned_integer<T>);
         static_assert(xstd::unsigned_integer<T const>);
@@ -21,4 +23,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(SignedIsNotUnsigned, T, xstd::test::exact_width_si
         static_assert(not xstd::unsigned_integer<T>);
         BOOST_CHECK(true);
 }
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

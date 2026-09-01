@@ -12,7 +12,9 @@
 #include <cstdint>                               // int8_t, uint8_t
 #include <type_traits>                           // make_signed_t
 
+BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(TypeTraits)
+BOOST_AUTO_TEST_SUITE(MakeSigned)
 
 enum class color : unsigned { red = 1 };
 
@@ -20,7 +22,7 @@ enum class color : unsigned { red = 1 };
 template<class T>
 concept has_make_signed = requires { typename xstd::make_signed_t<T>; };
 
-BOOST_AUTO_TEST_CASE(MakeSignedLike)
+BOOST_AUTO_TEST_CASE(MirrorsTheUnsignedHalf)
 {
         // The signed half is the exact mirror of the unsigned half.
         XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_signed_t<std::uint8_t>, std::int8_t>));
@@ -41,4 +43,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(ExactWidthIntegers, T, xstd::test::exact_width_uns
         BOOST_CHECK(true);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

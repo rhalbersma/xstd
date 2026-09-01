@@ -13,7 +13,9 @@
 #include <cstdint>                                 // exact-width integer types
 #include <type_traits>                             // make_unsigned_t
 
+BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(TypeTraits)
+BOOST_AUTO_TEST_SUITE(MakeUnsigned)
 
 enum class color : unsigned { red = 1 };
 
@@ -21,7 +23,7 @@ enum class color : unsigned { red = 1 };
 template<class T>
 concept has_make_unsigned = requires { typename xstd::make_unsigned_t<T>; };
 
-BOOST_AUTO_TEST_CASE(MakeUnsignedLike)
+BOOST_AUTO_TEST_CASE(MirrorsTheSignedHalf)
 {
         // agrees with std::make_unsigned wherever it answers, unsigned as much as signed
         XSTD_CONSTEXPR_CHECK((std::same_as<xstd::make_unsigned_t<std::int8_t>, std::uint8_t>));
@@ -54,4 +56,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(ExactWidthIntegers, T, xstd::test::exact_width_sig
         BOOST_CHECK(true);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

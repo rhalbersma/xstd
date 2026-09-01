@@ -9,7 +9,9 @@
 #include <concepts>                                          // same_as
 #include <type_traits>                                       // is_empty_v
 
+BOOST_AUTO_TEST_SUITE(Core)
 BOOST_AUTO_TEST_SUITE(TypeTraits)
+BOOST_AUTO_TEST_SUITE(ConditionalDataMember)
 
 struct tag1;
 struct tag2;
@@ -26,7 +28,7 @@ static_assert(sizeof(compressed_member) == sizeof(int));
 using member1 = xstd::conditional_data_member_t<false, tag1, struct member1_tag>;
 using member2 = xstd::conditional_data_member_t<false, tag1, struct member2_tag>;
 
-BOOST_AUTO_TEST_CASE(ConditionalDataMember)
+BOOST_AUTO_TEST_CASE(SelectsTheMemberOrATaggedEmptyStandIn)
 {
         XSTD_CONSTEXPR_CHECK((std::same_as<xstd::conditional_data_member_t<true, tag1, tag2>, tag1>));
         XSTD_CONSTEXPR_CHECK((std::same_as<xstd::conditional_data_member_t<false, tag1, tag2>, xstd::empty_type<tag2>>));
@@ -46,4 +48,6 @@ BOOST_AUTO_TEST_CASE(ConditionalDataMember)
         XSTD_CONSTEXPR_CHECK((std::is_empty_v<xstd::conditional_data_member_t<false, tag1, struct undefined_tag>>));
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

@@ -10,30 +10,32 @@
 #include <concepts>                             // regular, same_as, totally_ordered
 #include <type_traits>                          // is_constructible_v, is_convertible_v, is_empty_v, is_nothrow_constructible_v, is_nothrow_default_constructible_v, is_trivially_constructible_v, is_trivially_copyable_v
 
+BOOST_AUTO_TEST_SUITE(Core)
 BOOST_AUTO_TEST_SUITE(TypeTraits)
+BOOST_AUTO_TEST_SUITE(EmptyType)
 
-BOOST_AUTO_TEST_CASE(EmptyTypeIsEmpty)
+BOOST_AUTO_TEST_CASE(IsEmpty)
 {
         using empty = xstd::empty_type<struct tag>;
 
         XSTD_CONSTEXPR_CHECK((std::is_empty_v<empty>));
 }
 
-BOOST_AUTO_TEST_CASE(EmptyTypeIsRegular)
+BOOST_AUTO_TEST_CASE(IsRegular)
 {
         using empty = xstd::empty_type<struct tag>;
 
         XSTD_CONSTEXPR_CHECK((std::regular<empty>));
 }
 
-BOOST_AUTO_TEST_CASE(EmptyTypeIsTotallyOrdered)
+BOOST_AUTO_TEST_CASE(IsTotallyOrdered)
 {
         using empty = xstd::empty_type<struct tag>;
 
         XSTD_CONSTEXPR_CHECK((std::totally_ordered<empty>));
 }
 
-BOOST_AUTO_TEST_CASE(EmptyTypeIsTrivial)
+BOOST_AUTO_TEST_CASE(IsTrivial)
 {
         using empty = xstd::empty_type<struct tag>;
 
@@ -45,7 +47,7 @@ BOOST_AUTO_TEST_CASE(EmptyTypeIsTrivial)
         XSTD_CONSTEXPR_CHECK(std::is_trivially_move_assignable_v<empty>);
 }
 
-BOOST_AUTO_TEST_CASE(EmptyTypeIsNoThrow)
+BOOST_AUTO_TEST_CASE(IsNoThrow)
 {
         using empty = xstd::empty_type<struct tag>;
 
@@ -62,7 +64,7 @@ BOOST_AUTO_TEST_CASE(EmptyTypeIsNoThrow)
 }
 
 // Defaulted on first declaration is implicitly constexpr, which is the point here.
-BOOST_AUTO_TEST_CASE(EmptyTypeIsUsableInConstantExpressions)
+BOOST_AUTO_TEST_CASE(IsUsableInConstantExpressions)
 {
         using empty = xstd::empty_type<struct tag>;
 
@@ -72,7 +74,7 @@ BOOST_AUTO_TEST_CASE(EmptyTypeIsUsableInConstantExpressions)
         BOOST_CHECK(true); // silence Boost.Test's "test case did not check any assertions"
 }
 
-BOOST_AUTO_TEST_CASE(EmptyInstancesAreEqual)
+BOOST_AUTO_TEST_CASE(InstancesAreEqual)
 {
         using empty = xstd::empty_type<struct tag>;
 
@@ -80,7 +82,7 @@ BOOST_AUTO_TEST_CASE(EmptyInstancesAreEqual)
         XSTD_CONSTEXPR_CHECK(empty(0) == empty(1));
 }
 
-BOOST_AUTO_TEST_CASE(EmptyInstancesAreEquallyOrdered)
+BOOST_AUTO_TEST_CASE(InstancesAreEquallyOrdered)
 {
         using empty = xstd::empty_type<struct tag>;
 
@@ -89,12 +91,12 @@ BOOST_AUTO_TEST_CASE(EmptyInstancesAreEquallyOrdered)
 }
 
 // The default serves the uses with nothing to keep distinct, such as a base class.
-BOOST_AUTO_TEST_CASE(EmptyTypeTagDefaultsToVoid)
+BOOST_AUTO_TEST_CASE(TagDefaultsToVoid)
 {
         XSTD_CONSTEXPR_CHECK((std::same_as<xstd::empty_type<>, xstd::empty_type<void>>));
 }
 
-BOOST_AUTO_TEST_CASE(EmptyTypesAreNotEqual)
+BOOST_AUTO_TEST_CASE(DifferentTagsGiveDistinctTypes)
 {
         using empty1 = xstd::empty_type<struct tag1>;
         using empty2 = xstd::empty_type<struct tag2>;
@@ -102,4 +104,6 @@ BOOST_AUTO_TEST_CASE(EmptyTypesAreNotEqual)
         XSTD_CONSTEXPR_CHECK((not std::same_as<empty1, empty2>));
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

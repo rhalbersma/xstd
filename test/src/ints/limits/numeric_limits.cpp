@@ -3,14 +3,16 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/ints/limits.hpp>          // numeric_limits
-#include <xstd/test/constexpr_check.hpp> // XSTD_CONSTEXPR_CHECK_EQUAL
-#include <boost/test/unit_test.hpp>      // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END
-#include <concepts>                      // derived_from
-#include <type_traits>                   // is_empty_v
-#include <limits>                        // numeric_limits
+#include <xstd/ints/limits/numeric_limits.hpp> // numeric_limits
+#include <xstd/test/constexpr_check.hpp>       // XSTD_CONSTEXPR_CHECK_EQUAL
+#include <boost/test/unit_test.hpp>            // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END
+#include <concepts>                            // derived_from
+#include <type_traits>                         // is_empty_v
+#include <limits>                              // numeric_limits
 
+BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(Limits)
+BOOST_AUTO_TEST_SUITE(NumericLimits)
 
 BOOST_AUTO_TEST_CASE(DelegatesToTheStandardDomain)
 {
@@ -40,4 +42,6 @@ BOOST_AUTO_TEST_CASE(SaysNothingOutsideThatDomain)
         static_assert(std::is_empty_v<xstd::numeric_limits<int[3]>>);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

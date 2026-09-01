@@ -10,7 +10,9 @@
 #include <xstd/ints/limits.hpp>                    // numeric_limits
 #include <boost/test/unit_test.hpp>                // Boost.Test
 
+BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(CStdLib)
+BOOST_AUTO_TEST_SUITE(BitPrecise)
 
 #ifdef XSTD_TEST_HAS_BIT_PRECISE
 
@@ -118,11 +120,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedExtremes, T, xstd::test::bit_precise_unsig
 #else
 
 // The lists are empty without the storage, and Boost.Test wants a case either way.
-BOOST_AUTO_TEST_CASE(NoBitPreciseStorage)
+BOOST_AUTO_TEST_CASE(AbsentWithoutCompilerSupport)
 {
         BOOST_CHECK(std::tuple_size_v<xstd::test::bit_precise_signed_types> == 0);
 }
 
 #endif // XSTD_TEST_HAS_BIT_PRECISE
 
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

@@ -3,13 +3,15 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/core/utility.hpp>         // to_underlying
-#include <xstd/test/constexpr_check.hpp> // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
-#include <boost/test/unit_test.hpp>      // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
-#include <type_traits>                   // integral_constant
-#include <utility>                       // to_underlying
+#include <xstd/core/utility/to_underlying.hpp> // to_underlying
+#include <xstd/test/constexpr_check.hpp>       // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
+#include <boost/test/unit_test.hpp>            // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
+#include <type_traits>                         // integral_constant
+#include <utility>                             // to_underlying
 
+BOOST_AUTO_TEST_SUITE(Core)
 BOOST_AUTO_TEST_SUITE(Utility)
+BOOST_AUTO_TEST_SUITE(ToUnderlying)
 
 enum class e1 {};
 enum class e2 : bool {};
@@ -23,7 +25,7 @@ template<e3 N> using e3_ = std::integral_constant<e3, N>;
 template<e4 N> using e4_ = std::integral_constant<e4, N>;
 template<e5 N> using e5_ = std::integral_constant<e5, N>;
 
-BOOST_AUTO_TEST_CASE(ToUnderlyingType)
+BOOST_AUTO_TEST_CASE(YieldsTheUnderlyingValue)
 {
         XSTD_CONSTEXPR_CHECK_EQUAL(std::to_underlying(e1()), 0);
         XSTD_CONSTEXPR_CHECK_EQUAL(std::to_underlying(e2()), false);
@@ -42,7 +44,7 @@ BOOST_AUTO_TEST_CASE(ToUnderlyingType)
 template<class T>
 concept has_to_underlying = requires (T t) { xstd::to_underlying(t); };
 
-BOOST_AUTO_TEST_CASE(ToUnderlyingTypeIsConstrained)
+BOOST_AUTO_TEST_CASE(IsConstrainedToEnumerations)
 {
         XSTD_CONSTEXPR_CHECK(has_to_underlying<e1_<e1{}>>);
 
@@ -51,4 +53,6 @@ BOOST_AUTO_TEST_CASE(ToUnderlyingTypeIsConstrained)
         XSTD_CONSTEXPR_CHECK(not has_to_underlying<double>);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

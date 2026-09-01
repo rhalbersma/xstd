@@ -18,9 +18,11 @@
 #include <xstd/ints/ext/absl/int128.hpp> // int128, uint128
 #endif
 
+BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(Concepts)
+BOOST_AUTO_TEST_SUITE(NothrowConstOperators)
 
-BOOST_AUTO_TEST_CASE(NothrowConstOperators)
+BOOST_AUTO_TEST_CASE(HoldsForTheTypesThatDeclareIt)
 {
         // The built-in widths and the 128-bit type the library names all carry it.
         XSTD_CONSTEXPR_CHECK(xstd::nothrow_const_operators<int>);
@@ -44,7 +46,7 @@ BOOST_AUTO_TEST_CASE(NothrowConstOperators)
 }
 
 // Cv-transparent on both branches; volatile is the one that takes the stripping.
-BOOST_AUTO_TEST_CASE(NothrowConstOperatorsIsCvTransparentOnBothBranches)
+BOOST_AUTO_TEST_CASE(IsCvTransparentOnBothBranches)
 {
         XSTD_CONSTEXPR_CHECK(xstd::nothrow_const_operators<int const>);
         XSTD_CONSTEXPR_CHECK(xstd::nothrow_const_operators<int volatile>);
@@ -65,7 +67,7 @@ BOOST_AUTO_TEST_CASE(NothrowConstOperatorsIsCvTransparentOnBothBranches)
 }
 
 // Total: the conjunction short-circuits on integer before any operator is named.
-BOOST_AUTO_TEST_CASE(NothrowConstOperatorsIsTotal)
+BOOST_AUTO_TEST_CASE(IsTotal)
 {
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_const_operators<void>);
         // remove_cv_t, not remove_cvref_t: a reference is not an integer type.
@@ -80,7 +82,7 @@ BOOST_AUTO_TEST_CASE(NothrowConstOperatorsIsTotal)
 }
 
 // The concept is the exception specification, so the two must agree for every type.
-BOOST_AUTO_TEST_CASE(NothrowConstOperatorsIsTheExceptionSpecification)
+BOOST_AUTO_TEST_CASE(IsTheExceptionSpecification)
 {
         XSTD_CONSTEXPR_CHECK(noexcept(xstd::abs(1)) == xstd::nothrow_const_operators<int>);
         XSTD_CONSTEXPR_CHECK(noexcept(xstd::div(1, 1)) == xstd::nothrow_const_operators<int>);
@@ -92,4 +94,6 @@ BOOST_AUTO_TEST_CASE(NothrowConstOperatorsIsTheExceptionSpecification)
 #endif
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

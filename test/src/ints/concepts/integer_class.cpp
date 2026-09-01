@@ -10,9 +10,11 @@
 #include <xstd/ints/type_traits/make_unsigned.hpp> // make_unsigned_t
 #include <boost/test/unit_test.hpp>                // Boost.Test
 
+BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(Concepts)
+BOOST_AUTO_TEST_SUITE(IntegerClass)
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(IntegerClass, T, xstd::test::exact_width_integer_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(AdmitsTheExactWidthTypesThroughCv, T, xstd::test::exact_width_integer_types)
 {
         static_assert(xstd::integer_class<T>);
         static_assert(xstd::integer_class<T const>);
@@ -66,4 +68,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(RepresentableRange, T, xstd::test::constexpr_exact
         BOOST_CHECK(true);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()

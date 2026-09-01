@@ -78,9 +78,11 @@ struct numeric_limits<light> : std::numeric_limits<std::size_t>
 
 } // namespace xstd
 
+BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(Concepts)
+BOOST_AUTO_TEST_SUITE(Alignable)
 
-BOOST_AUTO_TEST_CASE(AlignableAdmitsTheUnsignedIntegers)
+BOOST_AUTO_TEST_CASE(AdmitsTheUnsignedIntegers)
 {
         static_assert(xstd::alignable<unsigned char>);
         static_assert(xstd::alignable<unsigned short>);
@@ -158,7 +160,7 @@ BOOST_AUTO_TEST_CASE(IsIntegerLight)
 }
 
 // Only visible on a class type without noexcept, which Abseil is: it declares noexcept nowhere.
-BOOST_AUTO_TEST_CASE(NothrowAlignableRefinesIt)
+BOOST_AUTO_TEST_CASE(TheNothrowRefinementNarrowsIt)
 {
         static_assert(xstd::nothrow_alignable<unsigned char>);
         static_assert(xstd::nothrow_alignable<std::size_t>);
@@ -171,4 +173,6 @@ BOOST_AUTO_TEST_CASE(NothrowAlignableRefinesIt)
         BOOST_CHECK(true);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
+BOOST_AUTO_TEST_SUITE_END()
 BOOST_AUTO_TEST_SUITE_END()
