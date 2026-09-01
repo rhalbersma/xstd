@@ -28,9 +28,12 @@ struct light
         std::size_t v = 0;
 
         constexpr light() = default;
+        // Implicit on purpose: alignable asks convertible_to<size_t, T>, which an explicit one would fail.
+        // NOLINTNEXTLINE(misc-explicit-constructor, google-explicit-constructor)
         constexpr light(std::size_t n) : v(n) {}
 
-        [[nodiscard]] constexpr operator std::size_t() const
+        // Explicit is enough the other way, alignable asking only constructible_from<size_t, T> there.
+        [[nodiscard]] explicit constexpr operator std::size_t() const
         {
                 return v;
         }
