@@ -63,6 +63,8 @@ target_sources(
         include/xstd/limits.hpp
         include/xstd/limits/numeric_limits.hpp
         include/xstd/memory.hpp
+        include/xstd/memory/align_up.hpp
+        include/xstd/memory/align_down.hpp
         include/xstd/type_traits/conditional_data_member.hpp
         include/xstd/type_traits/empty_type.hpp
         include/xstd/type_traits/is_signed.hpp

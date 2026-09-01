@@ -4,7 +4,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/concepts/integer.hpp>          // integer
-#include <xstd/test/exact_width_types.hpp>    // exact_width_integer_types
+#include <xstd/test/exact_width_types.hpp>    // exact_width_signed_integer_types, exact_width_unsigned_integer_types
 #include <xstd/type_traits/make_signed.hpp>   // make_signed_t
 #include <xstd/type_traits/make_unsigned.hpp> // make_unsigned_t
 #include <boost/test/unit_test.hpp>
@@ -69,11 +69,17 @@ BOOST_AUTO_TEST_CASE(SignedPairing)
         BOOST_CHECK(true);
 }
 
-// Both compositions are settled by signedness alone, whichever road is taken.
-BOOST_AUTO_TEST_CASE_TEMPLATE(SignedRoundTrip, T, xstd::test::exact_width_integer_types)
+// A trip through the other sign and back is the identity, stated on T rather than on its own image.
+BOOST_AUTO_TEST_CASE_TEMPLATE(SignedRoundTrip, T, xstd::test::exact_width_signed_integer_types)
 {
-        static_assert(std::same_as<xstd::make_signed_t<xstd::make_unsigned_t<T>>, xstd::make_signed_t<T>>);
-        static_assert(std::same_as<xstd::make_unsigned_t<xstd::make_signed_t<T>>, xstd::make_unsigned_t<T>>);
+        static_assert(std::same_as<xstd::make_signed_t<T>, T>);
+        static_assert(std::same_as<xstd::make_signed_t<xstd::make_unsigned_t<T>>, T>);
+        BOOST_CHECK(true);
+}
+BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedRoundTrip, T, xstd::test::exact_width_unsigned_integer_types)
+{
+        static_assert(std::same_as<xstd::make_unsigned_t<T>, T>);
+        static_assert(std::same_as<xstd::make_unsigned_t<xstd::make_signed_t<T>>, T>);
         BOOST_CHECK(true);
 }
 
