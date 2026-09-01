@@ -6,6 +6,7 @@
 #ifndef XSTD_INTS_CONCEPTS_HPP
 #define XSTD_INTS_CONCEPTS_HPP
 
+#include <xstd/ints/concepts/alignable.hpp>               // IWYU pragma: export; alignable, nothrow_alignable
 #include <xstd/ints/concepts/integer_class.hpp>           // IWYU pragma: export; integer_class
 #include <xstd/ints/concepts/integer.hpp>                 // IWYU pragma: export; integer
 #include <xstd/ints/concepts/signed_integer.hpp>          // IWYU pragma: export; signed_integer

@@ -37,13 +37,13 @@ target_sources(
     FILES
         include/xstd/ints.hpp
         include/xstd/ints/concepts.hpp
+        include/xstd/ints/concepts/alignable.hpp
         include/xstd/ints/concepts/integer_class.hpp
         include/xstd/ints/concepts/integer.hpp
         include/xstd/ints/concepts/nothrow_const_operators.hpp
         include/xstd/ints/concepts/signed_integer.hpp
         include/xstd/core.hpp
         include/xstd/core/concepts.hpp
-        include/xstd/core/concepts/alignable.hpp
         include/xstd/core/concepts/specialization_of.hpp
         include/xstd/ints/concepts/unsigned_integer.hpp
         include/xstd/ints/charconv.hpp
@@ -67,9 +67,10 @@ target_sources(
         include/xstd/ints/format/div_result.hpp
         include/xstd/ints/limits.hpp
         include/xstd/ints/limits/numeric_limits.hpp
-        include/xstd/core/memory.hpp
-        include/xstd/core/memory/align_up.hpp
-        include/xstd/core/memory/align_down.hpp
+        include/xstd/ints/memory.hpp
+        include/xstd/ints/memory/align_up.hpp
+        include/xstd/ints/memory/align_down.hpp
+        include/xstd/ints/memory/is_aligned.hpp
         include/xstd/core/type_traits.hpp
         include/xstd/core/type_traits/conditional_data_member.hpp
         include/xstd/core/type_traits/empty_type.hpp

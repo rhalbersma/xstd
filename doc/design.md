@@ -376,20 +376,49 @@ specialize directly.
 
 ### Alignment
 
-`align_up` and `align_down` round an unsigned value to a power-of-two alignment,
-spelled as Boost.Align, LLVM's `alignTo`/`alignDown` and the kernel's `ALIGN`
-macros all spell it: value first, alignment second. The power-of-two
-precondition is what buys the mask form over a division, which matters most for
-an `integer_class` type, where `%` is a call. They are templates over
-`alignable` rather than functions of `std::size_t`, so a narrow or 128-bit value
-keeps its own type instead of promoting; overflow of `align_up` is a
-precondition, asserted rather than saturated. `alignable` names the operations
-the two perform and the modular wraparound they rely on, which admits the
-unsigned types and rejects the signed ones, `bool`, and pointers on their own
-merits; asking that rather than `unsigned_integer` is what keeps alignment in
-`xstd/core`, off `xstd/ints`. `std::align` is the closest standard facility and
-does something else: it fits a block inside a buffer, adjusting a pointer, not a
-size.
+`align_up` and `align_down` round a value to a power-of-two alignment, spelled as
+Boost.Align, LLVM's `alignTo`/`alignDown` and the kernel's `ALIGN` macros all
+spell it: value first, alignment second. `is_aligned` asks whether rounding would
+change anything.
+
+All three are one operation: alignment is addition modulo a power of two.
+`align_down(v, a)` is `v - (v mod a)`, `align_up(v, a)` is `align_down(v + a - 1,
+a)`. The mask is not a different algorithm but a cheaper spelling of the
+remainder, licensed by `v % 2^N == v & (2^N - 1)` — which holds only for an
+unsigned type of radix 2, which is why `alignable` asks for radix 2 rather than
+assuming it. Subtracting the remainder suffices; complementing the mask to keep
+the high bits instead is a second trick that costs a requirement and, both
+compilers agree, emits the same instructions.
+
+`alignable` is `integer_class`'s opening clauses and then a stop: specialized,
+integer, radix 2, unsigned, wider than one bit, convertible both ways with
+`size_t`, totally ordered, closed under `+`, `-` and `&`. Every
+`unsigned_integer` is `alignable` and no `signed_integer` is, while the converse
+fails — which is what puts it in `xstd/ints` rather than beside the storage
+utilities in `xstd/core`.
+
+Signed types are excluded, though their arithmetic is fine: on two's complement
+`align_up(-5, 4)` is `-4`. They are excluded because `align_up`'s precondition
+cannot be checked for them. For a modular type the wrapped sum is a value, so
+`assert(sum >= value)` detects it; for a signed type the overflow is undefined
+before the assert runs. Stating it as `value <= max - mask` would cover signed
+too, at the cost of asking `numeric_limits` for a bound at every call.
+
+Each function takes a pointer overload that converts to `uintptr_t`, delegates and
+converts back, aligning an address being this same arithmetic in the address
+space. Delegating rather than repeating the mask work is what gives the pointer
+case that precondition: Boost's pointer `align_up` duplicates it and quietly
+returns null when an address near the top of the space wraps. Pointer overloads
+cannot be `constexpr`, `reinterpret_cast` being barred from constant expressions.
+
+Boost.Align's `detail::not_pointer` is neither redundant nor a diagnostic: it is
+what makes Boost's own pointer overloads reachable, a `T*` argument otherwise
+deducing exactly and beating the conversion to `void*`. A concept needs no such
+trait, pointers failing `alignable` on their own. Boost's domain is decided by
+its bodies, with `not_pointer` the one thing said at the interface; here the
+interface says all of it. `std::align` remains the checked version of the pointer
+case: it takes the remaining space too, so it can report that a block does not
+fit, which these cannot.
 
 ## Integer division
 
