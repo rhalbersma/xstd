@@ -15,11 +15,7 @@
 
 namespace xstd {
 
-// A prefix of integer_class: what alignment needs of a type, and nothing beyond it.
-// Asked of T with the cv stripped, as integer_class and its refinements are: a
-// qualified built-in loses its qualifiers to the lvalue-to-rvalue conversion on the
-// way to operator+, and a qualified class type would otherwise have no operator at
-// all, so the answer would turn on whether an implementation made the type a class.
+// A prefix of integer_class: what alignment needs and no more, cv stripped so no answer turns on T being a class.
 template<class T_cv, class T = std::remove_cv_t<T_cv>>
 concept alignable =
         // T is the parameter's own default; naming it explicitly cannot redirect the question.
@@ -40,10 +36,7 @@ concept alignable =
         std::convertible_to<std::size_t, T> and
         std::constructible_from<std::size_t, T> and
 
-        // /9's ordering half, in the clause integer_class states it with rather than a
-        // near neighbour of it: this concept is a prefix of that one, so it asks the
-        // same question. Stronger than the totally_ordered it asked before, <=>
-        // subsuming the six relations and pinning the category besides.
+        // /9's ordering half in integer_class's own clause: <=> subsumes the six relations and pins the category.
         std::three_way_comparable<T, std::strong_ordering> and
 
         // The arithmetic itself: alignment is addition modulo a power of two.
@@ -59,9 +52,7 @@ concept nothrow_alignable =
         std::same_as<T, std::remove_cv_t<T_cv>> and
         alignable<T> and
 
-        // What the three functions spend on every call: a by-value operand in and a T
-        // out, neither of which any line of theirs names. Not default initialization,
-        // assignment or swap, which none of them performs.
+        // What the three functions spend on every call and never name: an operand in and a T out, not assignment or swap.
         std::is_nothrow_destructible_v<T> and
         std::is_nothrow_move_constructible_v<T> and
         std::is_nothrow_copy_constructible_v<T> and
@@ -74,9 +65,7 @@ concept nothrow_alignable =
                 { static_cast<T>(x & x) } noexcept;
         } and
 
-        // Every comparison /9 gives, the way nothrow_const_operators asks them. The
-        // concept is the whole exception specification, so a relation left unasked is
-        // one a caller can still reach and have throw.
+        // Every comparison /9 gives, as nothrow_const_operators asks them: one left unasked could still throw.
         requires (T const a, T const b) {
                 { a <=> b } noexcept;
                 { a == b } noexcept;

@@ -11,8 +11,7 @@
 BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(Limits)
 
-// One trait behind this door, so there is no invariant across two; that it
-// arrives through the umbrella at all is what the umbrella is answerable for.
+// One trait behind this door, so no invariant spans two; that it arrives is what the umbrella answers for.
 BOOST_AUTO_TEST_CASE(TheTraitArrivesThroughTheUmbrella)
 {
         static_assert(std::derived_from<xstd::numeric_limits<int>, std::numeric_limits<int>>);

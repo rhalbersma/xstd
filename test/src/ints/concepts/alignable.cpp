@@ -72,9 +72,7 @@ constexpr auto refines_alignable =
 
 } // namespace
 
-// The devious shape: ==, <, and the three relations derived from them, and no <=>
-// anywhere. totally_ordered admits it; the /9 clause integer_class states its ordering
-// with does not, so alignable no longer does either.
+// The devious shape: ==, < and their derived relations with no <=>, which totally_ordered admits and /9 does not.
 struct no_spaceship
 {
         std::size_t v = 0;
@@ -192,10 +190,7 @@ BOOST_AUTO_TEST_CASE(AndRejectsTheRestOnTheirMerits)
         BOOST_CHECK(true);
 }
 
-// /9 is stated with three_way_comparable, so alignable asks for it too rather than for
-// the weaker totally_ordered: a type can carry ==, < and the relations derived from
-// them without ever declaring <=>, and that shape is admitted by the one and not the
-// other. Excluding it is what keeps this concept a prefix of integer_class.
+// /9 is stated with three_way_comparable, so alignable asks it too: excluding that shape keeps this a prefix of it.
 BOOST_AUTO_TEST_CASE(TheOrderingIsTheOneIntegerClassAsksFor)
 {
         static_assert(std::totally_ordered<no_spaceship>);
@@ -238,10 +233,7 @@ BOOST_AUTO_TEST_CASE(IsIntegerLight)
         BOOST_CHECK(true);
 }
 
-// Cv-transparent, as integer_class and its refinements are. Without the stripping the
-// answer would turn on whether an implementation spelled its 128-bit type as a class:
-// a qualified built-in reaches operator+ through the lvalue-to-rvalue conversion, and a
-// qualified class object has no operator to reach at all.
+// Cv-transparent, as integer_class is: without stripping, the answer would turn on the 128-bit type being a class.
 BOOST_AUTO_TEST_CASE(IsCvTransparent)
 {
         static_assert(xstd::alignable<unsigned const>);
@@ -261,9 +253,7 @@ BOOST_AUTO_TEST_CASE(IsCvTransparent)
         BOOST_CHECK(true);
 }
 
-// align_up, align_down and is_aligned each take a T by value and hand one back; no line
-// of the three names a special member, and all three spend them. The nothrow refinement
-// answers for that, not only for the operators.
+// All three pass and return a T without naming a special member, and the nothrow refinement answers for that.
 BOOST_AUTO_TEST_CASE(TheNothrowRefinementCoversWhatTheCallSpends)
 {
         static_assert(std::is_nothrow_destructible_v<std::size_t>);
@@ -274,9 +264,7 @@ BOOST_AUTO_TEST_CASE(TheNothrowRefinementCoversWhatTheCallSpends)
         BOOST_CHECK(true);
 }
 
-// Every comparison /9 gives, not the two the functions happen to reach for: the concept
-// is the exception specification a caller reads, so any relation it leaves unasked is
-// one that could still throw under a noexcept promise.
+// Every comparison /9 gives, not the two the functions reach for: an unasked relation could still throw.
 BOOST_AUTO_TEST_CASE(TheNothrowRefinementCoversEveryRelation)
 {
         static_assert(noexcept(std::declval<std::size_t const&>() <=> std::declval<std::size_t const&>()));
@@ -287,14 +275,12 @@ BOOST_AUTO_TEST_CASE(TheNothrowRefinementCoversEveryRelation)
         static_assert(noexcept(std::declval<std::size_t const&>() <= std::declval<std::size_t const&>()));
         static_assert(noexcept(std::declval<std::size_t const&>() >= std::declval<std::size_t const&>()));
 
-        // And of the types the concept does hold of, over which every one of the six
-        // has to be noexcept for the functions' specification to mean anything.
+        // And of the types it does hold of, over which all six must be noexcept for the specification to mean anything.
         static_assert(xstd::nothrow_alignable<std::size_t>);
         static_assert(xstd::nothrow_alignable<unsigned>);
         static_assert(xstd::nothrow_alignable<xstd::uint128>);
 
-        // light is alignable and not nothrow_alignable: its size_t constructor carries
-        // no noexcept, so the refinement turns it away before any relation is asked.
+        // light is alignable and not nothrow_alignable: its size_t constructor carries no noexcept.
         static_assert(xstd::alignable<light>);
         static_assert(not xstd::nothrow_alignable<light>);
         BOOST_CHECK(true);

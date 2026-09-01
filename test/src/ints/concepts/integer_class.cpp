@@ -23,9 +23,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(AdmitsTheExactWidthTypesThroughCv, T, xstd::test::
         BOOST_CHECK(true);
 }
 
-// The requirements hold of the types they were modelled on, which the old
-// (not std::integral) clause made unaskable rather than false. `integer` now
-// rests on this: it dropped its std::integral disjunct as redundant.
+// The requirements hold of the types they were modelled on, which the old std::integral clause made unaskable.
 BOOST_AUTO_TEST_CASE(StandardIntegral)
 {
         static_assert(xstd::integer_class<char>);
@@ -49,10 +47,7 @@ BOOST_AUTO_TEST_CASE(StandardIntegral)
         BOOST_CHECK(true);
 }
 
-// /3's other half, which xstd does check: the range is -2^(N-1) to 2^(N-1)-1
-// signed and 0 to 2^N-1 unsigned. Read through the pair, so that no expression
-// here has to survive integral promotion or overflow at the widest type - and
-// over the signed list alone, since naming T's pair reaches every type once.
+// /3's other half, read through the pair so nothing survives promotion, over the signed list alone.
 BOOST_AUTO_TEST_CASE_TEMPLATE(RepresentableRange, T, xstd::test::constexpr_exact_width_signed_integer_types)
 {
         using S = xstd::make_signed_t<T>;

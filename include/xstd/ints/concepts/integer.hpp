@@ -13,9 +13,7 @@
 
 namespace xstd {
 
-// P3701R0's arithmetic boundary, extended with xstd's paired integer-class types.
-// A character type transforms out of its own pair, which is what excludes the five
-// of them here: signed char is not char.
+// P3701R0's arithmetic boundary plus xstd's paired integer-class types; a character type is a third beside its pair.
 template<class T>
 concept integer =
         integer_class<T> and

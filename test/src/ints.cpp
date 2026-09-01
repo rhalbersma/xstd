@@ -13,9 +13,7 @@
 
 BOOST_AUTO_TEST_SUITE(Ints)
 
-// The 128-bit type is not the standard library's, so every module below has to
-// carry it on its own. That it arrives whole through the one front door is the
-// invariant no single module can state.
+// int128 is not the standard library's, so every module carries it alone; arriving whole is the invariant here.
 BOOST_AUTO_TEST_CASE(TheWidestTypeReachesEveryModule)
 {
         using T = xstd::int128;

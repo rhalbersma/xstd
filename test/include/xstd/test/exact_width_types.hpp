@@ -65,8 +65,7 @@ inline constexpr bool has_constexpr_division<absl::uint128> = false;
 // Native bit-precise widths, from the two bits current Clang's signed type needs up.
 #ifdef XSTD_HAS_BIT_INT
 
-// How wide the lists may go, which is a property of the build rather than of the library:
-// dividing wider than 64 bits calls compiler-rt, which clang-cl does not link (__udivti3).
+// How wide the lists may go, a property of the build: dividing past 64 bits calls compiler-rt, unlinked by clang-cl.
 #ifdef _MSC_VER
 #define XSTD_TEST_BIT_PRECISE_MAX 64
 #elif __BITINT_MAXWIDTH__ >= 256

@@ -6,8 +6,7 @@
 #ifndef XSTD_INTS_HPP
 #define XSTD_INTS_HPP
 
-// Not the ext adaptors: each hard-includes the library it adapts, so a front door
-// naming them would put Abseil on every consumer path. Ask for those by name.
+// Not the ext adaptors: each hard-includes what it adapts, so a front door naming them would put Abseil on every path.
 #include <xstd/ints/charconv.hpp>    // IWYU pragma: export; to_chars, to_chars_max_size
 #include <xstd/ints/concepts.hpp>    // IWYU pragma: export; the integer concepts
 #include <xstd/ints/cstdint.hpp>     // IWYU pragma: export; bit_int, bit_uint, int128, uint128

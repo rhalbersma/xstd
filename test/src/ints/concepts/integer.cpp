@@ -46,8 +46,7 @@ BOOST_AUTO_TEST_CASE(RejectsTheCharacterAndNonIntegralTypes)
         BOOST_CHECK(true);
 }
 
-// What keeps the character types out, in place of naming them: an integer is one
-// of its own signed/unsigned pair, and a character type is a third type beside it.
+// What keeps the character types out: an integer is one of its own pair, and a character type is a third beside it.
 BOOST_AUTO_TEST_CASE(SignedPairing)
 {
         static_assert(std::same_as<xstd::make_signed_t<char>, signed char>);

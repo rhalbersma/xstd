@@ -37,18 +37,12 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(ExactDivisionConventionsAgree, T, xstd::test::exac
         XSTD_CONSTEXPR_CHECK_EQUAL_IF(xstd::test::has_constexpr_division<T>, (xstd::div(T{-6}, T{3})), (xstd::div_floor(T{-6}, T{3})));
 }
 
-// The postconditions of all six over every value a narrow width can hold: the one
-// place the whole surface can be swept, and no header's own test can reach it.
+// The postconditions of all six over every value a narrow width holds: the one place the whole surface can be swept.
 #ifdef XSTD_HAS_BIT_INT
 
 namespace {
 
-// The division identity, reconstructed in int rather than in T. It holds
-// mathematically at every width, but the product alone can leave a range this
-// narrow while the sum stays inside it: div_floor(1, -2) is a quotient of -1,
-// and -1 * -2 is 2, which _BitInt(2) cannot represent. Widening to int -- what
-// the sweep below already counts in -- checks the identity that is meant,
-// rather than the one the type can hold.
+// The identity reconstructed in int: div_floor(1, -2) gives -1, and -1 * -2 is 2, which _BitInt(2) cannot hold.
 template<class T>
 auto reconstructs(T quotient, T denom, T remainder, T numer) -> bool
 {

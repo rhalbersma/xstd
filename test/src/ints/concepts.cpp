@@ -13,8 +13,7 @@
 BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(Concepts)
 
-// How the six stand to one another, stated once and asked of every type below rather
-// than per concept: each clause is a refinement no single header can see on its own.
+// How the six stand to one another, asked of every type below: each clause is a refinement no single header can see.
 template<class T>
 concept lattice =
         // integer is the two halves, and nothing is both or neither.
@@ -58,9 +57,7 @@ BOOST_AUTO_TEST_CASE(TheRefinementsHoldOverTheWholeDomain)
         BOOST_CHECK(true);
 }
 
-// All six strip cv before they answer, so the lattice is the same one qualified --
-// including over the 128-bit type, which is a class on one of the three toolchains
-// and a built-in on the other two, and must not answer differently for it.
+// All six strip cv, so the lattice is the same qualified, including the 128-bit type that is a class on one toolchain.
 BOOST_AUTO_TEST_CASE(TheRefinementsSurviveCvQualification)
 {
         static_assert(lattice<int const>);
