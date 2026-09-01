@@ -3,22 +3,63 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/ints/concepts/nothrow_regular.hpp> // nothrow_regular
-#include <xstd/ints/cstdint.hpp>                  // XSTD_HAS_BIT_INT, bit_int, bit_uint, int128, uint128
-#include <xstd/test/exact_width_types.hpp>        // exact_width_integer_types
-#include <boost/test/unit_test.hpp>               // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END
-#include <compare>                                // strong_ordering
-#include <concepts>                               // regular
-#include <cstddef>                                // size_t
-#include <type_traits>                            // is_nothrow_..._v
+#include <xstd/ints/concepts/nothrow_const_operators.hpp> // nothrow_const_operators
+#include <xstd/ints/concepts/nothrow_regular.hpp>         // nothrow_regular
+#include <xstd/ints/cstdint.hpp>                          // XSTD_HAS_BIT_INT, bit_int, bit_uint, int128, uint128
+#include <xstd/test/exact_width_types.hpp>                // exact_width_integer_types
+// exact_width_types.hpp probes for the library and sets the macro; naming the adapter
+// here as well is what shows a reader, and include-cleaner, where absl::int128 comes from.
+#ifdef XSTD_TEST_HAS_ABSL_INT128
+#include <xstd/ints/ext/absl/int128.hpp> // int128, uint128
+#endif
+
+#include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END
+#include <compare>                  // strong_ordering
+#include <concepts>                 // regular
+#include <cstddef>                  // size_t
+#include <type_traits>              // is_nothrow_..._v
 
 BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(Concepts)
 BOOST_AUTO_TEST_SUITE(NothrowRegular)
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(HoldsForEveryConfiguredWidth, T, xstd::test::exact_width_integer_types)
+// The refinement nothrow_const_operators now rests on, stated over the whole
+// configured universe. It is the implication that holds there, not either half:
+// Abseil satisfies neither, and everything else satisfies both.
+BOOST_AUTO_TEST_CASE_TEMPLATE(FollowsFromNothrowConstOperators, T, xstd::test::exact_width_integer_types)
 {
-        static_assert(xstd::nothrow_regular<T>);
+        static_assert(not xstd::nothrow_const_operators<T> or xstd::nothrow_regular<T>);
+        BOOST_CHECK(true);
+}
+
+// The types that do carry it: the standard widths, and the pair xstd names itself.
+BOOST_AUTO_TEST_CASE(HoldsForTheTypesThatDeclareIt)
+{
+        static_assert(xstd::nothrow_regular<signed char>);
+        static_assert(xstd::nothrow_regular<int>);
+        static_assert(xstd::nothrow_regular<unsigned>);
+        static_assert(xstd::nothrow_regular<long long>);
+        static_assert(xstd::nothrow_regular<std::size_t>);
+        static_assert(xstd::nothrow_regular<xstd::int128>);
+        static_assert(xstd::nothrow_regular<xstd::uint128>);
+#ifdef XSTD_HAS_BIT_INT
+        static_assert(xstd::nothrow_regular<xstd::bit_int<17>>);
+        static_assert(xstd::nothrow_regular<xstd::bit_uint<17>>);
+#endif
+        BOOST_CHECK(true);
+}
+
+// And the type that does not, which is why the nothrow concepts exist at all:
+// Abseil declares noexcept nowhere, so as far as the type says, even == may throw.
+// Regular all the same, which is exactly the gap between the two questions.
+BOOST_AUTO_TEST_CASE(AbseilIsRegularWithoutDeclaringItFree)
+{
+#ifdef XSTD_TEST_HAS_ABSL_INT128
+        static_assert(std::regular<absl::int128>);
+        static_assert(std::regular<absl::uint128>);
+        static_assert(not xstd::nothrow_regular<absl::int128>);
+        static_assert(not xstd::nothrow_regular<absl::uint128>);
+#endif
         BOOST_CHECK(true);
 }
 
