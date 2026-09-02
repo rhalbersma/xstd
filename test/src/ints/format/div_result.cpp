@@ -6,14 +6,14 @@
 #include <xstd/ints/cstdint.hpp>            // int128
 #include <xstd/ints/cstdlib/div_result.hpp> // div_result
 #include <xstd/ints/format/div_result.hpp>  // IWYU pragma: keep; formatter<div_result>
-#include <xstd/test/exact_width_types.hpp>  // exact_width_signed_integer_types
+#include <test/exact_width_types.hpp>       // exact_width_signed_integer_types
 #include <boost/test/unit_test.hpp>         // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_CHECK, BOOST_CHECK_EQUAL
 #include <format>                           // format
 #include <limits>                           // numeric_limits
 #include <string_view>                      // wstring_view
 
 #ifdef __cpp_lib_constexpr_format
-#include <xstd/test/constexpr_check.hpp> // XSTD_CONSTEXPR_CHECK_EQUAL
+#include <test/constexpr_check.hpp>      // XSTD_CONSTEXPR_CHECK_EQUAL
 #endif
 
 BOOST_AUTO_TEST_SUITE(Ints)
@@ -29,7 +29,7 @@ BOOST_AUTO_TEST_SUITE(DivResult)
 #define XSTD_CONSTEXPR_FORMAT_CHECK_EQUAL(a, b) BOOST_CHECK_EQUAL((a), (b))
 #endif
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(Formatter, T, xstd::test::exact_width_signed_integer_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(Formatter, T, test::exact_width_signed_integer_types)
 {
         XSTD_CONSTEXPR_FORMAT_CHECK_EQUAL(std::format("{}", xstd::div_result<T>{1, -2}), "(1, -2)");
 }

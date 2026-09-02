@@ -9,7 +9,7 @@
 #include <xstd/ints/concepts/unsigned_integer.hpp> // unsigned_integer
 #include <xstd/ints/type_traits/make_signed.hpp>   // make_signed_t
 #include <xstd/ints/type_traits/make_unsigned.hpp> // make_unsigned_t
-#include <xstd/test/constexpr_check.hpp>           // XSTD_CONSTEXPR_CHECK
+#include <test/constexpr_check.hpp>                // XSTD_CONSTEXPR_CHECK
 #include <boost/test/unit_test.hpp>                // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END
 #include <concepts>                                // same_as
 

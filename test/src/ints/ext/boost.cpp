@@ -12,7 +12,7 @@
 
 // Reached the way a consumer reaches it: the probe here, the adapter behind the umbrella.
 #if __has_include(<boost/int128.hpp>)
-#define XSTD_TEST_HAS_BOOST_INT128
+#define TEST_HAS_BOOST_INT128
 #include <xstd/ints/ext/boost.hpp> // the adapter for boost::int128's pair
 #endif
 
@@ -23,7 +23,7 @@ BOOST_AUTO_TEST_SUITE(Boost)
 // One adapter behind this door, so no invariant spans two; that the associations arrive is what it answers for.
 BOOST_AUTO_TEST_CASE(TheAssociationsArriveThroughTheUmbrella)
 {
-#ifdef XSTD_TEST_HAS_BOOST_INT128
+#ifdef TEST_HAS_BOOST_INT128
         using S = boost::int128::int128;
         using U = boost::int128::uint128;
 

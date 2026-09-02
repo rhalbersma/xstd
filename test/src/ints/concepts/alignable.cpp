@@ -18,7 +18,7 @@
 #include <utility>                                 // declval
 
 #if __has_include(<absl/numeric/int128.h>)
-#define XSTD_TEST_HAS_ABSL_INT128
+#define TEST_HAS_ABSL_INT128
 #include <absl/numeric/int128.h> // uint128
 #endif
 
@@ -291,7 +291,7 @@ BOOST_AUTO_TEST_CASE(TheNothrowRefinementNarrowsIt)
 {
         static_assert(xstd::nothrow_alignable<unsigned char>);
         static_assert(xstd::nothrow_alignable<std::size_t>);
-#ifdef XSTD_TEST_HAS_ABSL_INT128
+#ifdef TEST_HAS_ABSL_INT128
         static_assert(xstd::alignable<absl::uint128>);
         static_assert(not xstd::nothrow_alignable<absl::uint128>);
         // The way back out, which is what the address round trip needs of a type wider than a pointer.

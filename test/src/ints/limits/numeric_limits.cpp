@@ -4,7 +4,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/ints/limits/numeric_limits.hpp> // numeric_limits
-#include <xstd/test/constexpr_check.hpp>       // XSTD_CONSTEXPR_CHECK_EQUAL
+#include <test/constexpr_check.hpp>            // XSTD_CONSTEXPR_CHECK_EQUAL
 #include <boost/test/unit_test.hpp>            // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END
 #include <concepts>                            // derived_from
 #include <type_traits>                         // is_empty_v

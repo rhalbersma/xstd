@@ -4,7 +4,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/ints/cstdlib/div_result.hpp> // div_result
-#include <xstd/test/exact_width_types.hpp>  // std_signed_types, std_unsigned_types
+#include <test/exact_width_types.hpp>       // std_signed_types, std_unsigned_types
 #include <boost/test/unit_test.hpp>         // Boost.Test
 #include <concepts>                         // same_as
 #include <cstddef>                          // size_t
@@ -41,7 +41,7 @@ BOOST_AUTO_TEST_CASE(AggregateMembersAndStructuredBindings)
 }
 
 // The computed exception specification is the element's; a written one would need keeping.
-BOOST_AUTO_TEST_CASE_TEMPLATE(EqualityTracksTheElementType, T, xstd::test::std_signed_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(EqualityTracksTheElementType, T, test::std_signed_types)
 {
         static_assert(noexcept(std::declval<xstd::div_result<T> const&>() == std::declval<xstd::div_result<T> const&>()) ==
                       noexcept(std::declval<T const&>() == std::declval<T const&>()));
@@ -49,7 +49,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(EqualityTracksTheElementType, T, xstd::test::std_s
         BOOST_CHECK(true);
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(EqualityTracksTheUnsignedElementType, T, xstd::test::std_unsigned_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(EqualityTracksTheUnsignedElementType, T, test::std_unsigned_types)
 {
         static_assert(noexcept(std::declval<xstd::div_result<T> const&>() == std::declval<xstd::div_result<T> const&>()) ==
                       noexcept(std::declval<T const&>() == std::declval<T const&>()));

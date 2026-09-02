@@ -4,7 +4,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/ints/memory.hpp>          // align_down, align_up, is_aligned
-#include <xstd/test/constexpr_check.hpp> // XSTD_CONSTEXPR_CHECK
+#include <test/constexpr_check.hpp>      // XSTD_CONSTEXPR_CHECK
 #include <boost/align/align_down.hpp>    // align_down
 #include <boost/align/is_aligned.hpp>    // is_aligned
 #include <boost/align/align_up.hpp>      // align_up

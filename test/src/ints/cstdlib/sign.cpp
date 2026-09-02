@@ -4,8 +4,8 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/ints/cstdlib/sign.hpp>      // sign
-#include <xstd/test/constexpr_check.hpp>   // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
-#include <xstd/test/exact_width_types.hpp> // exact_width_signed_integer_types, exact_width_unsigned_integer_types
+#include <test/constexpr_check.hpp>        // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
+#include <test/exact_width_types.hpp>      // exact_width_signed_integer_types, exact_width_unsigned_integer_types
 #include <xstd/ints/limits.hpp>            // numeric_limits
 #include <boost/test/unit_test.hpp>        // Boost.Test
 
@@ -13,7 +13,7 @@ BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(CStdLib)
 BOOST_AUTO_TEST_SUITE(Sign)
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(IsMinusOneZeroOrPlusOne, T, xstd::test::exact_width_signed_integer_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(IsMinusOneZeroOrPlusOne, T, test::exact_width_signed_integer_types)
 {
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(T{-2}), -1);
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(T{-1}), -1);
@@ -27,7 +27,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(IsMinusOneZeroOrPlusOne, T, xstd::test::exact_widt
 }
 
 // Two of the three values, -1 being unreachable: nothing lies below zero.
-BOOST_AUTO_TEST_CASE_TEMPLATE(IsZeroOrPlusOneOnUnsigned, T, xstd::test::exact_width_unsigned_integer_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(IsZeroOrPlusOneOnUnsigned, T, test::exact_width_unsigned_integer_types)
 {
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(T{0}), 0);
         XSTD_CONSTEXPR_CHECK_EQUAL(xstd::sign(T{1}), +1);
