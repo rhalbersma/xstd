@@ -21,18 +21,16 @@ template<alignable T>
 {
         assert(std::has_single_bit(alignment));
         auto const mask = static_cast<T>(alignment - 1);
-        // Zero through the size_t conversion alignable asks for, not T{}: value
-        // initialization would need a default constructor the concept never requires,
-        // and align_up and align_down reach for the same conversion a line above.
+        // Zero through the size_t conversion alignable asks for: T{} would need a default constructor it never requires.
         return static_cast<T>(value & mask) == static_cast<T>(0UZ);
 }
 
-// The same question in the address space, which is why it delegates rather than repeating the mask work.
+// The same question in the address space, delegating rather than repeating the mask; qualified as cstdlib's calls are.
 template<class T>
 [[nodiscard]] auto is_aligned(T* pointer, std::size_t alignment) noexcept
         -> bool
 {
-        return is_aligned(reinterpret_cast<std::uintptr_t>(pointer), alignment);
+        return xstd::is_aligned(reinterpret_cast<std::uintptr_t>(pointer), alignment);
 }
 
 } // namespace xstd

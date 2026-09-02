@@ -11,8 +11,7 @@
 BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(TypeTraits)
 
-// The five together: the traits say which half a type is in, and the modifiers move
-// it to the other one. Neither header sees the other, so the agreement lives here.
+// The five together: the traits say which half a type is in, the modifiers move it, and neither header sees the other.
 template<class T>
 concept consistent =
         // An integer is in exactly one half.

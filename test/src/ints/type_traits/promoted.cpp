@@ -26,8 +26,7 @@ BOOST_AUTO_TEST_CASE(MatchesTheIntegralPromotions)
         static_assert(std::same_as<xstd::promoted_t<long long>, long long>);
         static_assert(std::same_as<xstd::promoted_t<unsigned long long>, unsigned long long>);
 
-        // Which of int and unsigned int a narrow unsigned type promotes to is
-        // the platform's call, so assert only that it is one of them.
+        // Which of int and unsigned a narrow type promotes to is the platform's call, so assert only that it is one.
         static_assert(std::same_as<xstd::promoted_t<unsigned short>, int> or
                       std::same_as<xstd::promoted_t<unsigned short>, unsigned int>);
         static_assert(std::same_as<xstd::promoted_t<char32_t>, int> or

@@ -11,8 +11,7 @@
 
 namespace xstd {
 
-// The empty primary says nothing, as make_signed's does; empty and not merely declared, because the
-// cv specializations below inherit it and a base must be complete.
+// Says nothing, as make_signed's primary does; empty not just declared, the cv specializations below inheriting it.
 template<class T>
 struct numeric_limits
 {};

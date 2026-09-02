@@ -13,8 +13,7 @@
 BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(CStdInt)
 
-// What the two headers have in common: each names a pair, not a type. Stated once
-// and asked of both, which neither header can do while it names only its own.
+// What the two headers have in common: each names a pair, not a type, which neither can state alone.
 template<class S, class U>
 concept pair =
         std::same_as<xstd::make_unsigned_t<S>, U> and

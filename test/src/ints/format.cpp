@@ -11,8 +11,7 @@
 BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(Format)
 
-// One formatter behind this door, so there is no invariant across two; that it
-// arrives through the umbrella at all is what the umbrella is answerable for.
+// One formatter behind this door, so no invariant spans two; that it arrives is what the umbrella answers for.
 BOOST_AUTO_TEST_CASE(TheFormatterArrivesThroughTheUmbrella)
 {
         BOOST_CHECK_EQUAL(std::format("{}", xstd::div_result<int>{1, -2}), "(1, -2)");

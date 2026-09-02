@@ -20,8 +20,7 @@ BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(Ext)
 BOOST_AUTO_TEST_SUITE(Absl)
 
-// One adapter behind this door, so there is no invariant across two; that the
-// associations arrive through the umbrella is what the umbrella is answerable for.
+// One adapter behind this door, so no invariant spans two; that the associations arrive is what it answers for.
 BOOST_AUTO_TEST_CASE(TheAssociationsArriveThroughTheUmbrella)
 {
 #ifdef XSTD_TEST_HAS_ABSL_INT128

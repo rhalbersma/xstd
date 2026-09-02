@@ -46,9 +46,7 @@ BOOST_AUTO_TEST_CASE(HoldsForTheTypesThatDeclareIt)
 #endif
 }
 
-// The operators were never the whole cost. Every function specified with this
-// concept takes its operands by value and returns by value, so /9's copy, move and
-// destructor are spent on each call even though no line of the source names one.
+// The operators were never the whole cost: passing and returning by value spends /9's copy, move and destructor.
 BOOST_AUTO_TEST_CASE(IncludesWhatPassingAndReturningCosts)
 {
         XSTD_CONSTEXPR_CHECK(std::is_nothrow_destructible_v<int>);
