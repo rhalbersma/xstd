@@ -3,38 +3,38 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/ints/cstdlib.hpp>                    // complete arithmetic surface
-#include <xstd/ints/cstdint.hpp>                    // XSTD_HAS_BIT_INT, bit_int, bit_uint
-#include <xstd/ints/limits.hpp>                     // numeric_limits
-#include <xstd/ints/type_traits/make_unsigned.hpp>  // make_unsigned_t
-#include <xstd/test/boost_test_print_log_value.hpp> // NOLINT(misc-include-cleaner): registers Boost.Test printers
-#include <xstd/test/constexpr_check.hpp>            // XSTD_CONSTEXPR_CHECK_EQUAL
-#include <xstd/test/exact_width_types.hpp>          // exact-width integer type lists, bit-precise type lists
-#include <boost/test/unit_test.hpp>                 // BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE
+#include <xstd/ints/cstdlib.hpp>                   // complete arithmetic surface
+#include <xstd/ints/cstdint.hpp>                   // XSTD_HAS_BIT_INT, bit_int, bit_uint
+#include <xstd/ints/limits.hpp>                    // numeric_limits
+#include <xstd/ints/type_traits/make_unsigned.hpp> // make_unsigned_t
+#include <test/boost_test_print_log_value.hpp>     // NOLINT(misc-include-cleaner): registers Boost.Test printers
+#include <test/constexpr_check.hpp>                // XSTD_CONSTEXPR_CHECK_EQUAL
+#include <test/exact_width_types.hpp>              // exact-width integer type lists, bit-precise type lists
+#include <boost/test/unit_test.hpp>                // BOOST_AUTO_TEST_CASE_TEMPLATE, BOOST_AUTO_TEST_SUITE
 
 BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(CStdLib)
 
 // Without negative values, truncated, floored and Euclidean division are the same operation.
-BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedDivisionConventionsAgree, T, xstd::test::exact_width_unsigned_integer_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedDivisionConventionsAgree, T, test::exact_width_unsigned_integer_types)
 {
-        XSTD_CONSTEXPR_CHECK_EQUAL_IF(xstd::test::has_constexpr_division<T>, (xstd::div(T{8}, T{3})), (xstd::div_euclid(T{8}, T{3})));
-        XSTD_CONSTEXPR_CHECK_EQUAL_IF(xstd::test::has_constexpr_division<T>, (xstd::div(T{8}, T{3})), (xstd::div_floor(T{8}, T{3})));
-        XSTD_CONSTEXPR_CHECK_EQUAL_IF(xstd::test::has_constexpr_division<T>, (xstd::div(T{1}, T{2})), (xstd::div_euclid(T{1}, T{2})));
-        XSTD_CONSTEXPR_CHECK_EQUAL_IF(xstd::test::has_constexpr_division<T>, (xstd::div(T{1}, T{2})), (xstd::div_floor(T{1}, T{2})));
+        XSTD_CONSTEXPR_CHECK_EQUAL_IF(test::has_constexpr_division<T>, (xstd::div(T{8}, T{3})), (xstd::div_euclid(T{8}, T{3})));
+        XSTD_CONSTEXPR_CHECK_EQUAL_IF(test::has_constexpr_division<T>, (xstd::div(T{8}, T{3})), (xstd::div_floor(T{8}, T{3})));
+        XSTD_CONSTEXPR_CHECK_EQUAL_IF(test::has_constexpr_division<T>, (xstd::div(T{1}, T{2})), (xstd::div_euclid(T{1}, T{2})));
+        XSTD_CONSTEXPR_CHECK_EQUAL_IF(test::has_constexpr_division<T>, (xstd::div(T{1}, T{2})), (xstd::div_floor(T{1}, T{2})));
 
         using limits = xstd::numeric_limits<T>;
-        XSTD_CONSTEXPR_CHECK_EQUAL_IF(xstd::test::has_constexpr_division<T>,
+        XSTD_CONSTEXPR_CHECK_EQUAL_IF(test::has_constexpr_division<T>,
                                       (xstd::div(limits::max(), T{3})), (xstd::div_euclid(limits::max(), T{3})));
-        XSTD_CONSTEXPR_CHECK_EQUAL_IF(xstd::test::has_constexpr_division<T>,
+        XSTD_CONSTEXPR_CHECK_EQUAL_IF(test::has_constexpr_division<T>,
                                       (xstd::div(limits::max(), T{3})), (xstd::div_floor(limits::max(), T{3})));
 }
 
 // An exact division has no convention-dependent remainder, even for signed operands.
-BOOST_AUTO_TEST_CASE_TEMPLATE(ExactDivisionConventionsAgree, T, xstd::test::exact_width_signed_integer_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(ExactDivisionConventionsAgree, T, test::exact_width_signed_integer_types)
 {
-        XSTD_CONSTEXPR_CHECK_EQUAL_IF(xstd::test::has_constexpr_division<T>, (xstd::div(T{-6}, T{3})), (xstd::div_euclid(T{-6}, T{3})));
-        XSTD_CONSTEXPR_CHECK_EQUAL_IF(xstd::test::has_constexpr_division<T>, (xstd::div(T{-6}, T{3})), (xstd::div_floor(T{-6}, T{3})));
+        XSTD_CONSTEXPR_CHECK_EQUAL_IF(test::has_constexpr_division<T>, (xstd::div(T{-6}, T{3})), (xstd::div_euclid(T{-6}, T{3})));
+        XSTD_CONSTEXPR_CHECK_EQUAL_IF(test::has_constexpr_division<T>, (xstd::div(T{-6}, T{3})), (xstd::div_floor(T{-6}, T{3})));
 }
 
 // The postconditions of all six over every value a narrow width holds: the one place the whole surface can be swept.
@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(DivisionOverEveryPair)
 }
 
 // And at every width in the list, the values a sweep of 256 bits could never reach.
-BOOST_AUTO_TEST_CASE_TEMPLATE(SignedExtremes, T, xstd::test::bit_precise_signed_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(SignedExtremes, T, test::bit_precise_signed_types)
 {
         using limits = xstd::numeric_limits<T>;
         using U = xstd::make_unsigned_t<T>;
@@ -125,7 +125,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(SignedExtremes, T, xstd::test::bit_precise_signed_
 }
 
 // The unsigned extremes at every configured native width.
-BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedExtremes, T, xstd::test::bit_precise_unsigned_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedExtremes, T, test::bit_precise_unsigned_types)
 {
         using limits = xstd::numeric_limits<T>;
 
@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedExtremes, T, xstd::test::bit_precise_unsig
 // The lists are empty without the storage, and Boost.Test wants a case either way.
 BOOST_AUTO_TEST_CASE(AbsentWithoutCompilerSupport)
 {
-        BOOST_CHECK(std::tuple_size_v<xstd::test::bit_precise_signed_types> == 0);
+        BOOST_CHECK(std::tuple_size_v<test::bit_precise_signed_types> == 0);
 }
 
 #endif // XSTD_HAS_BIT_INT

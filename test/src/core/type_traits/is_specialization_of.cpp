@@ -4,7 +4,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/core/type_traits/is_specialization_of.hpp> // is_specialization_of
-#include <xstd/test/constexpr_check.hpp>                  // XSTD_CONSTEXPR_CHECK
+#include <test/constexpr_check.hpp>                       // XSTD_CONSTEXPR_CHECK
 #include <boost/test/unit_test.hpp>                       // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <complex>                                        // complex
 

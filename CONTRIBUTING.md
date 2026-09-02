@@ -27,7 +27,7 @@ Match the surrounding code's style by eye where `.clang-format` doesn't have an 
 
 ## Test suite requirements
 
-Keep a focused test source for each public function, concept, and trait, mirroring its header path under `test/src/`. A source matching an umbrella header (for example, `cstdlib.cpp`, `concepts.cpp`, or `type_traits.cpp`) tests only identities that span several focused facilities. Integer-generic tests use the signed, unsigned, or combined exact-width type tuples in `test/include/xstd/test/exact_width_types.hpp` so the standard, xstd, optional third-party, and compiler bit-precise implementations stay in the same test matrix.
+Keep a focused test source for each public function, concept, and trait, mirroring its header path under `test/src/`. A source matching an umbrella header (for example, `cstdlib.cpp`, `concepts.cpp`, or `type_traits.cpp`) tests only identities that span several focused facilities. Integer-generic tests use the signed, unsigned, or combined exact-width type tuples in `test/include/test/exact_width_types.hpp` so the standard, xstd, optional third-party, and compiler bit-precise implementations stay in the same test matrix.
 
 The library itself has no dependencies outside `<xstd/ext/>`, whose headers each need the library they adapt - see [README.md](README.md). Its test suite has more, and none of those are needed to *use* xstd:
 

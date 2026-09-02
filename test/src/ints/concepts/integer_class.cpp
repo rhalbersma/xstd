@@ -5,7 +5,7 @@
 
 #include <xstd/ints/concepts/integer_class.hpp>    // integer_class
 #include <xstd/ints/limits/numeric_limits.hpp>     // numeric_limits
-#include <xstd/test/exact_width_types.hpp>         // exact_width_integer_types
+#include <test/exact_width_types.hpp>              // exact_width_integer_types
 #include <xstd/ints/type_traits/make_signed.hpp>   // make_signed_t
 #include <xstd/ints/type_traits/make_unsigned.hpp> // make_unsigned_t
 #include <boost/test/unit_test.hpp>                // Boost.Test
@@ -14,7 +14,7 @@ BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(Concepts)
 BOOST_AUTO_TEST_SUITE(IntegerClass)
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(AdmitsTheExactWidthTypesThroughCv, T, xstd::test::exact_width_integer_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(AdmitsTheExactWidthTypesThroughCv, T, test::exact_width_integer_types)
 {
         static_assert(xstd::integer_class<T>);
         static_assert(xstd::integer_class<T const>);
@@ -48,7 +48,7 @@ BOOST_AUTO_TEST_CASE(StandardIntegral)
 }
 
 // /3's other half, read through the pair so nothing survives promotion, over the signed list alone.
-BOOST_AUTO_TEST_CASE_TEMPLATE(RepresentableRange, T, xstd::test::constexpr_exact_width_signed_integer_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(RepresentableRange, T, test::constexpr_exact_width_signed_integer_types)
 {
         using S = xstd::make_signed_t<T>;
         using U = xstd::make_unsigned_t<T>;

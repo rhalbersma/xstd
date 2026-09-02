@@ -12,7 +12,7 @@
 
 // Reached the way a consumer reaches it: the probe here, the adapter behind the umbrella.
 #if __has_include(<absl/numeric/int128.h>)
-#define XSTD_TEST_HAS_ABSL_INT128
+#define TEST_HAS_ABSL_INT128
 #include <xstd/ints/ext/absl.hpp> // the adapter for absl's pair
 #endif
 
@@ -23,7 +23,7 @@ BOOST_AUTO_TEST_SUITE(Absl)
 // One adapter behind this door, so no invariant spans two; that the associations arrive is what it answers for.
 BOOST_AUTO_TEST_CASE(TheAssociationsArriveThroughTheUmbrella)
 {
-#ifdef XSTD_TEST_HAS_ABSL_INT128
+#ifdef TEST_HAS_ABSL_INT128
         using S = absl::int128;
         using U = absl::uint128;
 

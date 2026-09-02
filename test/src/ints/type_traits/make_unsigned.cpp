@@ -4,8 +4,8 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/ints/type_traits/make_unsigned.hpp> // make_unsigned
-#include <xstd/test/constexpr_check.hpp>           // XSTD_CONSTEXPR_CHECK
-#include <xstd/test/exact_width_types.hpp>         // exact-width integer types
+#include <test/constexpr_check.hpp>                // XSTD_CONSTEXPR_CHECK
+#include <test/exact_width_types.hpp>              // exact-width integer types
 #include <xstd/ints/concepts/unsigned_integer.hpp> // unsigned_integer
 #include <boost/test/unit_test.hpp>                // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <complex>                                 // complex
@@ -50,7 +50,7 @@ BOOST_AUTO_TEST_CASE(MirrorsTheSignedHalf)
         XSTD_CONSTEXPR_CHECK(std::is_const_v<xstd::make_unsigned_t<color const>>);
 }
 
-BOOST_AUTO_TEST_CASE_TEMPLATE(ExactWidthIntegers, T, xstd::test::exact_width_signed_integer_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(ExactWidthIntegers, T, test::exact_width_signed_integer_types)
 {
         static_assert(xstd::unsigned_integer<xstd::make_unsigned_t<T>>);
         BOOST_CHECK(true);

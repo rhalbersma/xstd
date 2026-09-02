@@ -4,7 +4,7 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #include <xstd/ints/concepts/integer.hpp>          // integer
-#include <xstd/test/exact_width_types.hpp>         // exact_width_signed_integer_types, exact_width_unsigned_integer_types
+#include <test/exact_width_types.hpp>              // exact_width_signed_integer_types, exact_width_unsigned_integer_types
 #include <xstd/ints/type_traits/make_signed.hpp>   // make_signed_t
 #include <xstd/ints/type_traits/make_unsigned.hpp> // make_unsigned_t
 #include <boost/test/unit_test.hpp>
@@ -19,7 +19,7 @@ concept cv_rejected_integer =
 BOOST_AUTO_TEST_SUITE(Ints)
 BOOST_AUTO_TEST_SUITE(Concepts)
 BOOST_AUTO_TEST_SUITE(Integer)
-BOOST_AUTO_TEST_CASE_TEMPLATE(AdmitsTheExactWidthTypesThroughCv, T, xstd::test::exact_width_integer_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(AdmitsTheExactWidthTypesThroughCv, T, test::exact_width_integer_types)
 {
         static_assert(xstd::integer<T>);
         static_assert(xstd::integer<T const>);
@@ -71,13 +71,13 @@ BOOST_AUTO_TEST_CASE(SignedPairing)
 }
 
 // A trip through the other sign and back is the identity, stated on T rather than on its own image.
-BOOST_AUTO_TEST_CASE_TEMPLATE(SignedRoundTrip, T, xstd::test::exact_width_signed_integer_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(SignedRoundTrip, T, test::exact_width_signed_integer_types)
 {
         static_assert(std::same_as<xstd::make_signed_t<T>, T>);
         static_assert(std::same_as<xstd::make_signed_t<xstd::make_unsigned_t<T>>, T>);
         BOOST_CHECK(true);
 }
-BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedRoundTrip, T, xstd::test::exact_width_unsigned_integer_types)
+BOOST_AUTO_TEST_CASE_TEMPLATE(UnsignedRoundTrip, T, test::exact_width_unsigned_integer_types)
 {
         static_assert(std::same_as<xstd::make_unsigned_t<T>, T>);
         static_assert(std::same_as<xstd::make_unsigned_t<xstd::make_signed_t<T>>, T>);

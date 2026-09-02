@@ -8,14 +8,14 @@
 #include <xstd/ints/cstdint.hpp>                          // int128, uint128
 #include <xstd/ints/cstdlib/abs.hpp>                      // abs
 #include <xstd/ints/cstdlib/div.hpp>                      // div
-#include <xstd/test/constexpr_check.hpp>                  // XSTD_CONSTEXPR_CHECK
+#include <test/constexpr_check.hpp>                       // XSTD_CONSTEXPR_CHECK
 #include <boost/test/unit_test.hpp>                       // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <complex>                                        // complex
 #include <type_traits>                                    // is_nothrow_..._v
 
 // Reached the way a consumer reaches it: the probe here, the pair inside the adapter.
 #if __has_include(<absl/numeric/int128.h>)
-#define XSTD_TEST_HAS_ABSL_INT128
+#define TEST_HAS_ABSL_INT128
 #include <xstd/ints/ext/absl/int128.hpp> // int128, uint128
 #endif
 
@@ -39,7 +39,7 @@ BOOST_AUTO_TEST_CASE(HoldsForTheTypesThatDeclareIt)
 #endif
 
         // Admitted by integer and refused here: why the two are separate concepts.
-#ifdef XSTD_TEST_HAS_ABSL_INT128
+#ifdef TEST_HAS_ABSL_INT128
         XSTD_CONSTEXPR_CHECK(xstd::integer<absl::int128>);
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_const_operators<absl::int128>);
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_const_operators<absl::uint128>);
@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE(IncludesWhatPassingAndReturningCosts)
 
         // Which the concept now answers for, over the types this file already names.
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_const_operators<int> or std::is_nothrow_copy_constructible_v<int>);
-#ifdef XSTD_TEST_HAS_ABSL_INT128
+#ifdef TEST_HAS_ABSL_INT128
         using T = absl::int128;
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_const_operators<T> or std::is_nothrow_copy_constructible_v<T>);
 #endif
@@ -73,7 +73,7 @@ BOOST_AUTO_TEST_CASE(IsCvTransparentOnBothBranches)
         XSTD_CONSTEXPR_CHECK(xstd::nothrow_const_operators<xstd::int128 const volatile>);
 
         // Nor does a qualifier turn a no into a yes.
-#ifdef XSTD_TEST_HAS_ABSL_INT128
+#ifdef TEST_HAS_ABSL_INT128
         using T = absl::int128;
 
         XSTD_CONSTEXPR_CHECK(not xstd::nothrow_const_operators<T const>);
@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE(IsTheExceptionSpecification)
         XSTD_CONSTEXPR_CHECK(noexcept(xstd::abs(1)) == xstd::nothrow_const_operators<int>);
         XSTD_CONSTEXPR_CHECK(noexcept(xstd::div(1, 1)) == xstd::nothrow_const_operators<int>);
 
-#ifdef XSTD_TEST_HAS_ABSL_INT128
+#ifdef TEST_HAS_ABSL_INT128
         using T = absl::int128;
         XSTD_CONSTEXPR_CHECK(noexcept(xstd::abs(T{1})) == xstd::nothrow_const_operators<T>);
         XSTD_CONSTEXPR_CHECK(noexcept(xstd::div(T{1}, T{1})) == xstd::nothrow_const_operators<T>);

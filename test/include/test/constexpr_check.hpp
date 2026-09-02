@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_TEST_CONSTEXPR_CHECK_HPP
-#define XSTD_TEST_CONSTEXPR_CHECK_HPP
+#ifndef TEST_CONSTEXPR_CHECK_HPP
+#define TEST_CONSTEXPR_CHECK_HPP
 
 #include <boost/test/unit_test.hpp> // BOOST_CHECK, BOOST_CHECK_EQUAL
 
@@ -23,4 +23,4 @@
         } \
         BOOST_CHECK_EQUAL((a), (b))
 
-#endif // XSTD_TEST_CONSTEXPR_CHECK_HPP
+#endif // TEST_CONSTEXPR_CHECK_HPP
