@@ -13,7 +13,7 @@
 #include <string_view>                      // wstring_view
 
 #ifdef __cpp_lib_constexpr_format
-#include <test/constexpr_check.hpp>      // XSTD_CONSTEXPR_CHECK_EQUAL
+#include <test/constexpr_check.hpp> // XSTD_CONSTEXPR_CHECK_EQUAL
 #endif
 
 BOOST_AUTO_TEST_SUITE(Ints)
