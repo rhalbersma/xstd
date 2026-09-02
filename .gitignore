@@ -5,10 +5,7 @@
 
 /build/
 /.vscode/
-*.info
 
 # Written into the source tree by the Coverage workflow and by a local gcovr run.
 /coverage.txt
 /coverage.xml
-
-__pycache__/
