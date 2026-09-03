@@ -8,14 +8,9 @@ name: Scorecard
 permissions:
   contents: read
 
-# No concurrency group here, deliberately. Since v0.2.1 the shared workflow
-# declares one for its own push and schedule runs, and inside a called workflow
-# github.workflow and github.ref both name the caller -- so a group declared
-# here computes the same string the callee computes, and the callee's
-# cancel-in-progress cancels the very run that called it, before any job starts.
-# Serialisation is not lost: the callee's group is built from this workflow's
-# name and ref, so two runs of this stub still collide there and the later one
-# wins.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 on:
   push:

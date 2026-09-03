@@ -27,6 +27,12 @@ on:
   workflow_dispatch:
 
 jobs:
-  # No inputs: one hundred percent of include/, which is the shared default.
+  # One hundred percent of include/. This restates the shared default rather
+  # than inheriting it, so the bar is readable here and a change to the default
+  # cannot lower it without a commit in this repository. bit_set and tabula
+  # state theirs for the same reason; tabula's is a ratchet below 100.
   coverage:
     uses: rhalbersma/cpp-ci/.github/workflows/coverage.yml@e2886b13f6fcd1eceb231652f816b016de41be1d # v0.8.1
+    with:
+      fail_under_line: 100
+      fail_under_branch: 100
