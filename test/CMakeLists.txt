@@ -3,15 +3,20 @@
 #    (See accompanying file LICENSE_1_0.txt or copy at
 #          http://www.boost.org/LICENSE_1_0.txt)
 
-add_library(xstd_ints_test_options INTERFACE)
-option(XSTD_INTS_WARNINGS_AS_ERRORS "Treat warnings as errors in xstd-ints tests" ${PROJECT_IS_TOP_LEVEL})
+# The project name as an identifier and as a cache-option prefix, so a rename carries the test tree with it.
+string(MAKE_C_IDENTIFIER ${PROJECT_NAME} project_id)
+# In that order: TOUPPER alone would leave XSTD-INTS, which is no name a cache option can have.
+string(TOUPPER ${project_id} project_option_prefix)
+
+add_library(${project_id}_test_options INTERFACE)
+option(${project_option_prefix}_WARNINGS_AS_ERRORS "Treat warnings as errors in ${PROJECT_NAME} tests" ${PROJECT_IS_TOP_LEVEL})
 
 # clang-cl reports CXX_COMPILER_ID Clang but only understands its MSVC-style
 # driver flags, not GNU-style ones like -pedantic-errors.
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
-    set(xstd_ints_is_clang_cl ON)
+    set(${project_id}_is_clang_cl ON)
 else()
-    set(xstd_ints_is_clang_cl OFF)
+    set(${project_id}_is_clang_cl OFF)
 endif()
 
 set(cxx_compile_definitions
@@ -65,27 +70,27 @@ set(cxx_compile_options_warnings
         # system-header suppression does not reach it. Scoped to GCC.
         -Wno-maybe-uninitialized
     >
-    $<$<AND:$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>,$<NOT:$<BOOL:${xstd_ints_is_clang_cl}>>>:
+    $<$<AND:$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>,$<NOT:$<BOOL:${${project_id}_is_clang_cl}>>>:
         -pedantic-errors
     >
 )
 
 target_compile_definitions(
-    xstd_ints_test_options INTERFACE
+    ${project_id}_test_options INTERFACE
     ${cxx_compile_definitions}
 )
 target_compile_options(
-    xstd_ints_test_options INTERFACE
+    ${project_id}_test_options INTERFACE
     ${cxx_compile_options_warnings}
-    $<$<AND:$<BOOL:${XSTD_INTS_WARNINGS_AS_ERRORS}>,$<CXX_COMPILER_ID:MSVC>>:/WX>
-    $<$<AND:$<BOOL:${XSTD_INTS_WARNINGS_AS_ERRORS}>,$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>>:-Werror>
+    $<$<AND:$<BOOL:${${project_option_prefix}_WARNINGS_AS_ERRORS}>,$<CXX_COMPILER_ID:MSVC>>:/WX>
+    $<$<AND:$<BOOL:${${project_option_prefix}_WARNINGS_AS_ERRORS}>,$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>>:-Werror>
     # Pre-empts MinGW's 32-byte aligned stores to a 16-byte aligned stack, which bite the
     # moment AVX is enabled. The assembler rewrites them unaligned, so 256-bit vectors
     # survive (rhalbersma/xstd-bits#54, GCC PR target/54412, binutils 2.38+).
     $<$<AND:$<CXX_COMPILER_ID:GNU>,$<PLATFORM_ID:Windows>>:-Wa$<COMMA>-muse-unaligned-vector-move>
 )
 target_include_directories(
-    xstd_ints_test_options INTERFACE
+    ${project_id}_test_options INTERFACE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
@@ -95,7 +100,7 @@ target_include_directories(
 set(public_header_dir ${PROJECT_SOURCE_DIR}/include)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/header_self_sufficiency)
 
-function(xstd_ints_add_header_self_sufficiency_test h)
+function(${project_id}_add_header_self_sufficiency_test h)
     string(REPLACE "/" "." header_test_id ${h})
     string(REGEX REPLACE "[.]hpp$" "" header_test_id ${header_test_id})
     set(header_test_source ${CMAKE_CURRENT_BINARY_DIR}/header_self_sufficiency/${header_test_id}.cpp)
@@ -111,7 +116,7 @@ function(xstd_ints_add_header_self_sufficiency_test h)
         header.${header_test_id} PRIVATE
         xstd::ints
         ${ARGN}
-        xstd_ints_test_options
+        ${project_id}_test_options
     )
     add_test(NAME header.${header_test_id} COMMAND header.${header_test_id})
 endfunction()
@@ -138,7 +143,7 @@ foreach(h ${all_headers})
 endforeach()
 
 foreach(h ${public_headers})
-    xstd_ints_add_header_self_sufficiency_test(${h})
+    cmake_language(CALL ${project_id}_add_header_self_sufficiency_test ${h})
 endforeach()
 
 # The test tree mirrors the header tree: every public header is answered by exactly
@@ -185,10 +190,10 @@ find_package(
 
 # The one 128-bit type the suite tests against that xstd knows nothing about,
 # and not a hard dependency. Ships with Boost 1.92; until then the fetch below.
-option(XSTD_INTS_TEST_FETCH_BOOST_INT128 "Fetch Boost.Int128 when no installed copy is found" ON)
+option(${project_option_prefix}_TEST_FETCH_BOOST_INT128 "Fetch Boost.Int128 when no installed copy is found" ON)
 
 find_package(boost_int128 CONFIG QUIET)
-if(NOT TARGET Boost::int128 AND XSTD_INTS_TEST_FETCH_BOOST_INT128)
+if(NOT TARGET Boost::int128 AND ${project_option_prefix}_TEST_FETCH_BOOST_INT128)
     include(FetchContent)
     FetchContent_Declare(
         boost_int128
@@ -209,18 +214,18 @@ if(NOT TARGET Boost::int128 AND XSTD_INTS_TEST_FETCH_BOOST_INT128)
 endif()
 
 if(TARGET Boost::int128)
-    set(xstd_ints_test_boost_int128 Boost::int128)
+    set(${project_id}_test_boost_int128 Boost::int128)
 else()
-    set(xstd_ints_test_boost_int128)
+    set(${project_id}_test_boost_int128)
 endif()
 
 # The other half of the same extension point, and not a hard dependency
 # either: absl::int128 declares no noexcept anywhere, which is the case the
 # integer functions' conditional exception specification exists for.
-option(XSTD_INTS_TEST_FETCH_ABSL_INT128 "Fetch Abseil when no installed copy is found" ON)
+option(${project_option_prefix}_TEST_FETCH_ABSL_INT128 "Fetch Abseil when no installed copy is found" ON)
 
 find_package(absl CONFIG QUIET)
-if(NOT TARGET absl::int128 AND XSTD_INTS_TEST_FETCH_ABSL_INT128)
+if(NOT TARGET absl::int128 AND ${project_option_prefix}_TEST_FETCH_ABSL_INT128)
     include(FetchContent)
     FetchContent_Declare(
         absl_int128
@@ -236,33 +241,33 @@ if(NOT TARGET absl::int128 AND XSTD_INTS_TEST_FETCH_ABSL_INT128)
 
     # int128.cc is where operator/ and operator% live on a platform with no
     # 128-bit intrinsic to lower them to; the rest of the type is header-only.
-    add_library(xstd_ints_test_absl_int128_lib STATIC ${absl_int128_SOURCE_DIR}/absl/numeric/int128.cc)
+    add_library(${project_id}_test_absl_int128_lib STATIC ${absl_int128_SOURCE_DIR}/absl/numeric/int128.cc)
 
     # Built to the same standard as the tests, not to the compiler's default:
     # absl::strong_ordering is std::strong_ordering only where the library
     # sees C++20's <compare>, and the two spellings must not meet at a link.
-    target_compile_features(xstd_ints_test_absl_int128_lib PUBLIC cxx_std_23)
+    target_compile_features(${project_id}_test_absl_int128_lib PUBLIC cxx_std_23)
 
     # SYSTEM for the reason Boost::int128's includes are.
-    target_include_directories(xstd_ints_test_absl_int128_lib SYSTEM PUBLIC ${absl_int128_SOURCE_DIR})
+    target_include_directories(${project_id}_test_absl_int128_lib SYSTEM PUBLIC ${absl_int128_SOURCE_DIR})
 
-    add_library(absl::int128 ALIAS xstd_ints_test_absl_int128_lib)
+    add_library(absl::int128 ALIAS ${project_id}_test_absl_int128_lib)
 endif()
 
 if(TARGET absl::int128)
-    set(xstd_ints_test_absl_int128 absl::int128)
+    set(${project_id}_test_absl_int128 absl::int128)
 else()
-    set(xstd_ints_test_absl_int128)
+    set(${project_id}_test_absl_int128)
 endif()
 
 # The headers held back above, each compiled only where the library it adapts is there to adapt.
 if(TARGET Boost::int128)
-    xstd_ints_add_header_self_sufficiency_test(xstd/ints/ext/boost.hpp ${xstd_ints_test_boost_int128})
-    xstd_ints_add_header_self_sufficiency_test(xstd/ints/ext/boost/int128.hpp ${xstd_ints_test_boost_int128})
+    cmake_language(CALL ${project_id}_add_header_self_sufficiency_test xstd/ints/ext/boost.hpp ${${project_id}_test_boost_int128})
+    cmake_language(CALL ${project_id}_add_header_self_sufficiency_test xstd/ints/ext/boost/int128.hpp ${${project_id}_test_boost_int128})
 endif()
 if(TARGET absl::int128)
-    xstd_ints_add_header_self_sufficiency_test(xstd/ints/ext/absl.hpp ${xstd_ints_test_absl_int128})
-    xstd_ints_add_header_self_sufficiency_test(xstd/ints/ext/absl/int128.hpp ${xstd_ints_test_absl_int128})
+    cmake_language(CALL ${project_id}_add_header_self_sufficiency_test xstd/ints/ext/absl.hpp ${${project_id}_test_absl_int128})
+    cmake_language(CALL ${project_id}_add_header_self_sufficiency_test xstd/ints/ext/absl/int128.hpp ${${project_id}_test_absl_int128})
 endif()
 
 set(current_source_dir ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -284,9 +289,9 @@ foreach(t ${targets})
         ${target_id} PRIVATE
         xstd::ints
         Boost::unit_test_framework
-        ${xstd_ints_test_boost_int128}
-        ${xstd_ints_test_absl_int128}
-        xstd_ints_test_options
+        ${${project_id}_test_boost_int128}
+        ${${project_id}_test_absl_int128}
+        ${project_id}_test_options
     )
 
     add_test(NAME ${target_id} COMMAND ${target_id} --log_level=all)
