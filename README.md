@@ -1,5 +1,9 @@
 # Do as the ints do
 
+> "Go to the ant, thou sluggard; consider her ways, and be wise."
+>
+> Proverbs 6:6, King James Version
+
 [![Language](https://img.shields.io/badge/language-C++-blue.svg)](https://isocpp.org/)
 [![Standard](https://img.shields.io/badge/c%2B%2B-23-blue.svg)](https://en.wikipedia.org/wiki/C%2B%2B#Standardization)
 [![License](https://img.shields.io/badge/license-Boost-blue.svg)](https://opensource.org/licenses/BSL-1.0)
