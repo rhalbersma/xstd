@@ -16,4 +16,4 @@ FetchContent_Declare(xstd-ints SOURCE_DIR "${xstd_ints_root}")
 FetchContent_MakeAvailable(xstd-ints)
 
 add_executable(main ../main.cpp)
-target_link_libraries(main PRIVATE xstd-ints::xstd-ints)
+target_link_libraries(main PRIVATE xstd::ints)

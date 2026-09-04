@@ -15,4 +15,4 @@ get_filename_component(xstd_ints_root "${CMAKE_CURRENT_SOURCE_DIR}/../../.." ABS
 add_subdirectory("${xstd_ints_root}" xstd-ints-build)
 
 add_executable(main ../main.cpp)
-target_link_libraries(main PRIVATE xstd-ints::xstd-ints)
+target_link_libraries(main PRIVATE xstd::ints)

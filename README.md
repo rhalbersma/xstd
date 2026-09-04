@@ -41,11 +41,11 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(xstd-ints)
 
-target_link_libraries(my_target PRIVATE xstd-ints::xstd-ints)
+target_link_libraries(my_target PRIVATE xstd::ints)
 ```
 
 `find_package(xstd-ints CONFIG REQUIRED)` and `add_subdirectory(external/xstd-ints)` provide
-the same `xstd-ints::xstd-ints` target.
+the same `xstd::ints` target.
 
 ## Headers
 

@@ -109,7 +109,7 @@ function(xstd_ints_add_header_self_sufficiency_test h)
     add_executable(header.${header_test_id} ${header_test_source})
     target_link_libraries(
         header.${header_test_id} PRIVATE
-        ${PROJECT_NAME}::${PROJECT_NAME}
+        xstd::ints
         ${ARGN}
         xstd_ints_test_options
     )
@@ -288,7 +288,7 @@ foreach(t ${targets})
 
     target_link_libraries(
         ${target_id} PRIVATE
-        ${PROJECT_NAME}::${PROJECT_NAME}
+        xstd::ints
         Boost::unit_test_framework
         ${xstd_ints_test_boost_int128}
         ${xstd_ints_test_absl_int128}

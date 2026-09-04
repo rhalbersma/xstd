@@ -21,7 +21,15 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_library(
     ${PROJECT_NAME} INTERFACE
 )
-add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+
+# Consumed as xstd::ints, following Boost: the package keeps the repository's name
+# (find_package(xstd-ints)) while the target is a component of one umbrella namespace,
+# so xstd::ints sits beside xstd::bits the way Boost::mp11 sits beside Boost::hash2.
+# EXPORT_NAME is what lets the exported name differ from the target name; the alias
+# below must spell the same thing, or an add_subdirectory consumer and a find_package
+# consumer would end up with two different names for one library.
+set_target_properties(${PROJECT_NAME} PROPERTIES EXPORT_NAME ints)
+add_library(xstd::ints ALIAS ${PROJECT_NAME})
 
 # No target_include_directories: the HEADERS file set below adds its base
 # directory, and install(TARGETS ... FILE_SET) adds the install destination.
@@ -102,7 +110,7 @@ install(
 )
 install(
     EXPORT ${PROJECT_NAME}Targets
-    NAMESPACE ${PROJECT_NAME}::
+    NAMESPACE xstd::
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
