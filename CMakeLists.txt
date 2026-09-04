@@ -8,6 +8,9 @@ project(
     xstd-ints
     VERSION 0.1.0
     DESCRIPTION "Do as the ints do"
+    # Spelled out rather than derived from ${PROJECT_NAME}: project() expands its
+    # own arguments before it sets that variable, so a derived URL would silently
+    # record https://github.com/rhalbersma/ with no repository on the end.
     HOMEPAGE_URL "https://github.com/rhalbersma/xstd-ints"
     LANGUAGES CXX
 )
