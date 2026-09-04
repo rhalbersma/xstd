@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 3.28)
 project(
     xstd-ints
     VERSION 0.1.0
-    DESCRIPTION "Extensions to the C++ Standard Library"
+    DESCRIPTION "Do as the ints do"
     HOMEPAGE_URL "https://github.com/rhalbersma/xstd-ints"
     LANGUAGES CXX
 )
