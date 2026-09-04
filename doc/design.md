@@ -15,8 +15,6 @@ across the tested toolchains. Consumers need no third-party dependencies.
 - **Generalize integer support.** The standard integral concepts and traits are
   closed over built-in types; xstd's integer concepts also accept paired
   integer-class types, based on their behavior and `xstd::numeric_limits`.
-- **Keep metaprogramming small.** `specialization_of`, `empty_type` and
-  `conditional_data_member_t` solve local problems without a framework.
 - **Make semantics explicit.** The three division functions name their rounding
   convention rather than hiding it behind `/` and `%`.
 - **Stay modular and dependency-free.** Linking `xstd::ints` adds include paths
@@ -130,10 +128,10 @@ only a single-expression function, which these are not.
 
 A `= default` function needs no stand-in and gets neither specifier: defaulted on
 its first declaration it is implicitly `constexpr` if the implicit declaration
-would be, and its exception specification is computed. So `div_result`'s equality and
-`empty_type`'s default constructor and `<=>` write only `[[nodiscard]]`, the one
-of the three with no implicit form. Neither is restated for symmetry, because the
-two fail differently: a `constexpr` that cannot hold is refused where a constant
+would be, and its exception specification is computed. So `div_result`'s equality
+writes only `[[nodiscard]]`, the one of the three with no implicit form. Neither
+is restated for symmetry, because the two fail differently: a `constexpr` that
+cannot hold is refused where a constant
 expression needs it, while
 [P1286R2](https://www.open-std.org/jtc1/sc22/wg21/docs/papers/2019/p1286r2.html)
 (C++20) removed the rule that deleted such a defaulted function, so an over-broad
@@ -231,14 +229,9 @@ no usage requirement that could propagate one.
 
 The type utilities intentionally remain narrow:
 
-- `is_specialization_of` and `specialization_of` recognize specializations of
-  class templates whose parameters are types.
 - `is_signed` and `is_unsigned` are open counterparts of the standard traits.
-- `empty_type` and `conditional_data_member_t` support optional
-  `[[no_unique_address]]` storage. Its tag defaults to `void`, so `empty_type<>`
-  also serves the uses with nothing to keep distinct.
-- `to_underlying` forwards a plain enum and preserves one wrapped in
-  `std::integral_constant`.
+- `make_signed` and `make_unsigned` are their open, user-specializable transformations.
+- `promoted_t` names what a type's own operators yield.
 - `nothrow_const_operators` answers whether the conditional `noexcept` holds.
 
 A concept spelling is provided when the standard library has an analogous
@@ -255,24 +248,6 @@ So the concept here is `integer`, bare, rather than an `is_integer`
 transliterating a hyphenated name that was never meant to be public; where a trait
 does stand beside a concept, as `is_signed` does beside `signed_integer`, the
 `is` is what marks which is which.
-
-### `to_underlying`
-
-The [original 2016 sketch](ideas.md#1-convenient-underlying-types-for-scoped-enums)
-motivated `to_underlying` with scoped enums used as named tuple and array
-indices. Rein Halbersma developed the idea and initial usage evidence with
-Walter E. Brown; JeanHeyd Meneide then authored
-[P1682R1](https://wg21.link/P1682R1) and carried `std::to_underlying` through
-WG21 for [C++23](https://wg21.link/N4950). P1682's acknowledgements record those roles. The xstd overload
-complements it: given an enum value wrapped in `std::integral_constant`, it
-returns an `integral_constant` of the underlying type, preserving the value at
-the type level.
-
-A second overload forwards a plain enum to `std::to_underlying`, so `xstd::` is
-one spelling over both forms rather than a name a caller has to remember to
-switch away from for the unwrapped case. It is an overload rather than a
-using-declaration because the constraint is then written where it applies, as
-the wrapped one writes its own.
 
 ### Character conversion
 
@@ -394,8 +369,8 @@ compilers agree, emits the same instructions.
 integer, radix 2, unsigned, wider than one bit, convertible both ways with
 `size_t`, totally ordered, closed under `+`, `-` and `&`. Every
 `unsigned_integer` is `alignable` and no `signed_integer` is, while the converse
-fails — which is what puts it in `xstd/ints` rather than beside the storage
-utilities in `xstd/misc`.
+fails — which is what kept it here when the storage utilities left for
+[xstd-misc](https://github.com/rhalbersma/xstd-misc).
 
 Signed types are excluded, though their arithmetic is fine: on two's complement
 `align_up(-5, 4)` is `-4`. They are excluded because `align_up`'s precondition
