@@ -13,7 +13,7 @@
 
 namespace xstd {
 
-// Like Rust's unsigned_abs: total, returning the unsigned counterpart so MIN is valid.
+// Like Rust's unsigned_abs: total, returning the unsigned counterpart so MIN is valid; deduced, not spelled, because Clang before 21 has no CWG2369.
 template<integer I>
 [[nodiscard]] constexpr auto unsigned_abs(I x) noexcept(nothrow_const_operators<I>)
 {
