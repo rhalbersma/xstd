@@ -91,7 +91,7 @@ CheckOptions:
 ```cpp
 #include <climits>
 #include <xstd/ints/cstdlib.hpp>
-#include <xstd/misc/memory.hpp>
+#include <xstd/ints/memory.hpp>
 
 static_assert(xstd::unsigned_abs(INT_MIN) == static_cast<unsigned>(INT_MAX) + 1u);
 static_assert(xstd::align_up(100uz, 64) == 128);
