@@ -5,10 +5,10 @@
 
 cmake_minimum_required(VERSION 3.28)
 project(
-    xstd
+    xstd-ints
     VERSION 0.1.0
     DESCRIPTION "Extensions to the C++ Standard Library"
-    HOMEPAGE_URL "https://github.com/rhalbersma/xstd"
+    HOMEPAGE_URL "https://github.com/rhalbersma/xstd-ints"
     LANGUAGES CXX
 )
 
@@ -86,7 +86,7 @@ target_sources(
         include/xstd/core/utility/to_underlying.hpp
 )
 
-# Tests and their Boost.Test dependency only exist when xstd is being
+# Tests and their Boost.Test dependency only exist when xstd-ints is being
 # developed; a consumer vendoring this directory gets the header-only target.
 if(PROJECT_IS_TOP_LEVEL)
     include(CTest)
@@ -106,7 +106,7 @@ install(
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
-# So consumers can find_package(xstd CONFIG). ARCH_INDEPENDENT because a
+# So consumers can find_package(xstd-ints CONFIG). ARCH_INDEPENDENT because a
 # header-only library has no architecture-specific binaries.
 include(CMakePackageConfigHelpers)
 configure_package_config_file(

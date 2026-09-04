@@ -1,8 +1,8 @@
 {
-  "name": "xstd",
+  "name": "xstd-ints",
   "version-string": "0.1.0",
   "description": "Extensions to the C++ Standard Library",
-  "homepage": "https://github.com/rhalbersma/xstd",
+  "homepage": "https://github.com/rhalbersma/xstd-ints",
   "license": "BSL-1.0",
   "default-features": [
     "test"

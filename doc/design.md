@@ -19,7 +19,7 @@ across the tested toolchains. Consumers need no third-party dependencies.
   `conditional_data_member_t` solve local problems without a framework.
 - **Make semantics explicit.** The three division functions name their rounding
   convention rather than hiding it behind `/` and `%`.
-- **Stay modular and dependency-free.** Linking `xstd::xstd` adds include paths
+- **Stay modular and dependency-free.** Linking `xstd-ints::xstd-ints` adds include paths
   and the [C++23](https://wg21.link/N4950) requirement, but no runtime library or transitive package.
 
 ## API shape
@@ -466,7 +466,7 @@ integer-class types; for unsigned types all three conventions coincide.
 ## Requirements and evolution
 
 xstd requires a conforming [C++23](https://wg21.link/N4950) compiler, and the CMake project CMake 3.28 or
-later, exporting the header-only `xstd::xstd` target. Consumers build neither the
+later, exporting the header-only `xstd-ints::xstd-ints` target. Consumers build neither the
 tests nor their dependencies. New facilities should stay small, portable and
 motivated by current practice; one that enters the standard library can be
 retired, and the baseline can advance to C++26 once that is a practical default.
