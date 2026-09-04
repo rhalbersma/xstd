@@ -395,7 +395,7 @@ integer, radix 2, unsigned, wider than one bit, convertible both ways with
 `size_t`, totally ordered, closed under `+`, `-` and `&`. Every
 `unsigned_integer` is `alignable` and no `signed_integer` is, while the converse
 fails — which is what puts it in `xstd/ints` rather than beside the storage
-utilities in `xstd/core`.
+utilities in `xstd/misc`.
 
 Signed types are excluded, though their arithmetic is fine: on two's complement
 `align_up(-5, 4)` is `-4`. They are excluded because `align_up`'s precondition

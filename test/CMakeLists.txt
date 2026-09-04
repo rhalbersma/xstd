@@ -127,11 +127,11 @@ file(
 list(FILTER public_headers EXCLUDE REGEX "^xstd/ints/ext/")
 
 # The libraries are leaves: neither may include the other, or the split would make a chain of them.
-foreach(lib core ints)
-    if(lib STREQUAL core)
+foreach(lib misc ints)
+    if(lib STREQUAL misc)
         set(forbidden ints)
     else()
-        set(forbidden core)
+        set(forbidden misc)
     endif()
     file(GLOB_RECURSE lib_headers CONFIGURE_DEPENDS ${public_header_dir}/xstd/${lib}/*.hpp)
     list(APPEND lib_headers ${public_header_dir}/xstd/${lib}.hpp)

@@ -3,13 +3,13 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/core/concepts/specialization_of.hpp> // specialization_of
+#include <xstd/misc/concepts/specialization_of.hpp> // specialization_of
 #include <test/constexpr_check.hpp>                 // XSTD_CONSTEXPR_CHECK, XSTD_CONSTEXPR_CHECK_EQUAL
 #include <boost/test/unit_test.hpp>                 // BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END, BOOST_AUTO_TEST_CASE
 #include <complex>                                  // complex
 #include <tuple>                                    // tuple
 
-BOOST_AUTO_TEST_SUITE(Core)
+BOOST_AUTO_TEST_SUITE(Misc)
 BOOST_AUTO_TEST_SUITE(Concepts)
 BOOST_AUTO_TEST_SUITE(SpecializationOf)
 

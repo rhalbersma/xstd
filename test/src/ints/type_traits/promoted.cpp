@@ -3,7 +3,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/core/type_traits/empty_type.hpp> // empty_type
+#include <xstd/misc/type_traits/empty_type.hpp> // empty_type
 #include <xstd/ints/type_traits/promoted.hpp>   // promoted_t
 #include <boost/test/unit_test.hpp>             // Boost.Test
 #include <concepts>                             // same_as

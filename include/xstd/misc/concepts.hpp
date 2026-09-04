@@ -3,9 +3,9 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_CORE_CONCEPTS_HPP
-#define XSTD_CORE_CONCEPTS_HPP
+#ifndef XSTD_MISC_CONCEPTS_HPP
+#define XSTD_MISC_CONCEPTS_HPP
 
-#include <xstd/core/concepts/specialization_of.hpp> // IWYU pragma: export; specialization_of
+#include <xstd/misc/concepts/specialization_of.hpp> // IWYU pragma: export; specialization_of
 
-#endif // XSTD_CORE_CONCEPTS_HPP
+#endif // XSTD_MISC_CONCEPTS_HPP
