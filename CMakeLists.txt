@@ -35,28 +35,35 @@ target_sources(
     FILE_SET HEADERS
     BASE_DIRS include
     FILES
-        include/xstd/ints.hpp
-        include/xstd/ints/concepts.hpp
-        include/xstd/ints/concepts/alignable.hpp
-        include/xstd/ints/concepts/integer_class.hpp
-        include/xstd/ints/concepts/integer.hpp
-        include/xstd/ints/concepts/nothrow_const_operators.hpp
-        include/xstd/ints/concepts/signed_integer.hpp
         include/xstd/core.hpp
         include/xstd/core/concepts.hpp
         include/xstd/core/concepts/specialization_of.hpp
-        include/xstd/ints/concepts/unsigned_integer.hpp
+        include/xstd/core/type_traits.hpp
+        include/xstd/core/type_traits/conditional_data_member.hpp
+        include/xstd/core/type_traits/empty_type.hpp
+        include/xstd/core/type_traits/is_specialization_of.hpp
+        include/xstd/core/type_traits/no_unique_address.hpp
+        include/xstd/core/utility.hpp
+        include/xstd/core/utility/to_underlying.hpp
+        include/xstd/ints.hpp
         include/xstd/ints/charconv.hpp
         include/xstd/ints/charconv/to_chars.hpp
+        include/xstd/ints/concepts.hpp
+        include/xstd/ints/concepts/alignable.hpp
+        include/xstd/ints/concepts/integer.hpp
+        include/xstd/ints/concepts/integer_class.hpp
+        include/xstd/ints/concepts/nothrow_const_operators.hpp
+        include/xstd/ints/concepts/signed_integer.hpp
+        include/xstd/ints/concepts/unsigned_integer.hpp
         include/xstd/ints/cstdint.hpp
         include/xstd/ints/cstdint/bit_int.hpp
         include/xstd/ints/cstdint/int128.hpp
         include/xstd/ints/cstdlib.hpp
         include/xstd/ints/cstdlib/abs.hpp
         include/xstd/ints/cstdlib/div.hpp
-        include/xstd/ints/cstdlib/div_result.hpp
         include/xstd/ints/cstdlib/div_euclid.hpp
         include/xstd/ints/cstdlib/div_floor.hpp
+        include/xstd/ints/cstdlib/div_result.hpp
         include/xstd/ints/cstdlib/sign.hpp
         include/xstd/ints/cstdlib/unsigned_abs.hpp
         include/xstd/ints/ext/absl.hpp
@@ -68,22 +75,15 @@ target_sources(
         include/xstd/ints/limits.hpp
         include/xstd/ints/limits/numeric_limits.hpp
         include/xstd/ints/memory.hpp
-        include/xstd/ints/memory/align_up.hpp
         include/xstd/ints/memory/align_down.hpp
+        include/xstd/ints/memory/align_up.hpp
         include/xstd/ints/memory/is_aligned.hpp
-        include/xstd/core/type_traits.hpp
-        include/xstd/core/type_traits/conditional_data_member.hpp
-        include/xstd/core/type_traits/empty_type.hpp
         include/xstd/ints/type_traits.hpp
         include/xstd/ints/type_traits/is_signed.hpp
-        include/xstd/core/type_traits/is_specialization_of.hpp
         include/xstd/ints/type_traits/is_unsigned.hpp
         include/xstd/ints/type_traits/make_signed.hpp
         include/xstd/ints/type_traits/make_unsigned.hpp
-        include/xstd/core/type_traits/no_unique_address.hpp
         include/xstd/ints/type_traits/promoted.hpp
-        include/xstd/core/utility.hpp
-        include/xstd/core/utility/to_underlying.hpp
 )
 
 # Tests and their Boost.Test dependency only exist when xstd-ints is being
