@@ -126,21 +126,15 @@ file(
 # Every header but those under ext/, which cannot compile before their optional dependency resolves.
 list(FILTER public_headers EXCLUDE REGEX "^xstd/ints/ext/")
 
-# The libraries are leaves: neither may include the other, or the split would make a chain of them.
-foreach(lib misc ints)
-    if(lib STREQUAL misc)
-        set(forbidden ints)
-    else()
-        set(forbidden misc)
+# What the two-library leaf rule became once xstd/misc left for its own repository: this
+# library still may not reach for it, and now an include would be an undeclared dependency
+# on a package this one neither finds nor exports.
+file(GLOB_RECURSE all_headers CONFIGURE_DEPENDS ${public_header_dir}/xstd/*.hpp)
+foreach(h ${all_headers})
+    file(STRINGS ${h} offending REGEX "#include[ \t]*<xstd/misc/")
+    if(offending)
+        message(FATAL_ERROR "${h} includes <xstd/misc/...>, which rhalbersma/xstd-misc ships and this package does not depend on.\n  ${offending}")
     endif()
-    file(GLOB_RECURSE lib_headers CONFIGURE_DEPENDS ${public_header_dir}/xstd/${lib}/*.hpp)
-    list(APPEND lib_headers ${public_header_dir}/xstd/${lib}.hpp)
-    foreach(h ${lib_headers})
-        file(STRINGS ${h} offending REGEX "#include[ \t]*<xstd/${forbidden}/")
-        if(offending)
-            message(FATAL_ERROR "${h} includes <xstd/${forbidden}/...>: xstd/${lib} and xstd/${forbidden} must stay leaves.\n  ${offending}")
-        endif()
-    endforeach()
 endforeach()
 
 foreach(h ${public_headers})

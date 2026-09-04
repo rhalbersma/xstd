@@ -82,16 +82,6 @@ target_sources(
         include/xstd/ints/type_traits/make_signed.hpp
         include/xstd/ints/type_traits/make_unsigned.hpp
         include/xstd/ints/type_traits/promoted.hpp
-        include/xstd/misc.hpp
-        include/xstd/misc/concepts.hpp
-        include/xstd/misc/concepts/specialization_of.hpp
-        include/xstd/misc/type_traits.hpp
-        include/xstd/misc/type_traits/conditional_data_member.hpp
-        include/xstd/misc/type_traits/empty_type.hpp
-        include/xstd/misc/type_traits/is_specialization_of.hpp
-        include/xstd/misc/type_traits/no_unique_address.hpp
-        include/xstd/misc/utility.hpp
-        include/xstd/misc/utility/to_underlying.hpp
 )
 
 # Tests and their Boost.Test dependency only exist when xstd-ints is being
