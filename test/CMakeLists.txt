@@ -81,7 +81,7 @@ target_compile_options(
     $<$<AND:$<BOOL:${XSTD_INTS_WARNINGS_AS_ERRORS}>,$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:GNU>>>:-Werror>
     # Pre-empts MinGW's 32-byte aligned stores to a 16-byte aligned stack, which bite the
     # moment AVX is enabled. The assembler rewrites them unaligned, so 256-bit vectors
-    # survive (rhalbersma/bit_set#54, GCC PR target/54412, binutils 2.38+).
+    # survive (rhalbersma/xstd-bits#54, GCC PR target/54412, binutils 2.38+).
     $<$<AND:$<CXX_COMPILER_ID:GNU>,$<PLATFORM_ID:Windows>>:-Wa$<COMMA>-muse-unaligned-vector-move>
 )
 target_include_directories(
