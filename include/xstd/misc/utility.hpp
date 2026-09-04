@@ -3,9 +3,9 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_CORE_UTILITY_HPP
-#define XSTD_CORE_UTILITY_HPP
+#ifndef XSTD_MISC_UTILITY_HPP
+#define XSTD_MISC_UTILITY_HPP
 
-#include <xstd/core/utility/to_underlying.hpp> // IWYU pragma: export; to_underlying
+#include <xstd/misc/utility/to_underlying.hpp> // IWYU pragma: export; to_underlying
 
-#endif // XSTD_CORE_UTILITY_HPP
+#endif // XSTD_MISC_UTILITY_HPP

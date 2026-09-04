@@ -3,12 +3,12 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/core/type_traits.hpp> // XSTD_NO_UNIQUE_ADDRESS, conditional_data_member_t, empty_type, is_specialization_of
+#include <xstd/misc/type_traits.hpp> // XSTD_NO_UNIQUE_ADDRESS, conditional_data_member_t, empty_type, is_specialization_of
 #include <boost/test/unit_test.hpp>  // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END
 #include <concepts>                  // same_as
 #include <type_traits>               // is_empty_v
 
-BOOST_AUTO_TEST_SUITE(Core)
+BOOST_AUTO_TEST_SUITE(Misc)
 BOOST_AUTO_TEST_SUITE(TypeTraits)
 
 // What the four are for together: a member that is there or is not, and costs nothing when it is not.

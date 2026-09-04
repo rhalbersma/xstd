@@ -8,11 +8,11 @@ project(consumer_add_subdirectory LANGUAGES CXX)
 
 # The repository root, found by walking up rather than through the
 # environment, so this consumer configures outside CI too.
-get_filename_component(xstd_root "${CMAKE_CURRENT_SOURCE_DIR}/../../.." ABSOLUTE)
+get_filename_component(xstd_ints_root "${CMAKE_CURRENT_SOURCE_DIR}/../../.." ABSOLUTE)
 
-# No BUILD_TESTING workaround: xstd builds its tests only as the top-level
+# No BUILD_TESTING workaround: xstd-ints builds its tests only as the top-level
 # project, and this configure would fail if that ever regressed.
-add_subdirectory("${xstd_root}" xstd-build)
+add_subdirectory("${xstd_ints_root}" xstd-ints-build)
 
 add_executable(main ../main.cpp)
-target_link_libraries(main PRIVATE xstd::xstd)
+target_link_libraries(main PRIVATE xstd::ints)

@@ -3,11 +3,11 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#include <xstd/core.hpp>            // the whole core surface
+#include <xstd/misc.hpp>            // the whole misc surface
 #include <boost/test/unit_test.hpp> // BOOST_AUTO_TEST_CASE, BOOST_AUTO_TEST_SUITE, BOOST_AUTO_TEST_SUITE_END
 #include <type_traits>              // integral_constant, is_empty_v
 
-BOOST_AUTO_TEST_SUITE(Core)
+BOOST_AUTO_TEST_SUITE(Misc)
 
 template<class>
 struct box

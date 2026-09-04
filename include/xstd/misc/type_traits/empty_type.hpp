@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_CORE_TYPE_TRAITS_EMPTY_TYPE_HPP
-#define XSTD_CORE_TYPE_TRAITS_EMPTY_TYPE_HPP
+#ifndef XSTD_MISC_TYPE_TRAITS_EMPTY_TYPE_HPP
+#define XSTD_MISC_TYPE_TRAITS_EMPTY_TYPE_HPP
 
 #include <compare>     // strong_ordering
 #include <concepts>    // same_as
@@ -30,4 +30,4 @@ struct empty_type
 
 } // namespace xstd
 
-#endif // XSTD_CORE_TYPE_TRAITS_EMPTY_TYPE_HPP
+#endif // XSTD_MISC_TYPE_TRAITS_EMPTY_TYPE_HPP

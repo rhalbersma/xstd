@@ -10,10 +10,10 @@ include(FetchContent)
 
 # The repository root, found by walking up rather than through the
 # environment, so this consumer configures outside CI too.
-get_filename_component(xstd_root "${CMAKE_CURRENT_SOURCE_DIR}/../../.." ABSOLUTE)
+get_filename_component(xstd_ints_root "${CMAKE_CURRENT_SOURCE_DIR}/../../.." ABSOLUTE)
 
-FetchContent_Declare(xstd SOURCE_DIR "${xstd_root}")
-FetchContent_MakeAvailable(xstd)
+FetchContent_Declare(xstd-ints SOURCE_DIR "${xstd_ints_root}")
+FetchContent_MakeAvailable(xstd-ints)
 
 add_executable(main ../main.cpp)
-target_link_libraries(main PRIVATE xstd::xstd)
+target_link_libraries(main PRIVATE xstd::ints)

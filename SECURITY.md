@@ -3,7 +3,7 @@
 ## Reporting a Vulnerability
 
 If you discover a security vulnerability in this project, please report it privately
-using [GitHub Security Advisories](https://github.com/rhalbersma/xstd/security/advisories/new)
+using [GitHub Security Advisories](https://github.com/rhalbersma/xstd-ints/security/advisories/new)
 rather than opening a public issue.
 
 This project is maintained by a single volunteer on a reasonable-effort basis.

@@ -6,8 +6,8 @@
 #include <xstd/ints/concepts/integer.hpp>
 #include <xstd/ints/cstdlib.hpp>
 #include <xstd/ints/format.hpp>
-#include <xstd/core/type_traits/is_specialization_of.hpp>
-#include <xstd/core/utility.hpp>
+#include <xstd/misc/type_traits/is_specialization_of.hpp>
+#include <xstd/misc/utility.hpp>
 #include <complex>
 #include <format>
 #include <type_traits>

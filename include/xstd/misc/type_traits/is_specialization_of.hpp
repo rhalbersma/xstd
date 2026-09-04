@@ -3,8 +3,8 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef XSTD_CORE_TYPE_TRAITS_IS_SPECIALIZATION_OF_HPP
-#define XSTD_CORE_TYPE_TRAITS_IS_SPECIALIZATION_OF_HPP
+#ifndef XSTD_MISC_TYPE_TRAITS_IS_SPECIALIZATION_OF_HPP
+#define XSTD_MISC_TYPE_TRAITS_IS_SPECIALIZATION_OF_HPP
 
 #include <type_traits> // bool_constant
 
@@ -22,4 +22,4 @@ using is_specialization_of = std::bool_constant<is_specialization_of_v<T, Primar
 
 } // namespace xstd
 
-#endif // XSTD_CORE_TYPE_TRAITS_IS_SPECIALIZATION_OF_HPP
+#endif // XSTD_MISC_TYPE_TRAITS_IS_SPECIALIZATION_OF_HPP
